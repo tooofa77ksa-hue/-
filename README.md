@@ -25,38 +25,56 @@
 
 الأسئلة الأولية في `scripts/seed.ts` مأخوذة من كراسة **"أستعد لأنافس - لغتي - ثالث ابتدائي"** المرفقة، وتغطي 11 من أصل 14 مهارة معتمدة (الملف المرفوع كان جزئيًا: 32 صفحة). المهارات الثلاث المتبقية (الرأي، التعبير الجمالي، نهاية مختلفة للنص) لم تُضَف لعدم ورودها في الملف - أضيفيها من لوحة المعلمة عند توفر بقية الكراسة.
 
-## البدء السريع
+## البدء السريع (محاكي محلي - بلا أي مشروع Firebase حقيقي وبلا أي Secret)
+
+هذا هو المسار الموصى به للتطوير والاختبار؛ لا يحتاج تسجيل دخول ولا حساب Firebase حقيقي إطلاقًا:
 
 ```bash
 npm install
-cp .env.example .env   # ثم عبّئي بيانات مشروع Firebase الخاص بك
+cp .env.example .env
+# افتحي .env وفعّلي قسم "الإمولاتور" المذكور بأعلى الملف (انسخي الأسطر المعلَّقة كما هي)
+
+# نافذة 1: شغّلي المحاكيات (Firestore + Auth) وابقيها تعمل
+npm run emulator
+
+# نافذة 2: أدخلي بيانات أولية وأنشئي حساب معلمة تجريبي على المحاكي
+FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 npm run seed
+FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 \
+  npm run create-teacher -- --email=teacher@example.com --password=Str0ngPass1! --name="معلمة تجريبية"
+
+# نافذة 2 أيضًا: شغّلي التطبيق (متصل بالمحاكي تلقائيًا لأن VITE_USE_FIREBASE_EMULATORS=true)
 npm run dev
 ```
 
-### إعداد Firebase
+الآن `/teacher` تعمل بحساب `teacher@example.com` / `Str0ngPass1!` و`/play` تعرض الأسئلة الـ16 المزروعة - كل ذلك محليًا بلا أي اتصال بـ Firebase الحقيقي. واجهة فحص المحاكي: `http://127.0.0.1:4000`.
 
-1. أنشئي مشروع Firebase جديد، وفعّلي: Authentication (Email/Password)، Cloud Firestore، Hosting.
-2. عبّئي `.env` بقيم SDK من Firebase Console.
-3. عبّئي `.firebaserc` بمعرّف مشروعك الحقيقي بدل `REPLACE_WITH_YOUR_FIREBASE_PROJECT_ID`.
-4. انشري القواعد والفهارس:
-   ```bash
-   npx firebase-tools login
-   npx firebase-tools deploy --only firestore:rules,firestore:indexes
-   ```
-5. نزّلي مفتاح حساب خدمة (Service Account) من Project Settings > Service Accounts واحفظيه باسم `serviceAccountKey.json` في جذر المشروع (مُستبعد من git).
-6. أنشئي حساب المعلمة الأول (لا يوجد تسجيل عام):
-   ```bash
-   npm run create-teacher -- --email=teacher@example.com --password=Str0ngPass! --name="اسم المعلمة" --role=teacher
-   ```
-7. أدخلي البيانات الأولية:
-   ```bash
-   npm run seed
-   ```
-8. ابني وانشري:
-   ```bash
-   npm run build
-   npx firebase-tools deploy --only hosting
-   ```
+### اختبار قواعد الأمان تلقائيًا (Firestore Security Rules)
+
+```bash
+npm run test:rules
+```
+
+يشغّل هذا الأمر محاكيَي Firestore وAuth، ثم 18 اختبارًا آليًا (`tests/rules/firestore.rules.test.ts` عبر `@firebase/rules-unit-testing` وVitest) يغطي جميع السيناريوهات التالية على القواعد الفعلية في `firestore.rules`، ثم يطفئ المحاكيات تلقائيًا:
+
+- مستخدم غير مسجَّل: لا يكتب، لا يقرأ سؤالًا غير منشور، يقرأ فقط `published==true && active==true`، ولا ينفّذ استعلامًا غير مقيَّد يكشف الكل.
+- معلمة (`role: teacher`): تضيف/تعدّل/تحذف سؤالًا صالحًا، وتُرفض محاولاتها لحفظ سؤال بعدد اختيارات ≠ 4 أو بـ`correctAnswer` خارج 0-3 (عند الإنشاء وعند التعديل معًا).
+- مستخدم مسجَّل دخول بلا صلاحية `teacher/admin`: تُرفض كل كتابة (إضافة/تعديل/حذف)، ولا يستطيع منح نفسه صلاحية عبر الكتابة على `users`.
+
+هذه الاختبارات تعمل أيضًا في CI تلقائيًا (`.github/workflows/ci.yml`، Job باسم `rules-test`) على كل Push/PR.
+
+### الانتقال لاحقًا إلى مشروع Firebase حقيقي
+
+عندما يتوفر مشروع Firebase فعلي، الخطوات المطلوبة منك فقط:
+
+1. إنشاء المشروع في Firebase Console + تسجيل الدخول (`npx firebase login`).
+2. تفعيل Authentication (Email/Password) وإنشاء قاعدة Cloud Firestore من الكونسول.
+3. استبدال `demo-shualat-lughati` في `.firebaserc` بمعرّف مشروعك الحقيقي (أو `npx firebase use --add`).
+4. تعبئة `.env` بقيم SDK الحقيقية من Project Settings، وتعيين `VITE_USE_FIREBASE_EMULATORS=false`.
+5. نشر القواعد والفهارس: `npx firebase deploy --only firestore:rules,firestore:indexes`.
+6. تشغيل `npm run seed` و`npm run create-teacher` (بدون متغيرات EMULATOR_HOST هذه المرة) - يتطلبان عندها `serviceAccountKey.json` حقيقيًا من Project Settings > Service Accounts (مُستبعد من git تلقائيًا، **لا تُنشئي ملفًا وهميًا بديلًا عنه**).
+7. `npm run build && npx firebase deploy --only hosting`.
+
+لم يُنشَر أي شيء إلى Production في هذا المستودع - هذا يتطلب حسابك.
 
 ## الأوامر
 
@@ -66,8 +84,10 @@ npm run dev
 | `npm run build` | بناء الإنتاج (typecheck + vite build) |
 | `npm run lint` | فحص ESLint |
 | `npm run typecheck` | فحص TypeScript فقط |
-| `npm run seed` | إدخال بيانات أولية إلى Firestore |
-| `npm run create-teacher` | إنشاء/تحديث حساب معلمة أو إدارة |
+| `npm run emulator` | تشغيل Firebase Local Emulator Suite (Firestore + Auth) |
+| `npm run test:rules` | اختبارات آلية لقواعد الأمان على المحاكي (18 سيناريو) |
+| `npm run seed` | إدخال بيانات أولية (يعمل على المحاكي أو مشروع حقيقي، آمن لإعادة التشغيل) |
+| `npm run create-teacher` | إنشاء/تحديث حساب معلمة أو إدارة (يعمل على المحاكي أو مشروع حقيقي) |
 
 ## بنية قاعدة البيانات (Firestore)
 
@@ -84,6 +104,7 @@ npm run dev
 ## الأمان
 
 - Firestore Security Rules حقيقية (`firestore.rules`) - انظر التعليقات بداخلها.
+- Rules مُختبَرة آليًا على Firebase Local Emulator Suite عبر `npm run test:rules` (18 اختبار، تعمل أيضًا في CI) - وليست ادّعاءً بلا تحقق.
 - لا Secrets في الواجهة الأمامية - فقط مفاتيح Firebase العامة عبر `.env` (آمنة للعميل، الحماية الفعلية بالـSecurity Rules).
 - `dependabot.yml` لتحديثات الاعتماديات، `codeql.yml` لفحص CodeQL (JavaScript/TypeScript)، و`ci.yml` يشغّل `npm audit`.
 - لا تُجمع أي بيانات شخصية عن الطالبات (لا حساب، لا اسم، لا هوية).

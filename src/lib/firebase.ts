@@ -39,7 +39,14 @@ if (typeof window !== "undefined") {
   });
 }
 
-if (import.meta.env.VITE_USE_FIREBASE_EMULATORS === "true") {
+// الاتصال بالمحاكيات المحلية (Emulator Suite) مقصور على وضع التطوير
+// (import.meta.env.DEV) عمدًا، حتى لو تسرّب المتغير خطأً إلى بيئة إنتاج،
+// فلا يمكن لبناء الإنتاج (npm run build) الاتصال بمحاكٍ محلي إطلاقًا -
+// Vite يستبدل import.meta.env.DEV بقيمة ثابتة (false) عند البناء، فهذا
+// الشرط بأكمله يُستبعَد من حزمة الإنتاج (Dead code elimination).
+if (import.meta.env.DEV && import.meta.env.VITE_USE_FIREBASE_EMULATORS === "true") {
   connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
   connectFirestoreEmulator(db, "127.0.0.1", 8080);
+  // eslint-disable-next-line no-console
+  console.info("[Firebase] متصل بمحاكيات Firebase المحلية (Auth: 9099, Firestore: 8080)");
 }

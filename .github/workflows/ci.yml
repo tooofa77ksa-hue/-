@@ -38,3 +38,23 @@ jobs:
       - name: npm audit (high severity)
         run: npm audit --audit-level=high
         continue-on-error: true
+
+  rules-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - run: npm ci
+
+      - name: Firestore Security Rules tests (Firebase Local Emulator Suite)
+        run: npm run test:rules

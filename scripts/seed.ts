@@ -10,31 +10,23 @@
  * تجنبًا لاختلاق محتوى غير مصدره الكراسة - إضافتها متاحة لاحقًا من لوحة
  * المعلمة فور توفر تلك الصفحات.
  *
- * الاستخدام:
- *   1) نزّل مفتاح حساب خدمة من Firebase Console > Project Settings > Service
- *      Accounts > Generate new private key، واحفظه باسم serviceAccountKey.json
+ * الاستخدام (محاكي محلي، بلا أي Secret - موصى به للتطوير):
+ *   1) شغّلي في نافذة طرفية: npm run emulator
+ *   2) في نافذة أخرى: FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 npm run seed
+ *
+ * الاستخدام (مشروع Firebase حقيقي):
+ *   1) نزّلي مفتاح حساب خدمة من Firebase Console > Project Settings > Service
+ *      Accounts > Generate new private key، واحفظيه باسم serviceAccountKey.json
  *      في جذر المشروع (هذا الملف مُستبعد من git عبر .gitignore).
- *   2) شغّل: npm run seed
+ *   2) شغّلي: npm run seed
+ *
+ * السكربت آمن لإعادة التشغيل: كل وثيقة لها معرّف ثابت وتُكتب بـ merge:true،
+ * فإعادة التشغيل تُحدِّث نفس السجلات بدل تكرارها.
  */
-import { initializeApp, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
-import { readFileSync, existsSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
+import { initAdminApp } from "./adminApp";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const keyPath = join(__dirname, "..", "serviceAccountKey.json");
-
-if (!existsSync(keyPath)) {
-  console.error(
-    "\n[seed] لم يتم العثور على serviceAccountKey.json في جذر المشروع.\n" +
-      "نزّله من Firebase Console > Project Settings > Service Accounts، ثم أعد المحاولة.\n"
-  );
-  process.exit(1);
-}
-
-const serviceAccount = JSON.parse(readFileSync(keyPath, "utf-8"));
-initializeApp({ credential: cert(serviceAccount) });
+initAdminApp();
 const db = getFirestore();
 
 const SKILLS: Array<{ key: string; labelAr: string; order: number }> = [

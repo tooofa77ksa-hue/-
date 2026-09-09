@@ -2,23 +2,17 @@
  * سكربت إنشاء حساب معلمة/إدارة (Admin only, No Public Signup).
  * يُشغَّل محليًا من قِبل المسؤول فقط - لا يُنشر ضمن التطبيق.
  *
- * الاستخدام:
+ * محاكي محلي (بلا Secret):
+ *   npm run emulator   # في نافذة
+ *   FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 \
+ *     npm run create-teacher -- --email=teacher@example.com --password=Str0ngPass! --name="معلمة الاختبار"
+ *
+ * مشروع حقيقي (يتطلب serviceAccountKey.json):
  *   npm run create-teacher -- --email=teacher@example.com --password=Str0ngPass! --name="اسم المعلمة" --role=teacher
  */
-import { initializeApp, cert } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
-import { readFileSync, existsSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const keyPath = join(__dirname, "..", "serviceAccountKey.json");
-
-if (!existsSync(keyPath)) {
-  console.error("[create-teacher] لم يتم العثور على serviceAccountKey.json في جذر المشروع.");
-  process.exit(1);
-}
+import { initAdminApp } from "./adminApp";
 
 function parseArgs() {
   const args: Record<string, string> = {};
@@ -42,8 +36,7 @@ async function main() {
     process.exit(1);
   }
 
-  const serviceAccount = JSON.parse(readFileSync(keyPath, "utf-8"));
-  initializeApp({ credential: cert(serviceAccount) });
+  initAdminApp();
   const auth = getAuth();
   const db = getFirestore();
 
