@@ -16,7 +16,7 @@ import {
   where,
   type Unsubscribe,
 } from "firebase/firestore";
-import { db } from "./firebase";
+import { db, isFirebaseUsable } from "./firebase";
 import { STARTER_QUESTIONS, STARTER_SET, STARTER_SET_ID } from "./starterData";
 import type {
   AppUser,
@@ -27,9 +27,15 @@ import type {
   Skill,
 } from "@/types/models";
 
-const questionsCol = collection(db, "questions");
-const questionSetsCol = collection(db, "questionSets");
-const skillsCol = collection(db, "skills");
+// دوال بدل ثوابت على مستوى الوحدة عمدًا: استدعاء collection(db, ...) يقرأ
+// خصائص db فورًا، وإن كانت db كائن Proxy بديل بسبب فشل تهيئة Firebase
+// (انظر firebase.ts) فسيرمي الخطأ حينها. كثابت على مستوى الوحدة كان هذا
+// يحدث أثناء استيراد الملف قبل أن يبدأ React بالعرض إطلاقًا (شاشة بيضاء
+// لا يلتقطها أي ErrorBoundary) - كدالة، لا يُستدعى إلا داخل مكوّنات React
+// (useEffect)، فيصبح الخطأ قابلًا للالتقاط بأمان.
+const questionsCol = () => collection(db, "questions");
+const questionSetsCol = () => collection(db, "questionSets");
+const skillsCol = () => collection(db, "skills");
 
 function withId<T>(d: { id: string; data: () => any }): T {
   return { id: d.id, ...d.data() } as T;
@@ -37,6 +43,7 @@ function withId<T>(d: { id: string; data: () => any }): T {
 
 // ---------- المستخدم / الدور ----------
 export async function getAppUser(uid: string): Promise<AppUser | null> {
+  if (!isFirebaseUsable) return null;
   const snap = await getDoc(doc(db, "users", uid));
   if (!snap.exists()) return null;
   return { uid, ...snap.data() } as AppUser;
@@ -51,9 +58,13 @@ export function subscribePublishedQuestions(
   onData: (questions: Question[]) => void,
   gameMode?: string
 ): Unsubscribe {
+  if (!isFirebaseUsable) {
+    onData([]);
+    return () => {};
+  }
   const clauses = [where("published", "==", true), where("active", "==", true)];
   if (gameMode) clauses.push(where("gameMode", "==", gameMode));
-  const q = query(questionsCol, ...clauses);
+  const q = query(questionsCol(), ...clauses);
   return onSnapshot(q, (snap) => {
     const questions = snap.docs.map((d) => withId<Question>(d));
     questions.sort((a, b) => a.order - b.order);
@@ -63,14 +74,18 @@ export function subscribePublishedQuestions(
 
 // ---------- الأسئلة: إدارة كاملة للمعلمة ----------
 export function subscribeAllQuestions(onData: (questions: Question[]) => void): Unsubscribe {
-  const q = query(questionsCol, orderBy("order", "asc"));
+  if (!isFirebaseUsable) {
+    onData([]);
+    return () => {};
+  }
+  const q = query(questionsCol(), orderBy("order", "asc"));
   return onSnapshot(q, (snap) => onData(snap.docs.map((d) => withId<Question>(d))));
 }
 
 export type QuestionInput = Omit<Question, "id" | "createdAt" | "updatedAt">;
 
 export async function createQuestion(input: QuestionInput): Promise<string> {
-  const ref = await addDoc(questionsCol, {
+  const ref = await addDoc(questionsCol(), {
     ...input,
     createdAt: Date.now(),
     updatedAt: Date.now(),
@@ -106,14 +121,18 @@ export async function setActive(id: string, active: boolean): Promise<void> {
 
 // ---------- مجموعات الأسئلة ----------
 export function subscribeQuestionSets(onData: (sets: QuestionSet[]) => void): Unsubscribe {
-  const q = query(questionSetsCol, orderBy("order", "asc"));
+  if (!isFirebaseUsable) {
+    onData([]);
+    return () => {};
+  }
+  const q = query(questionSetsCol(), orderBy("order", "asc"));
   return onSnapshot(q, (snap) => onData(snap.docs.map((d) => withId<QuestionSet>(d))));
 }
 
 export type QuestionSetInput = Omit<QuestionSet, "id" | "createdAt" | "updatedAt">;
 
 export async function createQuestionSet(input: QuestionSetInput): Promise<string> {
-  const ref = await addDoc(questionSetsCol, {
+  const ref = await addDoc(questionSetsCol(), {
     ...input,
     createdAt: Date.now(),
     updatedAt: Date.now(),
@@ -134,43 +153,59 @@ export async function deleteQuestionSet(id: string): Promise<void> {
 
 // ---------- المهارات ----------
 export async function fetchSkills(): Promise<Skill[]> {
-  const snap = await getDocs(query(skillsCol, orderBy("order", "asc")));
+  if (!isFirebaseUsable) return [];
+  const snap = await getDocs(query(skillsCol(), orderBy("order", "asc")));
   return snap.docs.map((d) => withId<Skill>(d));
 }
 
 export function subscribeSkills(onData: (skills: Skill[]) => void): Unsubscribe {
-  const q = query(skillsCol, orderBy("order", "asc"));
+  if (!isFirebaseUsable) {
+    onData([]);
+    return () => {};
+  }
+  const q = query(skillsCol(), orderBy("order", "asc"));
   return onSnapshot(q, (snap) => onData(snap.docs.map((d) => withId<Skill>(d))));
 }
 
 // ---------- إعدادات اللعبة والصوت (وثيقة واحدة singleton) ----------
-const GAME_SETTINGS_DOC = doc(db, "gameSettings", "default");
-const AUDIO_SETTINGS_DOC = doc(db, "audioSettings", "default");
+// دوال لنفس سبب questionsCol/questionSetsCol/skillsCol أعلاه.
+const gameSettingsDoc = () => doc(db, "gameSettings", "default");
+const audioSettingsDoc = () => doc(db, "audioSettings", "default");
 
 export async function getGameSettings(): Promise<GameSettings | null> {
-  const snap = await getDoc(GAME_SETTINGS_DOC);
+  if (!isFirebaseUsable) return null;
+  const snap = await getDoc(gameSettingsDoc());
   return snap.exists() ? (snap.data() as GameSettings) : null;
 }
 
 export function subscribeGameSettings(onData: (s: GameSettings | null) => void): Unsubscribe {
-  return onSnapshot(GAME_SETTINGS_DOC, (snap) => onData(snap.exists() ? (snap.data() as GameSettings) : null));
+  if (!isFirebaseUsable) {
+    onData(null);
+    return () => {};
+  }
+  return onSnapshot(gameSettingsDoc(), (snap) => onData(snap.exists() ? (snap.data() as GameSettings) : null));
 }
 
 export async function updateGameSettings(patch: Partial<GameSettings>): Promise<void> {
-  await setDoc(GAME_SETTINGS_DOC, { ...patch, updatedAt: Date.now() }, { merge: true });
+  await setDoc(gameSettingsDoc(), { ...patch, updatedAt: Date.now() }, { merge: true });
 }
 
 export async function getAudioSettings(): Promise<AudioSettings | null> {
-  const snap = await getDoc(AUDIO_SETTINGS_DOC);
+  if (!isFirebaseUsable) return null;
+  const snap = await getDoc(audioSettingsDoc());
   return snap.exists() ? (snap.data() as AudioSettings) : null;
 }
 
 export function subscribeAudioSettings(onData: (s: AudioSettings | null) => void): Unsubscribe {
-  return onSnapshot(AUDIO_SETTINGS_DOC, (snap) => onData(snap.exists() ? (snap.data() as AudioSettings) : null));
+  if (!isFirebaseUsable) {
+    onData(null);
+    return () => {};
+  }
+  return onSnapshot(audioSettingsDoc(), (snap) => onData(snap.exists() ? (snap.data() as AudioSettings) : null));
 }
 
 export async function updateAudioSettings(patch: Partial<AudioSettings>): Promise<void> {
-  await setDoc(AUDIO_SETTINGS_DOC, { ...patch, updatedAt: Date.now() }, { merge: true });
+  await setDoc(audioSettingsDoc(), { ...patch, updatedAt: Date.now() }, { merge: true });
 }
 
 /**

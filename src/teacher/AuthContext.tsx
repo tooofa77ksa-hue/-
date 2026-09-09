@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut as fbSignOut, type User } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, isFirebaseUsable } from "@/lib/firebase";
 import { getAppUser } from "@/lib/repo";
 import type { AppUser } from "@/types/models";
 
@@ -29,6 +29,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!isFirebaseUsable) {
+      setLoading(false);
+      return;
+    }
     return onAuthStateChanged(auth, async (user) => {
       setFirebaseUser(user);
       if (user) {
@@ -47,6 +51,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     setError(null);
+    if (!isFirebaseUsable) {
+      setError("لم يتم إعداد Firebase بعد على هذا الموقع. تواصلي مع الدعم الفني.");
+      throw new Error("Firebase not configured");
+    }
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (err: any) {
@@ -56,6 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    if (!isFirebaseUsable) return;
     await fbSignOut(auth);
   };
 
