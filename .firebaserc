@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "demo-shualat-lughati"
+    "default": "demo-shualat-lughati",
+    "production": "lughati165"
   }
 }

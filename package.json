@@ -13,7 +13,9 @@
     "seed": "tsx scripts/seed.ts",
     "create-teacher": "tsx scripts/createTeacher.ts",
     "emulator": "firebase emulators:start --only auth,firestore",
-    "test:rules": "firebase emulators:exec --only firestore,auth \"vitest run tests/rules\""
+    "test:rules": "firebase emulators:exec --only firestore,auth \"vitest run tests/rules\"",
+    "deploy:rules": "firebase deploy --project production --only firestore:rules,firestore:indexes",
+    "deploy:hosting": "firebase deploy --project production --only hosting"
   },
   "dependencies": {
     "firebase": "^12.18.0",
