@@ -17,12 +17,6 @@ service cloud.firestore {
         userDoc().data.role in ['teacher', 'admin'];
     }
 
-    function isAdmin() {
-      return isSignedIn() &&
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        userDoc().data.role == 'admin';
-    }
-
     // ------------------------------------------------------------------
     // users: تُدار فقط عبر Admin SDK (سكربت إنشاء المعلمة). لا كتابة من العميل
     // إطلاقًا، حتى لا يستطيع أي مستخدم منح نفسه صلاحية teacher/admin.
@@ -54,17 +48,23 @@ service cloud.firestore {
     // ------------------------------------------------------------------
     // questions: الطالبات يقرأن فقط الأسئلة المنشورة والمفعّلة.
     // ممنوع منعًا باتًا أي كتابة من غير المعلمة/الإدارة، وممنوع تسريب
-    // إجابات الأسئلة غير المنشورة للعامة.
+    // إجابات الأسئلة غير المنشورة للعامة. شكل البيانات (4 اختيارات،
+    // إجابة صحيحة ضمن المدى) يُتحقَّق منه في الإنشاء والتعديل معًا حتى
+    // لا يُترك السؤال في حالة غير صالحة بعد أي تعديل جزئي.
     // ------------------------------------------------------------------
-    match /questions/{questionId} {
-      allow read: if isStaff() ||
-        (resource.data.published == true && resource.data.active == true);
-      allow create: if isStaff() &&
-        request.resource.data.correctAnswer is int &&
+    function validQuestionShape() {
+      return request.resource.data.correctAnswer is int &&
         request.resource.data.correctAnswer >= 0 &&
         request.resource.data.correctAnswer <= 3 &&
         request.resource.data.choices.size() == 4;
-      allow update, delete: if isStaff();
+    }
+
+    match /questions/{questionId} {
+      allow read: if isStaff() ||
+        (resource.data.published == true && resource.data.active == true);
+      allow create: if isStaff() && validQuestionShape();
+      allow update: if isStaff() && validQuestionShape();
+      allow delete: if isStaff();
     }
 
     // ------------------------------------------------------------------
