@@ -1,0 +1,91 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function isStaff() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        userDoc().data.role in ['teacher', 'admin'];
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        userDoc().data.role == 'admin';
+    }
+
+    // ------------------------------------------------------------------
+    // users: تُدار فقط عبر Admin SDK (سكربت إنشاء المعلمة). لا كتابة من العميل
+    // إطلاقًا، حتى لا يستطيع أي مستخدم منح نفسه صلاحية teacher/admin.
+    // ------------------------------------------------------------------
+    match /users/{uid} {
+      allow read: if isSignedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // ------------------------------------------------------------------
+    // skills: قراءة عامة (لا تحوي بيانات حساسة، تُستخدم في عرض المهارات
+    // داخل اللعبة وواجهة المعلمة). الكتابة للمعلمة/الإدارة فقط.
+    // ------------------------------------------------------------------
+    match /skills/{skillId} {
+      allow read: if true;
+      allow write: if isStaff();
+    }
+
+    // ------------------------------------------------------------------
+    // questionSets: الطالبات يقرأن فقط المجموعات المفعّلة (active == true).
+    // المعلمة/الإدارة يقرأن ويكتبن كل شيء.
+    // ------------------------------------------------------------------
+    match /questionSets/{setId} {
+      allow read: if isStaff() || resource.data.active == true;
+      allow create: if isStaff();
+      allow update, delete: if isStaff();
+    }
+
+    // ------------------------------------------------------------------
+    // questions: الطالبات يقرأن فقط الأسئلة المنشورة والمفعّلة.
+    // ممنوع منعًا باتًا أي كتابة من غير المعلمة/الإدارة، وممنوع تسريب
+    // إجابات الأسئلة غير المنشورة للعامة.
+    // ------------------------------------------------------------------
+    match /questions/{questionId} {
+      allow read: if isStaff() ||
+        (resource.data.published == true && resource.data.active == true);
+      allow create: if isStaff() &&
+        request.resource.data.correctAnswer is int &&
+        request.resource.data.correctAnswer >= 0 &&
+        request.resource.data.correctAnswer <= 3 &&
+        request.resource.data.choices.size() == 4;
+      allow update, delete: if isStaff();
+    }
+
+    // ------------------------------------------------------------------
+    // gameSettings / audioSettings: إعدادات عامة غير حساسة، قراءة عامة
+    // (تحتاجها /play لضبط مستوى الصوت الافتراضي ووضع اللعبة الافتراضي)،
+    // والكتابة للمعلمة/الإدارة فقط.
+    // ------------------------------------------------------------------
+    match /gameSettings/{docId} {
+      allow read: if true;
+      allow write: if isStaff();
+    }
+
+    match /audioSettings/{docId} {
+      allow read: if true;
+      allow write: if isStaff();
+    }
+
+    // لا توجد أي مجموعة لبيانات الطالبات الشخصية عمدًا: اللعبة لا تجمع
+    // أسماء أو هويات أو أرقامًا، وتقدّمها بدون تسجيل دخول.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

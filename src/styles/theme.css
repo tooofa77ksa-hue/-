@@ -1,0 +1,149 @@
+/*
+  رموز الهوية البصرية (Design Tokens)
+  ------------------------------------------------------------------
+  القيم أدناه مأخوذة حرفيًا من "دليل الهوية البصرية - وزارة التعليم"
+  (الإصدار الثالث، أكتوبر 2025): الألوان الأساسية والمساندة كما وردت
+  بالضبط في صفحتي "لوحة الألوان الأساسية/المساندة". الشعار في
+  Header/Footer هو الملف الرسمي نفسه (مُستخرج من الدليل دون إعادة رسم)
+  بلا أي تعديل على ألوانه أو نسبه، وبلا Glow/Shadow، مع ترك مسافة آمنة
+  حوله (≈1.5x عرض تجمّع النقاط، كما يحدد الدليل).
+  خط الهوية الرسمي "Helvetica Neue W23 for SKY" مرخّص وغير مضمّن هنا؛
+  تم استخدام Tajawal (خط عربي عام مجاني) كبديل مناسب بصريًا حتى يوفَّر
+  ملف الخط الرسمي.
+*/
+:root {
+  /* هوية رسمية - Header/Footer فقط (Ministry of Education, v3 2025) */
+  --brand-primary: #07a869; /* أخضر أساسي */
+  --brand-primary-dark: #15445a; /* كحلي داكن أساسي */
+  --brand-blue: #3d7eb9;
+  --brand-teal: #0da9a6;
+  --brand-gold: #c1b489;
+  --brand-gray: #c2c1c1;
+  --brand-ink: #15445a;
+  --brand-paper: #ffffff;
+  --brand-muted: #5b6b73;
+  --brand-border: #d9e3de;
+
+  /* منطقة اللعبة - كرتونية زاهية، منسجمة مع الهوية دون تقليدها حرفيًا */
+  --game-bg-1: #fff4d6;
+  --game-bg-2: #ffe0ec;
+  --game-bg-3: #d9f4ff;
+  --game-accent-1: #ff8a3d;
+  --game-accent-2: #ff5d8f;
+  --game-accent-3: #35c2e8;
+  --game-accent-4: #7bd389;
+  --game-gold: #ffcb3d;
+  --game-ink: #3a2a4d;
+  --game-panel: rgba(255, 255, 255, 0.92);
+
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 28px;
+  --shadow-soft: 0 6px 20px rgba(0, 0, 0, 0.12);
+  --font-arabic: "Tajawal", "Segoe UI", "Cairo", system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font-arabic);
+  direction: rtl;
+  color: var(--brand-ink);
+  background: var(--brand-paper);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+button {
+  font-family: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+.app-shell {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-main {
+  flex: 1;
+  min-height: 0;
+}
+
+/* -------------------- Header الرسمي -------------------- */
+.brand-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 20px;
+  background: var(--brand-paper);
+  border-bottom: 3px solid var(--brand-primary);
+}
+
+.brand-header__identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-logo {
+  height: 44px;
+  width: auto;
+  flex-shrink: 0;
+  /* منطقة آمنة حول الشعار (Clear space) حسب الدليل: لا تُلصق عناصر أخرى به */
+  margin: 10px 14px;
+  display: block;
+}
+
+.brand-title {
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--brand-primary-dark);
+}
+
+.brand-subtitle {
+  font-size: 12px;
+  color: var(--brand-muted);
+}
+
+/* -------------------- Footer الرسمي -------------------- */
+.brand-footer {
+  padding: 14px 20px 10px;
+  background: var(--brand-paper);
+  border-top: 3px solid var(--brand-primary);
+  text-align: center;
+  color: var(--brand-ink);
+}
+
+.brand-footer__line {
+  font-size: 13px;
+  margin: 2px 0;
+}
+
+.brand-footer__credit {
+  margin-top: 8px;
+  font-size: 10px;
+  color: var(--brand-muted);
+}
+
+@media (max-width: 480px) {
+  .brand-header {
+    padding: 8px 12px;
+  }
+  .brand-title {
+    font-size: 15px;
+  }
+}
