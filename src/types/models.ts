@@ -75,11 +75,24 @@ export interface Question {
   createdBy: string;
 }
 
+/** نصوص تعريفية قابلة للتعديل بالكامل من لوحة المعلمة، بلا أي Hard-coding
+ * في الكود - أي تغيير هنا ينعكس فورًا في الواجهة عبر Firestore. */
+export interface BrandingSettings {
+  gameName: string; // اسم اللعبة/المنصة (Header + عنوان الصفحة)
+  gameTagline: string; // الوصف المختصر تحت الاسم
+  welcomeMessage: string; // عبارة الترحيب في شاشة اختيار اللعبة
+  schoolName: string; // السطر الأول في الفوتر
+  principalName: string; // اسم المديرة
+  deputyName: string; // اسم الوكيلة
+  designerCredit: string; // اسم مصممة المنصة (آخر سطر صغير في الفوتر)
+}
+
 export interface GameSettings {
   activeGameModes: GameMode[];
   defaultGameMode: GameMode;
   defaultDifficulty: Difficulty;
   questionsPerRound: number;
+  branding: BrandingSettings;
   updatedAt: number;
 }
 

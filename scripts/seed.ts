@@ -20,8 +20,10 @@
  *      في جذر المشروع (هذا الملف مُستبعد من git عبر .gitignore).
  *   2) شغّلي: npm run seed
  *
- * السكربت آمن لإعادة التشغيل: كل وثيقة لها معرّف ثابت وتُكتب بـ merge:true،
- * فإعادة التشغيل تُحدِّث نفس السجلات بدل تكرارها.
+ * السكربت آمن لإعادة التشغيل: يتحقق أولًا من وجود كل مجموعة (مجموعة
+ * الأسئلة التجريبية، gameSettings، audioSettings) ويتخطاها إن كانت
+ * موجودة بالفعل، فلا يُكرِّر البيانات ولا يستبدل أي تعديل حقيقي قامت به
+ * المعلمة لاحقًا (مثل تخصيص اسم اللعبة أو الفوتر من صفحة الإعدادات).
  */
 import { getFirestore } from "firebase-admin/firestore";
 import { initAdminApp } from "./adminApp";
@@ -217,18 +219,28 @@ const QUESTIONS: Array<{
   },
 ];
 
+/**
+ * السكربت "تهيئة أولى" (Bootstrap) لا "مزامنة دائمة": أي وثيقة تُنشئها
+ * المعلمة/الإدارة أو تُعدِّلها لاحقًا من /teacher (خصوصًا gameSettings
+ * وquestionSets/sample-set-01) لن تُلمَس أو تُستبدَل في التشغيلات
+ * التالية - فقط ما لم يكن موجودًا بعد يُنشأ. هذا ما يجعل إعادة التشغيل
+ * آمنة فعليًا: لا تكرار للأسئلة، ولا استرجاع للقيم الافتراضية فوق تخصيص
+ * حقيقي قامت به المعلمة.
+ */
 async function main() {
   console.log("[seed] بدء تهيئة البيانات...");
   const batch = db.batch();
+  let writes = 0;
 
   for (const s of SKILLS) {
     batch.set(db.collection("skills").doc(s.key), s, { merge: true });
+    writes++;
   }
 
   const setRef = db.collection("questionSets").doc(SET_ID);
-  batch.set(
-    setRef,
-    {
+  const setSnap = await setRef.get();
+  if (!setSnap.exists) {
+    batch.set(setRef, {
       title: "أستعد لأنافس - المستوى الأول",
       description:
         "أسئلة من كراسة أستعد لأنافس (لغتي - ثالث ابتدائي)، تغطي 11 مهارة من أصل 14. أضيفي بقية المهارات (الرأي، التعبير الجمالي، نهاية مختلفة للنص) من لوحة التحكم.",
@@ -238,15 +250,12 @@ async function main() {
       createdAt: Date.now(),
       updatedAt: Date.now(),
       createdBy: "seed-script",
-    },
-    { merge: true }
-  );
+    });
+    writes++;
 
-  QUESTIONS.forEach((q, i) => {
-    const ref = db.collection("questions").doc(`sample-q-${String(i + 1).padStart(2, "0")}`);
-    batch.set(
-      ref,
-      {
+    QUESTIONS.forEach((q, i) => {
+      const ref = db.collection("questions").doc(`sample-q-${String(i + 1).padStart(2, "0")}`);
+      batch.set(ref, {
         ...q,
         questionSetId: SET_ID,
         feedback: {
@@ -258,26 +267,41 @@ async function main() {
         createdAt: Date.now(),
         updatedAt: Date.now(),
         createdBy: "seed-script",
-      },
-      { merge: true }
-    );
-  });
+      });
+      writes++;
+    });
+  } else {
+    console.log("[seed] مجموعة أسئلة أستعد لأنافس موجودة مسبقًا - تم تخطيها (لن تُستبدَل أي تعديلات للمعلمة).");
+  }
 
-  batch.set(
-    db.collection("gameSettings").doc("default"),
-    {
+  const gameSettingsRef = db.collection("gameSettings").doc("default");
+  const gameSettingsSnap = await gameSettingsRef.get();
+  if (!gameSettingsSnap.exists) {
+    batch.set(gameSettingsRef, {
       activeGameModes: ["rocket_mission", "squishy_treasure", "magic_gate"],
       defaultGameMode: "rocket_mission",
       defaultDifficulty: "easy",
       questionsPerRound: 6,
+      branding: {
+        gameName: "شُعلة لغتي",
+        gameTagline: "منصة تعليمية تفاعلية - لغتي - الصف الثالث الابتدائي",
+        welcomeMessage: "اختاري لعبتك المفضلة! 🌟",
+        schoolName: "المدرسة الابتدائية الخامسة والستون بعد المائة",
+        principalName: "جازية السميري",
+        deputyName: "ناهد الحربي",
+        designerCredit: "دلال السناني",
+      },
       updatedAt: Date.now(),
-    },
-    { merge: true }
-  );
+    });
+    writes++;
+  } else {
+    console.log("[seed] gameSettings موجودة مسبقًا - تم تخطيها (إعدادات المعلمة الحالية محفوظة).");
+  }
 
-  batch.set(
-    db.collection("audioSettings").doc("default"),
-    {
+  const audioSettingsRef = db.collection("audioSettings").doc("default");
+  const audioSettingsSnap = await audioSettingsRef.get();
+  if (!audioSettingsSnap.exists) {
+    batch.set(audioSettingsRef, {
       masterVolumeDefault: 0.8,
       voiceVolumeDefault: 1,
       sfxVolumeDefault: 0.7,
@@ -285,13 +309,17 @@ async function main() {
       reducedMotionDefault: false,
       duckingAmount: 0.6,
       updatedAt: Date.now(),
-    },
-    { merge: true }
-  );
+    });
+    writes++;
+  } else {
+    console.log("[seed] audioSettings موجودة مسبقًا - تم تخطيها.");
+  }
 
   await batch.commit();
-  console.log("[seed] تم إدخال المهارات ومجموعة أسئلة أستعد لأنافس والإعدادات بنجاح.");
-  console.log("[seed] تذكير: 3 مهارات (الرأي/التعبير الجمالي/نهاية مختلفة) بلا أسئلة بعد - أضيفيها من لوحة المعلمة.");
+  console.log(`[seed] تم بنجاح (${writes} عملية كتابة).`);
+  if (!setSnap.exists) {
+    console.log("[seed] تذكير: 3 مهارات (الرأي/التعبير الجمالي/نهاية مختلفة) بلا أسئلة بعد - أضيفيها من لوحة المعلمة.");
+  }
 }
 
 main().catch((err) => {

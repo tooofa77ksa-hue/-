@@ -1,13 +1,24 @@
 import { useEffect, useState } from "react";
 import { getAudioSettings, getGameSettings, updateAudioSettings, updateGameSettings } from "@/lib/repo";
 import { GAME_MODE_KEYS, GAME_MODE_LABELS_AR } from "@/lib/constants";
-import type { AudioSettings, GameMode, GameSettings } from "@/types/models";
+import type { AudioSettings, BrandingSettings, GameMode, GameSettings } from "@/types/models";
+
+const DEFAULT_BRANDING: BrandingSettings = {
+  gameName: "شُعلة لغتي",
+  gameTagline: "منصة تعليمية تفاعلية - لغتي - الصف الثالث الابتدائي",
+  welcomeMessage: "اختاري لعبتك المفضلة! 🌟",
+  schoolName: "المدرسة الابتدائية الخامسة والستون بعد المائة",
+  principalName: "جازية السميري",
+  deputyName: "ناهد الحربي",
+  designerCredit: "دلال السناني",
+};
 
 const DEFAULT_GAME: Omit<GameSettings, "updatedAt"> = {
   activeGameModes: ["rocket_mission", "squishy_treasure", "magic_gate"],
   defaultGameMode: "rocket_mission",
   defaultDifficulty: "easy",
   questionsPerRound: 6,
+  branding: DEFAULT_BRANDING,
 };
 
 const DEFAULT_AUDIO: Omit<AudioSettings, "updatedAt"> = {
@@ -25,7 +36,9 @@ export function SettingsPage() {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    getGameSettings().then((g) => setGame(g || { ...DEFAULT_GAME, updatedAt: Date.now() }));
+    getGameSettings().then((g) =>
+      setGame(g ? { ...g, branding: { ...DEFAULT_BRANDING, ...g.branding } } : { ...DEFAULT_GAME, updatedAt: Date.now() })
+    );
     getAudioSettings().then((a) => setAudio(a || { ...DEFAULT_AUDIO, updatedAt: Date.now() }));
   }, []);
 
@@ -38,6 +51,10 @@ export function SettingsPage() {
     setGame({ ...game, activeGameModes: active });
   };
 
+  const setBrandingField = (field: keyof BrandingSettings, value: string) => {
+    setGame({ ...game, branding: { ...game.branding, [field]: value } });
+  };
+
   const save = async () => {
     await Promise.all([updateGameSettings(game), updateAudioSettings(audio)]);
     setSaved(true);
@@ -47,6 +64,53 @@ export function SettingsPage() {
   return (
     <div className="settings-page">
       <h1>إعدادات اللعبة والصوت</h1>
+
+      <section>
+        <h2>الهوية والنصوص التعريفية</h2>
+        <p className="muted">
+          كل نص هنا يظهر مباشرة في اللعبة والصفحة الرئيسية والفوتر فور الحفظ - بلا أي تعديل على
+          الكود وبلا إعادة نشر.
+        </p>
+        <label>
+          اسم اللعبة (العنوان الرئيسي)
+          <input value={game.branding.gameName} onChange={(e) => setBrandingField("gameName", e.target.value)} />
+        </label>
+        <label>
+          الوصف المختصر تحت الاسم
+          <input value={game.branding.gameTagline} onChange={(e) => setBrandingField("gameTagline", e.target.value)} />
+        </label>
+        <label>
+          عبارة الترحيب في شاشة اختيار اللعبة
+          <input
+            value={game.branding.welcomeMessage}
+            onChange={(e) => setBrandingField("welcomeMessage", e.target.value)}
+          />
+        </label>
+        <label>
+          اسم المدرسة (السطر الأول في الفوتر)
+          <input value={game.branding.schoolName} onChange={(e) => setBrandingField("schoolName", e.target.value)} />
+        </label>
+        <div className="form-row">
+          <label>
+            اسم المديرة
+            <input
+              value={game.branding.principalName}
+              onChange={(e) => setBrandingField("principalName", e.target.value)}
+            />
+          </label>
+          <label>
+            اسم الوكيلة
+            <input value={game.branding.deputyName} onChange={(e) => setBrandingField("deputyName", e.target.value)} />
+          </label>
+        </div>
+        <label>
+          اسم المعلمة (سطر التصميم الصغير أسفل الفوتر)
+          <input
+            value={game.branding.designerCredit}
+            onChange={(e) => setBrandingField("designerCredit", e.target.value)}
+          />
+        </label>
+      </section>
 
       <section>
         <h2>إعدادات اللعبة</h2>

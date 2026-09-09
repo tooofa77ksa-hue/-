@@ -1,10 +1,16 @@
-// تذييل ثابت حسب المتطلبات الحرفية - لا تُضف أي نص بعد سطر الاعتماد.
+import { useBranding } from "@/lib/useBranding";
+
+// نصوص الفوتر (اسم المدرسة/المديرة/الوكيلة/المصممة) قابلة للتعديل بالكامل
+// من /teacher عبر gameSettings.branding - القالب فقط ثابت في الكود.
 export function BrandFooter() {
+  const branding = useBranding();
   return (
     <footer className="brand-footer">
-      <p className="brand-footer__line">المدرسة الابتدائية الخامسة والستون بعد المائة</p>
-      <p className="brand-footer__line">المديرة: جازية السميري | الوكيلة: ناهد الحربي</p>
-      <p className="brand-footer__credit">تصميم المعلمة: دلال السناني</p>
+      <p className="brand-footer__line">{branding.schoolName}</p>
+      <p className="brand-footer__line">
+        المديرة: {branding.principalName} | الوكيلة: {branding.deputyName}
+      </p>
+      <p className="brand-footer__credit">تصميم المعلمة: {branding.designerCredit}</p>
     </footer>
   );
 }

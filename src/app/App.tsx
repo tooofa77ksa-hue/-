@@ -1,7 +1,8 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { BrandHeader } from "@/components/BrandHeader";
 import { BrandFooter } from "@/components/BrandFooter";
+import { useBranding } from "@/lib/useBranding";
 
 // تقسيم الحزم: Phaser لا يُحمَّل إلا داخل /play، ولوحة المعلمة لا تُحمَّل
 // إلا داخل /teacher.
@@ -17,10 +18,11 @@ function Loading() {
 }
 
 function Home() {
+  const branding = useBranding();
   return (
     <div style={{ maxWidth: 640, margin: "40px auto", padding: 24, textAlign: "center" }}>
-      <h1 style={{ color: "var(--brand-primary-dark)" }}>شُعلة لغتي</h1>
-      <p>منصة تعليمية تفاعلية لمادة لغتي - الصف الثالث الابتدائي</p>
+      <h1 style={{ color: "var(--brand-primary-dark)" }}>{branding.gameName}</h1>
+      <p>{branding.gameTagline}</p>
       <div style={{ display: "flex", gap: 16, justifyContent: "center", marginTop: 24 }}>
         <a
           href="/play"
@@ -54,10 +56,19 @@ function Home() {
   );
 }
 
+function DocumentTitleSync() {
+  const branding = useBranding();
+  useEffect(() => {
+    document.title = branding.gameName;
+  }, [branding.gameName]);
+  return null;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <div className="app-shell">
+        <DocumentTitleSync />
         <BrandHeader />
         <main className="app-main">
           <Suspense fallback={<Loading />}>
