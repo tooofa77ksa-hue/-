@@ -1,17 +1,8 @@
 import { useEffect, useState } from "react";
 import { getAudioSettings, getGameSettings, updateAudioSettings, updateGameSettings } from "@/lib/repo";
 import { GAME_MODE_KEYS, GAME_MODE_LABELS_AR } from "@/lib/constants";
+import { DEFAULT_BRANDING } from "@/lib/starterData";
 import type { AudioSettings, BrandingSettings, GameMode, GameSettings } from "@/types/models";
-
-const DEFAULT_BRANDING: BrandingSettings = {
-  gameName: "شُعلة لغتي",
-  gameTagline: "منصة تعليمية تفاعلية - لغتي - الصف الثالث الابتدائي",
-  welcomeMessage: "اختاري لعبتك المفضلة! 🌟",
-  schoolName: "المدرسة الابتدائية الخامسة والستون بعد المائة",
-  principalName: "جازية السميري",
-  deputyName: "ناهد الحربي",
-  designerCredit: "دلال السناني",
-};
 
 const DEFAULT_GAME: Omit<GameSettings, "updatedAt"> = {
   activeGameModes: ["rocket_mission", "squishy_treasure", "magic_gate"],

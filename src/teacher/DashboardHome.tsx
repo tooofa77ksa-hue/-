@@ -1,11 +1,16 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useAllQuestions, useQuestionSets } from "./useTeacherData";
+import { useAuth } from "./AuthContext";
+import { importStarterQuestions } from "@/lib/repo";
 import { SKILL_LABELS } from "@/lib/constants";
 import type { SkillKey } from "@/types/models";
 
 export function DashboardHome() {
   const { questions, loading } = useAllQuestions();
   const sets = useQuestionSets();
+  const { appUser } = useAuth();
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<"imported" | "already-imported" | null>(null);
 
   const stats = useMemo(() => {
     const published = questions.filter((q) => q.published).length;
@@ -21,11 +26,34 @@ export function DashboardHome() {
     };
   }, [questions]);
 
+  const handleImport = async () => {
+    if (!appUser) return;
+    setImporting(true);
+    try {
+      const result = await importStarterQuestions(appUser.uid);
+      setImportResult(result);
+    } finally {
+      setImporting(false);
+    }
+  };
+
   if (loading) return <div>جارٍ التحميل...</div>;
 
   return (
     <div className="dashboard-home">
       <h1>لوحة التحكم</h1>
+
+      {stats.total === 0 && (
+        <div className="import-banner">
+          <p>لا توجد أسئلة بعد. تستطيعين البدء بمجموعة جاهزة من 16 سؤالًا (من كراسة أستعد لأنافس) بضغطة واحدة:</p>
+          <button className="primary-btn" onClick={handleImport} disabled={importing}>
+            {importing ? "جارٍ الاستيراد..." : "استيراد الأسئلة النموذجية"}
+          </button>
+          {importResult === "imported" && <p className="save-confirm">تم الاستيراد ✓</p>}
+          {importResult === "already-imported" && <p>هذه المجموعة مستوردة مسبقًا.</p>}
+        </div>
+      )}
+
       <div className="stat-cards">
         <div className="stat-card">
           <div className="stat-card__value">{stats.total}</div>

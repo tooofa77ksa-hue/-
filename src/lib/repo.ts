@@ -17,6 +17,7 @@ import {
   type Unsubscribe,
 } from "firebase/firestore";
 import { db } from "./firebase";
+import { STARTER_QUESTIONS, STARTER_SET, STARTER_SET_ID } from "./starterData";
 import type {
   AppUser,
   AudioSettings,
@@ -42,15 +43,21 @@ export async function getAppUser(uid: string): Promise<AppUser | null> {
 }
 
 // ---------- الأسئلة: قراءة حيّة للعبة (منشور + مفعّل فقط) ----------
+// عمدًا بلا orderBy على مستوى Firestore: تجميع أكثر من شرط مساواة مع
+// ترتيب على حقل مختلف يتطلب فهرسًا مركّبًا يدويًا (Composite Index) -
+// بما أن حجم الأسئلة صغير (عشرات وليس آلاف)، الترتيب يتم في الذاكرة بعد
+// الجلب، فلا حاجة لإنشاء أي فهرس يدويًا من Firebase Console إطلاقًا.
 export function subscribePublishedQuestions(
   onData: (questions: Question[]) => void,
   gameMode?: string
 ): Unsubscribe {
   const clauses = [where("published", "==", true), where("active", "==", true)];
   if (gameMode) clauses.push(where("gameMode", "==", gameMode));
-  const q = query(questionsCol, ...clauses, orderBy("order", "asc"));
+  const q = query(questionsCol, ...clauses);
   return onSnapshot(q, (snap) => {
-    onData(snap.docs.map((d) => withId<Question>(d)));
+    const questions = snap.docs.map((d) => withId<Question>(d));
+    questions.sort((a, b) => a.order - b.order);
+    onData(questions);
   });
 }
 
@@ -164,6 +171,46 @@ export function subscribeAudioSettings(onData: (s: AudioSettings | null) => void
 
 export async function updateAudioSettings(patch: Partial<AudioSettings>): Promise<void> {
   await setDoc(AUDIO_SETTINGS_DOC, { ...patch, updatedAt: Date.now() }, { merge: true });
+}
+
+/**
+ * استيراد الأسئلة النموذجية (أستعد لأنافس) من متصفح المعلمة مباشرة بعد
+ * تسجيل الدخول - بديل عن سكربت seed.ts لمن لا يستطيع تشغيل Admin SDK
+ * (لا Terminal، لا مفتاح خدمة). يستخدم نفس مسار الكتابة الذي تختبره
+ * قواعد الأمان لأي معلمة مصرَّح لها. آمن لإعادة التشغيل: يتخطى الاستيراد
+ * كليًا إن كانت المجموعة موجودة أصلًا فلا يكرر الأسئلة ولا يطمس تعديلات
+ * سابقة.
+ */
+export async function importStarterQuestions(createdBy: string): Promise<"imported" | "already-imported"> {
+  const setRef = doc(db, "questionSets", STARTER_SET_ID);
+  const existing = await getDoc(setRef);
+  if (existing.exists()) return "already-imported";
+
+  await setDoc(setRef, {
+    ...STARTER_SET,
+    order: 1,
+    active: true,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    createdBy,
+  });
+
+  await Promise.all(
+    STARTER_QUESTIONS.map((q, i) =>
+      setDoc(doc(db, "questions", `sample-q-${String(i + 1).padStart(2, "0")}`), {
+        ...q,
+        questionSetId: STARTER_SET_ID,
+        feedback: { correct: "ممتازة! إجابة صحيحة", incorrect: "حاولي مرة أخرى" },
+        published: true,
+        active: true,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        createdBy,
+      })
+    )
+  );
+
+  return "imported";
 }
 
 export { serverTimestamp };

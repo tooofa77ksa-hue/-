@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { HashRouter, Routes, Route, Navigate, Link } from "react-router-dom";
 import { BrandHeader } from "@/components/BrandHeader";
 import { BrandFooter } from "@/components/BrandFooter";
 import { useBranding } from "@/lib/useBranding";
@@ -24,8 +24,8 @@ function Home() {
       <h1 style={{ color: "var(--brand-primary-dark)" }}>{branding.gameName}</h1>
       <p>{branding.gameTagline}</p>
       <div style={{ display: "flex", gap: 16, justifyContent: "center", marginTop: 24 }}>
-        <a
-          href="/play"
+        <Link
+          to="/play"
           style={{
             background: "var(--brand-primary)",
             color: "#fff",
@@ -36,9 +36,9 @@ function Home() {
           }}
         >
           ابدئي اللعب
-        </a>
-        <a
-          href="/teacher"
+        </Link>
+        <Link
+          to="/teacher"
           style={{
             background: "#fff",
             color: "var(--brand-primary-dark)",
@@ -50,7 +50,7 @@ function Home() {
           }}
         >
           دخول المعلمة
-        </a>
+        </Link>
       </div>
     </div>
   );
@@ -66,7 +66,7 @@ function DocumentTitleSync() {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <div className="app-shell">
         <DocumentTitleSync />
         <BrandHeader />
@@ -82,6 +82,6 @@ export default function App() {
         </main>
         <BrandFooter />
       </div>
-    </BrowserRouter>
+    </HashRouter>
   );
 }

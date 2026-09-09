@@ -143,7 +143,7 @@ export class AudioManager {
     const known = this.voiceAvailability.get(slot);
     if (known === false) return false;
 
-    const src = `/audio/voice/${slot}.mp3`;
+    const src = `${import.meta.env.BASE_URL}audio/voice/${slot}.mp3`;
     const el = new Audio(src);
     el.volume = this.prefs.voiceVolume;
 

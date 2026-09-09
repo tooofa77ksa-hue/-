@@ -3,7 +3,13 @@ import react from "@vitejs/plugin-react";
 
 // إعدادات Vite: تقسيم الحزم بحيث لا يُحمَّل Phaser إلا داخل /play
 // ولا يُحمَّل Dashboard إلا داخل /teacher (Code splitting عبر React.lazy في المسارات)
+//
+// base: عند النشر على GitHub Pages يُخدَّم الموقع من مسار فرعي
+// (https://<owner>.github.io/<repo>/) وليس من جذر النطاق، لذا يُضبَط عبر
+// VITE_BASE_PATH وقت البناء فقط (workflow النشر يضبطها)؛ التطوير المحلي
+// يبقى دائمًا على الجذر "/" بلا أي تأثير.
 export default defineConfig({
+  base: process.env.VITE_BASE_PATH || "/",
   plugins: [react()],
   build: {
     target: "es2020",

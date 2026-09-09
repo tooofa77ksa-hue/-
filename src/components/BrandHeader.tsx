@@ -13,7 +13,7 @@ export function BrandHeader() {
       <div className="brand-header__identity">
         <img
           className="brand-logo"
-          src="/assets/brand/ministry-logo.webp"
+          src={`${import.meta.env.BASE_URL}assets/brand/ministry-logo.webp`}
           alt="شعار وزارة التعليم"
           width={160}
           height={124}
