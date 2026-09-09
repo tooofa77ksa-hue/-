@@ -2,13 +2,7 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAllQuestions, useQuestionSets } from "./useTeacherData";
 import { useAuth } from "./AuthContext";
-import {
-  deleteQuestion,
-  duplicateQuestion,
-  setActive,
-  setPublished,
-  updateQuestion,
-} from "@/lib/repo";
+import { deleteQuestion, duplicateQuestion, setPublished, updateQuestion } from "@/lib/repo";
 import { DIFFICULTY_LABELS, GAME_MODE_LABELS_AR, SKILL_LABELS } from "@/lib/constants";
 import type { Difficulty, GameMode, Question, SkillKey } from "@/types/models";
 
@@ -130,13 +124,7 @@ export function QuestionsPage() {
                 className={`badge-toggle ${q.published ? "on" : ""}`}
                 onClick={() => setPublished(q.id, !q.published)}
               >
-                {q.published ? "منشور" : "غير منشور"}
-              </button>
-              <button
-                className={`badge-toggle ${q.active ? "on" : ""}`}
-                onClick={() => setActive(q.id, !q.active)}
-              >
-                {q.active ? "مفعّل" : "معطّل"}
+                {q.published ? "ظاهر للطالبات" : "مسوَّدة"}
               </button>
             </div>
             <div className="question-row__actions">

@@ -105,3 +105,80 @@ export interface AudioSettings {
   duckingAmount: number; // نسبة خفض المؤثرات أثناء كلام الشخصية 0..1
   updatedAt: number;
 }
+
+// ------------------------------------------------------------------
+// الطالبات والمجموعات: الاسم فقط، بلا أي هوية أو رقم أو بريد. القراءة
+// والكتابة مقصورة على المعلمة/الإدارة عبر Firestore Security Rules.
+// ------------------------------------------------------------------
+export interface Student {
+  id: string;
+  name: string;
+  groupId?: string;
+  createdAt: number;
+  updatedAt: number;
+  createdBy: string;
+}
+
+export interface Group {
+  id: string;
+  name: string;
+  createdAt: number;
+  updatedAt: number;
+  createdBy: string;
+}
+
+export type SessionType = "individual" | "group";
+
+/** جلسة اختبار تُنشئها المعلمة وتُشارك رابطها مع الطالبة/المجموعة. لا
+ * قائمة عامة لأي جلسة (Firestore rules تمنع list) - فقط من يملك الرابط
+ * (معرّف الجلسة) يستطيع فتحها، وتعرض فقط أسماء المشاركات في هذه الجلسة
+ * تحديدًا، لا كل الطالبات. */
+export interface TestSession {
+  id: string;
+  type: SessionType;
+  groupId?: string;
+  groupNameSnapshot?: string;
+  /** لقطة أسماء المشاركات وقت إنشاء الجلسة - فردية (عنصر واحد) أو جماعية */
+  participants: Array<{ studentId: string; name: string }>;
+  participantIds: string[]; // نفس القائمة أعلاه لتسهيل التحقق في قواعد الأمان
+  questionIds: string[];
+  gameMode: GameMode;
+  skill?: SkillKey;
+  active: boolean;
+  createdAt: number;
+  createdBy: string;
+}
+
+export interface AttemptAnswer {
+  questionId: string;
+  questionTextSnapshot: string;
+  choicesSnapshot: [string, string, string, string];
+  studentAnswer: 0 | 1 | 2 | 3;
+  correctAnswerSnapshot: 0 | 1 | 2 | 3;
+  isCorrect: boolean;
+  answeredAt: number;
+  timeSpentMs?: number;
+}
+
+/** محاولة اختبار مكتملة (Session رسمية فقط، ليس اللعب العام). كل الأسئلة
+ * والإجابات محفوظة كلقطة (Snapshot) وقت المحاولة، فلا يتأثر السجل
+ * التاريخي إن عدّلت المعلمة السؤال لاحقًا. */
+export interface Attempt {
+  id: string;
+  sessionId: string;
+  studentId: string;
+  studentNameSnapshot: string;
+  groupId?: string;
+  groupNameSnapshot?: string;
+  startedAt: number;
+  completedAt: number;
+  durationMs: number;
+  gameMode: GameMode;
+  skill?: SkillKey;
+  totalQuestions: number;
+  correctCount: number;
+  incorrectCount: number;
+  scorePercentage: number;
+  answers: AttemptAnswer[];
+  createdAt: number;
+}

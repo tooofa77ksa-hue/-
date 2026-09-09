@@ -1,3 +1,4 @@
+import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
@@ -11,6 +12,14 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   base: process.env.VITE_BASE_PATH || "/",
   plugins: [react()],
+  // مطابق لـ tsconfig.app.json (paths: "@/*") - بدون هذا، الإنتاج
+  // (vite build) كان يحل المسار @ تلقائيًا بينما خادم التطوير (vite dev)
+  // لا يحلّه (يعتمدان على مسارات حل مختلفة)، فيفشل npm run dev فقط.
+  resolve: {
+    alias: {
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
+    },
+  },
   build: {
     target: "es2020",
     sourcemap: false,

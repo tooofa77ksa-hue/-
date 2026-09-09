@@ -202,3 +202,186 @@ describe("مستخدم مسجَّل دخول لكنه ليس معلمة (role !=
     await assertFails(db.collection("users").doc("plain-user-1").set({ role: "admin" }));
   });
 });
+
+// ------------------------------------------------------------------
+// students / groups / testSessions / attempts
+// ------------------------------------------------------------------
+const STUDENT_1 = {
+  name: "طالبة الاختبار الأولى",
+  groupId: "group-1",
+  createdAt: Date.now(),
+  updatedAt: Date.now(),
+  createdBy: "teacher-1",
+};
+
+const GROUP_1 = {
+  name: "مجموعة الاختبار",
+  createdAt: Date.now(),
+  updatedAt: Date.now(),
+  createdBy: "teacher-1",
+};
+
+const ACTIVE_SESSION = {
+  type: "individual",
+  participants: [{ studentId: "student-1", name: "طالبة الاختبار الأولى" }],
+  participantIds: ["student-1"],
+  questionIds: ["published-1"],
+  gameMode: "rocket_mission",
+  active: true,
+  createdAt: Date.now(),
+  createdBy: "teacher-1",
+};
+
+const INACTIVE_SESSION = { ...ACTIVE_SESSION, active: false };
+
+function validAttempt(overrides: Record<string, unknown> = {}) {
+  return {
+    sessionId: "session-active",
+    studentId: "student-1",
+    studentNameSnapshot: "طالبة الاختبار الأولى",
+    startedAt: Date.now(),
+    completedAt: Date.now(),
+    durationMs: 1000,
+    gameMode: "rocket_mission",
+    totalQuestions: 1,
+    correctCount: 1,
+    incorrectCount: 0,
+    scorePercentage: 100,
+    answers: [],
+    createdAt: Date.now(),
+    ...overrides,
+  };
+}
+
+describe("الطالبات (students) والمجموعات (groups)", () => {
+  beforeEach(async () => {
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const db = context.firestore();
+      await db.collection("students").doc("student-1").set(STUDENT_1);
+      await db.collection("groups").doc("group-1").set(GROUP_1);
+    });
+  });
+
+  it("معلمة تستطيع إضافة طالبة", async () => {
+    const db = testEnv.authenticatedContext("teacher-1").firestore();
+    await assertSucceeds(db.collection("students").add(STUDENT_1));
+  });
+
+  it("معلمة تستطيع قراءة/تعديل/حذف طالبة", async () => {
+    const db = testEnv.authenticatedContext("teacher-1").firestore();
+    await assertSucceeds(db.collection("students").doc("student-1").get());
+    await assertSucceeds(db.collection("students").doc("student-1").update({ name: "اسم مُعدَّل" }));
+    await assertSucceeds(db.collection("students").doc("student-1").delete());
+  });
+
+  it("معلمة تستطيع إدارة المجموعات بالكامل", async () => {
+    const db = testEnv.authenticatedContext("teacher-1").firestore();
+    await assertSucceeds(db.collection("groups").add(GROUP_1));
+    await assertSucceeds(db.collection("groups").doc("group-1").update({ name: "اسم جديد" }));
+    await assertSucceeds(db.collection("groups").doc("group-1").delete());
+  });
+
+  it("مستخدم غير مسجّل لا يستطيع قراءة الطالبات أو المجموعات", async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertFails(db.collection("students").doc("student-1").get());
+    await assertFails(db.collection("students").get());
+    await assertFails(db.collection("groups").doc("group-1").get());
+  });
+
+  it("مستخدم مسجَّل بلا صلاحية معلمة لا يستطيع قراءة أو كتابة الطالبات/المجموعات", async () => {
+    const db = testEnv.authenticatedContext("plain-user-1").firestore();
+    await assertFails(db.collection("students").doc("student-1").get());
+    await assertFails(db.collection("students").add(STUDENT_1));
+    await assertFails(db.collection("groups").doc("group-1").get());
+    await assertFails(db.collection("groups").add(GROUP_1));
+  });
+});
+
+describe("جلسات الاختبار (testSessions)", () => {
+  beforeEach(async () => {
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const db = context.firestore();
+      await db.collection("testSessions").doc("session-active").set(ACTIVE_SESSION);
+      await db.collection("testSessions").doc("session-inactive").set(INACTIVE_SESSION);
+    });
+  });
+
+  it("أي طرف (حتى بلا تسجيل دخول) يستطيع فتح جلسة عبر معرّفها المباشر (get)", async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertSucceeds(db.collection("testSessions").doc("session-active").get());
+  });
+
+  it("لا يستطيع أي طرف غير المعلمة تعداد كل الجلسات (list/query)", async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertFails(db.collection("testSessions").get());
+  });
+
+  it("المعلمة تستطيع تعداد الجلسات وإنشاءها وتعديلها وحذفها", async () => {
+    const db = testEnv.authenticatedContext("teacher-1").firestore();
+    await assertSucceeds(db.collection("testSessions").get());
+    await assertSucceeds(db.collection("testSessions").add(ACTIVE_SESSION));
+    await assertSucceeds(db.collection("testSessions").doc("session-active").update({ active: false }));
+    await assertSucceeds(db.collection("testSessions").doc("session-active").delete());
+  });
+
+  it("مستخدم غير معلمة لا يستطيع إنشاء أو تعديل جلسة", async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertFails(db.collection("testSessions").add(ACTIVE_SESSION));
+    await assertFails(db.collection("testSessions").doc("session-active").update({ active: false }));
+  });
+});
+
+describe("نتائج الاختبارات (attempts)", () => {
+  beforeEach(async () => {
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const db = context.firestore();
+      await db.collection("testSessions").doc("session-active").set(ACTIVE_SESSION);
+      await db.collection("testSessions").doc("session-inactive").set(INACTIVE_SESSION);
+    });
+  });
+
+  it("طالبة مشارِكة في جلسة نشطة تستطيع حفظ محاولة صالحة بلا تسجيل دخول", async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertSucceeds(db.collection("attempts").add(validAttempt()));
+  });
+
+  it("لا يمكن حفظ محاولة لجلسة غير موجودة", async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertFails(db.collection("attempts").add(validAttempt({ sessionId: "no-such-session" })));
+  });
+
+  it("لا يمكن حفظ محاولة لجلسة غير نشطة (active == false)", async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertFails(db.collection("attempts").add(validAttempt({ sessionId: "session-inactive" })));
+  });
+
+  it("لا يمكن انتحال محاولة باسم طالبة ليست ضمن مشاركي الجلسة", async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertFails(db.collection("attempts").add(validAttempt({ studentId: "someone-else" })));
+  });
+
+  it("لا يمكن حفظ محاولة بشكل بيانات غير صالح (totalQuestions ليس رقمًا)", async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertFails(
+      db.collection("attempts").add(validAttempt({ totalQuestions: "واحد" as unknown as number }))
+    );
+  });
+
+  it("لا يستطيع أي طرف غير المعلمة قراءة النتائج (get أو list)", async () => {
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      await context.firestore().collection("attempts").doc("attempt-1").set(validAttempt());
+    });
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertFails(db.collection("attempts").doc("attempt-1").get());
+    await assertFails(db.collection("attempts").get());
+  });
+
+  it("المعلمة تستطيع قراءة النتائج وحذفها، ولا يمكن لغيرها ذلك", async () => {
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      await context.firestore().collection("attempts").doc("attempt-1").set(validAttempt());
+    });
+    const teacherDb = testEnv.authenticatedContext("teacher-1").firestore();
+    await assertSucceeds(teacherDb.collection("attempts").doc("attempt-1").get());
+    await assertSucceeds(teacherDb.collection("attempts").doc("attempt-1").delete());
+  });
+});

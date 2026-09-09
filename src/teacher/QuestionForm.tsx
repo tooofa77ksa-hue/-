@@ -28,8 +28,8 @@ export function QuestionForm() {
   const [feedbackCorrect, setFeedbackCorrect] = useState("ممتازة! إجابة صحيحة");
   const [feedbackIncorrect, setFeedbackIncorrect] = useState("حاولي مرة أخرى");
   const [published, setPublished] = useState(false);
-  const [active, setActive] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     if (!existing) return;
@@ -44,7 +44,6 @@ export function QuestionForm() {
     setFeedbackCorrect(existing.feedback?.correct || "ممتازة! إجابة صحيحة");
     setFeedbackIncorrect(existing.feedback?.incorrect || "حاولي مرة أخرى");
     setPublished(existing.published);
-    setActive(existing.active);
   }, [existing]);
 
   useEffect(() => {
@@ -71,7 +70,7 @@ export function QuestionForm() {
         gameMode,
         feedback: { correct: feedbackCorrect, incorrect: feedbackIncorrect },
         published,
-        active,
+        active: true,
         order: existing?.order ?? questions.length + 1,
         createdBy: existing?.createdBy ?? appUser.uid,
       };
@@ -127,15 +126,15 @@ export function QuestionForm() {
       </label>
 
       <fieldset>
-        <legend>الاختيارات (حدّدي الإجابة الصحيحة)</legend>
+        <legend>الاختيارات - اضغطي على الاختيار الصحيح</legend>
         {choices.map((c, i) => (
-          <div className="choice-input" key={i}>
-            <input
-              type="radio"
-              name="correct"
-              checked={correctAnswer === i}
-              onChange={() => setCorrectAnswer(i as 0 | 1 | 2 | 3)}
-            />
+          <button
+            type="button"
+            key={i}
+            className={`choice-pick ${correctAnswer === i ? "is-correct" : ""}`}
+            onClick={() => setCorrectAnswer(i as 0 | 1 | 2 | 3)}
+          >
+            <span className="choice-pick__check">{correctAnswer === i ? "✓" : i + 1}</span>
             <input
               type="text"
               value={c}
@@ -144,10 +143,11 @@ export function QuestionForm() {
                 next[i] = e.target.value;
                 setChoices(next);
               }}
+              onClick={(e) => e.stopPropagation()}
               placeholder={`الاختيار ${i + 1}`}
               required
             />
-          </div>
+          </button>
         ))}
       </fieldset>
 
@@ -186,25 +186,52 @@ export function QuestionForm() {
         </label>
       </div>
 
-      <div className="form-row">
-        <label className="checkbox-label">
-          <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
-          مفعّل
-        </label>
-        <label className="checkbox-label">
-          <input type="checkbox" checked={published} onChange={(e) => setPublished(e.target.checked)} />
-          منشور (يظهر في اللعبة فورًا)
-        </label>
-      </div>
+      <label className="checkbox-label visibility-toggle">
+        <input type="checkbox" checked={published} onChange={(e) => setPublished(e.target.checked)} />
+        إظهار هذا السؤال للطالبات الآن
+      </label>
+      <p className="muted">
+        {published
+          ? "هذا السؤال ظاهر للطالبات في اللعبة الآن."
+          : "هذا السؤال مسوَّدة، لن تراه الطالبات حتى تفعّلي هذا الخيار."}
+      </p>
 
       <div className="form-actions">
         <button type="submit" className="primary-btn" disabled={saving}>
           {saving ? "جارٍ الحفظ..." : "حفظ"}
         </button>
+        <button type="button" onClick={() => setShowPreview(true)}>
+          معاينة كطالبة
+        </button>
         <button type="button" onClick={() => navigate("/teacher/questions")}>
           إلغاء
         </button>
       </div>
+
+      {showPreview && (
+        <div className="question-preview-modal" onClick={() => setShowPreview(false)}>
+          <div className="question-preview-card" onClick={(e) => e.stopPropagation()}>
+            <div className="question-preview-card__badge">هكذا ستظهر لدى الطالبة</div>
+            {passage && <p className="question-overlay__passage">{passage}</p>}
+            <h2 className="question-overlay__prompt">{question || "نص السؤال هنا"}</h2>
+            <div className="question-overlay__choices">
+              {choices.map((c, i) => (
+                <button
+                  type="button"
+                  key={i}
+                  className={`choice-btn ${i === correctAnswer ? "correct" : ""}`}
+                  disabled
+                >
+                  {c || `الاختيار ${i + 1}`}
+                </button>
+              ))}
+            </div>
+            <button type="button" className="primary-btn" onClick={() => setShowPreview(false)}>
+              إغلاق المعاينة
+            </button>
+          </div>
+        </div>
+      )}
     </form>
   );
 }

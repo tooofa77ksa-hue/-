@@ -15,6 +15,10 @@ export function DashboardLayout() {
           </NavLink>
           <NavLink to="/teacher/questions">الأسئلة</NavLink>
           <NavLink to="/teacher/sets">مجموعات الأسئلة</NavLink>
+          <NavLink to="/teacher/students">الطالبات</NavLink>
+          <NavLink to="/teacher/groups">المجموعات</NavLink>
+          <NavLink to="/teacher/tests">إنشاء اختبار</NavLink>
+          <NavLink to="/teacher/results">النتائج</NavLink>
           <NavLink to="/teacher/settings">إعدادات اللعبة والصوت</NavLink>
         </nav>
         <button className="teacher-sidebar__logout" onClick={() => signOut()}>

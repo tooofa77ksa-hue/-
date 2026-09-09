@@ -314,3 +314,39 @@
     transition: none;
   }
 }
+
+/* -------------------- شاشة اختبار رسمي (Session) -------------------- */
+.session-roster {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 40px 20px;
+  text-align: center;
+  min-height: 60vh;
+}
+
+.session-roster__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 320px;
+}
+
+.session-roster__item {
+  background: var(--game-panel);
+  border: none;
+  border-radius: 14px;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+}
+
+.session-roster__item:hover {
+  transform: translateY(-2px);
+}

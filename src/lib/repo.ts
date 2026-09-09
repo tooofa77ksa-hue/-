@@ -4,6 +4,7 @@ import {
   addDoc,
   collection,
   deleteDoc,
+  deleteField,
   doc,
   getDoc,
   getDocs,
@@ -21,10 +22,16 @@ import { STARTER_QUESTIONS, STARTER_SET, STARTER_SET_ID } from "./starterData";
 import type {
   AppUser,
   AudioSettings,
+  Attempt,
+  GameMode,
   GameSettings,
+  Group,
   Question,
   QuestionSet,
+  SkillKey,
   Skill,
+  Student,
+  TestSession,
 } from "@/types/models";
 
 // دوال بدل ثوابت على مستوى الوحدة عمدًا: استدعاء collection(db, ...) يقرأ
@@ -36,9 +43,26 @@ import type {
 const questionsCol = () => collection(db, "questions");
 const questionSetsCol = () => collection(db, "questionSets");
 const skillsCol = () => collection(db, "skills");
+const studentsCol = () => collection(db, "students");
+const groupsCol = () => collection(db, "groups");
+const testSessionsCol = () => collection(db, "testSessions");
+const attemptsCol = () => collection(db, "attempts");
 
 function withId<T>(d: { id: string; data: () => any }): T {
   return { id: d.id, ...d.data() } as T;
+}
+
+/** Firestore يرفض أي حقل بقيمة undefined صراحة (خطأ عند addDoc/setDoc) -
+ * حقول اختيارية مثل groupId/skill في TestSession/Attempt/Student تُكتب
+ * أحيانًا بقيمة undefined ببساطة لأنها غير منطبقة (مثال: اختبار فردي بلا
+ * مجموعة). هذه الدالة تحذف تلك المفاتيح تمامًا قبل الكتابة، فتُعامَل
+ * كحقل غير موجود بدل أن تُسبِّب فشل الكتابة بالكامل. */
+function stripUndefined<T extends Record<string, unknown>>(obj: T): T {
+  const result = {} as T;
+  for (const key of Object.keys(obj) as (keyof T)[]) {
+    if (obj[key] !== undefined) result[key] = obj[key];
+  }
+  return result;
 }
 
 // ---------- المستخدم / الدور ----------
@@ -86,7 +110,7 @@ export type QuestionInput = Omit<Question, "id" | "createdAt" | "updatedAt">;
 
 export async function createQuestion(input: QuestionInput): Promise<string> {
   const ref = await addDoc(questionsCol(), {
-    ...input,
+    ...stripUndefined(input),
     createdAt: Date.now(),
     updatedAt: Date.now(),
   });
@@ -94,7 +118,7 @@ export async function createQuestion(input: QuestionInput): Promise<string> {
 }
 
 export async function updateQuestion(id: string, patch: Partial<QuestionInput>): Promise<void> {
-  await updateDoc(doc(db, "questions", id), { ...patch, updatedAt: Date.now() });
+  await updateDoc(doc(db, "questions", id), { ...stripUndefined(patch), updatedAt: Date.now() });
 }
 
 export async function deleteQuestion(id: string): Promise<void> {
@@ -247,5 +271,165 @@ export async function importStarterQuestions(createdBy: string): Promise<"import
 
   return "imported";
 }
+
+// ------------------------------------------------------------------
+// الطالبات: الاسم فقط. تُدار حصرًا من /teacher (Security Rules تمنع أي
+// وصول عام - انظر firestore.rules).
+// ------------------------------------------------------------------
+export function subscribeStudents(onData: (students: Student[]) => void): Unsubscribe {
+  if (!isFirebaseUsable) {
+    onData([]);
+    return () => {};
+  }
+  const q = query(studentsCol(), orderBy("name", "asc"));
+  return onSnapshot(q, (snap) => onData(snap.docs.map((d) => withId<Student>(d))));
+}
+
+export type StudentInput = Omit<Student, "id" | "createdAt" | "updatedAt">;
+
+export async function createStudent(input: StudentInput): Promise<string> {
+  const ref = await addDoc(studentsCol(), {
+    ...stripUndefined(input),
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  });
+  return ref.id;
+}
+
+export async function updateStudent(id: string, patch: Partial<StudentInput>): Promise<void> {
+  await updateDoc(doc(db, "students", id), { ...stripUndefined(patch), updatedAt: Date.now() });
+}
+
+export async function deleteStudent(id: string): Promise<void> {
+  await deleteDoc(doc(db, "students", id));
+}
+
+// ------------------------------------------------------------------
+// المجموعات: تحوي فقط الاسم. عضوية الطالبات محفوظة على وثيقة الطالبة
+// نفسها (Student.groupId) لا داخل المجموعة، لتفادي تكرار البيانات.
+// ------------------------------------------------------------------
+export function subscribeGroups(onData: (groups: Group[]) => void): Unsubscribe {
+  if (!isFirebaseUsable) {
+    onData([]);
+    return () => {};
+  }
+  const q = query(groupsCol(), orderBy("name", "asc"));
+  return onSnapshot(q, (snap) => onData(snap.docs.map((d) => withId<Group>(d))));
+}
+
+export type GroupInput = Omit<Group, "id" | "createdAt" | "updatedAt">;
+
+export async function createGroup(input: GroupInput): Promise<string> {
+  const ref = await addDoc(groupsCol(), {
+    ...input,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  });
+  return ref.id;
+}
+
+export async function updateGroup(id: string, patch: Partial<GroupInput>): Promise<void> {
+  await updateDoc(doc(db, "groups", id), { ...patch, updatedAt: Date.now() });
+}
+
+/** حذف مجموعة بدون حذف الطالبات: يفكّ ارتباط كل طالبة بها أولًا. */
+export async function deleteGroup(id: string, memberStudentIds: string[]): Promise<void> {
+  await Promise.all(
+    memberStudentIds.map((sid) =>
+      updateDoc(doc(db, "students", sid), { groupId: deleteField(), updatedAt: Date.now() })
+    )
+  );
+  await deleteDoc(doc(db, "groups", id));
+}
+
+export async function moveStudentToGroup(studentId: string, groupId: string | undefined): Promise<void> {
+  if (groupId) {
+    await updateStudent(studentId, { groupId });
+  } else {
+    await updateDoc(doc(db, "students", studentId), { groupId: deleteField(), updatedAt: Date.now() });
+  }
+}
+
+// ------------------------------------------------------------------
+// جلسات الاختبار: تُنشئها المعلمة فقط، تُشارك برابط يحوي معرّف الجلسة.
+// انظر firestore.rules: get متاح للجميع، أما list فللمعلمة فقط - لذلك لا
+// تُستخدم subscribeTestSessions إلا من /teacher.
+// ------------------------------------------------------------------
+export function subscribeTestSessions(onData: (sessions: TestSession[]) => void): Unsubscribe {
+  if (!isFirebaseUsable) {
+    onData([]);
+    return () => {};
+  }
+  const q = query(testSessionsCol(), orderBy("createdAt", "desc"));
+  return onSnapshot(q, (snap) => onData(snap.docs.map((d) => withId<TestSession>(d))));
+}
+
+export type TestSessionInput = Omit<TestSession, "id" | "createdAt">;
+
+export async function createTestSession(input: TestSessionInput): Promise<string> {
+  const ref = await addDoc(testSessionsCol(), {
+    ...stripUndefined(input),
+    createdAt: Date.now(),
+  });
+  return ref.id;
+}
+
+/** جلب جلسة بمعرّفها المباشر - هذا هو "فتح رابط الاختبار" من طرف الطالبة،
+ * لا يتطلب تسجيل دخول (get مسموح للجميع حسب القواعد). */
+export async function getTestSession(sessionId: string): Promise<TestSession | null> {
+  if (!isFirebaseUsable) return null;
+  const snap = await getDoc(doc(db, "testSessions", sessionId));
+  return snap.exists() ? withId<TestSession>(snap) : null;
+}
+
+export async function setSessionActive(sessionId: string, active: boolean): Promise<void> {
+  await updateDoc(doc(db, "testSessions", sessionId), { active });
+}
+
+export async function deleteTestSession(sessionId: string): Promise<void> {
+  await deleteDoc(doc(db, "testSessions", sessionId));
+}
+
+// ------------------------------------------------------------------
+// النتائج (attempts): تُكتب من طرف الطالبة عند إنهاء اختبار رسمي مرتبط
+// بجلسة (وليس اللعب العام - انظر AttemptAnswer/Attempt في models.ts).
+// قواعد الأمان تتحقق من أن الجلسة موجودة ونشطة وأن الطالبة من مشاركيها.
+// ------------------------------------------------------------------
+export type AttemptInput = Omit<Attempt, "id" | "createdAt">;
+
+export async function createAttempt(input: AttemptInput): Promise<string> {
+  const ref = await addDoc(attemptsCol(), {
+    ...stripUndefined(input),
+    createdAt: Date.now(),
+  });
+  return ref.id;
+}
+
+export function subscribeAttempts(onData: (attempts: Attempt[]) => void): Unsubscribe {
+  if (!isFirebaseUsable) {
+    onData([]);
+    return () => {};
+  }
+  const q = query(attemptsCol(), orderBy("completedAt", "desc"));
+  return onSnapshot(q, (snap) => onData(snap.docs.map((d) => withId<Attempt>(d))));
+}
+
+export async function deleteAttempt(id: string): Promise<void> {
+  await deleteDoc(doc(db, "attempts", id));
+}
+
+/** يبني قائمة الأسئلة الفعلية لجلسة اختبار وفق معرّفاتها المحفوظة فيها،
+ * محافظًا على نفس ترتيب questionIds. تُستخدم من شاشة لعب الجلسة الرسمية. */
+export async function getQuestionsByIds(ids: string[]): Promise<Question[]> {
+  if (!isFirebaseUsable || ids.length === 0) return [];
+  const snaps = await Promise.all(ids.map((id) => getDoc(doc(db, "questions", id))));
+  const byId = new Map<string, Question>();
+  snaps.forEach((s) => {
+    if (s.exists()) byId.set(s.id, withId<Question>(s));
+  });
+  return ids.map((id) => byId.get(id)).filter((q): q is Question => Boolean(q));
+}
+
+export type { GameMode, SkillKey };
 
 export { serverTimestamp };

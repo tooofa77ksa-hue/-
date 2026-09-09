@@ -2,17 +2,23 @@
  * سكربت إنشاء حساب معلمة/إدارة (Admin only, No Public Signup).
  * يُشغَّل محليًا من قِبل المسؤول فقط - لا يُنشر ضمن التطبيق.
  *
+ * المعلمة تسجّل الدخول باسم مستخدم بسيط فقط (مثال: Dalal)، بلا أي بريد
+ * إلكتروني ظاهر لها. مرّر --username= ليُشتق البريد الداخلي تلقائيًا عبر
+ * نفس دالة src/lib/usernameAuth.ts المستخدَمة في شاشة الدخول، فيتطابق
+ * الاثنان دائمًا. أو مرّر --email= مباشرة إن رغبت باستخدام بريد فعلي.
+ *
  * محاكي محلي (بلا Secret):
  *   npm run emulator   # في نافذة
  *   FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 \
- *     npm run create-teacher -- --email=teacher@example.com --password=Str0ngPass! --name="معلمة الاختبار"
+ *     npm run create-teacher -- --username=Dalal --password=Dalal1234 --name="دلال"
  *
- * مشروع حقيقي (يتطلب serviceAccountKey.json):
- *   npm run create-teacher -- --email=teacher@example.com --password=Str0ngPass! --name="اسم المعلمة" --role=teacher
+ * مشروع حقيقي (يتطلب FIREBASE_TOKEN أو serviceAccountKey.json):
+ *   npm run create-teacher -- --username=Dalal --password=Dalal1234 --name="دلال" --role=teacher
  */
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import { initAdminApp } from "./adminApp";
+import { usernameToInternalEmail } from "../src/lib/usernameAuth";
 
 function parseArgs() {
   const args: Record<string, string> = {};
@@ -24,10 +30,11 @@ function parseArgs() {
 }
 
 async function main() {
-  const { email, password, name, role = "teacher" } = parseArgs();
+  const { username, email: rawEmail, password, name, role = "teacher" } = parseArgs();
+  const email = rawEmail || (username ? usernameToInternalEmail(username) : "");
   if (!email || !password || !name) {
     console.error(
-      '[create-teacher] الاستخدام: npm run create-teacher -- --email=... --password=... --name="..." --role=teacher|admin'
+      '[create-teacher] الاستخدام: npm run create-teacher -- --username=Dalal --password=... --name="..." --role=teacher|admin'
     );
     process.exit(1);
   }
@@ -59,7 +66,8 @@ async function main() {
     { merge: true }
   );
 
-  console.log(`[create-teacher] تم منح الدور "${role}" للمستخدم ${email}. يمكنها الآن الدخول إلى /teacher.`);
+  const loginHint = username ? `باسم المستخدم "${username}"` : `بالبريد ${email}`;
+  console.log(`[create-teacher] تم منح الدور "${role}". يمكنها الآن الدخول إلى /teacher ${loginHint}.`);
 }
 
 main().catch((err) => {

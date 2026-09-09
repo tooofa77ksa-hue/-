@@ -16,8 +16,8 @@ interface AuthState {
 const AuthCtx = createContext<AuthState | null>(null);
 
 const ERROR_MESSAGES: Record<string, string> = {
-  "auth/invalid-credential": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
-  "auth/invalid-email": "صيغة البريد الإلكتروني غير صحيحة.",
+  "auth/invalid-credential": "اسم المستخدم أو كلمة المرور غير صحيحة.",
+  "auth/invalid-email": "اسم المستخدم غير صحيح.",
   "auth/too-many-requests": "محاولات كثيرة، حاولي لاحقًا.",
   "auth/user-disabled": "هذا الحساب معطّل.",
 };

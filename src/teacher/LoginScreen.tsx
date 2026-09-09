@@ -1,9 +1,10 @@
 import { useState, type FormEvent } from "react";
 import { useAuth } from "./AuthContext";
+import { usernameToInternalEmail } from "@/lib/usernameAuth";
 
 export function LoginScreen() {
   const { signIn, error } = useAuth();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -11,7 +12,7 @@ export function LoginScreen() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await signIn(email, password);
+      await signIn(usernameToInternalEmail(username), password);
     } catch {
       /* الخطأ معروض بالفعل عبر AuthContext */
     } finally {
@@ -26,13 +27,13 @@ export function LoginScreen() {
         <p className="login-card__hint">هذه اللوحة مخصصة للمعلمة/الإدارة فقط. لا يوجد تسجيل عام.</p>
 
         <label>
-          البريد الإلكتروني
+          اسم المستخدم
           <input
-            type="email"
+            type="text"
             required
             autoComplete="username"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
           />
         </label>
 

@@ -477,3 +477,377 @@ fieldset {
   font-weight: 700;
   margin-inline-start: 12px;
 }
+
+/* -------------------- اختيار الإجابة الصحيحة بالضغط على البطاقة -------------------- */
+.choice-pick {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 8px;
+  border: 2px solid var(--brand-border);
+  border-radius: var(--radius-md);
+  background: #fff;
+  cursor: pointer;
+  text-align: right;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.choice-pick.is-correct {
+  border-color: #1f7a3d;
+  background: #eefaf1;
+}
+
+.choice-pick__check {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--brand-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.choice-pick.is-correct .choice-pick__check {
+  background: #1f7a3d;
+  color: #fff;
+}
+
+.choice-pick input[type="text"] {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  padding: 6px 4px;
+}
+
+.choice-pick input[type="text"]:focus {
+  outline: none;
+}
+
+.visibility-toggle {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px !important;
+  font-size: 15px !important;
+}
+
+.question-preview-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 20px;
+}
+
+.question-preview-card {
+  background: var(--game-panel, #fff);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  max-width: 480px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.question-preview-card__badge {
+  align-self: flex-start;
+  background: var(--brand-primary);
+  color: #fff;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* -------------------- الطالبات -------------------- */
+.students-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.student-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid var(--brand-border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  flex-wrap: wrap;
+}
+
+.student-row__name {
+  flex: 1;
+  min-width: 140px;
+  font-weight: 700;
+}
+
+.student-row__edit-input {
+  flex: 1;
+  min-width: 140px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--brand-border);
+}
+
+.student-row__group {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--brand-border);
+  font-size: 13px;
+}
+
+.student-row__actions {
+  display: flex;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.student-row__actions button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--brand-primary-dark);
+  font-weight: 600;
+}
+
+/* -------------------- المجموعات -------------------- */
+.group-card {
+  background: #fff;
+  border: 1px solid var(--brand-border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.group-card .set-row {
+  border: none;
+  padding: 0;
+}
+
+.group-members {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.group-members li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  background: #f8f8f8;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.group-members li button {
+  border: none;
+  background: transparent;
+  color: #c0392b;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+/* -------------------- إنشاء اختبار -------------------- */
+.test-create-card {
+  background: #fff;
+  border: 1px solid var(--brand-border);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.test-create-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.test-create-card select,
+.test-create-card input {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--brand-border);
+  font-size: 14px;
+}
+
+.test-type-toggle {
+  display: flex;
+  gap: 8px;
+}
+
+.test-type-toggle button {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid var(--brand-border);
+  background: #f4f4f4;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.test-type-toggle button.on {
+  background: var(--brand-primary);
+  color: #fff;
+  border-color: var(--brand-primary);
+}
+
+.created-link-box {
+  background: #eefaf1;
+  border: 1px solid #7bd389;
+  border-radius: var(--radius-md);
+  padding: 12px;
+}
+
+.created-link-box__row {
+  display: flex;
+  gap: 8px;
+}
+
+.created-link-box__row input {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--brand-border);
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.created-link-box__row button {
+  border: none;
+  background: var(--brand-primary);
+  color: #fff;
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.session-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--brand-border);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.session-row__main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.session-row__actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.session-row__actions button {
+  border: 1px solid var(--brand-border);
+  background: #f4f4f4;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* -------------------- النتائج -------------------- */
+.attempt-row {
+  display: flex;
+  flex-direction: column;
+}
+
+.attempt-row .question-row {
+  cursor: pointer;
+}
+
+.attempt-details {
+  background: #fafafa;
+  border: 1px solid var(--brand-border);
+  border-top: none;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  padding: 10px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: -2px;
+}
+
+.attempt-detail-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--brand-border);
+}
+
+.attempt-detail-row.is-wrong {
+  color: #c0392b;
+}
+
+.attempt-detail-row.is-correct {
+  color: #1f7a3d;
+}
+
+/* -------------------- إحصاءات لوحة الرئيسية الموسّعة -------------------- */
+.quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 16px 0 28px;
+}
+
+.quick-actions a,
+.quick-actions button {
+  background: #fff;
+  border: 1px solid var(--brand-border);
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--brand-primary-dark);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.quick-actions a:hover,
+.quick-actions button:hover {
+  background: var(--brand-primary);
+  color: #fff;
+  border-color: var(--brand-primary);
+}

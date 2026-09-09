@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useState } from "react";
-import type { Question } from "@/types/models";
+import { useCallback, useMemo, useRef, useState } from "react";
+import type { AttemptAnswer, Question } from "@/types/models";
 
 export type FlowStatus = "answering" | "correct" | "incorrect" | "complete";
 
@@ -12,19 +12,26 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-export function useQuestionFlow(questions: Question[], roundSize: number) {
+/**
+ * @param preserveOrder صحيح لجلسات الاختبار الرسمية (ترتيب الأسئلة كما
+ * اختارته المعلمة بالضبط)، خطأ (الافتراضي) للعب العام (ترتيب عشوائي في كل
+ * جولة).
+ */
+export function useQuestionFlow(questions: Question[], roundSize: number, preserveOrder = false) {
   const [seed] = useState(() => Math.random());
   const round = useMemo(() => {
-    const pool = shuffle(questions);
+    const pool = preserveOrder ? questions : shuffle(questions);
     return pool.slice(0, Math.max(1, Math.min(roundSize, pool.length)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [questions.map((q) => q.id).join(","), roundSize, seed]);
+  }, [questions.map((q) => q.id).join(","), roundSize, seed, preserveOrder]);
 
   const [index, setIndex] = useState(0);
   const [status, setStatus] = useState<FlowStatus>("answering");
   const [correctCount, setCorrectCount] = useState(0);
   const [wrongCount, setWrongCount] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
+  const [history, setHistory] = useState<AttemptAnswer[]>([]);
+  const questionShownAt = useRef(Date.now());
 
   const current = round[index];
   const total = round.length;
@@ -38,6 +45,19 @@ export function useQuestionFlow(questions: Question[], roundSize: number) {
       setStatus(isCorrect ? "correct" : "incorrect");
       if (isCorrect) setCorrectCount((c) => c + 1);
       else setWrongCount((c) => c + 1);
+      setHistory((h) => [
+        ...h,
+        {
+          questionId: current.id,
+          questionTextSnapshot: current.question,
+          choicesSnapshot: current.choices,
+          studentAnswer: choiceIndex as 0 | 1 | 2 | 3,
+          correctAnswerSnapshot: current.correctAnswer,
+          isCorrect,
+          answeredAt: Date.now(),
+          timeSpentMs: Date.now() - questionShownAt.current,
+        },
+      ]);
       return isCorrect;
     },
     [current, status]
@@ -45,6 +65,7 @@ export function useQuestionFlow(questions: Question[], roundSize: number) {
 
   const next = useCallback(() => {
     setSelected(null);
+    questionShownAt.current = Date.now();
     if (index + 1 >= total) {
       setStatus("complete");
     } else {
@@ -59,6 +80,8 @@ export function useQuestionFlow(questions: Question[], roundSize: number) {
     setCorrectCount(0);
     setWrongCount(0);
     setSelected(null);
+    setHistory([]);
+    questionShownAt.current = Date.now();
   }, []);
 
   return {
@@ -71,6 +94,7 @@ export function useQuestionFlow(questions: Question[], roundSize: number) {
     correctCount,
     wrongCount,
     progress,
+    history,
     answer,
     next,
     reset,

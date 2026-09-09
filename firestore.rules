@@ -82,8 +82,63 @@ service cloud.firestore {
       allow write: if isStaff();
     }
 
-    // لا توجد أي مجموعة لبيانات الطالبات الشخصية عمدًا: اللعبة لا تجمع
-    // أسماء أو هويات أو أرقامًا، وتقدّمها بدون تسجيل دخول.
+    // ------------------------------------------------------------------
+    // students / groups: الاسم فقط (بلا هوية/جوال/بريد) - قراءة وكتابة
+    // للمعلمة/الإدارة حصرًا. لا قراءة عامة إطلاقًا؛ الطالبات لا يرين هذه
+    // المجموعات مباشرة، فقط أسماءهن ضمن جلسة اختبار محدَّدة يملكن رابطها
+    // (انظر testSessions أدناه).
+    // ------------------------------------------------------------------
+    match /students/{studentId} {
+      allow read, write: if isStaff();
+    }
+
+    match /groups/{groupId} {
+      allow read, write: if isStaff();
+    }
+
+    // ------------------------------------------------------------------
+    // testSessions: تُنشئها المعلمة فقط. القراءة الفردية بالمعرّف (get)
+    // متاحة للجميع عمدًا - هذا هو "رابط الاختبار" الذي تشاركه المعلمة مع
+    // الطالبة/المجموعة، ولا يكشف عن أي طالبة خارج مشاركات هذه الجلسة
+    // تحديدًا. أما القوائم (list/query) فمقصورة على المعلمة فقط، فلا يمكن
+    // لأي طرف تعداد كل الجلسات أو اكتشاف معرّفاتها.
+    // ------------------------------------------------------------------
+    match /testSessions/{sessionId} {
+      allow get: if true;
+      allow list: if isStaff();
+      allow create, update, delete: if isStaff();
+    }
+
+    // ------------------------------------------------------------------
+    // attempts: نتائج الاختبارات الرسمية (وليس اللعب العام - اللعب العام
+    // لا يُحفظ إطلاقًا). القراءة للمعلمة فقط، لا قائمة علنية بأي نتيجة.
+    // الكتابة (إنشاء محاولة واحدة) متاحة بلا تسجيل دخول شرط أن ترتبط
+    // فعليًا بجلسة موجودة ونشطة، وأن تكون الطالبة ضمن مشاركي تلك الجلسة
+    // تحديدًا (لا يمكن انتحال محاولة باسم طالبة أخرى أو جلسة غير موجودة)،
+    // مع تحقق أساسي من شكل البيانات. لا تعديل ولا حذف إلا من المعلمة.
+    // ------------------------------------------------------------------
+    function sessionRefFor(sid) {
+      return /databases/$(database)/documents/testSessions/$(sid);
+    }
+
+    function validAttemptShape() {
+      return request.resource.data.sessionId is string &&
+        exists(sessionRefFor(request.resource.data.sessionId)) &&
+        get(sessionRefFor(request.resource.data.sessionId)).data.active == true &&
+        request.resource.data.studentId in
+          get(sessionRefFor(request.resource.data.sessionId)).data.participantIds &&
+        request.resource.data.totalQuestions is int &&
+        request.resource.data.correctCount is int &&
+        request.resource.data.incorrectCount is int &&
+        request.resource.data.scorePercentage is number;
+    }
+
+    match /attempts/{attemptId} {
+      allow read: if isStaff();
+      allow create: if validAttemptShape();
+      allow update, delete: if isStaff();
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
