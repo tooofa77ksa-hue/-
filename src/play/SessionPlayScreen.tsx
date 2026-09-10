@@ -10,7 +10,7 @@ import { useQuestionFlow } from "./useQuestionFlow";
 import { createAttempt, getQuestionsByIds, getTestSession } from "@/lib/repo";
 import type { Question, TestSession } from "@/types/models";
 
-type LoadState = "loading" | "not-found" | "inactive" | "ready";
+type LoadState = "loading" | "not-found" | "inactive" | "ready" | "error";
 
 /** شاشة اختبار رسمي مرتبطة بجلسة (فردية أو جماعية) - تختلف عن اللعب العام:
  * تتطلب اختيار اسم الطالبة (من مشاركي هذه الجلسة تحديدًا، لا كل الطالبات)،
@@ -35,24 +35,28 @@ export function SessionPlayScreen() {
       return;
     }
     (async () => {
-      const s = await getTestSession(sessionId);
-      if (cancelled) return;
-      if (!s) {
-        setLoadState("not-found");
-        return;
+      try {
+        const s = await getTestSession(sessionId);
+        if (cancelled) return;
+        if (!s) {
+          setLoadState("not-found");
+          return;
+        }
+        if (!s.active) {
+          setLoadState("inactive");
+          return;
+        }
+        const qs = await getQuestionsByIds(s.questionIds);
+        if (cancelled) return;
+        setSession(s);
+        setQuestions(qs);
+        if (s.type === "individual" && s.participants.length === 1) {
+          setParticipant(s.participants[0]);
+        }
+        setLoadState("ready");
+      } catch {
+        if (!cancelled) setLoadState("error");
       }
-      if (!s.active) {
-        setLoadState("inactive");
-        return;
-      }
-      const qs = await getQuestionsByIds(s.questionIds);
-      if (cancelled) return;
-      setSession(s);
-      setQuestions(qs);
-      if (s.type === "individual" && s.participants.length === 1) {
-        setParticipant(s.participants[0]);
-      }
-      setLoadState("ready");
     })();
     return () => {
       cancelled = true;
@@ -122,6 +126,16 @@ export function SessionPlayScreen() {
     return (
       <div className="game-screen__empty">
         <p>هذا الاختبار غير نشط حاليًا. اسألي معلمتك عن رابط جديد.</p>
+        <button onClick={() => navigate("/play")}>الرجوع للعب العام</button>
+      </div>
+    );
+  }
+
+  if (loadState === "error") {
+    return (
+      <div className="game-screen__empty">
+        <p>تعذّر تحميل الاختبار. تحققي من الاتصال بالإنترنت وحاولي مرة أخرى.</p>
+        <button onClick={() => window.location.reload()}>إعادة المحاولة</button>
         <button onClick={() => navigate("/play")}>الرجوع للعب العام</button>
       </div>
     );

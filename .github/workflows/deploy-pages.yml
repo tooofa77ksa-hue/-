@@ -27,10 +27,22 @@ jobs:
 
       - run: npm ci
 
-      - name: Build (GitHub Pages base path)
+      # قيم Firebase Web App SDK التالية عامة (Public) بطبيعتها - وليست
+      # Secrets: هذا بالضبط ما يُضمَّن في حزمة أي تطبيق ويب يستخدم Firebase،
+      # وحمايتها الحقيقية تأتي من Firestore/Auth Security Rules وليس من
+      # إخفاء هذه القيم (توثيق Firebase الرسمي يؤكد هذا). مشروع الإنتاج:
+      # lughati165.
+      - name: Build (GitHub Pages base path + Firebase Production config)
         run: npm run build
         env:
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
+          VITE_FIREBASE_API_KEY: AIzaSyA_S3yvILDo7ewZaaNhDoBAg_e3Z2i_Yqs
+          VITE_FIREBASE_AUTH_DOMAIN: lughati165.firebaseapp.com
+          VITE_FIREBASE_PROJECT_ID: lughati165
+          VITE_FIREBASE_STORAGE_BUCKET: lughati165.firebasestorage.app
+          VITE_FIREBASE_MESSAGING_SENDER_ID: "51460513048"
+          VITE_FIREBASE_APP_ID: "1:51460513048:web:8b5d4be67364716bf4126d"
+          VITE_USE_FIREBASE_EMULATORS: "false"
 
       - uses: actions/configure-pages@v5
         with:
