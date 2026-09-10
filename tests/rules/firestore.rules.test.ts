@@ -204,6 +204,73 @@ describe("مستخدم مسجَّل دخول لكنه ليس معلمة (role !=
 });
 
 // ------------------------------------------------------------------
+// استثناء bootstrap ضيّق جدًا لحساب المعلمة الوحيد المعروف بريده مسبقًا:
+// dalal@teacher.shualat-lughati.internal. يجب ألا يعمل لأي بريد آخر ولا
+// لأي دور غير "teacher"، ويجب ألا يعمل إلا مرة واحدة (create وليس update).
+// ------------------------------------------------------------------
+const BOOTSTRAP_EMAIL = "dalal@teacher.shualat-lughati.internal";
+
+describe("استثناء bootstrap لحساب المعلمة المعروف فقط (users/{uid})", () => {
+  it("الحساب صاحب البريد الداخلي المحدَّد يستطيع إنشاء مستند دوره الخاص بـ role=teacher لأول مرة", async () => {
+    const db = testEnv
+      .authenticatedContext("dalal-uid", { email: BOOTSTRAP_EMAIL })
+      .firestore();
+    await assertSucceeds(
+      db.collection("users").doc("dalal-uid").set({
+        email: BOOTSTRAP_EMAIL,
+        displayName: "دلال",
+        role: "teacher",
+        createdAt: Date.now(),
+      })
+    );
+  });
+
+  it("نفس الحساب لا يستطيع تعديل الدور لاحقًا بعد إنشاء المستند مرة واحدة", async () => {
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      await context.firestore().collection("users").doc("dalal-uid").set({
+        email: BOOTSTRAP_EMAIL,
+        role: "teacher",
+        createdAt: Date.now(),
+      });
+    });
+    const db = testEnv
+      .authenticatedContext("dalal-uid", { email: BOOTSTRAP_EMAIL })
+      .firestore();
+    await assertFails(db.collection("users").doc("dalal-uid").update({ role: "admin" }));
+  });
+
+  it("لا يستطيع إنشاء المستند بدور غير teacher حتى لو كان بريده مطابقًا", async () => {
+    const db = testEnv
+      .authenticatedContext("dalal-uid", { email: BOOTSTRAP_EMAIL })
+      .firestore();
+    await assertFails(
+      db.collection("users").doc("dalal-uid").set({ email: BOOTSTRAP_EMAIL, role: "admin" })
+    );
+  });
+
+  it("لا يستطيع أي حساب آخر (بريد مختلف) استخدام هذا الاستثناء إطلاقًا", async () => {
+    const db = testEnv
+      .authenticatedContext("someone-else-uid", { email: "someone-else@example.com" })
+      .firestore();
+    await assertFails(
+      db.collection("users").doc("someone-else-uid").set({
+        email: "someone-else@example.com",
+        role: "teacher",
+      })
+    );
+  });
+
+  it("لا يستطيع حتى الحساب المطابق كتابة هذا الدور لحساب مستخدم آخر (uid مختلف)", async () => {
+    const db = testEnv
+      .authenticatedContext("dalal-uid", { email: BOOTSTRAP_EMAIL })
+      .firestore();
+    await assertFails(
+      db.collection("users").doc("someone-else-uid").set({ email: BOOTSTRAP_EMAIL, role: "teacher" })
+    );
+  });
+});
+
+// ------------------------------------------------------------------
 // students / groups / testSessions / attempts
 // ------------------------------------------------------------------
 const STUDENT_1 = {
