@@ -29,24 +29,32 @@ export abstract class BaseGameScene extends Phaser.Scene {
     this.layout();
 
     this.unsubscribers.push(
-      gameBus.on("ANSWER_CORRECT", ({ progress }) => {
-        this.progress = progress;
-        this.dumpling.celebrateExcellent();
-        this.onCorrect(progress);
-      }),
-      gameBus.on("ANSWER_WRONG", () => {
-        this.dumpling.wobbleGently();
-        this.onWrong();
-      }),
-      gameBus.on("ROUND_COMPLETE", () => {
-        this.dumpling.celebrateHero();
-        getAudioManager().playEvent("NEXT_LEVEL");
-        this.onComplete();
-      }),
-      gameBus.on("ROUND_RESET", () => {
-        this.progress = 0;
-        this.onReset();
-      })
+      gameBus.on("ANSWER_CORRECT", ({ progress }) =>
+        this.safeRun(() => {
+          this.progress = progress;
+          this.dumpling.celebrateExcellent();
+          this.onCorrect(progress);
+        })
+      ),
+      gameBus.on("ANSWER_WRONG", () =>
+        this.safeRun(() => {
+          this.dumpling.wobbleGently();
+          this.onWrong();
+        })
+      ),
+      gameBus.on("ROUND_COMPLETE", () =>
+        this.safeRun(() => {
+          this.dumpling.celebrateHero();
+          getAudioManager().playEvent("NEXT_LEVEL");
+          this.onComplete();
+        })
+      ),
+      gameBus.on("ROUND_RESET", () =>
+        this.safeRun(() => {
+          this.progress = 0;
+          this.onReset();
+        })
+      )
     );
 
     this.scale.on("resize", this.handleResize, this);
@@ -69,6 +77,24 @@ export abstract class BaseGameScene extends Phaser.Scene {
    * سابقًا (height*0.72 كان يضع الشخصية خلف البطاقة بالكامل طوال اللعب). */
   private dumplingPosition(width: number, height: number) {
     return { x: width * 0.24, y: height * 0.34 };
+  }
+
+  /** يتحقق أولًا أن أنظمة المشهد الأساسية ما زالت موجودة، وينفّذ الدالة
+   * داخل try/catch كخط دفاع أخير - يحمي من حدث gameBus متأخر يصل بعد
+   * تدمير اللعبة. يحدث هذا حصرًا في وضع التطوير (React.StrictMode يُنشئ
+   * اللعبة مرتين عمدًا للتحقق من صحة التنظيف؛ مؤكَّد أنه لا يحدث إطلاقًا
+   * في بناء الإنتاج الفعلي حيث تُعطَّل هذه الميزة التشخيصية تلقائيًا)،
+   * وفي هذه الحالة تحديدًا بعض أنظمة Phaser الداخلية (غير this.add نفسها)
+   * قد تكون تالفة جزئيًا رغم أن this.add كمرجع لا يزال موجودًا - لذا
+   * try/catch ضروري هنا بجانب الفحص المبدئي، لا بديل عنه. */
+  private safeRun(fn: () => void) {
+    if (!this.add || !this.tweens) return;
+    try {
+      fn();
+    } catch {
+      /* مشهد تحت التدمير (سباق React.StrictMode في وضع التطوير فقط) -
+       * تجاهل بصمت بدل تعطيل الصفحة كلها. */
+    }
   }
 
   /** خلفية زاهية كرتونية خاصة بكل نمط لعبة */

@@ -238,16 +238,20 @@
 /* -------------------- شاشة إنهاء الجولة -------------------- */
 .round-complete {
   position: absolute;
-  inset: 0;
+  inset: auto 0 0 0;
   z-index: 4;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 16px;
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--game-panel);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.15);
   text-align: center;
   padding: 24px;
+  max-height: 58vh;
+  overflow-y: auto;
 }
 
 .round-complete h2 {
