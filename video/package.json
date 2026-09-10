@@ -1,0 +1,32 @@
+{
+  "name": "nafes-video",
+  "private": true,
+  "version": "1.0.0",
+  "description": "فيديو Motion Graphics رسمي - نتائج اختبارات نافس - إنتاج Remotion قابل للتوسعة",
+  "type": "module",
+  "scripts": {
+    "dev": "remotion studio src/index.ts",
+    "build": "remotion bundle src/index.ts",
+    "render": "remotion render src/index.ts MainVideo out/nafes-video.mp4",
+    "still": "remotion still src/index.ts",
+    "typecheck": "tsc -b --noEmit",
+    "lint": "eslint src --ext ts,tsx",
+    "make-sfx": "tsx scripts/generate-sfx.ts",
+    "check-audio": "tsx scripts/check-audio-slots.ts"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.523",
+    "@remotion/fonts": "4.0.523",
+    "@remotion/media-utils": "4.0.523",
+    "@remotion/transitions": "4.0.523",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.523"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.1",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.3"
+  }
+}
