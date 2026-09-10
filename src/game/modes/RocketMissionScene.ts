@@ -88,7 +88,9 @@ export default class RocketMissionScene extends BaseGameScene {
   protected onComplete() {
     if (this.launched) return;
     this.launched = true;
-    getAudioManager().playEvent("AMAZING");
+    const manager = getAudioManager();
+    manager.playEvent("ROCKET_READY");
+    window.setTimeout(() => manager.playEvent("AMAZING"), 900);
     const { height } = this.scale;
     this.tweens.add({
       targets: this.flame,

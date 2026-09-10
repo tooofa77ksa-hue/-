@@ -79,6 +79,11 @@ export const sfx = {
   softBoop(ctx: AudioContext, out: AudioNode) {
     tone(ctx, out, 260, 0.18, "sine", 0.35, 160);
   },
+  rocketCharged(ctx: AudioContext, out: AudioNode) {
+    [440, 660, 880].forEach((f, i) => {
+      setTimeout(() => tone(ctx, out, f, 0.12, "triangle", 0.35), i * 70);
+    });
+  },
 };
 
 export type SfxKey = keyof typeof sfx;

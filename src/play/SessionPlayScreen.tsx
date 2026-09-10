@@ -75,7 +75,7 @@ export function SessionPlayScreen() {
       manager.playEvent("EXCELLENT");
     } else if (flow.status === "incorrect") {
       gameBus.emit("ANSWER_WRONG", {});
-      manager.playEvent("WRONG");
+      manager.playWrongVariant();
     } else if (flow.status === "complete") {
       gameBus.emit("ROUND_COMPLETE", {});
       manager.playEvent(flow.wrongCount === 0 ? "CREATIVE" : "HERO");

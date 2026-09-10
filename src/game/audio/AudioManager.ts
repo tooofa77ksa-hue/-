@@ -12,7 +12,9 @@ export type GameEvent =
   | "GEM"
   | "CREATIVE"
   | "NEXT_LEVEL"
-  | "WRONG";
+  | "WRONG"
+  | "ALMOST"
+  | "ROCKET_READY";
 
 /** أسماء ملفات الصوت البشري الجاهزة للاستبدال لاحقًا بدون تعديل الكود */
 export const VOICE_SLOTS: Record<GameEvent, string> = {
@@ -24,6 +26,8 @@ export const VOICE_SLOTS: Record<GameEvent, string> = {
   CREATIVE: "creative_01",
   NEXT_LEVEL: "next_01",
   WRONG: "try_again_01",
+  ALMOST: "almost_01",
+  ROCKET_READY: "rocket_ready_01",
 };
 
 const EVENT_SFX: Record<GameEvent, SfxKey> = {
@@ -35,6 +39,8 @@ const EVENT_SFX: Record<GameEvent, SfxKey> = {
   CREATIVE: "applauseChime",
   NEXT_LEVEL: "magicWhoosh",
   WRONG: "softBoop",
+  ALMOST: "softBoop",
+  ROCKET_READY: "rocketCharged",
 };
 
 export interface AudioPrefs {
@@ -187,6 +193,14 @@ export class AudioManager {
 
     this.playSfx(EVENT_SFX[event]);
     await this.tryPlayVoice(VOICE_SLOTS[event]);
+  }
+
+  /** إجابة خاطئة: تنويع لطيف بين "حاولي مرة أخرى" و"اقتربتِ، جربي مرة
+   * ثانية" - نفس المؤثر الصوتي غير العقابي ونفس حركة الدَمبلنغ (Wobble)
+   * للاثنين معًا، فقط تنويع في العبارة المنطوقة لتفادي التكرار المزعج. */
+  async playWrongVariant() {
+    const event: GameEvent = Math.random() < 0.5 ? "WRONG" : "ALMOST";
+    await this.playEvent(event);
   }
 
   get isReducedMotion() {
