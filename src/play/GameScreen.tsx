@@ -6,6 +6,7 @@ import { getAudioManager } from "@/game/audio/AudioManager";
 import { GAME_MODE_LABELS } from "@/game/modes/registry";
 import { QuestionOverlay } from "./QuestionOverlay";
 import { AudioControls } from "./AudioControls";
+import { Celebration } from "./Celebration";
 import { useAudioSettings, useGameSettings, usePublishedQuestions } from "./useGameData";
 import { useQuestionFlow } from "./useQuestionFlow";
 import type { GameMode } from "@/types/models";
@@ -88,6 +89,7 @@ export function GameScreen() {
 
       {flow.status !== "complete" && flow.current && (
         <QuestionOverlay
+          key={flow.current.id}
           question={flow.current}
           status={flow.status}
           selected={flow.selected}
@@ -98,25 +100,35 @@ export function GameScreen() {
         />
       )}
 
-      {flow.status === "complete" && (
-        <div className="round-complete">
-          <h2>أحسنتِ! أنهيتِ الجولة 🎉</h2>
-          <p>
-            إجاباتك الصحيحة: {flow.correctCount} من {flow.total}
-          </p>
-          <div className="round-complete__actions">
-            <button
-              onClick={() => {
-                flow.reset();
-                gameBus.emit("ROUND_RESET", {});
-              }}
-            >
-              العب مرة أخرى
-            </button>
-            <button onClick={() => navigate("/play")}>لعبة أخرى</button>
-          </div>
-        </div>
-      )}
+      {flow.status === "complete" &&
+        (() => {
+          const ratio = flow.total > 0 ? flow.correctCount / flow.total : 0;
+          const isHigh = ratio >= 0.8;
+          const isLow = ratio < 0.5;
+          const title = isHigh ? "أنتِ نجمة! 🌟" : isLow ? "خطوة رائعة! 💪" : "أحسنتِ! أنهيتِ الجولة 🎉";
+          const note = isLow ? "كل محاولة تقربك من الإتقان، واصلي المحاولة 💛" : "استمري بهذا التألق!";
+          return (
+            <div className="round-complete">
+              <Celebration variant={isLow ? "sparkle" : "confetti"} intensity={isHigh ? "high" : "normal"} />
+              <h2>{title}</h2>
+              <p className="round-complete__score">
+                {flow.correctCount} من {flow.total}
+              </p>
+              <p className="round-complete__note">{note}</p>
+              <div className="round-complete__actions">
+                <button
+                  onClick={() => {
+                    flow.reset();
+                    gameBus.emit("ROUND_RESET", {});
+                  }}
+                >
+                  العب مرة أخرى
+                </button>
+                <button onClick={() => navigate("/play")}>لعبة أخرى</button>
+              </div>
+            </div>
+          );
+        })()}
     </div>
   );
 }

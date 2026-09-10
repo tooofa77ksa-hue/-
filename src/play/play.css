@@ -44,16 +44,51 @@
   gap: 10px;
   box-shadow: var(--shadow-soft);
   cursor: pointer;
-  transition: transform 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
   font-family: inherit;
+  animation: cardEnter 0.5s cubic-bezier(0.2, 0.8, 0.3, 1.2) backwards;
+}
+
+.mode-select__grid .mode-card:nth-child(1) {
+  animation-delay: 0.05s;
+}
+.mode-select__grid .mode-card:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.mode-select__grid .mode-card:nth-child(3) {
+  animation-delay: 0.25s;
+}
+
+.mode-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.16);
 }
 
 .mode-card:active {
   transform: scale(0.96);
 }
 
+.mode-card.is-leaving {
+  transform: scale(0.9);
+  opacity: 0.6;
+  transition: transform 0.16s ease, opacity 0.16s ease;
+}
+
 .mode-card__emoji {
   font-size: 44px;
+  display: inline-block;
+}
+
+.mode-card--rocket_mission .mode-card__emoji {
+  animation: modeIconFloat 2.4s ease-in-out infinite;
+}
+
+.mode-card--squishy_treasure .mode-card__emoji {
+  animation: modeIconTwinkle 1.8s ease-in-out infinite;
+}
+
+.mode-card--magic_gate .mode-card__emoji {
+  animation: modeIconGlow 2.2s ease-in-out infinite;
 }
 
 .mode-card__label {
@@ -140,6 +175,7 @@
   box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.15);
   max-height: 58vh;
   overflow-y: auto;
+  animation: overlaySlideUp 0.35s cubic-bezier(0.2, 0.8, 0.3, 1) backwards;
 }
 
 .question-overlay__progress {
@@ -168,24 +204,33 @@
 .question-overlay__choices {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 12px;
 }
 
 .choice-btn {
   background: #fff;
   border: 2px solid var(--game-accent-3);
   border-radius: var(--radius-md);
-  padding: 14px 10px;
-  font-size: 15px;
+  padding: 16px 12px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--game-ink);
   cursor: pointer;
-  transition: transform 0.1s ease, background 0.15s ease;
-  min-height: 56px;
+  transition: transform 0.12s ease, background 0.15s ease, box-shadow 0.15s ease;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.choice-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
 }
 
 .choice-btn:active:not(:disabled) {
-  transform: scale(0.97);
+  transform: scale(0.96);
 }
 
 .choice-btn:disabled {
@@ -196,12 +241,14 @@
   background: var(--game-accent-4);
   border-color: var(--game-accent-4);
   color: #fff;
+  animation: choicePulse 0.5s ease;
 }
 
 .choice-btn.wrong {
   background: var(--game-accent-2);
   border-color: var(--game-accent-2);
   color: #fff;
+  animation: choiceWobble 0.4s ease;
 }
 
 .question-overlay__feedback {
@@ -213,6 +260,7 @@
   font-weight: 800;
   border-radius: var(--radius-md);
   padding: 10px 14px;
+  animation: feedbackIn 0.3s cubic-bezier(0.2, 0.8, 0.3, 1.3) backwards;
 }
 
 .question-overlay__feedback.is-correct {
@@ -233,6 +281,15 @@
   border-radius: 999px;
   font-weight: 800;
   cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+.next-btn:hover {
+  transform: translateY(-2px);
+}
+
+.next-btn:active {
+  transform: scale(0.94);
 }
 
 /* -------------------- شاشة إنهاء الجولة -------------------- */
@@ -252,16 +309,34 @@
   padding: 24px;
   max-height: 58vh;
   overflow-y: auto;
+  overflow-x: hidden;
+  animation: overlaySlideUp 0.4s cubic-bezier(0.2, 0.8, 0.3, 1) backwards;
 }
 
 .round-complete h2 {
   color: var(--game-ink);
+  margin: 0;
+  animation: popIn 0.5s cubic-bezier(0.2, 0.8, 0.3, 1.3) 0.1s backwards;
+}
+
+.round-complete__score {
+  font-size: clamp(22px, 6vw, 30px);
+  font-weight: 800;
+  color: var(--game-accent-1);
+  animation: popIn 0.5s cubic-bezier(0.2, 0.8, 0.3, 1.3) 0.2s backwards;
+}
+
+.round-complete__note {
+  color: var(--brand-muted);
+  font-size: 14px;
   margin: 0;
 }
 
 .round-complete__actions {
   display: flex;
   gap: 12px;
+  position: relative;
+  z-index: 1;
 }
 
 .round-complete__actions button {
@@ -272,6 +347,16 @@
   border-radius: 12px;
   font-weight: 700;
   cursor: pointer;
+  transition: transform 0.12s ease;
+  animation: popIn 0.4s cubic-bezier(0.2, 0.8, 0.3, 1.3) 0.3s backwards;
+}
+
+.round-complete__actions button:hover {
+  transform: translateY(-2px);
+}
+
+.round-complete__actions button:active {
+  transform: scale(0.94);
 }
 
 /* -------------------- عناصر تحكم الصوت -------------------- */
@@ -288,6 +373,11 @@
   font-size: 18px;
   box-shadow: var(--shadow-soft);
   cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+.audio-controls__toggle:active {
+  transform: scale(0.9);
 }
 
 .audio-controls__panel {
@@ -312,10 +402,196 @@
   gap: 4px;
 }
 
+/* -------------------- حركات الدخول والاحتفال -------------------- */
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes overlaySlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes feedbackIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes choicePulse {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes choiceWobble {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes modeIconFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-4deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(4deg);
+  }
+}
+
+@keyframes modeIconTwinkle {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 0 transparent);
+  }
+  50% {
+    transform: scale(1.12) rotate(-6deg);
+    filter: drop-shadow(0 0 6px rgba(255, 203, 61, 0.7));
+  }
+}
+
+@keyframes modeIconGlow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 0 transparent);
+  }
+  50% {
+    filter: drop-shadow(0 0 8px rgba(123, 211, 137, 0.8));
+  }
+}
+
+/* -------------------- طبقة الاحتفال (نجوم/بريق/Confetti) -------------------- */
+.celebration {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 2;
+}
+
+.celebration__particle {
+  position: absolute;
+  top: -20px;
+  font-size: 14px;
+  line-height: 1;
+  will-change: transform, opacity;
+}
+
+.celebration--sparkle .celebration__particle {
+  top: 30%;
+  animation-name: sparklePop;
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
+  font-size: 16px;
+}
+
+.celebration--confetti .celebration__particle--star,
+.celebration--confetti .celebration__particle--heart {
+  font-size: 15px;
+  animation-name: confettiFall;
+  animation-timing-function: ease-in;
+  animation-fill-mode: forwards;
+}
+
+.celebration--confetti .celebration__particle--confetti {
+  width: 8px;
+  height: 12px;
+  border-radius: 2px;
+  animation-name: confettiFall;
+  animation-timing-function: ease-in;
+  animation-fill-mode: forwards;
+}
+
+@keyframes sparklePop {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.4) rotate(0deg);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-18px) scale(1.1) rotate(20deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-42px) scale(0.6) rotate(60deg);
+  }
+}
+
+@keyframes confettiFall {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px) rotate(0deg);
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(220px) rotate(var(--rotate, 180deg));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mode-card,
-  .choice-btn {
-    transition: none;
+  .mode-card__emoji,
+  .choice-btn,
+  .choice-btn.correct,
+  .choice-btn.wrong,
+  .question-overlay,
+  .question-overlay__feedback,
+  .round-complete,
+  .round-complete h2,
+  .round-complete__score,
+  .round-complete__actions button,
+  .next-btn,
+  .back-btn,
+  .mode-select__title {
+    animation: none !important;
+    transition: none !important;
   }
 }
 

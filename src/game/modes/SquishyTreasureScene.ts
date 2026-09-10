@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { BaseGameScene } from "./BaseGameScene";
 import { getAudioManager } from "@/game/audio/AudioManager";
-import { drawFlower, drawSparkle, scatterDecor } from "@/game/decor";
+import { burstStars, drawFlower, drawSparkle, scatterDecor } from "@/game/decor";
 
 const GEM_COLORS = [0xff5d8f, 0x35c2e8, 0xffcb3d, 0x7bd389];
 
@@ -9,7 +9,9 @@ const GEM_COLORS = [0xff5d8f, 0x35c2e8, 0xffcb3d, 0x7bd389];
 export default class SquishyTreasureScene extends BaseGameScene {
   private counterBg!: Phaser.GameObjects.Graphics;
   private counterText!: Phaser.GameObjects.Text;
-  private chest!: Phaser.GameObjects.Graphics;
+  private chest!: Phaser.GameObjects.Container;
+  private chestX = 0;
+  private chestY = 0;
   private collected = 0;
 
   constructor() {
@@ -38,11 +40,14 @@ export default class SquishyTreasureScene extends BaseGameScene {
     const { width } = this.scale;
 
     this.chest?.destroy();
-    this.chest = this.add.graphics();
-    this.chest.fillStyle(0xb98a2e, 1);
-    this.chest.fillRoundedRect(width - 96, 24, 64, 44, 8);
-    this.chest.fillStyle(0xffcb3d, 1);
-    this.chest.fillRect(width - 68, 24, 8, 44);
+    this.chestX = width - 64;
+    this.chestY = 46;
+    const chestBody = this.add.graphics();
+    chestBody.fillStyle(0xb98a2e, 1);
+    chestBody.fillRoundedRect(-32, -22, 64, 44, 8);
+    chestBody.fillStyle(0xffcb3d, 1);
+    chestBody.fillRect(-4, -22, 8, 44);
+    this.chest = this.add.container(this.chestX, this.chestY, [chestBody]);
 
     this.counterBg?.destroy();
     this.counterBg = this.add.graphics();
@@ -84,6 +89,8 @@ export default class SquishyTreasureScene extends BaseGameScene {
         this.collected += 1;
         this.counterText.setText(`${this.collected}`);
         this.tweens.add({ targets: this.counterText, scale: 1.3, duration: 100, yoyo: true });
+        this.tweens.add({ targets: this.chest, angle: -6, duration: 80, yoyo: true, repeat: 1 });
+        burstStars(this, this.chestX, this.chestY, 2, this.reducedMotion);
       },
     });
   }
@@ -94,7 +101,17 @@ export default class SquishyTreasureScene extends BaseGameScene {
 
   protected onComplete() {
     getAudioManager().playEvent("CREATIVE");
-    this.tweens.add({ targets: this.chest, angle: -4, duration: 100, yoyo: true, repeat: 3 });
+    this.tweens.add({
+      targets: this.chest,
+      scale: 1.15,
+      duration: 160,
+      yoyo: true,
+      ease: "Back.easeOut",
+      onComplete: () => {
+        this.tweens.add({ targets: this.chest, angle: -4, duration: 100, yoyo: true, repeat: 3 });
+      },
+    });
+    burstStars(this, this.chestX, this.chestY, 6, this.reducedMotion);
   }
 
   protected onReset() {

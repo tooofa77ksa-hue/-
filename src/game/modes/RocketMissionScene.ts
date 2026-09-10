@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { BaseGameScene } from "./BaseGameScene";
 import { getAudioManager } from "@/game/audio/AudioManager";
-import { drawFlower, drawSparkle, scatterDecor } from "@/game/decor";
+import { burstStars, drawFlower, drawSparkle, scatterDecor, starTrail } from "@/game/decor";
 
 /** ROCKET MISSION: كل إجابة صحيحة تشحن الصاروخ حتى الإقلاع. */
 export default class RocketMissionScene extends BaseGameScene {
@@ -10,6 +10,8 @@ export default class RocketMissionScene extends BaseGameScene {
   private meterBg!: Phaser.GameObjects.Graphics;
   private meterFill!: Phaser.GameObjects.Graphics;
   private launched = false;
+  private idleTween?: Phaser.Tweens.Tween;
+  private idleSparkleTimer?: Phaser.Time.TimerEvent;
 
   constructor() {
     super("RocketMissionScene");
@@ -66,6 +68,35 @@ export default class RocketMissionScene extends BaseGameScene {
     this.meterBg.fillRoundedRect(width / 2 - 110, height - 46, 220, 22, 11);
     this.meterFill = this.add.graphics();
     this.drawMeter(this.launched ? 1 : this.progress);
+    this.flame.setScale(0.9 + this.progress * 0.5);
+
+    this.startIdleMotion();
+  }
+
+  /** حركة انتظار خفيفة: الصاروخ يتمايل قليلًا + بريق عرضي حوله - يمنح
+   * إحساسًا بالحياة أثناء انتظار الإجابة، لا يتعارض مع اهتزاز onWrong
+   * لأنه على قيم زاوية صغيرة جدًا ولا يُشغَّل أثناء الإقلاع. */
+  private startIdleMotion() {
+    this.idleTween?.remove();
+    this.idleSparkleTimer?.remove();
+    if (this.reducedMotion || this.launched) return;
+    this.idleTween = this.tweens.add({
+      targets: this.rocket,
+      y: this.rocket.y - 4,
+      angle: 1.5,
+      duration: 1400,
+      yoyo: true,
+      repeat: -1,
+      ease: "Sine.easeInOut",
+    });
+    this.idleSparkleTimer = this.time.addEvent({
+      delay: 2200,
+      loop: true,
+      callback: () => {
+        if (this.launched) return;
+        burstStars(this, this.rocket.x + Phaser.Math.Between(-24, 24), this.rocket.y - 30, 1, this.reducedMotion);
+      },
+    });
   }
 
   private drawFlame(scale: number) {
@@ -85,8 +116,11 @@ export default class RocketMissionScene extends BaseGameScene {
 
   protected onCorrect(progress: number) {
     this.drawMeter(progress);
-    this.tweens.add({ targets: this.flame, scale: 1.4, duration: 120, yoyo: true });
+    const baseFlameScale = 0.9 + progress * 0.5;
+    this.flame.setScale(baseFlameScale);
+    this.tweens.add({ targets: this.flame, scale: baseFlameScale + 0.35, duration: 120, yoyo: true });
     this.tweens.add({ targets: this.rocket, y: this.rocket.y - 6, duration: 140, yoyo: true, ease: "Sine.easeOut" });
+    burstStars(this, this.rocket.x, this.rocket.y + 10, 3, this.reducedMotion);
   }
 
   protected onWrong() {
@@ -96,10 +130,13 @@ export default class RocketMissionScene extends BaseGameScene {
   protected onComplete() {
     if (this.launched) return;
     this.launched = true;
+    this.idleTween?.remove();
+    this.idleSparkleTimer?.remove();
     const manager = getAudioManager();
     manager.playEvent("ROCKET_READY");
     window.setTimeout(() => manager.playEvent("AMAZING"), 900);
     const { height } = this.scale;
+    const liftoffDuration = this.reducedMotion ? 400 : 1100;
     this.tweens.add({
       targets: this.flame,
       scale: 2.2,
@@ -108,10 +145,11 @@ export default class RocketMissionScene extends BaseGameScene {
     this.tweens.add({
       targets: this.rocket,
       y: -height * 0.4,
-      duration: this.reducedMotion ? 400 : 1100,
+      duration: liftoffDuration,
       ease: "Cubic.easeIn",
       delay: 200,
     });
+    starTrail(this, () => ({ x: this.rocket.x, y: this.rocket.y + 44 }), liftoffDuration + 200, this.reducedMotion);
   }
 
   protected onReset() {

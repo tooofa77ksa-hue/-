@@ -11,6 +11,9 @@ export class Dumpling {
   private scene: Phaser.Scene;
   private getReducedMotion: () => boolean;
   private idleTween?: Phaser.Tweens.Tween;
+  private blinkTimer?: Phaser.Time.TimerEvent;
+  private currentMood: "happy" | "cheer" | "oops" = "happy";
+  private blinking = false;
 
   constructor(scene: Phaser.Scene, x: number, y: number, getReducedMotion: () => boolean) {
     this.scene = scene;
@@ -20,9 +23,10 @@ export class Dumpling {
     this.drawBody();
     this.container.add(this.body);
     this.startIdle();
+    this.scheduleBlink();
   }
 
-  private drawBody(mood: "happy" | "cheer" | "oops" = "happy") {
+  private drawBody(mood: "happy" | "cheer" | "oops" = "happy", blink = false) {
     const g = this.body;
     g.clear();
     g.fillStyle(0xffd166, 1);
@@ -35,7 +39,7 @@ export class Dumpling {
 
     const eyeY = mood === "oops" ? -2 : -10;
     g.fillStyle(0x2b2140, 1);
-    if (mood === "oops") {
+    if (mood === "oops" || blink) {
       g.fillEllipse(-22, eyeY, 10, 4);
       g.fillEllipse(22, eyeY, 10, 4);
     } else {
@@ -71,8 +75,27 @@ export class Dumpling {
     });
   }
 
+  /** رمشة خفيفة عشوائية بين الحين والآخر أثناء السكون فقط - تمنح الشخصية
+   * إحساسًا بالحياة دون أن تتعارض مع تعابير celebrate/wobble. */
+  private scheduleBlink() {
+    this.blinkTimer?.remove();
+    if (this.getReducedMotion()) return;
+    this.blinkTimer = this.scene.time.delayedCall(2200 + Math.random() * 2600, () => {
+      if (this.currentMood === "happy" && !this.blinking) {
+        this.blinking = true;
+        this.drawBody("happy", true);
+        this.scene.time.delayedCall(120, () => {
+          this.blinking = false;
+          if (this.currentMood === "happy") this.drawBody("happy");
+        });
+      }
+      this.scheduleBlink();
+    });
+  }
+
   /** إجابة صحيحة عادية: قفزة مع Squash & Stretch */
   celebrateExcellent() {
+    this.currentMood = "happy";
     this.drawBody("happy");
     if (this.getReducedMotion()) {
       this.pulse();
@@ -103,6 +126,7 @@ export class Dumpling {
 
   /** إنجاز أكبر: رقصة احتفال */
   celebrateHero() {
+    this.currentMood = "cheer";
     this.drawBody("cheer");
     if (this.getReducedMotion()) {
       this.pulse();
@@ -130,8 +154,12 @@ export class Dumpling {
 
   /** إجابة خاطئة: اهتزاز لطيف بلا إحباط */
   wobbleGently() {
+    this.currentMood = "oops";
     this.drawBody("oops");
-    const restore = () => this.drawBody("happy");
+    const restore = () => {
+      this.currentMood = "happy";
+      this.drawBody("happy");
+    };
     if (this.getReducedMotion()) {
       this.scene.time.delayedCall(400, restore);
       return;
@@ -165,6 +193,7 @@ export class Dumpling {
 
   destroy() {
     this.idleTween?.remove();
+    this.blinkTimer?.remove();
     this.container.destroy();
   }
 }

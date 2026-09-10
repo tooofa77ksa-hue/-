@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { AttemptAnswer, Question } from "@/types/models";
 
 export type FlowStatus = "answering" | "correct" | "incorrect" | "complete";
@@ -18,12 +18,31 @@ function shuffle<T>(arr: T[]): T[] {
  * جولة).
  */
 export function useQuestionFlow(questions: Question[], roundSize: number, preserveOrder = false) {
-  const [seed] = useState(() => Math.random());
-  const round = useMemo(() => {
-    const pool = preserveOrder ? questions : shuffle(questions);
-    return pool.slice(0, Math.max(1, Math.min(roundSize, pool.length)));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [questions.map((q) => q.id).join(","), roundSize, seed, preserveOrder]);
+  const buildRound = useCallback(
+    (qs: Question[]) => {
+      const pool = preserveOrder ? qs : shuffle(qs);
+      return pool.slice(0, Math.max(1, Math.min(roundSize, pool.length)));
+    },
+    [roundSize, preserveOrder]
+  );
+
+  // "questions" يصل من مستمع Firestore حي (onSnapshot) قد يُصدر لقطة جديدة
+  // في أي لحظة (تعديل سؤال آخر من المعلمة مثلًا). تجميد الجولة الحالية عند
+  // أول تكوين لها (بدل إعادة حسابها في كل مرة يتغيّر فيها "questions") يمنع
+  // تغيّر عدد/ترتيب الأسئلة تحت قدمي الطالبة منتصف الجولة - وهو ما كان يسبب
+  // خللاً حقيقيًا: correctCount يتجاوز total (مثل "6 من 5") حين تُعاد لقطة
+  // بعدد أسئلة أقل بعد أن أجابت الطالبة على أكثر من ذلك العدد بالفعل.
+  const questionsRef = useRef(questions);
+  questionsRef.current = questions;
+
+  const [round, setRound] = useState<Question[]>(() => buildRound(questions));
+  const lockedRef = useRef(round.length > 0);
+
+  useEffect(() => {
+    if (lockedRef.current || questionsRef.current.length === 0) return;
+    setRound(buildRound(questionsRef.current));
+    lockedRef.current = true;
+  }, [questions, buildRound]);
 
   const [index, setIndex] = useState(0);
   const [status, setStatus] = useState<FlowStatus>("answering");
@@ -75,6 +94,9 @@ export function useQuestionFlow(questions: Question[], roundSize: number, preser
   }, [index, total]);
 
   const reset = useCallback(() => {
+    if (questionsRef.current.length > 0) {
+      setRound(buildRound(questionsRef.current));
+    }
     setIndex(0);
     setStatus("answering");
     setCorrectCount(0);
@@ -82,7 +104,7 @@ export function useQuestionFlow(questions: Question[], roundSize: number, preser
     setSelected(null);
     setHistory([]);
     questionShownAt.current = Date.now();
-  }, []);
+  }, [buildRound]);
 
   return {
     round,

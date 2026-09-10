@@ -1,5 +1,6 @@
 import type { Question } from "@/types/models";
 import type { FlowStatus } from "./useQuestionFlow";
+import { Celebration } from "./Celebration";
 
 interface Props {
   question: Question;
@@ -14,6 +15,8 @@ interface Props {
 export function QuestionOverlay({ question, status, selected, onAnswer, onNext, index, total }: Props) {
   return (
     <div className="question-overlay">
+      {status === "correct" && <Celebration variant="sparkle" />}
+
       <div className="question-overlay__progress">
         السؤال {index + 1} من {total}
       </div>

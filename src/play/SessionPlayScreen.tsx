@@ -6,6 +6,7 @@ import { getAudioManager } from "@/game/audio/AudioManager";
 import { GAME_MODE_LABELS } from "@/game/modes/registry";
 import { QuestionOverlay } from "./QuestionOverlay";
 import { AudioControls } from "./AudioControls";
+import { Celebration } from "./Celebration";
 import { useQuestionFlow } from "./useQuestionFlow";
 import { createAttempt, getQuestionsByIds, getTestSession } from "@/lib/repo";
 import type { Question, TestSession } from "@/types/models";
@@ -198,6 +199,7 @@ export function SessionPlayScreen() {
 
       {flow.status !== "complete" && flow.current && (
         <QuestionOverlay
+          key={flow.current.id}
           question={flow.current}
           status={flow.status}
           selected={flow.selected}
@@ -208,20 +210,32 @@ export function SessionPlayScreen() {
         />
       )}
 
-      {flow.status === "complete" && (
-        <div className="round-complete">
-          <h2>أحسنتِ يا {participant.name}! أنهيتِ الاختبار 🎉</h2>
-          <p>
-            إجاباتك الصحيحة: {flow.correctCount} من {flow.total}
-          </p>
-          {saveState === "saving" && <p>جارٍ إرسال نتيجتك لمعلمتك...</p>}
-          {saveState === "saved" && <p className="save-confirm">تم إرسال نتيجتك لمعلمتك ✓</p>}
-          {saveState === "error" && <p>تعذّر إرسال النتيجة. تحققي من الاتصال بالإنترنت.</p>}
-          <div className="round-complete__actions">
-            <button onClick={() => navigate("/play")}>إنهاء</button>
-          </div>
-        </div>
-      )}
+      {flow.status === "complete" &&
+        (() => {
+          const ratio = flow.total > 0 ? flow.correctCount / flow.total : 0;
+          const isHigh = ratio >= 0.8;
+          const isLow = ratio < 0.5;
+          const title = isHigh
+            ? `أنتِ نجمة يا ${participant.name}! 🌟`
+            : isLow
+              ? `خطوة رائعة يا ${participant.name}! 💪`
+              : `أحسنتِ يا ${participant.name}! أنهيتِ الاختبار 🎉`;
+          return (
+            <div className="round-complete">
+              <Celebration variant={isLow ? "sparkle" : "confetti"} intensity={isHigh ? "high" : "normal"} />
+              <h2>{title}</h2>
+              <p className="round-complete__score">
+                {flow.correctCount} من {flow.total}
+              </p>
+              {saveState === "saving" && <p>جارٍ إرسال نتيجتك لمعلمتك...</p>}
+              {saveState === "saved" && <p className="save-confirm">تم إرسال نتيجتك لمعلمتك ✓</p>}
+              {saveState === "error" && <p>تعذّر إرسال النتيجة. تحققي من الاتصال بالإنترنت.</p>}
+              <div className="round-complete__actions">
+                <button onClick={() => navigate("/play")}>إنهاء</button>
+              </div>
+            </div>
+          );
+        })()}
     </div>
   );
 }

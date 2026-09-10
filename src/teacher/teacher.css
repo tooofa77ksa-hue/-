@@ -851,3 +851,154 @@ fieldset {
   color: #fff;
   border-color: var(--brand-primary);
 }
+
+/* -------------------- حركات دقيقة (Micro-interactions) -------------------- */
+/* لوحة المعلمة تبقى Professional/Clean - حركات لطيفة فقط عند التفاعل
+ * ودخول العناصر، بلا أي طابع لعبة أطفال. */
+
+.primary-btn,
+.login-card button,
+.question-row__order button,
+.question-row__actions button,
+.badge-toggle,
+.form-actions button,
+.set-row__actions button,
+.student-row__actions button,
+.test-type-toggle button,
+.created-link-box__row button,
+.session-row__actions button,
+.quick-actions a,
+.quick-actions button,
+.teacher-sidebar__logout,
+.teacher-sidebar nav a,
+.choice-pick {
+  transition:
+    transform 0.12s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.primary-btn:hover,
+.login-card button:hover,
+.created-link-box__row button:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+}
+
+.primary-btn:active,
+.login-card button:active,
+.question-row__actions button:active,
+.badge-toggle:active,
+.form-actions button:active,
+.set-row__actions button:active,
+.student-row__actions button:active,
+.test-type-toggle button:active,
+.created-link-box__row button:active,
+.session-row__actions button:active,
+.quick-actions a:active,
+.quick-actions button:active,
+.teacher-sidebar__logout:active,
+.choice-pick:active {
+  transform: scale(0.97);
+}
+
+.primary-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* دخول تدريجي للبطاقات والصفوف عند ظهورها */
+.stat-card,
+.question-row,
+.student-row,
+.group-card,
+.set-row,
+.session-row,
+.attempt-row,
+.question-preview-card {
+  animation: teacherFadeIn 0.28s ease backwards;
+}
+
+.question-form,
+.test-create-card,
+.settings-page section {
+  animation: teacherFadeIn 0.32s ease backwards;
+}
+
+@keyframes teacherFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.save-confirm {
+  display: inline-block;
+  animation: teacherPopIn 0.25s cubic-bezier(0.2, 0.8, 0.3, 1.3) backwards;
+}
+
+@keyframes teacherPopIn {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.teacher-loading {
+  animation: teacherPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes teacherPulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primary-btn,
+  .login-card button,
+  .question-row__order button,
+  .question-row__actions button,
+  .badge-toggle,
+  .form-actions button,
+  .set-row__actions button,
+  .student-row__actions button,
+  .test-type-toggle button,
+  .created-link-box__row button,
+  .session-row__actions button,
+  .quick-actions a,
+  .quick-actions button,
+  .teacher-sidebar__logout,
+  .teacher-sidebar nav a,
+  .choice-pick,
+  .stat-card,
+  .question-row,
+  .student-row,
+  .group-card,
+  .set-row,
+  .session-row,
+  .attempt-row,
+  .question-preview-card,
+  .question-form,
+  .test-create-card,
+  .settings-page section,
+  .save-confirm,
+  .teacher-loading {
+    animation: none !important;
+    transition: none !important;
+  }
+}
