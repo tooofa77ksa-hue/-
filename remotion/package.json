@@ -1,0 +1,26 @@
+{
+  "name": "shualat-lughati-remotion",
+  "private": true,
+  "version": "1.0.0",
+  "description": "فيديوهات ترويجية/تعليمية لمنصة شُعلة لغتي، مبنية بـ Remotion",
+  "type": "module",
+  "scripts": {
+    "start": "remotion studio src/index.ts",
+    "render:promo": "remotion render src/index.ts Promo out/promo.mp4",
+    "render:teacher": "remotion render src/index.ts TeacherGuide out/teacher-guide.mp4",
+    "still": "remotion still src/index.ts Promo out/promo-thumbnail.png",
+    "typecheck": "tsc -b --noEmit"
+  },
+  "dependencies": {
+    "@remotion/google-fonts": "4.0.523",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "4.0.523"
+  },
+  "devDependencies": {
+    "@remotion/cli": "4.0.523",
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.1",
+    "typescript": "^5.6.3"
+  }
+}
