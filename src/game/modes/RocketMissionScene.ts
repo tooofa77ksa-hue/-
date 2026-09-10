@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { BaseGameScene } from "./BaseGameScene";
 import { getAudioManager } from "@/game/audio/AudioManager";
+import { drawFlower, drawSparkle, scatterDecor } from "@/game/decor";
 
 /** ROCKET MISSION: كل إجابة صحيحة تشحن الصاروخ حتى الإقلاع. */
 export default class RocketMissionScene extends BaseGameScene {
@@ -29,6 +30,13 @@ export default class RocketMissionScene extends BaseGameScene {
       this.bgGraphics.fillCircle(cx + r * 0.8, cy + 4, r * 0.7);
       this.bgGraphics.fillCircle(cx - r * 0.8, cy + 4, r * 0.7);
     }
+
+    // بريق متلألئ + زهور صغيرة في المنطقة المرئية فوق بطاقة السؤال
+    scatterDecor(width, height * 0.4, 7, 9, (x, y, s) =>
+      drawSparkle(this.bgGraphics, x, y, s * 0.55, 0xffffff, 0.85)
+    );
+    drawFlower(this.bgGraphics, width * 0.12, height * 0.3, 22, 0xff8fa3, 0xffe8a3, 0.9);
+    drawFlower(this.bgGraphics, width * 0.88, height * 0.32, 18, 0xffcb3d, 0xff5d8f, 0.85);
   }
 
   protected layout() {

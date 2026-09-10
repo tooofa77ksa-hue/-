@@ -23,7 +23,8 @@ export abstract class BaseGameScene extends Phaser.Scene {
     this.drawBackground();
 
     const { width, height } = this.scale;
-    this.dumpling = new Dumpling(this, width / 2, height * 0.72, () => this.reducedMotion);
+    const pos = this.dumplingPosition(width, height);
+    this.dumpling = new Dumpling(this, pos.x, pos.y, () => this.reducedMotion);
 
     this.layout();
 
@@ -58,8 +59,16 @@ export abstract class BaseGameScene extends Phaser.Scene {
 
   private handleResize() {
     this.drawBackground();
-    this.dumpling.setPosition(this.scale.width / 2, this.scale.height * 0.72);
+    const pos = this.dumplingPosition(this.scale.width, this.scale.height);
+    this.dumpling.setPosition(pos.x, pos.y);
     this.layout();
+  }
+
+  /** موقع الدَمبلنغ ضمن المنطقة المرئية فعليًا فوق بطاقة السؤال (التي تغطي
+   * حتى 58% من الأسفل - max-height: 58vh في play.css)، لا خلفها كما كان
+   * سابقًا (height*0.72 كان يضع الشخصية خلف البطاقة بالكامل طوال اللعب). */
+  private dumplingPosition(width: number, height: number) {
+    return { x: width * 0.24, y: height * 0.34 };
   }
 
   /** خلفية زاهية كرتونية خاصة بكل نمط لعبة */

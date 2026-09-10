@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { BaseGameScene } from "./BaseGameScene";
 import { getAudioManager } from "@/game/audio/AudioManager";
+import { drawFlower, drawSparkle, scatterDecor } from "@/game/decor";
 
 const SEGMENTS = 5;
 
@@ -18,6 +19,13 @@ export default class MagicGateScene extends BaseGameScene {
     this.bgGraphics.clear();
     this.bgGraphics.fillGradientStyle(0x7bd389, 0x7bd389, 0xd9f4ff, 0xd9f4ff, 1);
     this.bgGraphics.fillRect(0, 0, width, height);
+
+    // بريق سحري حول البوابة + زهور عند القاعدة
+    scatterDecor(width, height * 0.62, 13, 14, (x, y, s) =>
+      drawSparkle(this.bgGraphics, x, y, s * 0.45, 0xffffff, 0.65)
+    );
+    drawFlower(this.bgGraphics, width * 0.1, height * 0.56, 20, 0xffcb3d, 0xff5d8f, 0.85);
+    drawFlower(this.bgGraphics, width * 0.9, height * 0.56, 20, 0xff8fa3, 0xffe8a3, 0.85);
   }
 
   protected layout() {

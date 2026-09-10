@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { BaseGameScene } from "./BaseGameScene";
 import { getAudioManager } from "@/game/audio/AudioManager";
+import { drawFlower, drawSparkle, scatterDecor } from "@/game/decor";
 
 const GEM_COLORS = [0xff5d8f, 0x35c2e8, 0xffcb3d, 0x7bd389];
 
@@ -22,6 +23,15 @@ export default class SquishyTreasureScene extends BaseGameScene {
     this.bgGraphics.fillRect(0, 0, width, height);
     this.bgGraphics.fillStyle(0xd9f4ff, 0.6);
     this.bgGraphics.fillEllipse(width * 0.5, height, width * 0.9, 100);
+
+    // زهور وبريق زخرفي - هذه أكثر لعبة تحتاج دفئًا بصريًا لخلوّها من عنصر
+    // رئيسي كبير (الصندوق صغير في الزاوية فقط)
+    scatterDecor(width, height * 0.45, 11, 13, (x, y, s) =>
+      drawSparkle(this.bgGraphics, x, y, s * 0.5, 0xffffff, 0.75)
+    );
+    drawFlower(this.bgGraphics, width * 0.14, height * 0.32, 24, 0xff5d8f, 0xffe8a3, 0.9);
+    drawFlower(this.bgGraphics, width * 0.5, height * 0.16, 18, 0x35c2e8, 0xffcb3d, 0.85);
+    drawFlower(this.bgGraphics, width * 0.62, height * 0.4, 16, 0x7bd389, 0xff8fa3, 0.85);
   }
 
   protected layout() {
