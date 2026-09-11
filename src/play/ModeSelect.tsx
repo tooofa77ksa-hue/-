@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { GAME_MODE_LABELS } from "@/game/modes/registry";
 import { useGameSettings } from "./useGameData";
 import { useBranding } from "@/lib/useBranding";
+import { useBackgroundMusic } from "./useBackgroundMusic";
 import type { GameMode } from "@/types/models";
 
 const MODE_EMOJI: Record<GameMode, string> = {
@@ -19,6 +20,7 @@ export function ModeSelect() {
   const branding = useBranding();
   const activeModes = settings?.activeGameModes?.length ? settings.activeGameModes : ALL_MODES;
   const [leaving, setLeaving] = useState<GameMode | null>(null);
+  useBackgroundMusic();
 
   const handlePick = (mode: GameMode) => {
     if (leaving) return;
