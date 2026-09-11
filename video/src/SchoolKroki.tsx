@@ -1,4 +1,5 @@
 import { AbsoluteFill, Easing, Img, interpolate, Sequence, staticFile, useCurrentFrame } from "remotion";
+import { Audio } from "@remotion/media";
 import { brand, fontFamily } from "./brand/tokens";
 import { StatsSceneChrome } from "./components/StatsSceneChrome";
 import { Sfx } from "./components/Sfx";
@@ -18,16 +19,17 @@ import { krokiPages } from "./data/kroki";
  * movement only, never touching the diagram's content) plus a small
  * floor-name label overlay.
  *
- * Narration: ONE continuous ElevenLabs recording (same voice as the rest
- * of the project), not yet generated. Per-beat frame counts below are a
- * provisional word-count-proportional estimate (~1.9 words/sec, matching
- * this voice's observed natural pace from SchoolAchievements) targeting
- * the requested 35-40s window - once the real single audio file arrives,
- * rescale these to its measured length (same proportions) and add one
- * composition-level <Audio src={staticFile("audio/kroki-narration.mp3")} />
- * here (same pattern as Grade3Nafs.tsx / SchoolAchievements.tsx).
+ * Narration: ONE continuous real ElevenLabs recording (same voice as the
+ * rest of the project), public/audio/kroki-narration.mp3, 41.64s (1250
+ * frames at 30fps). This runs ~1.6s past the user's stated 40s maximum -
+ * the voice was never sped up or cut to force it under that cap (same
+ * "never distort/rush the narration" rule applied throughout this
+ * project), so the real recording's length governs; flagged to the user
+ * rather than silently overridden. Per-beat frame counts below are the
+ * original word-count proportions rescaled to this real audio length
+ * (same methodology as NARRATION-TIMING.md).
  */
-const PAGE_BEATS = [237, 174, 142, 111, 142, 174]; // one per krokiPages entry, in order
+const PAGE_BEATS = [302, 222, 181, 141, 181, 223]; // one per krokiPages entry, in order
 export const krokiTotalDuration = PAGE_BEATS.reduce((a, b) => a + b, 0);
 
 const ZOOM_TO = 1.07;
@@ -105,7 +107,7 @@ export const SchoolKroki: React.FC = () => {
   return (
     <AbsoluteFill style={{ background: brand.paper, fontFamily, direction: "rtl" }}>
       <StatsSceneChrome sectionTitle="كروكي توزيع المرافق" />
-      {/* <Audio src={staticFile("audio/kroki-narration.mp3")} /> - add once narration arrives */}
+      <Audio src={staticFile("audio/kroki-narration.mp3")} />
 
       {krokiPages.map((p, i) => (
         <Sequence key={p.image} from={starts[i]} durationInFrames={PAGE_BEATS[i]} layout="absolute-fill">
