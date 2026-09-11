@@ -75,105 +75,105 @@
     "id": "excellent_01",
     "kind": "voice",
     "provider": "elevenlabs",
-    "voiceId": "albaa6OioIhKtKdCEkQw",
-    "generatedAt": "2026-09-11T17:17:06.482Z"
+    "voiceId": "d15jrIAARvF899pDoC6T",
+    "generatedAt": "2026-09-11T17:42:23.253Z"
   },
   "voice:hero_01": {
     "id": "hero_01",
     "kind": "voice",
     "provider": "elevenlabs",
-    "voiceId": "albaa6OioIhKtKdCEkQw",
-    "generatedAt": "2026-09-11T17:17:07.614Z"
+    "voiceId": "d15jrIAARvF899pDoC6T",
+    "generatedAt": "2026-09-11T17:42:24.350Z"
   },
   "voice:amazing_01": {
     "id": "amazing_01",
     "kind": "voice",
     "provider": "elevenlabs",
-    "voiceId": "albaa6OioIhKtKdCEkQw",
-    "generatedAt": "2026-09-11T17:17:08.798Z"
+    "voiceId": "d15jrIAARvF899pDoC6T",
+    "generatedAt": "2026-09-11T17:42:25.472Z"
   },
   "voice:star_01": {
     "id": "star_01",
     "kind": "voice",
     "provider": "elevenlabs",
-    "voiceId": "albaa6OioIhKtKdCEkQw",
-    "generatedAt": "2026-09-11T17:17:09.819Z"
+    "voiceId": "d15jrIAARvF899pDoC6T",
+    "generatedAt": "2026-09-11T17:42:26.566Z"
   },
   "voice:gem_01": {
     "id": "gem_01",
     "kind": "voice",
     "provider": "elevenlabs",
-    "voiceId": "albaa6OioIhKtKdCEkQw",
-    "generatedAt": "2026-09-11T17:17:10.778Z"
+    "voiceId": "d15jrIAARvF899pDoC6T",
+    "generatedAt": "2026-09-11T17:42:27.558Z"
   },
   "voice:creative_01": {
     "id": "creative_01",
     "kind": "voice",
     "provider": "elevenlabs",
-    "voiceId": "albaa6OioIhKtKdCEkQw",
-    "generatedAt": "2026-09-11T17:17:11.771Z"
+    "voiceId": "d15jrIAARvF899pDoC6T",
+    "generatedAt": "2026-09-11T17:42:28.513Z"
   },
   "voice:next_01": {
     "id": "next_01",
     "kind": "voice",
     "provider": "elevenlabs",
-    "voiceId": "albaa6OioIhKtKdCEkQw",
-    "generatedAt": "2026-09-11T17:17:12.817Z"
+    "voiceId": "d15jrIAARvF899pDoC6T",
+    "generatedAt": "2026-09-11T17:42:29.558Z"
   },
   "voice:try_again_01": {
     "id": "try_again_01",
     "kind": "voice",
     "provider": "elevenlabs",
-    "voiceId": "albaa6OioIhKtKdCEkQw",
-    "generatedAt": "2026-09-11T17:17:13.793Z"
+    "voiceId": "d15jrIAARvF899pDoC6T",
+    "generatedAt": "2026-09-11T17:42:30.564Z"
   },
   "voice:almost_01": {
     "id": "almost_01",
     "kind": "voice",
     "provider": "elevenlabs",
-    "voiceId": "albaa6OioIhKtKdCEkQw",
-    "generatedAt": "2026-09-11T17:17:14.931Z"
+    "voiceId": "d15jrIAARvF899pDoC6T",
+    "generatedAt": "2026-09-11T17:42:31.654Z"
   },
   "voice:rocket_ready_01": {
     "id": "rocket_ready_01",
     "kind": "voice",
     "provider": "elevenlabs",
-    "voiceId": "albaa6OioIhKtKdCEkQw",
-    "generatedAt": "2026-09-11T17:17:16.021Z"
+    "voiceId": "d15jrIAARvF899pDoC6T",
+    "generatedAt": "2026-09-11T17:42:32.675Z"
   },
   "voice:oops_01": {
     "id": "oops_01",
     "kind": "voice",
     "provider": "elevenlabs",
-    "voiceId": "albaa6OioIhKtKdCEkQw",
-    "generatedAt": "2026-09-11T17:17:17.199Z"
+    "voiceId": "d15jrIAARvF899pDoC6T",
+    "generatedAt": "2026-09-11T17:42:33.754Z"
   },
   "voice:start_01": {
     "id": "start_01",
     "kind": "voice",
     "provider": "elevenlabs",
-    "voiceId": "albaa6OioIhKtKdCEkQw",
-    "generatedAt": "2026-09-11T17:17:18.141Z"
+    "voiceId": "d15jrIAARvF899pDoC6T",
+    "generatedAt": "2026-09-11T17:42:34.779Z"
   },
   "voice:choose_game_01": {
     "id": "choose_game_01",
     "kind": "voice",
     "provider": "elevenlabs",
-    "voiceId": "albaa6OioIhKtKdCEkQw",
-    "generatedAt": "2026-09-11T17:17:19.193Z"
+    "voiceId": "d15jrIAARvF899pDoC6T",
+    "generatedAt": "2026-09-11T17:42:35.787Z"
   },
   "voice:great_01": {
     "id": "great_01",
     "kind": "voice",
     "provider": "elevenlabs",
-    "voiceId": "albaa6OioIhKtKdCEkQw",
-    "generatedAt": "2026-09-11T17:17:20.153Z"
+    "voiceId": "d15jrIAARvF899pDoC6T",
+    "generatedAt": "2026-09-11T17:42:36.770Z"
   },
   "voice:yasalam_01": {
     "id": "yasalam_01",
     "kind": "voice",
     "provider": "elevenlabs",
-    "voiceId": "albaa6OioIhKtKdCEkQw",
-    "generatedAt": "2026-09-11T17:17:21.226Z"
+    "voiceId": "d15jrIAARvF899pDoC6T",
+    "generatedAt": "2026-09-11T17:42:37.760Z"
   }
 }
