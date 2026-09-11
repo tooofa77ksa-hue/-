@@ -12,13 +12,14 @@ import { TeacherDataScene, TEACHER_DATA_DURATION } from "./scenes/TeacherDataSce
  * a separate video from Grade3Nafs/Grade6Nafs, built entirely in new files.
  * No grade-3/6 NAFS file was touched to build this.
  *
- * Narration audio: this section's real narration (6 short lines, see the
- * script sent to the user) has NOT been generated yet, so no <Audio> tag is
- * wired in here - this preview is visuals + SFX only, silent where the
- * presenter would speak. Once the real narration-school-stats.mp3 arrives,
- * add a single <Audio src={staticFile("audio/narration-school-stats.mp3")}/>
- * here and re-check each scene's *_DURATION against its real length (same
- * process as NARRATION-TIMING.md) - no other file needs to change.
+ * Narration audio: unlike Grade3Nafs/Grade6Nafs (one continuous track), this
+ * section only speaks at 6 short, isolated points, so each of those 6 real
+ * ElevenLabs lines (public/audio/school-stats/line1.mp3 .. line6.mp3, same
+ * voice as grade-3/6) is wired directly inside its own scene/beat as a
+ * local <Audio>, not here at the composition level - see StatsIntroScene.tsx
+ * (line1-3) and the TransitionBeat in StudentDistributionScene.tsx (line4),
+ * SmartScheduleScene.tsx (line5), TeacherDataScene.tsx (line6). Each scene's
+ * *_DURATION is derived from that line's real measured length.
  */
 const introFrom = 0;
 const distributionFrom = introFrom + STATS_INTRO_DURATION;

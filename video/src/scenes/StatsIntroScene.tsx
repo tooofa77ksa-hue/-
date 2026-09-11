@@ -1,4 +1,5 @@
-import { AbsoluteFill, Easing, interpolate, Sequence, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Easing, interpolate, Sequence, staticFile, useCurrentFrame } from "remotion";
+import { Audio } from "@remotion/media";
 import { brand, fontFamily } from "../brand/tokens";
 import { StatsSceneChrome } from "../components/StatsSceneChrome";
 import { CountUpNumber } from "../components/CountUpNumber";
@@ -7,14 +8,22 @@ import { headlineStats } from "../data/schoolStats";
 
 /**
  * Three beats (employees -> students -> classes), one statistic at a time,
- * each narrated. Durations below are a provisional word-count estimate
- * (same methodology as NARRATION-TIMING.md) pending the real narration
- * audio for this section - only this scene's frame counts need adjusting
- * once that audio arrives, nothing else in the project.
+ * each narrated by a real ElevenLabs line (same voice as grade-3/6),
+ * public/audio/school-stats/line1.mp3, line2.mp3, line3.mp3. Beat durations
+ * are each line's real measured length (30fps) plus an 8-frame lead-in
+ * before the audio starts and a 20-frame hold after it ends, matching this
+ * project's established word-count-proportional timing approach (no forced
+ * alignment available in this environment).
  */
-const EMPLOYEES_BEAT = 130;
-const STUDENTS_BEAT = 130;
-const CLASSES_BEAT = 130;
+const LEAD_IN = 8;
+const HOLD_AFTER = 20;
+const LINE1_FRAMES = 104; // line1.mp3, 3.474s
+const LINE2_FRAMES = 133; // line2.mp3, 4.441s
+const LINE3_FRAMES = 107; // line3.mp3, 3.579s
+
+const EMPLOYEES_BEAT = LEAD_IN + LINE1_FRAMES + HOLD_AFTER;
+const STUDENTS_BEAT = LEAD_IN + LINE2_FRAMES + HOLD_AFTER;
+const CLASSES_BEAT = LEAD_IN + LINE3_FRAMES + HOLD_AFTER;
 export const STATS_INTRO_DURATION = EMPLOYEES_BEAT + STUDENTS_BEAT + CLASSES_BEAT;
 
 const PeopleIcon: React.FC<{ color: string; size?: number }> = ({ color, size = 96 }) => (
@@ -40,11 +49,12 @@ const StatBeat: React.FC<{
   title: string;
   value: number;
   icon: React.ReactNode;
-  from: number;
-}> = ({ title, value, icon, from }) => {
+  audioSrc: string;
+  countFrom: number;
+  countDuration: number;
+}> = ({ title, value, icon, audioSrc, countFrom, countDuration }) => {
   const frame = useCurrentFrame();
-  const local = frame - from;
-  const appear = interpolate(local, [0, 18], [0, 1], {
+  const appear = interpolate(frame, [0, 18], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: Easing.out(Easing.back(1.1)),
@@ -53,8 +63,11 @@ const StatBeat: React.FC<{
 
   return (
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
-      <Sfx kind="whoosh" at={from} volume={0.5} />
-      <Sfx kind="impact" at={from + 40} volume={0.4} />
+      <Sfx kind="whoosh" at={0} volume={0.5} />
+      <Sfx kind="impact" at={countFrom + countDuration} volume={0.4} />
+      <Sequence from={LEAD_IN} layout="none">
+        <Audio src={staticFile(audioSrc)} />
+      </Sequence>
       <div
         style={{
           display: "flex",
@@ -81,7 +94,7 @@ const StatBeat: React.FC<{
         </div>
         <div style={{ fontFamily, fontSize: 34, fontWeight: 800, color: brand.primaryDark }}>{title}</div>
         <div style={{ fontFamily, fontSize: 108, fontWeight: 900, color: brand.primary }}>
-          <CountUpNumber value={value} decimals={0} from={16} durationInFrames={28} />
+          <CountUpNumber value={value} decimals={0} from={countFrom} durationInFrames={countDuration} />
         </div>
       </div>
     </AbsoluteFill>
@@ -102,7 +115,9 @@ export const StatsIntroScene: React.FC = () => {
           title="عدد الموظفات"
           value={headlineStats.employeeCount}
           icon={<PeopleIcon color={brand.primary} />}
-          from={0}
+          audioSrc="audio/school-stats/line1.mp3"
+          countFrom={24}
+          countDuration={80}
         />
       </Sequence>
 
@@ -111,7 +126,9 @@ export const StatsIntroScene: React.FC = () => {
           title="عدد الطالبات"
           value={headlineStats.studentCount}
           icon={<PeopleIcon color={brand.teal} />}
-          from={0}
+          audioSrc="audio/school-stats/line2.mp3"
+          countFrom={30}
+          countDuration={100}
         />
       </Sequence>
 
@@ -120,7 +137,9 @@ export const StatsIntroScene: React.FC = () => {
           title="عدد الفصول"
           value={headlineStats.classCount}
           icon={<ClassroomIcon color={brand.blue} />}
-          from={0}
+          audioSrc="audio/school-stats/line3.mp3"
+          countFrom={24}
+          countDuration={80}
         />
       </Sequence>
     </AbsoluteFill>

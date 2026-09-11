@@ -1,18 +1,19 @@
-import { AbsoluteFill, Easing, interpolate, Sequence, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Easing, interpolate, Sequence, staticFile, useCurrentFrame } from "remotion";
+import { Audio } from "@remotion/media";
 import { brand, fontFamily } from "../brand/tokens";
 import { StatsSceneChrome } from "../components/StatsSceneChrome";
 import { Sfx } from "../components/Sfx";
 import { teachers } from "../data/schoolStats";
 
 /**
- * Transition line (presenter voice), then teacher data table - split into
- * multiple slides so every row stays readable on a large screen. Phone
- * number and username are excluded entirely (never read from
- * data/schoolStats.ts's `teachers`, which doesn't even carry those fields).
- * TRANSITION_BEAT is a provisional word-count estimate pending this
- * section's real narration audio.
+ * Transition line (presenter voice, public/audio/school-stats/line6.mp3 -
+ * 63 frames at 30fps), then teacher data table - split into multiple slides
+ * so every row stays readable on a large screen. Phone number and username
+ * are excluded entirely (never read from data/schoolStats.ts's `teachers`,
+ * which doesn't even carry those fields).
  */
-const TRANSITION_BEAT = 80;
+const LINE6_FRAMES = 63; // line6.mp3, 2.090s
+const TRANSITION_BEAT = 5 + LINE6_FRAMES + 12;
 const ROWS_PER_SLIDE = 8;
 const STAGGER = 12;
 const HOLD_AFTER = 90;
@@ -38,6 +39,9 @@ const TransitionBeat: React.FC = () => {
   });
   return (
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
+      <Sequence from={5} layout="none">
+        <Audio src={staticFile("audio/school-stats/line6.mp3")} />
+      </Sequence>
       <div style={{ fontFamily, fontSize: 44, fontWeight: 800, color: brand.primaryDark, opacity: t }}>
         والآن مع بيانات المعلمات
       </div>

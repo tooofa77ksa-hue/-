@@ -1,19 +1,21 @@
 import { AbsoluteFill, Easing, Img, interpolate, Sequence, staticFile, useCurrentFrame } from "remotion";
+import { Audio } from "@remotion/media";
 import { brand, fontFamily } from "../brand/tokens";
 import { StatsSceneChrome } from "../components/StatsSceneChrome";
 import { Sfx } from "../components/Sfx";
 import { classSchedules } from "../data/schoolStats";
 
 /**
- * Transition line (presenter voice), then all 12 class timetables shown one
- * by one, start to finish, in the same order as the source PDF. Each table
- * is rendered from an image cropped directly out of the original PDF page
+ * Transition line (presenter voice, public/audio/school-stats/line5.mp3 -
+ * 107 frames at 30fps), then all 12 class timetables shown one by one,
+ * start to finish, in the same order as the source PDF. Each table is
+ * rendered from an image cropped directly out of the original PDF page
  * (public/schedules/class-01..12.png) rather than hand-retyped - with up to
  * ~35 cells per timetable, this removes any risk of a transcription error
- * in a subject, teacher name, or period time. TRANSITION_BEAT is a
- * provisional word-count estimate pending this section's real narration.
+ * in a subject, teacher name, or period time.
  */
-const TRANSITION_BEAT = 85;
+const LINE5_FRAMES = 107; // line5.mp3, 3.579s
+const TRANSITION_BEAT = 5 + LINE5_FRAMES + 8;
 const PER_CLASS_BEAT = 175;
 export const SMART_SCHEDULE_DURATION = TRANSITION_BEAT + PER_CLASS_BEAT * classSchedules.length;
 
@@ -26,6 +28,9 @@ const TransitionBeat: React.FC = () => {
   });
   return (
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
+      <Sequence from={5} layout="none">
+        <Audio src={staticFile("audio/school-stats/line5.mp3")} />
+      </Sequence>
       <div style={{ fontFamily, fontSize: 44, fontWeight: 800, color: brand.primaryDark, opacity: t }}>
         والآن مع الجدول الذكي لجداول الفصول
       </div>

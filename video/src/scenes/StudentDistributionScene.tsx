@@ -1,16 +1,17 @@
-import { AbsoluteFill, Easing, interpolate, Sequence, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Easing, interpolate, Sequence, staticFile, useCurrentFrame } from "remotion";
+import { Audio } from "@remotion/media";
 import { brand, fontFamily } from "../brand/tokens";
 import { StatsSceneChrome } from "../components/StatsSceneChrome";
 import { Sfx } from "../components/Sfx";
 import { studentDistribution, studentDistributionTotal } from "../data/schoolStats";
 
 /**
- * Transition line only (presenter voice), then the table fills in on its
- * own with no narration - matches the request: "لا أريد قراءة صوتية لكل
- * بيانات الجدول". TRANSITION_BEAT duration is a provisional word-count
- * estimate pending this section's real narration audio.
+ * Transition line only (presenter voice, public/audio/school-stats/line4.mp3
+ * - 143 frames at 30fps), then the table fills in on its own with no
+ * narration - matches "لا أريد قراءة صوتية لكل بيانات الجدول".
  */
-const TRANSITION_BEAT = 90;
+const LINE4_FRAMES = 143; // line4.mp3, 4.780s
+const TRANSITION_BEAT = 5 + LINE4_FRAMES + 12;
 const TABLE_BEAT = 360;
 export const STUDENT_DISTRIBUTION_DURATION = TRANSITION_BEAT + TABLE_BEAT;
 
@@ -23,6 +24,9 @@ const TransitionBeat: React.FC = () => {
   });
   return (
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
+      <Sequence from={5} layout="none">
+        <Audio src={staticFile("audio/school-stats/line4.mp3")} />
+      </Sequence>
       <div style={{ fontFamily, fontSize: 44, fontWeight: 800, color: brand.primaryDark, opacity: t }}>
         وننتقل الآن إلى بيانات الطالبات وتوزيعهن على الفصول
       </div>
