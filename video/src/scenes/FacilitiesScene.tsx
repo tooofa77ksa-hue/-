@@ -1,4 +1,5 @@
-import { AbsoluteFill, Easing, interpolate, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Easing, interpolate, Sequence, staticFile, useCurrentFrame } from "remotion";
+import { Audio } from "@remotion/media";
 import { brand, fontFamily } from "../brand/tokens";
 import { StatsSceneChrome } from "../components/StatsSceneChrome";
 import { Sfx } from "../components/Sfx";
@@ -260,14 +261,10 @@ export const FacilitiesScene: React.FC = () => {
 
   return (
     <AbsoluteFill style={{ background: brand.paper }}>
-      {/*
-        Narration ("المرافق والتجهيزات" only) not generated yet - once
-        public/audio/school-stats/facility-line.mp3 arrives, add:
-        <Sequence from={0} layout="none"><Audio src={staticFile("audio/school-stats/facility-line.mp3")} /></Sequence>
-        (import Audio from "@remotion/media", staticFile from "remotion")
-        and replace LINE_FRAMES above with the real ceil(seconds*30) length.
-      */}
       <StatsSceneChrome sectionTitle="المرافق والتجهيزات" />
+      <Sequence from={0} layout="none">
+        <Audio src={staticFile("audio/school-stats/facility-line.mp3")} />
+      </Sequence>
       <Sfx kind="whoosh" at={0} volume={0.45} />
 
       <div style={{ position: "absolute", top: 130, left: 0, right: 0, textAlign: "center" }}>
