@@ -6,7 +6,17 @@ import { SceneChrome } from "../components/SceneChrome";
 import { ChangeBadge } from "../components/ChangeBadge";
 import { YearTrendLine } from "../components/YearTrendLine";
 
-export const HEADLINE_DURATION = 240;
+// Timing below is derived from the narration script's word distribution
+// across the actual voiceover audio (see video/NARRATION-TIMING.md) so each
+// year highlights and each number counts up right as it is spoken.
+export const HEADLINE_DURATION = 1080;
+
+const POINT_TIMINGS = [
+  { yearFrame: 0, valueFrame: 309 }, // "في عام 2023 ... 44.7 بالمئة"
+  { yearFrame: 309, valueFrame: 521 }, // "في عام 2025 ... 22.4 بالمئة"
+  { yearFrame: 521, valueFrame: 849 }, // "...2026 ... 27.1 بالمئة، بزيادة قدرها 4.7"
+];
+const BADGE_FRAME = 810;
 
 export const HeadlineScene: React.FC = () => {
   const frame = useCurrentFrame();
@@ -37,7 +47,7 @@ export const HeadlineScene: React.FC = () => {
               <div style={{ fontFamily, fontSize: 34, fontWeight: 800, color: brand.primaryDark, maxWidth: 1000 }}>
                 {headline.title}
               </div>
-              <ChangeBadge change={headline.change} decimals={1} from={22} />
+              <ChangeBadge change={headline.change} decimals={1} from={BADGE_FRAME} />
             </div>
 
             <div
@@ -51,7 +61,8 @@ export const HeadlineScene: React.FC = () => {
               <YearTrendLine
                 points={points}
                 entities={["school"]}
-                from={40}
+                from={0}
+                pointTimings={POINT_TIMINGS}
                 width={1440}
                 height={460}
                 suffix="%"

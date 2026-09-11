@@ -25,10 +25,25 @@ export const YearTrendLine: React.FC<{
   suffix?: string;
   decimals?: number;
   colorOverrides?: Partial<Record<EntityKey, string>>;
-}> = ({ points, entities, from, width, height, suffix = "", decimals = 1, colorOverrides }) => {
+  /**
+   * Explicit narration-synced timing, one entry per point (same order as
+   * `points`). `yearFrame` is when the spoken sentence starts naming that
+   * year (year label highlights here); `valueFrame` is when the number is
+   * actually spoken (count-up, dot pop-in and line arrival land here).
+   * When omitted, points are revealed at a uniform cadence starting at `from`.
+   */
+  pointTimings?: { yearFrame: number; valueFrame: number }[];
+}> = ({ points, entities, from, width, height, suffix = "", decimals = 1, colorOverrides, pointTimings }) => {
   const frame = useCurrentFrame();
   const n = points.length;
   const entityColors: Record<EntityKey, string> = { ...baseEntityColors, ...colorOverrides };
+
+  const timings =
+    pointTimings ??
+    points.map((_, i) => ({
+      yearFrame: from + i * PER_YEAR_FRAMES - 6,
+      valueFrame: from + i * PER_YEAR_FRAMES,
+    }));
 
   const padTop = 56;
   const padBottom = 40;
@@ -46,7 +61,10 @@ export const YearTrendLine: React.FC<{
   const xFor = (i: number) => width - (i / (n - 1)) * width;
   const yFor = (v: number) => padTop + chartH - ((v - yMin) / (yMax - yMin)) * chartH;
 
-  const activeIndex = Math.min(n - 1, Math.max(0, Math.floor(frame >= from ? (frame - from) / PER_YEAR_FRAMES : -1)));
+  let activeIndex = 0;
+  for (let i = 0; i < n; i++) {
+    if (frame >= timings[i].yearFrame) activeIndex = i;
+  }
 
   return (
     <div style={{ position: "relative", width, height, fontFamily }}>
@@ -67,8 +85,8 @@ export const YearTrendLine: React.FC<{
 
         {entities.map((entity) => {
           return points.slice(0, -1).map((p, i) => {
-            const segFrom = from + i * PER_YEAR_FRAMES;
-            const segTo = segFrom + PER_YEAR_FRAMES;
+            const segFrom = timings[i].valueFrame;
+            const segTo = timings[i + 1].valueFrame;
             const v0 = p[entity];
             const v1 = points[i + 1][entity];
             if (v0 === undefined || v1 === undefined) return null;
@@ -103,7 +121,7 @@ export const YearTrendLine: React.FC<{
           points.map((p, i) => {
             const v = p[entity];
             if (v === undefined) return null;
-            const pointFrom = from + i * PER_YEAR_FRAMES;
+            const pointFrom = timings[i].valueFrame;
             const scale = interpolate(frame, [pointFrom, pointFrom + 10], [0, 1], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
@@ -131,7 +149,7 @@ export const YearTrendLine: React.FC<{
         points.map((p, i) => {
           const v = p[entity];
           if (v === undefined) return null;
-          const pointFrom = from + i * PER_YEAR_FRAMES;
+          const pointFrom = timings[i].valueFrame;
           const appear = interpolate(frame, [pointFrom, pointFrom + 10], [0, 1], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
@@ -165,16 +183,17 @@ export const YearTrendLine: React.FC<{
         }),
       )}
 
-      {/* year axis with sequential emphasis */}
+      {/* year axis with sequential emphasis, triggered when that year is spoken */}
       <div style={{ position: "absolute", left: 0, right: 0, top: height - 26, height: 26 }}>
         {points.map((p, i) => {
           const isActive = i === activeIndex;
-          const pointFrom = from + i * PER_YEAR_FRAMES;
-          const appear = interpolate(frame, [pointFrom - 6, pointFrom + 4], [0, 1], {
+          const yearFrame = timings[i].yearFrame;
+          const appear = interpolate(frame, [yearFrame - 6, yearFrame + 4], [0, 1], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
           });
-          const emphasis = interpolate(frame, [pointFrom, pointFrom + 10, pointFrom + PER_YEAR_FRAMES - 6], [1, 1.18, 1], {
+          const nextYearFrame = i < n - 1 ? timings[i + 1].yearFrame : yearFrame + PER_YEAR_FRAMES;
+          const emphasis = interpolate(frame, [yearFrame, yearFrame + 10, nextYearFrame - 6], [1, 1.18, 1], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
           });

@@ -2,9 +2,12 @@ import { AbsoluteFill, Easing, interpolate, useCurrentFrame } from "remotion";
 import { brand, fontFamily } from "../brand/tokens";
 import { schoolInfo } from "../data/grade3";
 import { CameraRig } from "../components/CameraRig";
+import { SceneChrome } from "../components/SceneChrome";
 import { Sfx } from "../components/Sfx";
 
-export const INTRO_DURATION = 135;
+// Matches the narration's opening paragraph duration (see
+// video/NARRATION-TIMING.md).
+export const INTRO_DURATION = 424;
 
 const Field: React.FC<{ label: string; value: string; from: number; align: "start" | "end" }> = ({
   label,
@@ -51,8 +54,9 @@ export const IntroScene: React.FC = () => {
   return (
     <AbsoluteFill style={{ background: "#f4f7f6" }}>
       <Sfx kind="whoosh" at={0} volume={0.7} />
+      <SceneChrome sectionTitle="بطاقة نافس" />
       <CameraRig durationInFrames={INTRO_DURATION} intensity={0.6}>
-        <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
+        <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", paddingTop: 90 }}>
           <div style={{ width: 1600, display: "flex", flexDirection: "column", gap: 28 }}>
             <div
               style={{

@@ -1,60 +1,63 @@
-import { AbsoluteFill } from "remotion";
-import { TransitionSeries, linearTiming } from "@remotion/transitions";
-import { fade } from "@remotion/transitions/fade";
+import { AbsoluteFill, Sequence, staticFile } from "remotion";
+import { Audio } from "@remotion/media";
 import { fontFamily } from "./brand/tokens";
+import { FadeWrapper } from "./components/FadeWrapper";
 import { IntroScene, INTRO_DURATION } from "./scenes/IntroScene";
 import { HeadlineScene, HEADLINE_DURATION } from "./scenes/HeadlineScene";
-import { SubjectScene, SUBJECT_DURATION } from "./scenes/SubjectScene";
+import { MathScene, MATH_DURATION } from "./scenes/MathScene";
+import { ReadingScene, READING_DURATION } from "./scenes/ReadingScene";
 import { OutroScene, OUTRO_DURATION } from "./scenes/OutroScene";
-import { math, reading } from "./data/grade3";
 
-const TRANSITION_FRAMES = 15;
+/**
+ * Scene durations are placed back-to-back with no time overlap (plain
+ * <Sequence>, not TransitionSeries) so the single continuous narration
+ * track (public/audio/narration-grade3.mp3) stays frame-exact in sync with
+ * every scene. Each scene fades itself in/out locally instead. See
+ * video/NARRATION-TIMING.md for how these numbers were derived from the
+ * voiceover's word distribution.
+ */
+const introFrom = 0;
+const headlineFrom = introFrom + INTRO_DURATION;
+const mathFrom = headlineFrom + HEADLINE_DURATION;
+const readingFrom = mathFrom + MATH_DURATION;
+const outroFrom = readingFrom + READING_DURATION;
 
-export const grade3TotalDuration =
-  INTRO_DURATION + HEADLINE_DURATION + SUBJECT_DURATION * 2 + OUTRO_DURATION - TRANSITION_FRAMES * 4;
+export const grade3TotalDuration = outroFrom + OUTRO_DURATION;
 
 export const Grade3Nafs: React.FC = () => {
   return (
     <AbsoluteFill style={{ fontFamily, direction: "rtl" }}>
-      <TransitionSeries>
-        <TransitionSeries.Sequence durationInFrames={INTRO_DURATION} name="Intro">
+      <Audio src={staticFile("audio/narration-grade3.mp3")} />
+
+      <Sequence from={introFrom} durationInFrames={INTRO_DURATION} layout="absolute-fill" name="Intro">
+        <FadeWrapper durationInFrames={INTRO_DURATION}>
           <IntroScene />
-        </TransitionSeries.Sequence>
+        </FadeWrapper>
+      </Sequence>
 
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANSITION_FRAMES })} />
-
-        <TransitionSeries.Sequence durationInFrames={HEADLINE_DURATION} name="Headline">
+      <Sequence from={headlineFrom} durationInFrames={HEADLINE_DURATION} layout="absolute-fill" name="Headline">
+        <FadeWrapper durationInFrames={HEADLINE_DURATION}>
           <HeadlineScene />
-        </TransitionSeries.Sequence>
+        </FadeWrapper>
+      </Sequence>
 
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANSITION_FRAMES })} />
+      <Sequence from={mathFrom} durationInFrames={MATH_DURATION} layout="absolute-fill" name="Math">
+        <FadeWrapper durationInFrames={MATH_DURATION}>
+          <MathScene />
+        </FadeWrapper>
+      </Sequence>
 
-        <TransitionSeries.Sequence durationInFrames={SUBJECT_DURATION} name="Math">
-          <SubjectScene
-            subjectTitle="الرياضيات"
-            distribution={math.distribution}
-            averageScore={math.averageScore}
-            proficiency={math.proficiency}
-          />
-        </TransitionSeries.Sequence>
+      <Sequence from={readingFrom} durationInFrames={READING_DURATION} layout="absolute-fill" name="Reading">
+        <FadeWrapper durationInFrames={READING_DURATION}>
+          <ReadingScene />
+        </FadeWrapper>
+      </Sequence>
 
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANSITION_FRAMES })} />
-
-        <TransitionSeries.Sequence durationInFrames={SUBJECT_DURATION} name="Reading">
-          <SubjectScene
-            subjectTitle="القراءة"
-            distribution={reading.distribution}
-            averageScore={reading.averageScore}
-            proficiency={reading.proficiency}
-          />
-        </TransitionSeries.Sequence>
-
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANSITION_FRAMES })} />
-
-        <TransitionSeries.Sequence durationInFrames={OUTRO_DURATION} name="Outro">
+      <Sequence from={outroFrom} durationInFrames={OUTRO_DURATION} layout="absolute-fill" name="Outro">
+        <FadeWrapper durationInFrames={OUTRO_DURATION}>
           <OutroScene />
-        </TransitionSeries.Sequence>
-      </TransitionSeries>
+        </FadeWrapper>
+      </Sequence>
     </AbsoluteFill>
   );
 };
