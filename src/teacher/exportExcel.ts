@@ -173,6 +173,61 @@ export async function exportResultsToExcel(
   }
   styleHeaderRow(rosterSheet);
 
+  // ---------------- تطور الأداء ----------------
+  // تسلسل زمني لكل طالبة (محاولاتها مرتّبة بتاريخ الإكمال) مع الفارق عن
+  // محاولتها السابقة مباشرة ومؤشر اتجاه ملوَّن - بلا أي حقل جديد في
+  // Firestore، فقط قراءة وترتيب لحقول Attempt الموجودة أصلًا.
+  const progressSheet = workbook.addWorksheet("تطور الأداء");
+  progressSheet.columns = [
+    { header: "اسم الطالبة", key: "student", width: 22 },
+    { header: "المجموعة", key: "group", width: 18 },
+    { header: "التاريخ", key: "date", width: 14 },
+    { header: "اللعبة", key: "game", width: 18 },
+    { header: "النسبة المئوية", key: "score", width: 14 },
+    { header: "التغيّر عن المحاولة السابقة", key: "delta", width: 22 },
+    { header: "الاتجاه", key: "trend", width: 16 },
+  ];
+
+  const attemptsByStudent = new Map<string, Attempt[]>();
+  for (const a of attempts) {
+    const list = attemptsByStudent.get(a.studentId) || [];
+    list.push(a);
+    attemptsByStudent.set(a.studentId, list);
+  }
+  const orderedStudentIds = [...attemptsByStudent.keys()].sort((idA, idB) =>
+    attemptsByStudent.get(idA)![0].studentNameSnapshot.localeCompare(
+      attemptsByStudent.get(idB)![0].studentNameSnapshot,
+      "ar"
+    )
+  );
+
+  const IMPROVED_ARGB = "FF0B8A3D";
+  const DECLINED_ARGB = "FFC0392B";
+
+  for (const studentId of orderedStudentIds) {
+    const chronological = [...attemptsByStudent.get(studentId)!].sort((a, b) => a.completedAt - b.completedAt);
+    let previousScore: number | null = null;
+    for (const a of chronological) {
+      const delta = previousScore === null ? null : round1(a.scorePercentage - previousScore);
+      const row = progressSheet.addRow({
+        student: a.studentNameSnapshot,
+        group: a.groupNameSnapshot || "—",
+        date: formatDate(a.completedAt),
+        game: GAME_MODE_LABELS_AR[a.gameMode] || a.gameMode,
+        score: `${round1(a.scorePercentage)}%`,
+        delta: delta === null ? "—" : `${delta > 0 ? "+" : ""}${delta}%`,
+        trend: delta === null ? "أول محاولة" : delta > 0 ? "تحسّن ↑" : delta < 0 ? "تراجع ↓" : "بدون تغيير",
+      });
+      if (delta !== null && delta !== 0) {
+        const argb = delta > 0 ? IMPROVED_ARGB : DECLINED_ARGB;
+        row.getCell("delta").font = { color: { argb }, bold: true };
+        row.getCell("trend").font = { color: { argb }, bold: true };
+      }
+      previousScore = a.scorePercentage;
+    }
+  }
+  styleHeaderRow(progressSheet);
+
   const buffer = await workbook.xlsx.writeBuffer();
   const blob = new Blob([buffer], {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

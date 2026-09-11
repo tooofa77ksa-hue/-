@@ -1,19 +1,19 @@
 /**
- * يولّد كل مؤثرات SFX القابلة للتوليف البرمجي (11 من أصل 12) كملفات MP3
+ * يولّد كل مؤثرات SFX القابلة للتوليف البرمجي (12 من أصل 12) كملفات MP3
  * حقيقية داخل public/audio/sfx/، بنفس الأسلوب الصوتي المستخدم أصلًا في
  * src/game/audio/sfxSynth.ts (نغمات + ضجيج قصير بمغلّف لطيف) لكن مُصدَّرة
  * كملف بدل تشغيلها حيّة عبر WebAudio.
  *
- * الاستثناء الوحيد: applause_short (تصفيق) - يُمنَع توليده صناعيًا لأن
- * تصفيقًا "مُصطنعًا" بنغمات/ضجيج بسيط يبدو رديئًا وغير طبيعي؛ هذا الملف
- * يبقى يحتاج تسجيلًا حقيقيًا أو مكتبة مؤثرات مرخّصة تضيفها المستخدمة
- * يدويًا لاحقًا (يوثَّق هذا بوضوح في التقرير النهائي وREADME، ولا يُعتبَر
- * خطأ في التنفيذ).
+ * applause_short (تصفيق): تقريب برمجي (عشرات نقرات ضجيج قصيرة جدًا
+ * addClapBurst بتوقيت عشوائي وكثافة صاعدة-هابطة تحاكي بداية ونهاية تصفيق
+ * حقيقي) - ليس تسجيلًا حقيقيًا، لكنه أفضل من مؤثر واحد بسيط، ويمكن
+ * استبداله لاحقًا بوضع ملف حقيقي يدويًا في نفس المسار (الأولوية دائمًا
+ * لملف موجود مسبقًا - راجعي منطق --force أدناه).
  *
  * تشغيل مباشر: npx tsx .claude/skills/arabic-kids-game-audio/scripts/generate-sfx.ts
  */
 import { existsSync, mkdirSync, writeFileSync } from "fs";
-import { addNoiseBurst, addTone, createBuffer, toInt16 } from "./lib/pcm";
+import { addClapBurst, addNoiseBurst, addTone, createBuffer, toInt16 } from "./lib/pcm";
 import { encodeMp3 } from "./lib/mp3";
 import { normalizePeakInt16, SFX_TARGET_PEAK } from "./lib/normalize";
 import { SFX_SPECS } from "./lib/audioTable";
@@ -106,6 +106,20 @@ const BUILDERS: Record<string, { duration: number; build: Builder }> = {
     build: (buf) => {
       [523, 659, 784, 988, 1175].forEach((freq, i) => addTone(buf, i * 0.06, freq, 0.14, "triangle", 0.28));
       addNoiseBurst(buf, 0.3, 0.25, 0.1);
+    },
+  },
+  applause_short: {
+    duration: 0.9,
+    build: (buf) => {
+      // كثافة صاعدة (0..0.25s) ثم هضبة (0.25..0.55s) ثم هابطة (0.55..0.85s) -
+      // نفس شكل تصفيق حقيقي يبدأ متناثرًا، يتكثّف، ثم يخفت.
+      const claps = 55;
+      for (let i = 0; i < claps; i++) {
+        const t = Math.random() * 0.85;
+        const density = t < 0.25 ? t / 0.25 : t < 0.55 ? 1 : Math.max(0, 1 - (t - 0.55) / 0.3);
+        if (Math.random() > 0.35 + density * 0.5) continue;
+        addClapBurst(buf, t, 0.12 + Math.random() * 0.1);
+      }
     },
   },
 };

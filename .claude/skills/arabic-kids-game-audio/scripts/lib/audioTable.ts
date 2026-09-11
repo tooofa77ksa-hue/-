@@ -36,6 +36,10 @@ export const VOICE_PHRASES: VoicePhrase[] = [
   { id: "try_again_01", text: "حاولي مرة أخرى.", event: "WRONG" },
   { id: "almost_01", text: "اقتربتِ، جرّبي مرة ثانية.", event: "ALMOST" },
   { id: "rocket_ready_01", text: "صاروخك جاهز!", event: "ROCKET_READY" },
+  // متغيّر ثالث لحظة الإجابة الخاطئة - لا يملك GameEvent خاصًا به (يُستدعى
+  // مباشرة عبر AudioManager.playWrongVariant كأحد ثلاثة احتمالات، بنفس
+  // مؤثر WRONG الصوتي وحركة الدَمبلنغ) حتى لا تتكرر نفس العبارتين دائمًا.
+  { id: "oops_01", text: "أووبس! أخطأتِ." },
   // عبارات إضافية غير مربوطة بحدث ثابت بعد - جاهزة لاستخدام مستقبلي عبر
   // AudioManager.playVoiceLine(id) بمجرد اختيار الشاشة/اللحظة المناسبة لها
   { id: "start_01", text: "هيا نبدأ!" },
@@ -71,9 +75,10 @@ export const SFX_SPECS: SfxSpec[] = [
   { id: "celebration", synthesizable: true, event: "AMAZING", description: "احتفال قصير" },
   {
     id: "applause_short",
-    synthesizable: false,
+    synthesizable: true,
     event: "CREATIVE",
-    description: "تصفيق أطفال مرح قصير جدًا - يحتاج مصدرًا مرخصًا حقيقيًا أو مولّد SFX خارجي، لا يُصنَع صناعيًا",
+    description:
+      "تصفيق قصير مُقارَب برمجيًا (عشرات نقرات ضجيج عشوائية التوقيت بكثافة صاعدة-هابطة) - تقريب معقول لا تسجيل حقيقي؛ يمكن استبداله لاحقًا بمصدر مرخّص حقيقي متى توفّر بوضعه يدويًا في public/audio/sfx/applause_short.mp3",
   },
 ];
 

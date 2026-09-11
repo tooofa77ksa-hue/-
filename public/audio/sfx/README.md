@@ -21,7 +21,7 @@
 | `magic_whoosh.mp3` | فتح البوابة السحرية | NEXT_LEVEL | ✓ موجود | synth-offline-pcm | 2026-09-11 |
 | `treasure_open.mp3` | فتح صندوق الكنز | — | ✓ موجود | synth-offline-pcm | 2026-09-11 |
 | `celebration.mp3` | احتفال قصير | AMAZING | ✓ موجود | synth-offline-pcm | 2026-09-11 |
-| `applause_short.mp3` | تصفيق أطفال مرح قصير جدًا - يحتاج مصدرًا مرخصًا حقيقيًا أو مولّد SFX خارجي، لا يُصنَع صناعيًا | CREATIVE | ✗ يحتاج مصدرًا خارجيًا (لا يُولَّد برمجيًا) | — | — |
+| `applause_short.mp3` | تصفيق قصير مُقارَب برمجيًا (عشرات نقرات ضجيج عشوائية التوقيت بكثافة صاعدة-هابطة) - تقريب معقول لا تسجيل حقيقي؛ يمكن استبداله لاحقًا بمصدر مرخّص حقيقي متى توفّر بوضعه يدويًا في public/audio/sfx/applause_short.mp3 | CREATIVE | ✓ موجود | synth-offline-pcm | 2026-09-11 |
 
 ## applause_short.mp3
 

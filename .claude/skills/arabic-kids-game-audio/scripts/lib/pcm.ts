@@ -79,6 +79,25 @@ export function addNoiseBurst(buf: Float32Array, startSec: number, duration: num
   }
 }
 
+/** نقرة واحدة قصيرة جدًا (ضجيج بمغلّف هبوط حاد جدًا) تحاكي "طقة" تصفيقة
+ * منفردة - أقصر بكثير وأحدّ انحدارًا من addNoiseBurst العادية (المصمَّمة
+ * لأصوات هسهسة/انطلاق أطول). تُستخدَم بتكرار عشوائي التوقيت في
+ * generate-sfx.ts لتركيب applause_short (تصفيق) من عشرات النقرات
+ * المتراكبة - تقريب برمجي معقول، وليس تسجيلًا حقيقيًا. */
+export function addClapBurst(buf: Float32Array, startSec: number, peak: number) {
+  const duration = 0.02 + Math.random() * 0.015;
+  const startSample = Math.floor(startSec * SAMPLE_RATE);
+  const totalSamples = Math.floor(duration * SAMPLE_RATE);
+  for (let i = 0; i < totalSamples; i++) {
+    const idx = startSample + i;
+    if (idx < 0) continue;
+    if (idx >= buf.length) break;
+    const t = i / totalSamples;
+    const env = peak * Math.exp(-9 * t);
+    buf[idx] += (Math.random() * 2 - 1) * env;
+  }
+}
+
 /** تحويل نهائي إلى PCM 16-bit موقّع (ما يتوقعه مُرمِّز MP3) مع تحديد
  * (Clamping) يمنع أي تشويه (Clipping) ناتج عن جمع عدة نغمات متزامنة. */
 export function toInt16(buf: Float32Array): Int16Array {

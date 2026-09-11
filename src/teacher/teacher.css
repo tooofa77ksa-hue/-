@@ -14,22 +14,26 @@
 }
 
 .login-card {
+  position: relative;
   background: #fff;
   border: 1px solid var(--brand-border);
+  border-top: 4px solid var(--brand-primary);
   border-radius: var(--radius-lg);
-  padding: 28px;
+  padding: 32px 28px 28px;
   width: 100%;
   max-width: 360px;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  box-shadow: var(--shadow-soft);
+  box-shadow: 0 12px 32px rgba(21, 68, 90, 0.1);
 }
 
 .login-card h1 {
   margin: 0;
   color: var(--brand-primary-dark);
-  font-size: 22px;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
 }
 
 .login-card__hint {
@@ -61,6 +65,15 @@
   border-radius: 10px;
   font-weight: 700;
   cursor: pointer;
+  transition: transform 0.12s ease, background 0.15s ease;
+}
+
+.login-card button:hover {
+  background: #06945c;
+}
+
+.login-card button:active {
+  transform: scale(0.98);
 }
 
 .login-card__error {
@@ -176,14 +189,30 @@
 .stat-card {
   background: #fff;
   border: 1px solid var(--brand-border);
+  border-inline-start: 4px solid var(--brand-primary);
   border-radius: var(--radius-md);
   padding: 18px;
   text-align: center;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.stat-card:hover {
+  box-shadow: var(--shadow-soft);
+  transform: translateY(-2px);
+}
+
+.stat-card--good {
+  border-inline-start-color: #1f7a3d;
+}
+
+.stat-card--warn {
+  border-inline-start-color: #b8285a;
 }
 
 .stat-card__value {
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 800;
+  font-variant-numeric: tabular-nums;
   color: var(--brand-primary-dark);
 }
 

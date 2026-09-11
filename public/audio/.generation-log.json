@@ -64,5 +64,11 @@
     "kind": "sfx",
     "provider": "synth-offline-pcm",
     "generatedAt": "2026-09-11T05:13:00.059Z"
+  },
+  "sfx:applause_short": {
+    "id": "applause_short",
+    "kind": "sfx",
+    "provider": "synth-offline-pcm",
+    "generatedAt": "2026-09-11T15:24:49.110Z"
   }
 }

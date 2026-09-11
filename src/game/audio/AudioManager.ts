@@ -268,12 +268,25 @@ export class AudioManager {
     await this.tryPlayVoice(slot);
   }
 
-  /** إجابة خاطئة: تنويع لطيف بين "حاولي مرة أخرى" و"اقتربتِ، جربي مرة
-   * ثانية" - نفس المؤثر الصوتي غير العقابي ونفس حركة الدَمبلنغ (Wobble)
-   * للاثنين معًا، فقط تنويع في العبارة المنطوقة لتفادي التكرار المزعج. */
+  /** إجابة خاطئة: تنويع لطيف بين ثلاث عبارات ("حاولي مرة أخرى"، "اقتربتِ
+   * جربي مرة ثانية"، "أووبس! أخطأتِ") - نفس المؤثر الصوتي غير العقابي
+   * ونفس حركة الدَمبلنغ (Wobble) للثلاثة معًا (event يبقى WRONG أو
+   * ALMOST لأغراض المؤثر/الحركة)، فقط تنويع في العبارة المنطوقة نفسها
+   * عبر voiceOverride لتفادي التكرار المزعج. */
   async playWrongVariant() {
-    const event: GameEvent = Math.random() < 0.5 ? "WRONG" : "ALMOST";
-    await this.playEvent(event);
+    const variants: Array<{ event: GameEvent; voiceOverride?: string }> = [
+      { event: "WRONG" },
+      { event: "ALMOST" },
+      { event: "WRONG", voiceOverride: "oops_01" },
+    ];
+    const { event, voiceOverride } = variants[Math.floor(Math.random() * variants.length)];
+
+    this.ensureContext();
+    if (!this.ctx) return;
+    if (this.ctx.state === "suspended") await this.ctx.resume();
+
+    void this.playFileOrSynth(event);
+    await this.tryPlayVoice(voiceOverride ?? VOICE_SLOTS[event]);
   }
 
   get isReducedMotion() {

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-11T06:35:06.951Z",
+  "generatedAt": "2026-09-11T15:24:54.075Z",
   "note": "يُعاد إنشاء هذا الملف بالكامل في كل مرة يعمل فيها update-manifest.ts - لا تعدّليه يدويًا، عدّلي بدلًا منه الجداول في .claude/skills/arabic-kids-game-audio/scripts/lib/audioTable.ts.",
   "voice": {
     "excellent_01": {
@@ -88,6 +88,15 @@
       "file": null,
       "text": "صاروخك جاهز!",
       "event": "ROCKET_READY",
+      "exists": false,
+      "provider": null,
+      "voiceId": null,
+      "generatedAt": null
+    },
+    "oops_01": {
+      "file": null,
+      "text": "أووبس! أخطأتِ.",
+      "event": null,
       "exists": false,
       "provider": null,
       "voiceId": null,
@@ -231,13 +240,13 @@
       "generatedAt": "2026-09-11T05:13:00.059Z"
     },
     "applause_short": {
-      "file": null,
-      "description": "تصفيق أطفال مرح قصير جدًا - يحتاج مصدرًا مرخصًا حقيقيًا أو مولّد SFX خارجي، لا يُصنَع صناعيًا",
+      "file": "audio/sfx/applause_short.mp3",
+      "description": "تصفيق قصير مُقارَب برمجيًا (عشرات نقرات ضجيج عشوائية التوقيت بكثافة صاعدة-هابطة) - تقريب معقول لا تسجيل حقيقي؛ يمكن استبداله لاحقًا بمصدر مرخّص حقيقي متى توفّر بوضعه يدويًا في public/audio/sfx/applause_short.mp3",
       "event": "CREATIVE",
-      "synthesizable": false,
-      "exists": false,
-      "provider": null,
-      "generatedAt": null
+      "synthesizable": true,
+      "exists": true,
+      "provider": "synth-offline-pcm",
+      "generatedAt": "2026-09-11T15:24:49.110Z"
     }
   },
   "events": {
