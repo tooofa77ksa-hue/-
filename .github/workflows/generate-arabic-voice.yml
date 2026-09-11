@@ -33,9 +33,14 @@ jobs:
         with:
           ref: ${{ github.ref_name }}
 
+      # Node 22 تحديدًا مطلوب هنا (خلافًا لبقية Workflows هذا المشروع التي
+      # تكتفي بـ Node 20): عميل edge-tts (scripts/lib/edgeTts.ts) يعتمد
+      # على WebSocket كمتغيّر عام مدمج في Node نفسه (بلا أي مكتبة خارجية
+      # كـ ws) - وهو غير متاح تلقائيًا في Node 20 ("WebSocket is not
+      # defined")، وأصبح متاحًا كميزة مستقرة اعتبارًا من Node 22.
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: "npm"
 
       - run: npm ci

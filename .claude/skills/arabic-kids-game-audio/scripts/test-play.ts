@@ -23,43 +23,38 @@ import { spawn, ChildProcessWithoutNullStreams } from "child_process";
 import { chromium } from "playwright";
 import { assertProjectRoot, projectPath } from "./lib/paths";
 
-/** يقتل عملية vite preview وكل العمليات الفرعية التي أطلقتها (مثل
- * esbuild) دفعة واحدة عبر معرّف مجموعة العمليات (سالب pid العملية
- * المنفصلة/detached) - proc.kill() وحدها لا تكفي لعملية detached. */
-function killProcessGroup(proc: ChildProcessWithoutNullStreams) {
-  if (proc.pid) {
-    try {
-      process.kill(-proc.pid, "SIGKILL");
-    } catch {
-      /* العملية منتهية بالفعل - لا حاجة لأي إجراء إضافي */
-    }
-  }
-}
-
 function startPreviewServer(): Promise<{ url: string; proc: ChildProcessWithoutNullStreams }> {
   return new Promise((resolve, reject) => {
     // يُستدعى ثنائي vite مباشرة من node_modules (لا عبر npx) حتى يكون
-    // proc.pid هو عملية vite نفسها فعليًا - استدعاؤه عبر npx يُنشئ عملية
-    // غلاف إضافية، فيقتل proc.kill() لاحقًا الغلاف فقط ويترك خادم المعاينة
-    // الفعلي يعمل في الخلفية (سبب تعليق/تسرّب ملاحَظ أثناء تطوير هذا الملف).
+    // proc.pid هو عملية vite نفسها فعليًا - استدعاؤه عبر npx ينشئ عملية
+    // غلاف إضافية تجعل proc.kill() لاحقًا يقتل الغلاف فقط ويترك خادم
+    // المعاينة الفعلي يعمل في الخلفية (سبب تسرّب عملية لوحظ فعليًا أثناء
+    // تطوير هذا الملف). العملية هنا غير منفصلة (لا detached) عمدًا - تكفي
+    // proc.kill() العادية بعد إصلاح مشكلة الغلاف، وتفادي detached يتفادى
+    // أي تعقيد إضافي غير ضروري حول التحكم بمجموعات العمليات.
     const viteBin = projectPath("node_modules/.bin/vite");
     const proc = spawn(viteBin, ["preview", "--port", "4173", "--strictPort"], {
       cwd: projectPath("."),
       stdio: ["ignore", "pipe", "pipe"],
-      detached: true,
     });
 
     let settled = false;
+    let buffered = "";
     const timer = setTimeout(() => {
       if (!settled) {
         settled = true;
-        killProcessGroup(proc);
-        reject(new Error("test-play: vite preview لم يبدأ خلال 20 ثانية"));
+        proc.kill("SIGKILL");
+        reject(
+          new Error(
+            `test-play: vite preview لم يبدأ خلال 30 ثانية. الناتج المُلتقَط حتى الآن:\n${buffered || "(لا شيء)"}`
+          )
+        );
       }
-    }, 20000);
+    }, 30000);
 
     const onData = (data: Buffer) => {
       const text = data.toString();
+      buffered += text;
       const match = text.match(/Local:\s+(http:\/\/[^\s]+)/);
       if (match && !settled) {
         settled = true;
@@ -69,11 +64,18 @@ function startPreviewServer(): Promise<{ url: string; proc: ChildProcessWithoutN
     };
     proc.stdout.on("data", onData);
     proc.stderr.on("data", onData);
+    proc.on("error", (err) => {
+      if (!settled) {
+        settled = true;
+        clearTimeout(timer);
+        reject(new Error(`test-play: تعذّر تشغيل vite preview: ${err.message}`));
+      }
+    });
     proc.on("exit", (code) => {
       if (!settled) {
         settled = true;
         clearTimeout(timer);
-        reject(new Error(`test-play: vite preview خرج مبكرًا برمز ${code}`));
+        reject(new Error(`test-play: vite preview خرج مبكرًا برمز ${code}. الناتج:\n${buffered || "(لا شيء)"}`));
       }
     });
   });
@@ -163,7 +165,7 @@ export async function testPlay(localChromiumPath?: string): Promise<CheckResult>
     }
   } finally {
     await browser.close();
-    killProcessGroup(proc);
+    proc.kill("SIGKILL");
   }
 
   return { ok, report };
