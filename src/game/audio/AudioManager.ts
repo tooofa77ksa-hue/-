@@ -43,6 +43,23 @@ const EVENT_SFX: Record<GameEvent, SfxKey> = {
   ROCKET_READY: "rocketCharged",
 };
 
+/** مؤثر صوتي مُنتَج (ملف) اختياري لكل حدث - إن وُجد الملف يُشغَّل بدل
+ * المؤثر المولَّف بـ WebAudio أعلاه (EVENT_SFX)، وإلا يبقى المولَّف كما
+ * هو دون أي انقطاع. أسماء الملفات هنا هي نفسها التي ينتجها Skill
+ * "arabic-kids-game-audio" داخل public/audio/sfx/. */
+const EVENT_SFX_FILE: Partial<Record<GameEvent, string>> = {
+  EXCELLENT: "correct_pop",
+  HERO: "sparkle",
+  AMAZING: "celebration",
+  STAR: "star_twinkle",
+  GEM: "gem_collect",
+  CREATIVE: "applause_short",
+  NEXT_LEVEL: "magic_whoosh",
+  WRONG: "wrong_soft",
+  ALMOST: "wrong_soft",
+  ROCKET_READY: "rocket_charge",
+};
+
 export interface AudioPrefs {
   muted: boolean;
   masterVolume: number;
@@ -76,6 +93,7 @@ export class AudioManager {
   private voiceAvailability = new Map<string, boolean>();
   private currentVoiceEl: HTMLAudioElement | null = null;
   private duckingAmount = 0.35;
+  private sfxBuffers = new Map<string, AudioBuffer | null>();
 
   constructor(defaults: AudioPrefs) {
     this.prefs = loadPrefs(defaults);
@@ -185,14 +203,69 @@ export class AudioManager {
     sfx[key](this.ctx, this.sfxGain);
   }
 
+  /** يحمّل ملف مؤثر صوتي (public/audio/sfx/{fileId}.mp3) مرة واحدة
+   * ويخزّنه مؤقتًا كـ AudioBuffer جاهز للتشغيل الفوري لاحقًا. فشل التحميل
+   * (ملف غير موجود بعد) يُخزَّن كـ null حتى لا يُعاد جلبه في كل مرة. */
+  private async loadSfxBuffer(fileId: string): Promise<AudioBuffer | null> {
+    const cached = this.sfxBuffers.get(fileId);
+    if (cached !== undefined) return cached;
+    if (!this.ctx) return null;
+    try {
+      const res = await fetch(`${import.meta.env.BASE_URL}audio/sfx/${fileId}.mp3`);
+      if (!res.ok) throw new Error("sfx file missing");
+      const arr = await res.arrayBuffer();
+      const buffer = await this.ctx.decodeAudioData(arr);
+      this.sfxBuffers.set(fileId, buffer);
+      return buffer;
+    } catch {
+      this.sfxBuffers.set(fileId, null);
+      return null;
+    }
+  }
+
+  /** يشغّل مؤثرًا مُنتَجًا (ملف) عبر سلسلة WebAudio نفسها (sfxGain) حتى
+   * يخضع بالضبط لنفس التحكم بالكتم/المستوى الذي يخضع له المؤثر المولَّف -
+   * لا فرق سلوكي بين الاثنين من منظور المستخدمة. */
+  private async playSfxFile(fileId: string): Promise<boolean> {
+    if (!this.ctx) return false;
+    const buffer = await this.loadSfxBuffer(fileId);
+    if (!buffer) return false;
+    const src = this.ctx.createBufferSource();
+    src.buffer = buffer;
+    src.connect(this.sfxGain);
+    src.start();
+    return true;
+  }
+
+  /** يفضّل المؤثر المُنتَج (ملف) إن وُجد، ويتراجع بصمت للمؤثر المولَّف
+   * بـ WebAudio (سلوك اليوم دون أي تغيير) إن كان الملف غير موجود بعد -
+   * تمامًا كما يتصرف tryPlayVoice مع ملفات الصوت البشري. */
+  private async playFileOrSynth(event: GameEvent) {
+    if (!this.ctx) return;
+    const fileId = EVENT_SFX_FILE[event];
+    const playedFile = fileId ? await this.playSfxFile(fileId) : false;
+    if (!playedFile) sfx[EVENT_SFX[event]](this.ctx, this.sfxGain);
+  }
+
   /** الحدث الموحّد: صوت بشري (إن توفر) + مؤثر صوتي متزامن. */
   async playEvent(event: GameEvent) {
     this.ensureContext();
     if (!this.ctx) return;
     if (this.ctx.state === "suspended") await this.ctx.resume();
 
-    this.playSfx(EVENT_SFX[event]);
+    void this.playFileOrSynth(event);
     await this.tryPlayVoice(VOICE_SLOTS[event]);
+  }
+
+  /** تشغيل عبارة صوتية عامة بالاسم مباشرة (خارج الأحداث العشرة الثابتة) -
+   * جاهزة لأي عبارات إضافية يولّدها Skill الصوت (مثل "هيا نبدأ!" أو
+   * "اختاري لعبتك!") متى ما رُبطت بموقف مناسب في الواجهة؛ تتجاهل بصمت
+   * إن كان الملف غير موجود، بنفس منطق tryPlayVoice تمامًا. */
+  async playVoiceLine(slot: string) {
+    this.ensureContext();
+    if (!this.ctx) return;
+    if (this.ctx.state === "suspended") await this.ctx.resume();
+    await this.tryPlayVoice(slot);
   }
 
   /** إجابة خاطئة: تنويع لطيف بين "حاولي مرة أخرى" و"اقتربتِ، جربي مرة

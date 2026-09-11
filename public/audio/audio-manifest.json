@@ -1,0 +1,285 @@
+{
+  "version": 1,
+  "generatedAt": "2026-09-11T04:58:46.114Z",
+  "note": "يُعاد إنشاء هذا الملف بالكامل في كل مرة يعمل فيها update-manifest.ts - لا تعدّليه يدويًا، عدّلي بدلًا منه الجداول في .claude/skills/arabic-kids-game-audio/scripts/lib/audioTable.ts.",
+  "voice": {
+    "excellent_01": {
+      "file": null,
+      "text": "ممتازة!",
+      "event": "EXCELLENT",
+      "exists": false,
+      "provider": null,
+      "voiceId": null,
+      "generatedAt": null
+    },
+    "hero_01": {
+      "file": null,
+      "text": "أحسنتِ يا بطلة!",
+      "event": "HERO",
+      "exists": false,
+      "provider": null,
+      "voiceId": null,
+      "generatedAt": null
+    },
+    "amazing_01": {
+      "file": null,
+      "text": "واو! إجابة رائعة!",
+      "event": "AMAZING",
+      "exists": false,
+      "provider": null,
+      "voiceId": null,
+      "generatedAt": null
+    },
+    "star_01": {
+      "file": null,
+      "text": "نجمة جديدة لك!",
+      "event": "STAR",
+      "exists": false,
+      "provider": null,
+      "voiceId": null,
+      "generatedAt": null
+    },
+    "gem_01": {
+      "file": null,
+      "text": "كنز جديد!",
+      "event": "GEM",
+      "exists": false,
+      "provider": null,
+      "voiceId": null,
+      "generatedAt": null
+    },
+    "creative_01": {
+      "file": null,
+      "text": "أبدعتِ!",
+      "event": "CREATIVE",
+      "exists": false,
+      "provider": null,
+      "voiceId": null,
+      "generatedAt": null
+    },
+    "next_01": {
+      "file": null,
+      "text": "إلى المرحلة التالية!",
+      "event": "NEXT_LEVEL",
+      "exists": false,
+      "provider": null,
+      "voiceId": null,
+      "generatedAt": null
+    },
+    "try_again_01": {
+      "file": null,
+      "text": "حاولي مرة أخرى.",
+      "event": "WRONG",
+      "exists": false,
+      "provider": null,
+      "voiceId": null,
+      "generatedAt": null
+    },
+    "almost_01": {
+      "file": null,
+      "text": "اقتربتِ، جرّبي مرة ثانية.",
+      "event": "ALMOST",
+      "exists": false,
+      "provider": null,
+      "voiceId": null,
+      "generatedAt": null
+    },
+    "rocket_ready_01": {
+      "file": null,
+      "text": "صاروخك جاهز!",
+      "event": "ROCKET_READY",
+      "exists": false,
+      "provider": null,
+      "voiceId": null,
+      "generatedAt": null
+    },
+    "start_01": {
+      "file": null,
+      "text": "هيا نبدأ!",
+      "event": null,
+      "exists": false,
+      "provider": null,
+      "voiceId": null,
+      "generatedAt": null
+    },
+    "choose_game_01": {
+      "file": null,
+      "text": "اختاري لعبتك!",
+      "event": null,
+      "exists": false,
+      "provider": null,
+      "voiceId": null,
+      "generatedAt": null
+    },
+    "great_01": {
+      "file": null,
+      "text": "رائعة جدًا!",
+      "event": null,
+      "exists": false,
+      "provider": null,
+      "voiceId": null,
+      "generatedAt": null
+    },
+    "yasalam_01": {
+      "file": null,
+      "text": "يا سلام!",
+      "event": null,
+      "exists": false,
+      "provider": null,
+      "voiceId": null,
+      "generatedAt": null
+    }
+  },
+  "sfx": {
+    "button_pop": {
+      "file": "audio/sfx/button_pop.mp3",
+      "description": "ضغط زر لطيف عام",
+      "event": null,
+      "synthesizable": true,
+      "exists": true,
+      "provider": "synth-offline-pcm",
+      "generatedAt": "2026-09-11T04:53:03.956Z"
+    },
+    "correct_pop": {
+      "file": "audio/sfx/correct_pop.mp3",
+      "description": "إجابة صحيحة",
+      "event": "EXCELLENT",
+      "synthesizable": true,
+      "exists": true,
+      "provider": "synth-offline-pcm",
+      "generatedAt": "2026-09-11T04:53:04.033Z"
+    },
+    "sparkle": {
+      "file": "audio/sfx/sparkle.mp3",
+      "description": "لمعة سحرية خفيفة",
+      "event": "HERO",
+      "synthesizable": true,
+      "exists": true,
+      "provider": "synth-offline-pcm",
+      "generatedAt": "2026-09-11T04:53:04.091Z"
+    },
+    "star_twinkle": {
+      "file": "audio/sfx/star_twinkle.mp3",
+      "description": "صوت نجمة",
+      "event": "STAR",
+      "synthesizable": true,
+      "exists": true,
+      "provider": "synth-offline-pcm",
+      "generatedAt": "2026-09-11T04:53:04.142Z"
+    },
+    "gem_collect": {
+      "file": "audio/sfx/gem_collect.mp3",
+      "description": "جمع جوهرة",
+      "event": "GEM",
+      "synthesizable": true,
+      "exists": true,
+      "provider": "synth-offline-pcm",
+      "generatedAt": "2026-09-11T04:53:04.193Z"
+    },
+    "wrong_soft": {
+      "file": "audio/sfx/wrong_soft.mp3",
+      "description": "إجابة غير صحيحة - لطيف جدًا وغير عقابي، بلا Buzzer",
+      "event": "WRONG / ALMOST",
+      "synthesizable": true,
+      "exists": true,
+      "provider": "synth-offline-pcm",
+      "generatedAt": "2026-09-11T04:53:04.223Z"
+    },
+    "rocket_charge": {
+      "file": "audio/sfx/rocket_charge.mp3",
+      "description": "شحن الصاروخ",
+      "event": "ROCKET_READY",
+      "synthesizable": true,
+      "exists": true,
+      "provider": "synth-offline-pcm",
+      "generatedAt": "2026-09-11T04:53:04.290Z"
+    },
+    "rocket_launch": {
+      "file": "audio/sfx/rocket_launch.mp3",
+      "description": "إقلاع الصاروخ",
+      "event": null,
+      "synthesizable": true,
+      "exists": true,
+      "provider": "synth-offline-pcm",
+      "generatedAt": "2026-09-11T04:53:04.376Z"
+    },
+    "magic_whoosh": {
+      "file": "audio/sfx/magic_whoosh.mp3",
+      "description": "فتح البوابة السحرية",
+      "event": "NEXT_LEVEL",
+      "synthesizable": true,
+      "exists": true,
+      "provider": "synth-offline-pcm",
+      "generatedAt": "2026-09-11T04:53:04.420Z"
+    },
+    "treasure_open": {
+      "file": "audio/sfx/treasure_open.mp3",
+      "description": "فتح صندوق الكنز",
+      "event": null,
+      "synthesizable": true,
+      "exists": true,
+      "provider": "synth-offline-pcm",
+      "generatedAt": "2026-09-11T04:53:04.447Z"
+    },
+    "celebration": {
+      "file": "audio/sfx/celebration.mp3",
+      "description": "احتفال قصير",
+      "event": "AMAZING",
+      "synthesizable": true,
+      "exists": true,
+      "provider": "synth-offline-pcm",
+      "generatedAt": "2026-09-11T04:53:04.495Z"
+    },
+    "applause_short": {
+      "file": null,
+      "description": "تصفيق أطفال مرح قصير جدًا - يحتاج مصدرًا مرخصًا حقيقيًا أو مولّد SFX خارجي، لا يُصنَع صناعيًا",
+      "event": "CREATIVE",
+      "synthesizable": false,
+      "exists": false,
+      "provider": null,
+      "generatedAt": null
+    }
+  },
+  "events": {
+    "EXCELLENT": {
+      "voice": "excellent_01",
+      "sfx": "correct_pop"
+    },
+    "HERO": {
+      "voice": "hero_01",
+      "sfx": "sparkle"
+    },
+    "AMAZING": {
+      "voice": "amazing_01",
+      "sfx": "celebration"
+    },
+    "STAR": {
+      "voice": "star_01",
+      "sfx": "star_twinkle"
+    },
+    "GEM": {
+      "voice": "gem_01",
+      "sfx": "gem_collect"
+    },
+    "CREATIVE": {
+      "voice": "creative_01",
+      "sfx": "applause_short"
+    },
+    "NEXT_LEVEL": {
+      "voice": "next_01",
+      "sfx": "magic_whoosh"
+    },
+    "WRONG": {
+      "voice": "try_again_01",
+      "sfx": "wrong_soft"
+    },
+    "ALMOST": {
+      "voice": "almost_01",
+      "sfx": "wrong_soft"
+    },
+    "ROCKET_READY": {
+      "voice": "rocket_ready_01",
+      "sfx": "rocket_charge"
+    }
+  }
+}

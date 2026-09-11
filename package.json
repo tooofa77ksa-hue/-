@@ -26,6 +26,7 @@
     "react-router-dom": "^7.18.3"
   },
   "devDependencies": {
+    "@breezystack/lamejs": "^1.2.7",
     "@firebase/rules-unit-testing": "^5.0.2",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.1",

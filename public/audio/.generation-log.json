@@ -1,0 +1,68 @@
+{
+  "sfx:button_pop": {
+    "id": "button_pop",
+    "kind": "sfx",
+    "provider": "synth-offline-pcm",
+    "generatedAt": "2026-09-11T04:53:03.956Z"
+  },
+  "sfx:correct_pop": {
+    "id": "correct_pop",
+    "kind": "sfx",
+    "provider": "synth-offline-pcm",
+    "generatedAt": "2026-09-11T04:53:04.033Z"
+  },
+  "sfx:sparkle": {
+    "id": "sparkle",
+    "kind": "sfx",
+    "provider": "synth-offline-pcm",
+    "generatedAt": "2026-09-11T04:53:04.091Z"
+  },
+  "sfx:star_twinkle": {
+    "id": "star_twinkle",
+    "kind": "sfx",
+    "provider": "synth-offline-pcm",
+    "generatedAt": "2026-09-11T04:53:04.142Z"
+  },
+  "sfx:gem_collect": {
+    "id": "gem_collect",
+    "kind": "sfx",
+    "provider": "synth-offline-pcm",
+    "generatedAt": "2026-09-11T04:53:04.193Z"
+  },
+  "sfx:wrong_soft": {
+    "id": "wrong_soft",
+    "kind": "sfx",
+    "provider": "synth-offline-pcm",
+    "generatedAt": "2026-09-11T04:53:04.223Z"
+  },
+  "sfx:rocket_charge": {
+    "id": "rocket_charge",
+    "kind": "sfx",
+    "provider": "synth-offline-pcm",
+    "generatedAt": "2026-09-11T04:53:04.290Z"
+  },
+  "sfx:rocket_launch": {
+    "id": "rocket_launch",
+    "kind": "sfx",
+    "provider": "synth-offline-pcm",
+    "generatedAt": "2026-09-11T04:53:04.376Z"
+  },
+  "sfx:magic_whoosh": {
+    "id": "magic_whoosh",
+    "kind": "sfx",
+    "provider": "synth-offline-pcm",
+    "generatedAt": "2026-09-11T04:53:04.420Z"
+  },
+  "sfx:treasure_open": {
+    "id": "treasure_open",
+    "kind": "sfx",
+    "provider": "synth-offline-pcm",
+    "generatedAt": "2026-09-11T04:53:04.447Z"
+  },
+  "sfx:celebration": {
+    "id": "celebration",
+    "kind": "sfx",
+    "provider": "synth-offline-pcm",
+    "generatedAt": "2026-09-11T04:53:04.495Z"
+  }
+}
