@@ -127,13 +127,14 @@ function getElevenLabsProvider(): Provider | null {
         body: JSON.stringify({
           text,
           model_id: "eleven_multilingual_v2",
-          // أقصى تعبير/حماس ممكن ضمن مدى ElevenLabs المسموح (stability
-          // 0-1، style 0-1): المستخدمة جرّبت 0.45/0.35 ثم 0.28/0.7 وقالت
-          // كلاهما "بلا حماس إطلاقًا" - هذا هو السقف التقني الأخير قبل
-          // تجربة صوت مختلف تمامًا من مكتبة ElevenLabs (الإعداد وحده لا
-          // يغيّر الطابع الأساسي للصوت نفسه، فقط درجة التلوين العاطفي
-          // ضمن ما يسمح به ذلك الصوت تحديدًا).
-          voice_settings: { stability: 0.15, similarity_boost: 0.75, style: 1, use_speaker_boost: true },
+          // ELEVENLABS_VOICE_ID تغيّر إلى صوت آخر مُختار عمدًا لطابعه
+          // الحماسي (بعد أن أثبتت التجربة أن الصوت السابق كان هادئًا
+          // بطبعه ولا تصلحه أي إعدادات). مع صوت حماسي أصلًا لا حاجة
+          // لأقصى تطرّف ممكن في الإعدادات (stability=0.15 سابقًا) - تلك
+          // القيمة المنخفضة جدًا تُخاطر بعدم وضوح النطق (المستخدمة طلبت
+          // صراحة "وضّح الصوت"). التوازن هنا: style مرتفع يكفي للحماس
+          // مع stability معتدلة تحافظ على نطق واضح ومستقر.
+          voice_settings: { stability: 0.35, similarity_boost: 0.8, style: 0.85, use_speaker_boost: true },
         }),
       });
       if (!res.ok) throw new Error(`ElevenLabs TTS ${res.status}: ${await res.text().catch(() => res.statusText)}`);
