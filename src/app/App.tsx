@@ -2,6 +2,7 @@ import { Suspense, lazy, useEffect } from "react";
 import { HashRouter, Routes, Route, Navigate, Link } from "react-router-dom";
 import { BrandHeader } from "@/components/BrandHeader";
 import { BrandFooter } from "@/components/BrandFooter";
+import { BackgroundMusic } from "@/components/BackgroundMusic";
 import { useBranding } from "@/lib/useBranding";
 
 // تقسيم الحزم: Phaser لا يُحمَّل إلا داخل /play، ولوحة المعلمة لا تُحمَّل
@@ -69,6 +70,7 @@ export default function App() {
     <HashRouter>
       <div className="app-shell">
         <DocumentTitleSync />
+        <BackgroundMusic />
         <BrandHeader />
         <main className="app-main">
           <Suspense fallback={<Loading />}>
