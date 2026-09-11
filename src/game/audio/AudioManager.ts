@@ -66,6 +66,7 @@ export interface AudioPrefs {
   masterVolume: number;
   voiceVolume: number;
   sfxVolume: number;
+  musicVolume: number; // موسيقى الخلفية (BackgroundMusic.tsx) - قابلة للتحكم يدويًا
   quietMode: boolean;
   reducedMotion: boolean;
 }
@@ -332,6 +333,7 @@ export function getAudioManager(defaults?: AudioPrefs): AudioManager {
         masterVolume: 0.8,
         voiceVolume: 1,
         sfxVolume: 0.7,
+        musicVolume: 1,
         quietMode: false,
         reducedMotion: false,
       }

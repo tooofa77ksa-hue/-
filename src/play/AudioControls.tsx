@@ -61,6 +61,17 @@ export function AudioControls() {
             />
           </label>
           <label>
+            موسيقى الخلفية
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.05}
+              value={prefs.musicVolume}
+              onChange={(e) => manager.setPrefs({ musicVolume: Number(e.target.value) })}
+            />
+          </label>
+          <label>
             <input
               type="checkbox"
               checked={prefs.quietMode}

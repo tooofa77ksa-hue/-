@@ -48,7 +48,7 @@ export function BackgroundMusic() {
     audioRef.current = el;
 
     const applyVolume = (prefs: AudioPrefs) => {
-      el.volume = prefs.muted ? 0 : prefs.masterVolume * volumeFactorFor(modeRef.current);
+      el.volume = prefs.muted ? 0 : prefs.masterVolume * prefs.musicVolume * volumeFactorFor(modeRef.current);
     };
 
     const manager = getAudioManager();
@@ -81,7 +81,8 @@ export function BackgroundMusic() {
     if (!el) return;
 
     const manager = getAudioManager();
-    el.volume = manager.getPrefs().muted ? 0 : manager.getPrefs().masterVolume * volumeFactorFor(mode);
+    const prefs = manager.getPrefs();
+    el.volume = prefs.muted ? 0 : prefs.masterVolume * prefs.musicVolume * volumeFactorFor(mode);
 
     if (mode === "off") {
       el.pause();
