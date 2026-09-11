@@ -16,7 +16,7 @@ import { classSchedules } from "../data/schoolStats";
  */
 const LINE5_FRAMES = 107; // line5.mp3, 3.579s
 const TRANSITION_BEAT = 5 + LINE5_FRAMES + 8;
-const PER_CLASS_BEAT = 175;
+const PER_CLASS_BEAT = 130;
 export const SMART_SCHEDULE_DURATION = TRANSITION_BEAT + PER_CLASS_BEAT * classSchedules.length;
 
 const TransitionBeat: React.FC = () => {
