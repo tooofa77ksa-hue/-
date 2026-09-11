@@ -288,9 +288,10 @@ export const FacilitiesScene: React.FC = () => {
 
       {facilitiesRow1.map((node, i) => {
         const Icon = row1Icons[i];
-        return (
-          <Card key={node.label} node={node} x={row1X[i]} top={ROW1_TOP} h={ROW1_H} from={itemStart(1 + i)} icon={<Icon />} />
-        );
+        // Arabic reading order: item #1 goes rightmost, so index into x
+        // positions in reverse.
+        const x = row1X[facilitiesRow1.length - 1 - i];
+        return <Card key={node.label} node={node} x={x} top={ROW1_TOP} h={ROW1_H} from={itemStart(1 + i)} icon={<Icon />} />;
       })}
 
       {facilitiesRow2.map((node, i) => {
@@ -299,7 +300,7 @@ export const FacilitiesScene: React.FC = () => {
           <Card
             key={node.label}
             node={node}
-            x={row2X[i]}
+            x={row2X[facilitiesRow2.length - 1 - i]}
             top={ROW2_TOP}
             h={ROW2_H}
             from={itemStart(1 + facilitiesRow1.length + i)}
