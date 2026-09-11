@@ -77,7 +77,7 @@ export const Grade6OutroScene: React.FC = () => {
               <Chip text="تدخل عاجل مطلوب في القراءة" tone="down" from={62} />
             </div>
             <div style={{ fontSize: 18, color: brand.muted, marginTop: 8 }}>
-              {schoolInfo.schoolName} - بطاقة نافس - {schoolInfo.grade} - {schoolInfo.academicYear}
+              {schoolInfo.schoolName} - بطاقة نافس - {schoolInfo.grade}
             </div>
           </div>
         </AbsoluteFill>

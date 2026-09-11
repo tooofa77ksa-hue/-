@@ -97,7 +97,6 @@ export const IntroScene: React.FC = () => {
               <div style={{ height: 2, background: brand.border }} />
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <Field label="الصف" value={schoolInfo.grade} from={44} align="start" />
-                <Field label="العام الدراسي" value={schoolInfo.academicYear} from={48} align="end" />
                 <Field
                   label="عدد الطلبة / المختبرين"
                   value={`${schoolInfo.totalStudents} / ${schoolInfo.testedStudents}`}

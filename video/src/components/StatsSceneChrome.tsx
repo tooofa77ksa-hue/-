@@ -65,7 +65,7 @@ export const StatsSceneChrome: React.FC<{
       >
         <span>{schoolInfo.schoolName} - {schoolInfo.schoolGender}</span>
         <span style={{ width: 4, height: 4, borderRadius: 999, background: brand.muted }} />
-        <span>{schoolInfo.stage} - {schoolInfo.academicYear}</span>
+        <span>{schoolInfo.stage}</span>
         <span style={{ width: 4, height: 4, borderRadius: 999, background: brand.muted }} />
         <span>الرقم الوزاري {schoolInfo.ministryNumber}</span>
       </div>

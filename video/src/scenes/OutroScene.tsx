@@ -86,5 +86,5 @@ export const OutroScene: React.FC = () => {
 };
 
 function reportLine() {
-  return `بطاقة نافس - ${schoolInfo.grade} - ${schoolInfo.academicYear}`;
+  return `بطاقة نافس - ${schoolInfo.grade}`;
 }
