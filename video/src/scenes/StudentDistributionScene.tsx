@@ -6,13 +6,16 @@ import { Sfx } from "../components/Sfx";
 import { studentDistribution, studentDistributionTotal } from "../data/schoolStats";
 
 /**
- * Transition line only (presenter voice, public/audio/school-stats/line4.mp3
- * - 143 frames at 30fps), then the table fills in on its own with no
- * narration - matches "لا أريد قراءة صوتية لكل بيانات الجدول".
+ * Transition line only (presenter voice, public/audio/school-stats/line4.mp3),
+ * then the table fills in on its own with no narration - matches "لا أريد
+ * قراءة صوتية لكل بيانات الجدول". Per explicit user request, the narrated
+ * beat's duration is exactly its audio's length (audio starts at frame 0,
+ * no silent lead-in/hold), and the silent table beat is trimmed to just
+ * past its last reveal animation, not held longer than needed to read it.
  */
-const LINE4_FRAMES = 143; // line4.mp3, 4.780s
-const TRANSITION_BEAT = 5 + LINE4_FRAMES + 12;
-const TABLE_BEAT = 360;
+const LINE4_FRAMES = 144; // line4.mp3, 4.780s -> ceil(143.41)
+const TRANSITION_BEAT = LINE4_FRAMES;
+const TABLE_BEAT = 280;
 export const STUDENT_DISTRIBUTION_DURATION = TRANSITION_BEAT + TABLE_BEAT;
 
 const TransitionBeat: React.FC = () => {
@@ -24,7 +27,7 @@ const TransitionBeat: React.FC = () => {
   });
   return (
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
-      <Sequence from={5} layout="none">
+      <Sequence from={0} layout="none">
         <Audio src={staticFile("audio/school-stats/line4.mp3")} />
       </Sequence>
       <div style={{ fontFamily, fontSize: 44, fontWeight: 800, color: brand.primaryDark, opacity: t }}>

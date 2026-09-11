@@ -14,9 +14,9 @@ import { classSchedules } from "../data/schoolStats";
  * ~35 cells per timetable, this removes any risk of a transcription error
  * in a subject, teacher name, or period time.
  */
-const LINE5_FRAMES = 107; // line5.mp3, 3.579s
-const TRANSITION_BEAT = 5 + LINE5_FRAMES + 8;
-const PER_CLASS_BEAT = 130;
+const LINE5_FRAMES = 108; // line5.mp3, 3.579s -> ceil(107.36)
+const TRANSITION_BEAT = LINE5_FRAMES;
+const PER_CLASS_BEAT = 110;
 export const SMART_SCHEDULE_DURATION = TRANSITION_BEAT + PER_CLASS_BEAT * classSchedules.length;
 
 const TransitionBeat: React.FC = () => {
@@ -28,7 +28,7 @@ const TransitionBeat: React.FC = () => {
   });
   return (
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
-      <Sequence from={5} layout="none">
+      <Sequence from={0} layout="none">
         <Audio src={staticFile("audio/school-stats/line5.mp3")} />
       </Sequence>
       <div style={{ fontFamily, fontSize: 44, fontWeight: 800, color: brand.primaryDark, opacity: t }}>

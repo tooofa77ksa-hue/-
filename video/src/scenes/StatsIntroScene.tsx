@@ -9,21 +9,19 @@ import { headlineStats } from "../data/schoolStats";
 /**
  * Three beats (employees -> students -> classes), one statistic at a time,
  * each narrated by a real ElevenLabs line (same voice as grade-3/6),
- * public/audio/school-stats/line1.mp3, line2.mp3, line3.mp3. Beat durations
- * are each line's real measured length (30fps) plus an 8-frame lead-in
- * before the audio starts and a 20-frame hold after it ends, matching this
- * project's established word-count-proportional timing approach (no forced
- * alignment available in this environment).
+ * public/audio/school-stats/line1.mp3, line2.mp3, line3.mp3. Per explicit
+ * user request, a narrated beat's duration is exactly its audio's length -
+ * no silent lead-in, no hold after - audio starts at frame 0. Frame counts
+ * below are ceil(seconds * 30fps) rather than floor, so the beat is never
+ * one frame shorter than the audio (which would clip its tail).
  */
-const LEAD_IN = 8;
-const HOLD_AFTER = 20;
-const LINE1_FRAMES = 104; // line1.mp3, 3.474s
-const LINE2_FRAMES = 133; // line2.mp3, 4.441s
-const LINE3_FRAMES = 107; // line3.mp3, 3.579s
+const LINE1_FRAMES = 105; // line1.mp3, 3.474s -> ceil(104.23)
+const LINE2_FRAMES = 134; // line2.mp3, 4.441s -> ceil(133.22)
+const LINE3_FRAMES = 108; // line3.mp3, 3.579s -> ceil(107.36)
 
-const EMPLOYEES_BEAT = LEAD_IN + LINE1_FRAMES + HOLD_AFTER;
-const STUDENTS_BEAT = LEAD_IN + LINE2_FRAMES + HOLD_AFTER;
-const CLASSES_BEAT = LEAD_IN + LINE3_FRAMES + HOLD_AFTER;
+const EMPLOYEES_BEAT = LINE1_FRAMES;
+const STUDENTS_BEAT = LINE2_FRAMES;
+const CLASSES_BEAT = LINE3_FRAMES;
 export const STATS_INTRO_DURATION = EMPLOYEES_BEAT + STUDENTS_BEAT + CLASSES_BEAT;
 
 const PeopleIcon: React.FC<{ color: string; size?: number }> = ({ color, size = 96 }) => (
@@ -65,7 +63,7 @@ const StatBeat: React.FC<{
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
       <Sfx kind="whoosh" at={0} volume={0.5} />
       <Sfx kind="impact" at={countFrom + countDuration} volume={0.4} />
-      <Sequence from={LEAD_IN} layout="none">
+      <Sequence from={0} layout="none">
         <Audio src={staticFile(audioSrc)} />
       </Sequence>
       <div
@@ -116,7 +114,7 @@ export const StatsIntroScene: React.FC = () => {
           value={headlineStats.employeeCount}
           icon={<PeopleIcon color={brand.primary} />}
           audioSrc="audio/school-stats/line1.mp3"
-          countFrom={24}
+          countFrom={16}
           countDuration={80}
         />
       </Sequence>
@@ -127,7 +125,7 @@ export const StatsIntroScene: React.FC = () => {
           value={headlineStats.studentCount}
           icon={<PeopleIcon color={brand.teal} />}
           audioSrc="audio/school-stats/line2.mp3"
-          countFrom={30}
+          countFrom={22}
           countDuration={100}
         />
       </Sequence>
@@ -138,7 +136,7 @@ export const StatsIntroScene: React.FC = () => {
           value={headlineStats.classCount}
           icon={<ClassroomIcon color={brand.blue} />}
           audioSrc="audio/school-stats/line3.mp3"
-          countFrom={24}
+          countFrom={16}
           countDuration={80}
         />
       </Sequence>
