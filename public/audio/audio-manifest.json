@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-11T16:59:25.267Z",
+  "generatedAt": "2026-09-11T17:12:46.209Z",
   "note": "يُعاد إنشاء هذا الملف بالكامل في كل مرة يعمل فيها update-manifest.ts - لا تعدّليه يدويًا، عدّلي بدلًا منه الجداول في .claude/skills/arabic-kids-game-audio/scripts/lib/audioTable.ts.",
   "voice": {
     "excellent_01": {

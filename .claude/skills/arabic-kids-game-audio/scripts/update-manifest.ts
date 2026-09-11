@@ -105,8 +105,25 @@ export function updateManifest() {
 
   writeVoiceReadme(voice);
   writeSfxReadme(sfx);
+  writeAudioVersion(manifest.generatedAt);
 
   return manifest;
+}
+
+/** يكتب ثابتًا مستوردًا في كود اللعبة نفسه (src/game/audio/audioVersion.ts)
+ * يساوي وقت آخر توليد للمانفست - AudioManager.ts يلحقه كـ Query String
+ * (?v=...) على روابط ملفات الصوت. بدون هذا، اسم الملف (excellent_01.mp3)
+ * يبقى ثابتًا حرفيًا بين كل توليد وآخر، فمتصفح/شبكة توزيع GitHub Pages
+ * قد تستمر بتقديم النسخة القديمة من ذاكرتها المؤقتة (Cache) حتى بعد نشر
+ * ملف جديد فعليًا بنفس الاسم - وهو ما لاحظته المستخدمة فعليًا (سمعت صوتًا
+ * قديمًا رغم أن التوليد الجديد نجح ونُشر). تغيّر هذا الثابت في كل توليد
+ * يجبر المتصفح على طلب نسخة جديدة دائمًا. */
+function writeAudioVersion(generatedAt: string) {
+  const content =
+    `// يُنشَأ تلقائيًا بواسطة update-manifest.ts - لا تعدّليه يدويًا.\n` +
+    `// يُستخدَم فقط لإبطال ذاكرة التخزين المؤقت (Cache) لملفات الصوت بعد كل توليد جديد.\n` +
+    `export const AUDIO_VERSION = ${JSON.stringify(generatedAt)};\n`;
+  writeFileSync(projectPath("src/game/audio/audioVersion.ts"), content, "utf8");
 }
 
 function writeVoiceReadme(voice: Record<string, ManifestVoiceEntry>) {

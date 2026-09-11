@@ -1,4 +1,5 @@
 import { sfx, type SfxKey } from "./sfxSynth";
+import { AUDIO_VERSION } from "./audioVersion";
 
 /**
  * الأحداث الصوتية/الحركية المرتبطة بجدول التصميم:
@@ -92,6 +93,7 @@ export class AudioManager {
   private listeners = new Set<Listener>();
   private voiceAvailability = new Map<string, boolean>();
   private currentVoiceEl: HTMLAudioElement | null = null;
+  private voiceRequestSeq = 0;
   private duckingAmount = 0.35;
   private sfxBuffers = new Map<string, AudioBuffer | null>();
 
@@ -179,9 +181,17 @@ export class AudioManager {
     const known = this.voiceAvailability.get(slot);
     if (known === false) return false;
 
+    // يوقف فورًا أي صوت يُشغَّل بالفعل، ويحجز "رقم طلب" فريد لهذا النداء -
+    // ضروري لأن حدثين قد يُطلقان تقريبًا في نفس اللحظة (EXCELLENT من
+    // GameScreen وGEM من مشهد الكنز عند نفس الإجابة الصحيحة)، فيبدأ كلا
+    // النداءين تحميل ملفَيهما قبل أن يصل أيّهما لـcanplaythrough - عندها
+    // stopCurrentVoice() وحدها لا تكفي لأن currentVoiceEl لم يُضبَط بعد
+    // لأيٍّ منهما. requestId أدناه يضمن أن النداء الأقدم يُلغى نفسه بصمت
+    // إن وصل لـcanplaythrough بعد أن سبقه نداء أحدث، بدل أن يُشغَّل فوقه.
     this.stopCurrentVoice();
+    const requestId = ++this.voiceRequestSeq;
 
-    const src = `${import.meta.env.BASE_URL}audio/voice/${slot}.mp3`;
+    const src = `${import.meta.env.BASE_URL}audio/voice/${slot}.mp3?v=${AUDIO_VERSION}`;
     const el = new Audio(src);
     el.volume = this.prefs.voiceVolume;
 
@@ -191,6 +201,10 @@ export class AudioManager {
         if (settled) return;
         settled = true;
         this.voiceAvailability.set(slot, true);
+        if (requestId !== this.voiceRequestSeq) {
+          resolve(false);
+          return;
+        }
         this.currentVoiceEl = el;
         this.duckSfx();
         el.play().catch(() => resolve(false));
@@ -225,7 +239,7 @@ export class AudioManager {
     if (cached !== undefined) return cached;
     if (!this.ctx) return null;
     try {
-      const res = await fetch(`${import.meta.env.BASE_URL}audio/sfx/${fileId}.mp3`);
+      const res = await fetch(`${import.meta.env.BASE_URL}audio/sfx/${fileId}.mp3?v=${AUDIO_VERSION}`);
       if (!res.ok) throw new Error("sfx file missing");
       const arr = await res.arrayBuffer();
       const buffer = await this.ctx.decodeAudioData(arr);
