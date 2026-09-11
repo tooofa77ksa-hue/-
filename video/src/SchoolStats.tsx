@@ -5,6 +5,7 @@ import { StatsIntroScene, STATS_INTRO_DURATION } from "./scenes/StatsIntroScene"
 import { StudentDistributionScene, STUDENT_DISTRIBUTION_DURATION } from "./scenes/StudentDistributionScene";
 import { SmartScheduleScene, SMART_SCHEDULE_DURATION } from "./scenes/SmartScheduleScene";
 import { TeacherDataScene, TEACHER_DATA_DURATION } from "./scenes/TeacherDataScene";
+import { FacilitiesScene, FACILITIES_DURATION } from "./scenes/FacilitiesScene";
 
 /**
  * New standalone composition for the school-stats section (employee/student/
@@ -25,8 +26,9 @@ const introFrom = 0;
 const distributionFrom = introFrom + STATS_INTRO_DURATION;
 const scheduleFrom = distributionFrom + STUDENT_DISTRIBUTION_DURATION;
 const teachersFrom = scheduleFrom + SMART_SCHEDULE_DURATION;
+const facilitiesFrom = teachersFrom + TEACHER_DATA_DURATION;
 
-export const schoolStatsTotalDuration = teachersFrom + TEACHER_DATA_DURATION;
+export const schoolStatsTotalDuration = facilitiesFrom + FACILITIES_DURATION;
 
 export const SchoolStats: React.FC = () => {
   return (
@@ -57,6 +59,12 @@ export const SchoolStats: React.FC = () => {
       <Sequence from={teachersFrom} durationInFrames={TEACHER_DATA_DURATION} layout="absolute-fill" name="TeacherData">
         <FadeWrapper durationInFrames={TEACHER_DATA_DURATION}>
           <TeacherDataScene />
+        </FadeWrapper>
+      </Sequence>
+
+      <Sequence from={facilitiesFrom} durationInFrames={FACILITIES_DURATION} layout="absolute-fill" name="Facilities">
+        <FadeWrapper durationInFrames={FACILITIES_DURATION}>
+          <FacilitiesScene />
         </FadeWrapper>
       </Sequence>
     </AbsoluteFill>
