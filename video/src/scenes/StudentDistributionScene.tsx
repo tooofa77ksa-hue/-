@@ -89,16 +89,16 @@ const TableBeat: React.FC = () => {
             gridTemplateColumns: "1fr 1fr 1fr",
             fontFamily,
             fontWeight: 800,
-            fontSize: 21,
+            fontSize: 23,
             color: brand.paper,
             background: brand.primaryDark,
             borderRadius: 10,
             overflow: "hidden",
           }}
         >
-          <div style={{ padding: "8px 0", textAlign: "center" }}>عدد الطالبات</div>
-          <div style={{ padding: "8px 0", textAlign: "center" }}>الفصل</div>
-          <div style={{ padding: "8px 0", textAlign: "center" }}>الصف</div>
+          <div style={{ padding: "9px 0", textAlign: "center" }}>عدد الطالبات</div>
+          <div style={{ padding: "9px 0", textAlign: "center" }}>الفصل</div>
+          <div style={{ padding: "9px 0", textAlign: "center" }}>الصف</div>
         </div>
 
         <div>
@@ -119,7 +119,7 @@ const TableBeat: React.FC = () => {
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr 1fr",
                   fontFamily,
-                  fontSize: 19,
+                  fontSize: 21,
                   fontWeight: isTotal ? 800 : 500,
                   color: isTotal ? brand.primaryDark : brand.ink,
                   background: isTotal ? "#eef6f2" : i % 6 < 3 ? "#ffffff" : "#f7faf9",
@@ -128,9 +128,9 @@ const TableBeat: React.FC = () => {
                   borderBottom: `1px solid ${brand.border}`,
                 }}
               >
-                <div style={{ padding: "6px 0", textAlign: "center" }}>{row.value}</div>
-                <div style={{ padding: "6px 0", textAlign: "center" }}>{row.section}</div>
-                <div style={{ padding: "6px 0", textAlign: "center" }}>{showGradeLabel ? row.grade : ""}</div>
+                <div style={{ padding: "7px 0", textAlign: "center" }}>{row.value}</div>
+                <div style={{ padding: "7px 0", textAlign: "center" }}>{row.section}</div>
+                <div style={{ padding: "7px 0", textAlign: "center" }}>{showGradeLabel ? row.grade : ""}</div>
                 <Sfx kind="tick" at={rowFrom} volume={0.18} />
               </div>
             );
@@ -144,7 +144,7 @@ const TableBeat: React.FC = () => {
             marginTop: 10,
             fontFamily,
             fontWeight: 900,
-            fontSize: 24,
+            fontSize: 26,
             color: brand.paper,
             background: brand.primary,
             borderRadius: 10,

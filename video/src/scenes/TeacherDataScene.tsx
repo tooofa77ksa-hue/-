@@ -89,20 +89,20 @@ const TeacherSlide: React.FC<{ rows: (typeof teachers[number])[]; pageLabel: str
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "1.6fr 1fr 1fr 2fr",
+            gridTemplateColumns: "2fr 1fr 1fr 1.6fr",
             fontFamily,
             fontWeight: 800,
-            fontSize: 22,
+            fontSize: 24,
             color: brand.paper,
             background: brand.primaryDark,
             borderRadius: 12,
             overflow: "hidden",
           }}
         >
-          <div style={{ padding: "12px 18px", textAlign: "center" }}>مجال التدريس والتخصص</div>
-          <div style={{ padding: "12px 0", textAlign: "center" }}>المسمى الوظيفي</div>
-          <div style={{ padding: "12px 0", textAlign: "center" }}>حالة التوظيف</div>
           <div style={{ padding: "12px 18px", textAlign: "center" }}>الاسم الرباعي</div>
+          <div style={{ padding: "12px 0", textAlign: "center" }}>حالة التوظيف</div>
+          <div style={{ padding: "12px 0", textAlign: "center" }}>المسمى الوظيفي</div>
+          <div style={{ padding: "12px 18px", textAlign: "center" }}>مجال التدريس والتخصص</div>
         </div>
 
         <div>
@@ -119,9 +119,9 @@ const TeacherSlide: React.FC<{ rows: (typeof teachers[number])[]; pageLabel: str
                 key={t.name}
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "1.6fr 1fr 1fr 2fr",
+                  gridTemplateColumns: "2fr 1fr 1fr 1.6fr",
                   fontFamily,
-                  fontSize: 20,
+                  fontSize: 22,
                   color: brand.ink,
                   background: i % 2 === 0 ? "#ffffff" : "#f7faf9",
                   opacity: appear,
@@ -129,10 +129,10 @@ const TeacherSlide: React.FC<{ rows: (typeof teachers[number])[]; pageLabel: str
                   borderBottom: `1px solid ${brand.border}`,
                 }}
               >
-                <div style={{ padding: "9px 18px", textAlign: "center" }}>{fieldSpecialty(t)}</div>
-                <div style={{ padding: "9px 0", textAlign: "center" }}>{t.jobTitle}</div>
-                <div style={{ padding: "9px 0", textAlign: "center" }}>{t.employmentStatus || "-"}</div>
                 <div style={{ padding: "9px 18px", textAlign: "center", fontWeight: 700 }}>{t.name}</div>
+                <div style={{ padding: "9px 0", textAlign: "center" }}>{t.employmentStatus || "-"}</div>
+                <div style={{ padding: "9px 0", textAlign: "center" }}>{t.jobTitle}</div>
+                <div style={{ padding: "9px 18px", textAlign: "center" }}>{fieldSpecialty(t)}</div>
                 <Sfx kind="tick" at={rowFrom} volume={0.18} />
               </div>
             );
