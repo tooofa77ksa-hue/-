@@ -15,6 +15,7 @@
 import { existsSync, mkdirSync, writeFileSync } from "fs";
 import { addNoiseBurst, addTone, createBuffer, toInt16 } from "./lib/pcm";
 import { encodeMp3 } from "./lib/mp3";
+import { normalizePeakInt16, SFX_TARGET_PEAK } from "./lib/normalize";
 import { SFX_SPECS } from "./lib/audioTable";
 import { recordGeneration } from "./lib/log";
 import { assertProjectRoot, projectPath } from "./lib/paths";
@@ -136,7 +137,8 @@ export function generateSfx(force = false): SfxGenResult[] {
 
     const buf = createBuffer(builder.duration + 0.1);
     builder.build(buf);
-    const mp3 = encodeMp3(toInt16(buf));
+    const normalized = normalizePeakInt16(toInt16(buf), SFX_TARGET_PEAK);
+    const mp3 = encodeMp3(normalized);
     writeFileSync(outPath, mp3);
 
     recordGeneration({

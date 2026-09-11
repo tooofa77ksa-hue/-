@@ -3,18 +3,21 @@ name: arabic-kids-game-audio
 description: >-
   Generates and installs the full Arabic voice + sound-effects audio package
   for the "شُعلة لغتي" (Shu'lat Lughati) kids' educational game — real TTS
-  voice lines (Azure Speech / ElevenLabs, warm cheerful Arabic female voice,
-  never robotic Web Speech API) plus procedurally-synthesized MP3 sound
-  effects (pop/sparkle/twinkle/whoosh-style), written to
-  public/audio/voice/ and public/audio/sfx/, with the manifest, READMEs,
-  build and in-app verification all done automatically. Use this skill
-  whenever the user asks (in Arabic or English) to "ولّد أصوات اللعبة",
-  "ولّد حزمة أصوات شُعلة لغتي كاملة", "generate game audio", "generate the
-  voice pack", "add sound effects to the game", or otherwise wants the
-  game's missing voice/SFX audio files produced and wired up — even if they
-  just say something like "الصوت ناقص" or "أضف أصوات للعبة". Also use it to
-  check what's missing (which files exist vs. which need an env var) or to
-  regenerate/refresh the audio manifest after adding files manually.
+  voice lines (tries free no-key Microsoft neural TTS first automatically,
+  then Azure/ElevenLabs/Google Cloud as paid fallbacks, warm cheerful Arabic
+  female voice, never robotic Web Speech API) plus procedurally-synthesized,
+  loudness-normalized MP3 sound effects (pop/sparkle/twinkle/whoosh-style),
+  written to public/audio/voice/ and public/audio/sfx/, with the manifest,
+  READMEs, build and in-app verification all done automatically and fully
+  autonomously — run it directly, don't stop to ask the user for an API key
+  up front. Use this skill whenever the user asks (in Arabic or English) to
+  "ولّد أصوات اللعبة", "ولّد حزمة أصوات شُعلة لغتي كاملة", "generate game
+  audio", "generate the voice pack", "add sound effects to the game", or
+  otherwise wants the game's missing voice/SFX audio files produced and
+  wired up — even if they just say something like "الصوت ناقص" or "أضف
+  أصوات للعبة". Also use it to check what's missing (which files exist vs.
+  which need an env var) or to regenerate/refresh the audio manifest after
+  adding files manually.
 ---
 
 # Arabic Kids Game Audio
@@ -72,23 +75,57 @@ is independently useful — see "Individual scripts" below), but for the
 printed. Don't paraphrase a fake summary — paste the real counts from its
 final report block.
 
-### Voice generation needs a TTS provider — and that's normal to not have
+### Voice generation tries the free option automatically first — never ask for a key up front
 
-Voice lines require **AZURE_SPEECH_KEY** (+ `AZURE_SPEECH_REGION`, defaults
-to voice `ar-SA-ZariyahNeural`) or, failing that, **ELEVENLABS_API_KEY** +
-**ELEVENLABS_VOICE_ID**, read only from environment variables — never ask the
-user for a key and hardcode it, never commit one. If neither is set,
-`generate-voice.ts` doesn't fail the whole run: it skips just the voice step
-and prints one line naming the one env var to add. That's the correct,
-complete behavior for that case — don't apologize for it or try to work
-around it with `Web Speech API` or any other robotic-sounding fallback; the
-user has explicitly ruled that out because it doesn't fit a game for young
-girls. If she says she's added the key, just re-run `run-all.ts`.
+`generate-voice.ts` tries a chain of providers, in this order, and commits to
+the **first one that actually responds** (verified with a short live probe
+call, not just "is an env var set"):
+
+1. **edge-tts** (`scripts/lib/edgeTts.ts`) — the same Microsoft neural voices
+   Azure Speech uses (including `ar-SA-ZariyahNeural`), reached through the
+   free consumer endpoint that powers Edge/Bing's "Read Aloud" feature. No
+   account, no key, nothing to ask the user for. This is a well-documented,
+   widely-used reverse-engineered protocol (the same one behind
+   `rany2/edge-tts` on GitHub) — not a private API, not a paywall bypass, so
+   using it here is fine. Override the voice with `EDGE_TTS_VOICE` if ever
+   needed; otherwise it's always `ar-SA-ZariyahNeural` by default, matching
+   what the user asked for.
+2. **Azure Speech** (`AZURE_SPEECH_KEY` + `AZURE_SPEECH_REGION`) — same voice,
+   paid path, tried only if (1) didn't work.
+3. **ElevenLabs** (`ELEVENLABS_API_KEY` + `ELEVENLABS_VOICE_ID`).
+4. **Google Cloud TTS** (`GOOGLE_TTS_API_KEY`) — worth having in the chain
+   specifically because `*.googleapis.com` is reachable in more sandboxed
+   environments than `bing.com`/`elevenlabs.io`/`tts.speech.microsoft.com`
+   are (this project already depends on Firebase, which lives on
+   `googleapis.com`, so that domain is often allowed even when others
+   aren't) — still needs a real key, but is the most likely paid option to
+   actually connect if the environment is network-restricted.
+
+Only if **all four** fail does it print one line naming the single env var
+to add next (`AZURE_SPEECH_KEY`, or `GOOGLE_TTS_API_KEY` as the
+network-friendlier alternative) — and by that point every failure reason is
+already visible in the console output right above it, so you're never
+guessing why. Report exactly what failed and why (network-level connection
+error vs. missing key vs. provider error) — that's the "technical proof"
+standard to hold yourself to, not a vague "no provider available." Never
+substitute `Web Speech API` or any other robotic TTS as a stand-in "for
+now" — no voice file at all is the correct fallback; the game already
+handles that cleanly, and the user has explicitly ruled out robotic-sounding
+voices for this game.
+
+All four providers return raw PCM (not pre-encoded MP3) specifically so
+every voice file — regardless of which provider produced it — goes through
+the same peak-normalization step (`lib/normalize.ts`) before being encoded
+to MP3, matching the SFX pipeline and keeping every voice line at a
+consistent, comparable loudness.
 
 ### SFX generation needs nothing — it always works
 
 All 11 synthesizable sound effects (everything except `applause_short`) are
-built offline from scratch as raw PCM samples and encoded to real MP3 via
+built offline from scratch as raw PCM samples, peak-normalized to a shared
+target level (`SFX_TARGET_PEAK` in `lib/normalize.ts` — deliberately lower
+than the voice target so voice reads as more prominent than SFX, matching
+the ducking behavior at playback time), and encoded to real MP3 via
 `@breezystack/lamejs` (a pure-JS encoder — no ffmpeg, no network, no API
 key). This step should never fail for lack of configuration; if it does,
 something is actually broken and worth investigating rather than explaining
@@ -123,9 +160,11 @@ mark it clearly as missing-by-design, not as a bug.
 
 `scripts/lib/` holds the shared building blocks: `audioTable.ts` (phrase +
 SFX tables, described above), `pcm.ts` + `mp3.ts` (the offline synthesis →
-MP3 encoding pipeline), `paths.ts` (resolves the project root and refuses
-to run from the wrong directory), and `log.ts` (the small
-provider/voice/timestamp log used for README metadata — never logs a key).
+MP3 encoding pipeline), `normalize.ts` (the shared peak-normalization step
+both voice and SFX go through), `edgeTts.ts` (the no-key Microsoft Neural
+TTS client), `paths.ts` (resolves the project root and refuses to run from
+the wrong directory), and `log.ts` (the small provider/voice/timestamp log
+used for README metadata — never logs a key).
 
 ## The bonus voice lines aren't wired to a UI moment yet
 

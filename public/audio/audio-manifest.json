@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-11T04:58:46.114Z",
+  "generatedAt": "2026-09-11T05:13:49.263Z",
   "note": "يُعاد إنشاء هذا الملف بالكامل في كل مرة يعمل فيها update-manifest.ts - لا تعدّليه يدويًا، عدّلي بدلًا منه الجداول في .claude/skills/arabic-kids-game-audio/scripts/lib/audioTable.ts.",
   "voice": {
     "excellent_01": {
@@ -138,7 +138,7 @@
       "synthesizable": true,
       "exists": true,
       "provider": "synth-offline-pcm",
-      "generatedAt": "2026-09-11T04:53:03.956Z"
+      "generatedAt": "2026-09-11T05:12:59.613Z"
     },
     "correct_pop": {
       "file": "audio/sfx/correct_pop.mp3",
@@ -147,7 +147,7 @@
       "synthesizable": true,
       "exists": true,
       "provider": "synth-offline-pcm",
-      "generatedAt": "2026-09-11T04:53:04.033Z"
+      "generatedAt": "2026-09-11T05:12:59.695Z"
     },
     "sparkle": {
       "file": "audio/sfx/sparkle.mp3",
@@ -156,7 +156,7 @@
       "synthesizable": true,
       "exists": true,
       "provider": "synth-offline-pcm",
-      "generatedAt": "2026-09-11T04:53:04.091Z"
+      "generatedAt": "2026-09-11T05:12:59.741Z"
     },
     "star_twinkle": {
       "file": "audio/sfx/star_twinkle.mp3",
@@ -165,7 +165,7 @@
       "synthesizable": true,
       "exists": true,
       "provider": "synth-offline-pcm",
-      "generatedAt": "2026-09-11T04:53:04.142Z"
+      "generatedAt": "2026-09-11T05:12:59.791Z"
     },
     "gem_collect": {
       "file": "audio/sfx/gem_collect.mp3",
@@ -174,7 +174,7 @@
       "synthesizable": true,
       "exists": true,
       "provider": "synth-offline-pcm",
-      "generatedAt": "2026-09-11T04:53:04.193Z"
+      "generatedAt": "2026-09-11T05:12:59.840Z"
     },
     "wrong_soft": {
       "file": "audio/sfx/wrong_soft.mp3",
@@ -183,7 +183,7 @@
       "synthesizable": true,
       "exists": true,
       "provider": "synth-offline-pcm",
-      "generatedAt": "2026-09-11T04:53:04.223Z"
+      "generatedAt": "2026-09-11T05:12:59.866Z"
     },
     "rocket_charge": {
       "file": "audio/sfx/rocket_charge.mp3",
@@ -192,7 +192,7 @@
       "synthesizable": true,
       "exists": true,
       "provider": "synth-offline-pcm",
-      "generatedAt": "2026-09-11T04:53:04.290Z"
+      "generatedAt": "2026-09-11T05:12:59.908Z"
     },
     "rocket_launch": {
       "file": "audio/sfx/rocket_launch.mp3",
@@ -201,7 +201,7 @@
       "synthesizable": true,
       "exists": true,
       "provider": "synth-offline-pcm",
-      "generatedAt": "2026-09-11T04:53:04.376Z"
+      "generatedAt": "2026-09-11T05:12:59.966Z"
     },
     "magic_whoosh": {
       "file": "audio/sfx/magic_whoosh.mp3",
@@ -210,7 +210,7 @@
       "synthesizable": true,
       "exists": true,
       "provider": "synth-offline-pcm",
-      "generatedAt": "2026-09-11T04:53:04.420Z"
+      "generatedAt": "2026-09-11T05:13:00.004Z"
     },
     "treasure_open": {
       "file": "audio/sfx/treasure_open.mp3",
@@ -219,7 +219,7 @@
       "synthesizable": true,
       "exists": true,
       "provider": "synth-offline-pcm",
-      "generatedAt": "2026-09-11T04:53:04.447Z"
+      "generatedAt": "2026-09-11T05:13:00.033Z"
     },
     "celebration": {
       "file": "audio/sfx/celebration.mp3",
@@ -228,7 +228,7 @@
       "synthesizable": true,
       "exists": true,
       "provider": "synth-offline-pcm",
-      "generatedAt": "2026-09-11T04:53:04.495Z"
+      "generatedAt": "2026-09-11T05:13:00.059Z"
     },
     "applause_short": {
       "file": null,
