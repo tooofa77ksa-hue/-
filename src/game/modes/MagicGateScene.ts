@@ -109,6 +109,8 @@ export default class MagicGateScene extends BaseGameScene {
   }
 
   protected onComplete() {
+    // لا عبارة صوتية هنا مرتبطة بالأداء - فتح البوابة بصري بحت، فلا حاجة
+    // لمعامل hadMistakes (التوقيع مطابق للفئة الأساسية عبر عدم استخدامه).
     if (this.opened) return;
     this.opened = true;
     this.drawGate(SEGMENTS);

@@ -46,7 +46,7 @@ export function GameScreen() {
       gameBus.emit("ANSWER_WRONG", {});
       manager.playWrongVariant();
     } else if (flow.status === "complete") {
-      gameBus.emit("ROUND_COMPLETE", {});
+      gameBus.emit("ROUND_COMPLETE", { hadMistakes: flow.wrongCount > 0 });
       manager.playEvent(flow.wrongCount === 0 ? "CREATIVE" : "HERO");
     }
   }, [flow.status, flow.progress, flow.wrongCount]);

@@ -127,14 +127,21 @@ export default class RocketMissionScene extends BaseGameScene {
     this.tweens.add({ targets: this.rocket, angle: 3, duration: 90, yoyo: true, repeat: 1 });
   }
 
-  protected onComplete() {
+  protected onComplete(hadMistakes: boolean) {
     if (this.launched) return;
     this.launched = true;
     this.idleTween?.remove();
     this.idleSparkleTimer?.remove();
     const manager = getAudioManager();
     manager.playEvent("ROCKET_READY");
-    window.setTimeout(() => manager.playEvent("AMAZING"), 900);
+    // الصاروخ ينطلق دائمًا (احتفال بصري بإكمال الجولة)، لكن العبارة
+    // المنطوقة بعد الإقلاع تعتمد على الأداء الفعلي - "واو! إجابة رائعة!"
+    // فقط لجولة مثالية بلا أي خطأ، وإلا عبارة تشجيع لطيفة بدل ثناء غير
+    // دقيق (كانت تُقال دائمًا بغضّ النظر عن الأخطاء قبل هذا الإصلاح).
+    window.setTimeout(() => {
+      if (hadMistakes) manager.playVoiceLine("encourage_01");
+      else manager.playEvent("AMAZING");
+    }, 900);
     const { height } = this.scale;
     const liftoffDuration = this.reducedMotion ? 400 : 1100;
     this.tweens.add({

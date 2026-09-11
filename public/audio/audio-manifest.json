@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-11T17:42:37.762Z",
+  "generatedAt": "2026-09-11T17:52:34.260Z",
   "note": "يُعاد إنشاء هذا الملف بالكامل في كل مرة يعمل فيها update-manifest.ts - لا تعدّليه يدويًا، عدّلي بدلًا منه الجداول في .claude/skills/arabic-kids-game-audio/scripts/lib/audioTable.ts.",
   "voice": {
     "excellent_01": {
@@ -101,6 +101,15 @@
       "provider": "elevenlabs",
       "voiceId": "d15jrIAARvF899pDoC6T",
       "generatedAt": "2026-09-11T17:42:33.754Z"
+    },
+    "encourage_01": {
+      "file": null,
+      "text": "يحزنني هذا قليلًا، لكن أنتِ تستطيعين! حاولي مرة أخرى.",
+      "event": null,
+      "exists": false,
+      "provider": null,
+      "voiceId": null,
+      "generatedAt": null
     },
     "start_01": {
       "file": "audio/voice/start_01.mp3",

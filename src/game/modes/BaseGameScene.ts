@@ -42,11 +42,11 @@ export abstract class BaseGameScene extends Phaser.Scene {
           this.onWrong();
         })
       ),
-      gameBus.on("ROUND_COMPLETE", () =>
+      gameBus.on("ROUND_COMPLETE", ({ hadMistakes }) =>
         this.safeRun(() => {
           this.dumpling.celebrateHero();
           getAudioManager().playEvent("NEXT_LEVEL");
-          this.onComplete();
+          this.onComplete(hadMistakes);
         })
       ),
       gameBus.on("ROUND_RESET", () =>
@@ -103,7 +103,10 @@ export abstract class BaseGameScene extends Phaser.Scene {
   protected abstract layout(): void;
   protected abstract onCorrect(progress: number): void;
   protected abstract onWrong(): void;
-  protected abstract onComplete(): void;
+  /** hadMistakes: هل حوت الجولة إجابة خاطئة واحدة على الأقل - كل مشهد
+   * يستخدمها ليختار بين احتفال كامل (جولة مثالية) أو عبارة تشجيع لطيفة
+   * بدل الثناء غير الدقيق (مثل "واو! إجابة رائعة!" رغم وجود أخطاء). */
+  protected abstract onComplete(hadMistakes: boolean): void;
   protected abstract onReset(): void;
 
   protected get bgGraphics() {

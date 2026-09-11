@@ -99,8 +99,12 @@ export default class SquishyTreasureScene extends BaseGameScene {
     /* اهتزاز الشخصية يكفي، بدون فقدان جواهر */
   }
 
-  protected onComplete() {
-    getAudioManager().playEvent("CREATIVE");
+  protected onComplete(hadMistakes: boolean) {
+    const manager = getAudioManager();
+    // "أبدعتِ!" فقط لجولة مثالية بلا أخطاء - وإلا عبارة تشجيع لطيفة، حتى
+    // لا يُقال ثناء غير دقيق عند وجود إجابات خاطئة في الجولة.
+    if (hadMistakes) manager.playVoiceLine("encourage_01");
+    else manager.playEvent("CREATIVE");
     this.tweens.add({
       targets: this.chest,
       scale: 1.15,

@@ -5,7 +5,7 @@ type Handler<T> = (payload: T) => void;
 export interface GameBusEvents {
   ANSWER_CORRECT: { progress: number }; // 0..1 داخل الجولة الحالية
   ANSWER_WRONG: Record<string, never>;
-  ROUND_COMPLETE: Record<string, never>;
+  ROUND_COMPLETE: { hadMistakes: boolean };
   ROUND_RESET: Record<string, never>;
 }
 
