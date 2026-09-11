@@ -53,9 +53,16 @@ function startPreviewServer(): Promise<{ url: string; proc: ChildProcessWithoutN
     }, 30000);
 
     const onData = (data: Buffer) => {
-      const text = data.toString();
-      buffered += text;
-      const match = text.match(/Local:\s+(http:\/\/[^\s]+)/);
+      buffered += data.toString();
+      // مخرجات vite ملوَّنة (رموز ANSI) حين يُشغَّل تحت بيئة تفرض الألوان
+      // حتى مع مخرجات غير طرفية (FORCE_COLOR شائع في عمال GitHub Actions) -
+      // لوحظ فعليًا أن رمز إعادة الضبط \x1b[22m يقع بين "Local" و":"
+      // فيكسر أي مطابقة نصية مباشرة لا تنزع هذه الرموز أولًا. كذلك تُطابَق
+      // ضد buffered المتراكم كاملًا لا ضد الدفعة الحالية فقط، احتياطًا من
+      // انقسام "Local:" والرابط عبر أكثر من حدث "data" واحد.
+      // eslint-disable-next-line no-control-regex
+      const plain = buffered.replace(/\x1b\[[0-9;]*m/g, "");
+      const match = plain.match(/Local:\s+(http:\/\/\S+)/);
       if (match && !settled) {
         settled = true;
         clearTimeout(timer);

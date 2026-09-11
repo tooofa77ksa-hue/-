@@ -164,12 +164,22 @@ export function synthesizeEdgeTts(text: string, voice: string, rate = "+3%", tim
         });
     });
 
-    ws.addEventListener("error", () => {
-      finish(new Error("edge-tts: تعذّر الاتصال (خطأ شبكة أو رفض من الخادم)"));
+    // Node (عبر undici) قد يُرفق تفاصيل الخطأ الفعلي (رفض DNS/TCP/TLS، أو
+    // رفض صريح من الخادم أثناء ترقية WebSocket) في event.message أو
+    // event.error بدل رسالة عامة - نلتقطها بأقصى تفصيل متاح بدل استبدالها
+    // برسالة ثابتة، حتى يكون سبب أي فشل مستقبلي واضحًا من سجلّ CI مباشرة.
+    ws.addEventListener("error", (event: Event) => {
+      const raw = event as unknown as { message?: string; error?: unknown };
+      const detail =
+        raw.message || (raw.error instanceof Error ? raw.error.message : raw.error ? String(raw.error) : undefined);
+      finish(new Error(`edge-tts: تعذّر الاتصال${detail ? ` - ${detail}` : " (بلا تفاصيل إضافية من WebSocket)"}`));
     });
 
     ws.addEventListener("close", (event: CloseEvent) => {
-      if (!settled) finish(new Error(`edge-tts: أُغلق الاتصال قبل الاكتمال (code=${event.code})`));
+      if (!settled) {
+        const reason = event.reason ? ` reason="${event.reason}"` : "";
+        finish(new Error(`edge-tts: أُغلق الاتصال قبل الاكتمال (code=${event.code}${reason})`));
+      }
     });
   });
 }
