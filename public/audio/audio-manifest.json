@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-11T17:12:46.209Z",
+  "generatedAt": "2026-09-11T17:17:21.228Z",
   "note": "يُعاد إنشاء هذا الملف بالكامل في كل مرة يعمل فيها update-manifest.ts - لا تعدّليه يدويًا، عدّلي بدلًا منه الجداول في .claude/skills/arabic-kids-game-audio/scripts/lib/audioTable.ts.",
   "voice": {
     "excellent_01": {
@@ -10,7 +10,7 @@
       "exists": true,
       "provider": "elevenlabs",
       "voiceId": "albaa6OioIhKtKdCEkQw",
-      "generatedAt": "2026-09-11T16:59:10.416Z"
+      "generatedAt": "2026-09-11T17:17:06.482Z"
     },
     "hero_01": {
       "file": "audio/voice/hero_01.mp3",
@@ -19,7 +19,7 @@
       "exists": true,
       "provider": "elevenlabs",
       "voiceId": "albaa6OioIhKtKdCEkQw",
-      "generatedAt": "2026-09-11T16:59:11.516Z"
+      "generatedAt": "2026-09-11T17:17:07.614Z"
     },
     "amazing_01": {
       "file": "audio/voice/amazing_01.mp3",
@@ -28,7 +28,7 @@
       "exists": true,
       "provider": "elevenlabs",
       "voiceId": "albaa6OioIhKtKdCEkQw",
-      "generatedAt": "2026-09-11T16:59:12.724Z"
+      "generatedAt": "2026-09-11T17:17:08.798Z"
     },
     "star_01": {
       "file": "audio/voice/star_01.mp3",
@@ -37,7 +37,7 @@
       "exists": true,
       "provider": "elevenlabs",
       "voiceId": "albaa6OioIhKtKdCEkQw",
-      "generatedAt": "2026-09-11T16:59:13.797Z"
+      "generatedAt": "2026-09-11T17:17:09.819Z"
     },
     "gem_01": {
       "file": "audio/voice/gem_01.mp3",
@@ -46,7 +46,7 @@
       "exists": true,
       "provider": "elevenlabs",
       "voiceId": "albaa6OioIhKtKdCEkQw",
-      "generatedAt": "2026-09-11T16:59:14.827Z"
+      "generatedAt": "2026-09-11T17:17:10.778Z"
     },
     "creative_01": {
       "file": "audio/voice/creative_01.mp3",
@@ -55,7 +55,7 @@
       "exists": true,
       "provider": "elevenlabs",
       "voiceId": "albaa6OioIhKtKdCEkQw",
-      "generatedAt": "2026-09-11T16:59:15.832Z"
+      "generatedAt": "2026-09-11T17:17:11.771Z"
     },
     "next_01": {
       "file": "audio/voice/next_01.mp3",
@@ -64,7 +64,7 @@
       "exists": true,
       "provider": "elevenlabs",
       "voiceId": "albaa6OioIhKtKdCEkQw",
-      "generatedAt": "2026-09-11T16:59:16.967Z"
+      "generatedAt": "2026-09-11T17:17:12.817Z"
     },
     "try_again_01": {
       "file": "audio/voice/try_again_01.mp3",
@@ -73,7 +73,7 @@
       "exists": true,
       "provider": "elevenlabs",
       "voiceId": "albaa6OioIhKtKdCEkQw",
-      "generatedAt": "2026-09-11T16:59:18.005Z"
+      "generatedAt": "2026-09-11T17:17:13.793Z"
     },
     "almost_01": {
       "file": "audio/voice/almost_01.mp3",
@@ -82,7 +82,7 @@
       "exists": true,
       "provider": "elevenlabs",
       "voiceId": "albaa6OioIhKtKdCEkQw",
-      "generatedAt": "2026-09-11T16:59:19.095Z"
+      "generatedAt": "2026-09-11T17:17:14.931Z"
     },
     "rocket_ready_01": {
       "file": "audio/voice/rocket_ready_01.mp3",
@@ -91,7 +91,7 @@
       "exists": true,
       "provider": "elevenlabs",
       "voiceId": "albaa6OioIhKtKdCEkQw",
-      "generatedAt": "2026-09-11T16:59:20.103Z"
+      "generatedAt": "2026-09-11T17:17:16.021Z"
     },
     "oops_01": {
       "file": "audio/voice/oops_01.mp3",
@@ -100,7 +100,7 @@
       "exists": true,
       "provider": "elevenlabs",
       "voiceId": "albaa6OioIhKtKdCEkQw",
-      "generatedAt": "2026-09-11T16:59:21.228Z"
+      "generatedAt": "2026-09-11T17:17:17.199Z"
     },
     "start_01": {
       "file": "audio/voice/start_01.mp3",
@@ -109,7 +109,7 @@
       "exists": true,
       "provider": "elevenlabs",
       "voiceId": "albaa6OioIhKtKdCEkQw",
-      "generatedAt": "2026-09-11T16:59:22.194Z"
+      "generatedAt": "2026-09-11T17:17:18.141Z"
     },
     "choose_game_01": {
       "file": "audio/voice/choose_game_01.mp3",
@@ -118,7 +118,7 @@
       "exists": true,
       "provider": "elevenlabs",
       "voiceId": "albaa6OioIhKtKdCEkQw",
-      "generatedAt": "2026-09-11T16:59:23.213Z"
+      "generatedAt": "2026-09-11T17:17:19.193Z"
     },
     "great_01": {
       "file": "audio/voice/great_01.mp3",
@@ -127,7 +127,7 @@
       "exists": true,
       "provider": "elevenlabs",
       "voiceId": "albaa6OioIhKtKdCEkQw",
-      "generatedAt": "2026-09-11T16:59:24.259Z"
+      "generatedAt": "2026-09-11T17:17:20.153Z"
     },
     "yasalam_01": {
       "file": "audio/voice/yasalam_01.mp3",
@@ -136,7 +136,7 @@
       "exists": true,
       "provider": "elevenlabs",
       "voiceId": "albaa6OioIhKtKdCEkQw",
-      "generatedAt": "2026-09-11T16:59:25.265Z"
+      "generatedAt": "2026-09-11T17:17:21.226Z"
     }
   },
   "sfx": {
