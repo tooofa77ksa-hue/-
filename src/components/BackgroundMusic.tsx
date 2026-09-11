@@ -1,65 +1,94 @@
 import { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
-import { getAudioManager } from "@/game/audio/AudioManager";
+import { getAudioManager, type AudioPrefs } from "@/game/audio/AudioManager";
 
 const MUSIC_SRC = `${import.meta.env.BASE_URL}audio/music/intro_theme.mp3`;
-// أخف من الأصوات الرئيسية حتى لا تطغى على صوت الشخصية والمؤثرات لاحقًا
-const MUSIC_VOLUME_FACTOR = 0.35;
+// مستوى عادي في الصفحة الرئيسية/شاشة اختيار اللعبة (أخف من الأصوات
+// الرئيسية أصلًا)، ومستوى خافت جدًا (خلفية بحتة) أثناء اللعب الفعلي حتى
+// لا يطغى على المؤثرات أو صوت الشخصية - طلب صريح من المستخدمة: الموسيقى
+// تستمر بدل أن تتوقف تمامًا، لكن بصوت "واطئ جدًا خلف الخلفية".
+const MENU_VOLUME_FACTOR = 0.35;
+const GAME_VOLUME_FACTOR = 0.06;
 
-/** الموسيقى تُعزف في الصفحة الرئيسية ("/") وشاشة اختيار اللعبة ("/play"
- * فقط، بلا أي مسار فرعي بعدها) - وليس داخل أي لعبة فعلية أو لوحة
- * المعلمة. */
-function shouldPlayOnPath(pathname: string): boolean {
-  return pathname === "/" || /^\/play\/?$/.test(pathname);
+type MusicMode = "menu" | "game" | "off";
+
+/** menu: الصفحة الرئيسية أو شاشة اختيار اللعبة (صوت عادي).
+ * game: داخل لعبة فعلية (GameScreen أو SessionPlayScreen) - الموسيقى
+ * تستمر لكن بصوت خافت جدًا خلف المؤثرات وصوت الشخصية، لا تتوقف.
+ * off: أي مكان آخر (لوحة المعلمة) - لا موسيقى إطلاقًا. */
+function musicModeForPath(pathname: string): MusicMode {
+  if (pathname === "/" || /^\/play\/?$/.test(pathname)) return "menu";
+  if (pathname.startsWith("/play/")) return "game";
+  return "off";
+}
+
+function volumeFactorFor(mode: MusicMode): number {
+  if (mode === "menu") return MENU_VOLUME_FACTOR;
+  if (mode === "game") return GAME_VOLUME_FACTOR;
+  return 0;
 }
 
 /** موسيقى خلفية على مستوى التطبيق كله (تُركَّب مرة واحدة في App.tsx) -
- * عنصر <audio> واحد فقط يستمر بلا انقطاع مسموع عبر كل تنقّل بين الصفحة
- * الرئيسية وشاشة اختيار اللعبة (لا يُعاد إنشاؤه أو إيقافه عند كل تنقّل
- * بينهما كما لو كان مربوطًا بمكوّن واحد فقط)، ويتوقف فقط عند دخول لعبة
- * فعلية (GameScreen/SessionPlayScreen) أو لوحة المعلمة. تتجاوز قيود
- * التشغيل التلقائي للمتصفحات بإعادة المحاولة عند أول تفاعل من
- * المستخدمة (عبر Ref يُعاد التحقق منه في وقت الحدث نفسه، لا وقت
- * إضافة المستمع)، وتحترم كتم/مستوى الصوت العام من AudioManager. */
+ * عنصر <audio> واحد فقط يُنشأ مرة واحدة ولا يُعاد إنشاؤه أو إيقافه عند
+ * كل تنقّل، فيستمر العزف بلا انقطاع مسموع عبر كل الصفحة الرئيسية وشاشة
+ * اختيار اللعبة وحتى داخل اللعب الفعلي (بمستوى خافت جدًا هناك فقط)،
+ * ويتوقف تمامًا فقط في لوحة المعلمة. تتجاوز قيود التشغيل التلقائي في
+ * كل المتصفحات (بما فيها Safari على الجوال) بإعادة المحاولة عند أول
+ * لمسة/ضغطة فعلية من المستخدمة (عبر Ref يُعاد التحقق منه وقت الحدث
+ * نفسه)، وتحترم كتم/مستوى الصوت العام من AudioManager. */
 export function BackgroundMusic() {
   const location = useLocation();
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const shouldPlayRef = useRef(false);
+  const modeRef = useRef<MusicMode>("off");
 
   useEffect(() => {
     const el = new Audio(MUSIC_SRC);
     el.loop = true;
+    el.preload = "auto";
     audioRef.current = el;
 
-    const manager = getAudioManager();
-    el.volume = manager.getPrefs().muted ? 0 : manager.getPrefs().masterVolume * MUSIC_VOLUME_FACTOR;
-    const unsubscribe = manager.subscribe((prefs) => {
-      el.volume = prefs.muted ? 0 : prefs.masterVolume * MUSIC_VOLUME_FACTOR;
-    });
+    const applyVolume = (prefs: AudioPrefs) => {
+      el.volume = prefs.muted ? 0 : prefs.masterVolume * volumeFactorFor(modeRef.current);
+    };
 
+    const manager = getAudioManager();
+    applyVolume(manager.getPrefs());
+    const unsubscribe = manager.subscribe(applyVolume);
+
+    // إعادة المحاولة عند أول تفاعل حقيقي (لمسة/ضغطة/نقرة) - ضرورية على
+    // أغلب متصفحات الجوال (Safari/Chrome) التي تمنع تشغيل صوت تلقائيًا
+    // قبل أول تفاعل فعلي من المستخدمة، بغضّ النظر عن أي محاولة برمجية.
     const retry = () => {
-      if (shouldPlayRef.current) el.play().catch(() => {});
+      if (modeRef.current !== "off") el.play().catch(() => {});
     };
     window.addEventListener("pointerdown", retry);
+    window.addEventListener("touchstart", retry, { passive: true });
+    window.addEventListener("keydown", retry);
 
     return () => {
       unsubscribe();
       window.removeEventListener("pointerdown", retry);
+      window.removeEventListener("touchstart", retry);
+      window.removeEventListener("keydown", retry);
       el.pause();
     };
   }, []);
 
   useEffect(() => {
     const el = audioRef.current;
-    const shouldPlay = shouldPlayOnPath(location.pathname);
-    shouldPlayRef.current = shouldPlay;
+    const mode = musicModeForPath(location.pathname);
+    modeRef.current = mode;
     if (!el) return;
-    if (shouldPlay) {
-      el.play().catch(() => {
-        /* التشغيل التلقائي محظور حتى أول تفاعل - يعالجه مستمع pointerdown أعلاه */
-      });
-    } else {
+
+    const manager = getAudioManager();
+    el.volume = manager.getPrefs().muted ? 0 : manager.getPrefs().masterVolume * volumeFactorFor(mode);
+
+    if (mode === "off") {
       el.pause();
+    } else {
+      el.play().catch(() => {
+        /* التشغيل التلقائي محظور حتى أول تفاعل - يعالجه مستمع اللمس/الضغط أعلاه */
+      });
     }
   }, [location.pathname]);
 
