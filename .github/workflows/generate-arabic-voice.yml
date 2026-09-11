@@ -1,0 +1,106 @@
+name: Generate Arabic Voice Pack (edge-tts, free)
+
+# تشغيل يدوي فقط (workflow_dispatch) - لا يعمل تلقائيًا عند كل Push. يولّد
+# حزمة الصوت البشري لمنصة شُعلة لغتي عبر Skill "arabic-kids-game-audio"،
+# باستخدام edge-tts (نفس أصوات Microsoft Neural المجانية التي تستخدمها
+# ميزة "قراءة بصوت عالٍ" في Edge/Bing) - بلا أي مفتاح API أو فوترة أو
+# بطاقة دفع مطلقًا. عامل تشغيل GitHub Actions يستخدم شبكة عادية غير
+# مقيَّدة، خلافًا لبعض بيئات التطوير السحابية المحدودة الشبكة، لذا من
+# المتوقع أن ينجح edge-tts هنا حتى عندما يفشل في بيئة أخرى.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "voice-generation"
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    env:
+      # يجب أن يكون متاحًا لكل خطوة تبني أو تُخدِّم (preview) الحزمة، حتى
+      # يتطابق مسار الأصول المرجعية داخل index.html المبنية مع المسار الذي
+      # يُخدَّم منه فعليًا لاحقًا (سواء أثناء اختبار /play أو عند النشر على
+      # GitHub Pages).
+      VITE_BASE_PATH: /${{ github.event.repository.name }}/
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Install Chromium (لاختبار /play لاحقًا)
+        run: npx playwright install --with-deps chromium
+
+      # يولّد فعليًا: كل مؤثرات SFX (بلا حاجة لأي مزوّد) + الصوت البشري
+      # (edge-tts أولًا بلا مفتاح، Azure/ElevenLabs فقط إن كانت مفاتيحهما
+      # موجودة كـ Secrets اختيارية - لا شيء منهما مطلوب) + تحديث المانفست
+      # وREADME + تحقق من سلامة الملفات + Build تحقّقي أوّلي.
+      - name: توليد الصوت (Skill arabic-kids-game-audio)
+        run: npx tsx .claude/skills/arabic-kids-game-audio/scripts/run-all.ts
+        env:
+          AZURE_SPEECH_KEY: ${{ secrets.AZURE_SPEECH_KEY }}
+          AZURE_SPEECH_REGION: ${{ secrets.AZURE_SPEECH_REGION }}
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          ELEVENLABS_VOICE_ID: ${{ secrets.ELEVENLABS_VOICE_ID }}
+
+      # Build الفعلي الذي يُنشَر لاحقًا على GitHub Pages - نفس القيم
+      # بالضبط المستخدمة في deploy-pages.yml (قيم Firebase Web SDK عامة
+      # بطبيعتها وليست Secrets، كما هو موثَّق هناك).
+      - name: Build (إعدادات الإنتاج - Firebase + مسار GitHub Pages)
+        run: npm run build
+        env:
+          VITE_FIREBASE_API_KEY: AIzaSyA_S3yvILDo7ewZaaNhDoBAg_e3Z2i_Yqs
+          VITE_FIREBASE_AUTH_DOMAIN: lughati165.firebaseapp.com
+          VITE_FIREBASE_PROJECT_ID: lughati165
+          VITE_FIREBASE_STORAGE_BUCKET: lughati165.firebasestorage.app
+          VITE_FIREBASE_MESSAGING_SENDER_ID: "51460513048"
+          VITE_FIREBASE_APP_ID: "1:51460513048:web:8b5d4be67364716bf4126d"
+          VITE_USE_FIREBASE_EMULATORS: "false"
+
+      # بوّابة حقيقية: إن فشل هذا الفحص (متصفح Chromium فعلي ضد الحزمة
+      # المبنية فعليًا) تتوقف بقية الخطوات (Commit/Push/Deploy) تلقائيًا -
+      # لا يُنشَر شيء لم يُختبَر فعليًا.
+      - name: اختبار /play داخل متصفح حقيقي
+        run: npx tsx .claude/skills/arabic-kids-game-audio/scripts/test-play.ts
+
+      - name: Commit + Push ملفات الصوت المُولَّدة
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/audio/
+          if git diff --cached --quiet; then
+            echo "لا تغييرات صوتية جديدة - تخطّي الـCommit"
+          else
+            git commit -m "ولّد حزمة الصوت البشري تلقائيًا عبر edge-tts (ar-SA-ZariyahNeural) - Skill arabic-kids-game-audio"
+            git push origin HEAD:${{ github.ref_name }}
+          fi
+
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: generate
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

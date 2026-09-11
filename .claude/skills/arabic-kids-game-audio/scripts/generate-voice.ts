@@ -11,10 +11,13 @@
  *      bing.com لكنها تسمح بـ *.tts.speech.microsoft.com الخاص بحساب
  *      مدفوع).
  *   3) ElevenLabs (ELEVENLABS_API_KEY + ELEVENLABS_VOICE_ID).
- *   4) Google Cloud Text-to-Speech (GOOGLE_TTS_API_KEY) - بديل إضافي
- *      عملي لأن *.googleapis.com غالبًا مسموح به في بيئات تعتمد على
- *      Firebase أصلًا (كما هو الحال في هذا المشروع نفسه)، حتى لو كانت
- *      bing.com/elevenlabs.io/tts.speech.microsoft.com محجوبة بالكامل.
+ *
+ * عمدًا بلا أي مزوّد يتطلّب فوترة/بطاقة دفع حتى كخيار احتياطي (لا Google
+ * Cloud TTS ولا أي خدمة مماثلة) - المستخدمة رفضت ذلك صراحة. الاعتماد
+ * الحقيقي على عدم وجود مفتاح هو تشغيل edge-tts من بيئة شبكة غير مقيَّدة
+ * (مثل عامل تشغيل GitHub Actions العادي) بدل بيئة تطوير هذا الـSkill نفسها
+ * التي تحجب bing.com على مستوى الشبكة - راجعي
+ * .github/workflows/generate-arabic-voice.yml.
  *
  * كل مزوّد يُعيد PCM خام (لا MP3 مباشرة) ليمرّ عبر خط تطبيع مستوى موحّد
  * (lib/normalize.ts) قبل الترميز النهائي إلى MP3 حقيقي عبر lamejs - بنفس
@@ -134,38 +137,6 @@ function getElevenLabsProvider(): Provider | null {
   };
 }
 
-/** بديل إضافي عملي: مسموح به شبكيًا غالبًا (googleapis.com) حتى في بيئات
- * تحجب bing.com/elevenlabs.io بالكامل - لكنه يبقى يحتاج مفتاح API حقيقي
- * (لا يوجد وصول مجهول لخدمات Google Cloud). */
-function getGoogleCloudTtsProvider(): Provider | null {
-  const key = process.env.GOOGLE_TTS_API_KEY;
-  if (!key) return null;
-  const voiceId = process.env.GOOGLE_TTS_VOICE || "ar-XA-Wavenet-A";
-  return {
-    name: "google-cloud-tts",
-    voiceId,
-    requiresKey: true,
-    async synthesize(text: string): Promise<PcmResult> {
-      const res = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${key}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          input: { text },
-          voice: { languageCode: "ar-XA", name: voiceId, ssmlGender: "FEMALE" },
-          audioConfig: { audioEncoding: "LINEAR16", sampleRateHertz: 24000 },
-        }),
-      });
-      if (!res.ok) throw new Error(`Google Cloud TTS ${res.status}: ${await res.text().catch(() => res.statusText)}`);
-      const json = (await res.json()) as { audioContent?: string };
-      if (!json.audioContent) throw new Error("Google Cloud TTS: استجابة بلا audioContent");
-      const wav = Buffer.from(json.audioContent, "base64");
-      // LINEAR16 من Google Cloud TTS يعود كملف WAV كامل (ترويسة RIFF 44 بايت ثم PCM خام)
-      const pcmStart = wav.length > 44 && wav.toString("ascii", 0, 4) === "RIFF" ? 44 : 0;
-      return { pcm: bufferToInt16LE(wav.subarray(pcmStart)), sampleRate: 24000 };
-    },
-  };
-}
-
 function escapeXml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
@@ -200,21 +171,18 @@ async function pickWorkingProvider(candidates: Provider[]): Promise<Provider | n
 export async function generateVoice(force = false): Promise<VoiceGenResult[]> {
   assertProjectRoot();
 
-  const candidates: Provider[] = [
-    getEdgeTtsProvider(),
-    getAzureProvider(),
-    getElevenLabsProvider(),
-    getGoogleCloudTtsProvider(),
-  ].filter((p): p is Provider => p !== null);
+  const candidates: Provider[] = [getEdgeTtsProvider(), getAzureProvider(), getElevenLabsProvider()].filter(
+    (p): p is Provider => p !== null
+  );
 
   const provider = await pickWorkingProvider(candidates);
 
   if (!provider) {
     console.log(
-      "\n[generate-voice] جُرِّبت كل الخيارات بلا مفتاح (edge-tts) وكل المزوّدين المهيَّئين بمفتاح - لا أحد منها " +
-        "استجاب فعليًا (راجعي الأسطر أعلاه لسبب فشل كل واحد). لتفعيل الصوت البشري: أضيفي متغير البيئة " +
-        "AZURE_SPEECH_KEY (مع AZURE_SPEECH_REGION) - أو GOOGLE_TTS_API_KEY كبديل غالبًا يعمل شبكيًا في بيئات " +
-        "قائمة على Firebase مثل هذه."
+      "\n[generate-voice] جُرِّبت edge-tts (بلا مفتاح) وكل مزوّد مهيَّأ بمفتاح - لا أحد منها استجاب فعليًا " +
+        "(راجعي الأسطر أعلاه لسبب فشل كل واحد). هذا متوقَّع إن كانت الشبكة الحالية تحجب bing.com - شغّلي " +
+        "Workflow .github/workflows/generate-arabic-voice.yml بدلًا من ذلك (عبر GitHub Actions، شبكة مفتوحة، " +
+        "بلا أي مفتاح أو فوترة)."
     );
     return VOICE_PHRASES.map((p) => ({ id: p.id, status: "no-provider" as const }));
   }

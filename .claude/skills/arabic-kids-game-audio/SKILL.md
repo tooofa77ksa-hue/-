@@ -3,10 +3,13 @@ name: arabic-kids-game-audio
 description: >-
   Generates and installs the full Arabic voice + sound-effects audio package
   for the "شُعلة لغتي" (Shu'lat Lughati) kids' educational game — real TTS
-  voice lines (tries free no-key Microsoft neural TTS first automatically,
-  then Azure/ElevenLabs/Google Cloud as paid fallbacks, warm cheerful Arabic
-  female voice, never robotic Web Speech API) plus procedurally-synthesized,
-  loudness-normalized MP3 sound effects (pop/sparkle/twinkle/whoosh-style),
+  voice lines (tries free no-key Microsoft neural TTS first automatically —
+  in CI via .github/workflows/generate-arabic-voice.yml if the local network
+  blocks it — then Azure/ElevenLabs as optional paid fallbacks *only* if the
+  user supplies a key herself; never a billing-required provider by default,
+  warm cheerful Arabic female voice, never robotic Web Speech API) plus
+  procedurally-synthesized, loudness-normalized MP3 sound effects
+  (pop/sparkle/twinkle/whoosh-style),
   written to public/audio/voice/ and public/audio/sfx/, with the manifest,
   READMEs, build and in-app verification all done automatically and fully
   autonomously — run it directly, don't stop to ask the user for an API key
@@ -91,33 +94,58 @@ call, not just "is an env var set"):
    needed; otherwise it's always `ar-SA-ZariyahNeural` by default, matching
    what the user asked for.
 2. **Azure Speech** (`AZURE_SPEECH_KEY` + `AZURE_SPEECH_REGION`) — same voice,
-   paid path, tried only if (1) didn't work.
-3. **ElevenLabs** (`ELEVENLABS_API_KEY` + `ELEVENLABS_VOICE_ID`).
-4. **Google Cloud TTS** (`GOOGLE_TTS_API_KEY`) — worth having in the chain
-   specifically because `*.googleapis.com` is reachable in more sandboxed
-   environments than `bing.com`/`elevenlabs.io`/`tts.speech.microsoft.com`
-   are (this project already depends on Firebase, which lives on
-   `googleapis.com`, so that domain is often allowed even when others
-   aren't) — still needs a real key, but is the most likely paid option to
-   actually connect if the environment is network-restricted.
+   paid path, tried only if (1) didn't work, and only if the user has
+   already provided the key herself (never ask her to go set one up as part
+   of running this skill).
+3. **ElevenLabs** (`ELEVENLABS_API_KEY` + `ELEVENLABS_VOICE_ID`) — same
+   condition as above.
 
-Only if **all four** fail does it print one line naming the single env var
-to add next (`AZURE_SPEECH_KEY`, or `GOOGLE_TTS_API_KEY` as the
-network-friendlier alternative) — and by that point every failure reason is
-already visible in the console output right above it, so you're never
-guessing why. Report exactly what failed and why (network-level connection
-error vs. missing key vs. provider error) — that's the "technical proof"
-standard to hold yourself to, not a vague "no provider available." Never
-substitute `Web Speech API` or any other robotic TTS as a stand-in "for
-now" — no voice file at all is the correct fallback; the game already
-handles that cleanly, and the user has explicitly ruled out robotic-sounding
-voices for this game.
+Deliberately **no other paid/billing-required provider is in this chain** —
+the user explicitly rejected that (no Google Cloud TTS, no "just add a
+card"). If edge-tts fails and neither optional key is set, the right move
+is not to suggest a new paid service; it's to point at
+`.github/workflows/generate-arabic-voice.yml`, which runs the exact same
+edge-tts code from a GitHub Actions runner — a normal, unrestricted network
+where the free consumer TTS endpoint actually connects, unlike some
+sandboxed dev environments (this skill's own development session hit
+exactly that: `bing.com`/`speech.platform.bing.com` were blocked at the
+network-policy level there, confirmed via direct `curl` tests, not
+assumed).
 
-All four providers return raw PCM (not pre-encoded MP3) specifically so
-every voice file — regardless of which provider produced it — goes through
-the same peak-normalization step (`lib/normalize.ts`) before being encoded
-to MP3, matching the SFX pipeline and keeping every voice line at a
-consistent, comparable loudness.
+Only if edge-tts fails **and** no optional key is set does it print one
+line naming the CI workflow as the next step — and by that point every
+failure reason is already visible in the console output right above it, so
+you're never guessing why. Report exactly what failed and why (network-level
+connection error vs. missing key vs. provider error) — that's the
+"technical proof" standard to hold yourself to, not a vague "no provider
+available." Never substitute `Web Speech API` or any other robotic TTS as a
+stand-in "for now" — no voice file at all is the correct fallback; the game
+already handles that cleanly, and the user has explicitly ruled out
+robotic-sounding voices for this game.
+
+All providers return raw PCM (not pre-encoded MP3) specifically so every
+voice file — regardless of which provider produced it — goes through the
+same peak-normalization step (`lib/normalize.ts`) before being encoded to
+MP3, matching the SFX pipeline and keeping every voice line at a consistent,
+comparable loudness.
+
+### Running it where the network is actually open: GitHub Actions
+
+`.github/workflows/generate-arabic-voice.yml` is a `workflow_dispatch`
+workflow (trigger it via the GitHub API/UI, or ask a session with GitHub
+tools to trigger it) that does the entire pipeline on a normal GitHub-hosted
+runner: `npm ci` → `run-all.ts` (edge-tts will actually succeed there in the
+overwhelming majority of cases, since GitHub's runners aren't behind the
+kind of restrictive egress proxy this skill's own dev sandbox had) →
+`npm run build` → a Playwright smoke test against the built app → commit the
+newly generated `public/audio/voice/*.mp3` (+ refreshed manifest/READMEs)
+back to the branch → build and deploy to GitHub Pages in the same run (it
+does **not** rely on that commit re-triggering `deploy-pages.yml`, since a
+push made with the default `GITHUB_TOKEN` doesn't trigger other workflows —
+so this workflow's last job mirrors `deploy-pages.yml`'s build+deploy steps
+directly instead of depending on a second workflow run). No secret is
+required to run it — it needs no more permissions than `contents: write` +
+`pages: write` + `id-token: write`, all satisfied by the default token.
 
 ### SFX generation needs nothing — it always works
 
@@ -156,7 +184,18 @@ mark it clearly as missing-by-design, not as a bug.
   is a real, non-corrupt MP3 (checks the MPEG frame sync / ID3 header, not
   just that the file is non-empty), then runs `npm run build`.
 - `run-all.ts` — runs all of the above in order and prints the combined
-  report. This is what "ولّد أصوات اللعبة" should invoke.
+  report. This is what "ولّد أصوات اللعبة" should invoke locally.
+- `test-play.ts` — a real Playwright smoke test against the *built* `dist/`
+  (serves it with `vite preview`, not the dev server, so it matches
+  production exactly): fetches every manifest-listed audio file straight
+  from the running page and confirms each returns real bytes, confirms
+  mode-select and at least one game screen render without crashing, and
+  confirms zero JS console/page errors. Needs `npx playwright install
+  --with-deps chromium` first (or, in this skill's own dev sandbox only,
+  run with `--local` to reuse the pre-installed browser at
+  `/opt/pw-browsers/chromium` instead). This is what
+  `generate-arabic-voice.yml`'s CI run uses as its "اختبر /play" gate before
+  committing or deploying anything.
 
 `scripts/lib/` holds the shared building blocks: `audioTable.ts` (phrase +
 SFX tables, described above), `pcm.ts` + `mp3.ts` (the offline synthesis →
