@@ -21,7 +21,7 @@
 | `almost_01.mp3` | اقتربتِ، جرّبي مرة ثانية. | ALMOST | ✓ موجود | elevenlabs | d15jrIAARvF899pDoC6T | 2026-09-11 |
 | `rocket_ready_01.mp3` | صاروخك جاهز! | ROCKET_READY | ✓ موجود | elevenlabs | d15jrIAARvF899pDoC6T | 2026-09-11 |
 | `oops_01.mp3` | أووبس! أخطأتِ. | — | ✓ موجود | elevenlabs | d15jrIAARvF899pDoC6T | 2026-09-11 |
-| `encourage_01.mp3` | يحزنني هذا قليلًا، لكن أنتِ تستطيعين! حاولي مرة أخرى. | — | ✗ غير موجود بعد | — | — | — |
+| `encourage_01.mp3` | يحزنني هذا قليلًا، لكن أنتِ تستطيعين! حاولي مرة أخرى. | — | ✓ موجود | elevenlabs | d15jrIAARvF899pDoC6T | 2026-09-11 |
 | `start_01.mp3` | هيا نبدأ! | — | ✓ موجود | elevenlabs | d15jrIAARvF899pDoC6T | 2026-09-11 |
 | `choose_game_01.mp3` | اختاري لعبتك! | — | ✓ موجود | elevenlabs | d15jrIAARvF899pDoC6T | 2026-09-11 |
 | `great_01.mp3` | رائعة جدًا! | — | ✓ موجود | elevenlabs | d15jrIAARvF899pDoC6T | 2026-09-11 |
