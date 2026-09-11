@@ -162,10 +162,24 @@ export class AudioManager {
     this.sfxGain.gain.setTargetAtTime(this.prefs.sfxVolume, now, 0.25);
   }
 
+  /** توقف أي صوت بشري يُشغَّل حاليًا فورًا - يمنع تراكب عبارتين (مثل
+   * "ممتازة!" و"كنز جديد!" معًا) حين يُطلَق أكثر من حدث صوتي على نفس
+   * اللحظة تقريبًا (إجابة صحيحة تُشغِّل EXCELLENT من GameScreen وGEM من
+   * مشهد الكنز في نفس الوقت) - العبارة الجديدة دائمًا تُسكِت القديمة. */
+  private stopCurrentVoice() {
+    if (!this.currentVoiceEl) return;
+    this.currentVoiceEl.pause();
+    this.currentVoiceEl.currentTime = 0;
+    this.currentVoiceEl = null;
+    this.unduckSfx();
+  }
+
   private async tryPlayVoice(slot: string): Promise<boolean> {
     if (this.prefs.muted) return false;
     const known = this.voiceAvailability.get(slot);
     if (known === false) return false;
+
+    this.stopCurrentVoice();
 
     const src = `${import.meta.env.BASE_URL}audio/voice/${slot}.mp3`;
     const el = new Audio(src);
