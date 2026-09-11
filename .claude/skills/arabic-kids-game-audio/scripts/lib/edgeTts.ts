@@ -9,25 +9,49 @@
  * دفع - لذا استخدامه هنا مناسب أخلاقيًا وتقنيًا لتوفير صوت عالي الجودة
  * بلا مفتاح.
  *
- * ملاحظة مهمة: هذا العميل يتصل بخادم مايكروسوفت الحقيقي عبر الإنترنت -
- * إن كانت سياسة شبكة بيئة التشغيل الحالية تحجب هذا المضيف (كما هو مؤكَّد
- * في بيئة تطوير هذا الـSkill نفسها - راجعي public/audio/voice/README.md)
- * فسيفشل الاتصال بوضوح (خطأ شبكة صريح)، لا بصمت وليس بنتيجة وهمية.
+ * يُستخدَم هنا حزمة "ws" (لا WebSocket العام المدمج في Node) لأن مايكروسوفت
+ * تتحقق أيضًا من ترويسات HTTP إضافية (Origin/User-Agent) أثناء ترقية
+ * الاتصال، وWebSocket العام القياسي (WHATWG) يمنع عمدًا ضبط أي ترويسات
+ * مخصَّصة لأسباب أمنية في المتصفح - قيد لا معنى له هنا داخل Node، وحزمة ws
+ * توفّر خيار "headers" مباشرة لهذا الغرض.
+ *
+ * ملاحظة: هذا العميل يتصل بخادم مايكروسوفت الحقيقي عبر الإنترنت - إن كانت
+ * سياسة شبكة بيئة التشغيل الحالية تحجب هذا المضيف (كما هو مؤكَّد في بيئة
+ * تطوير هذا الـSkill نفسها - راجعي public/audio/voice/README.md) فسيفشل
+ * الاتصال بوضوح (خطأ شبكة صريح)، لا بصمت وليس بنتيجة وهمية.
  */
 import { createHash, randomUUID } from "crypto";
+import WebSocket from "ws";
 
 const TRUSTED_CLIENT_TOKEN = "6A5AA1D4EAFF4E9FB37E23D68491D6F4";
 const WS_BASE = "wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1";
 // إصدار Edge/Chromium ثابت يُستخدم في حساب توقيع مكافحة إساءة الاستخدام
-// (Sec-MS-GEC) الذي أضافته مايكروسوفت لاحقًا - قيمة معروفة ومُستخدَمة على
-// نطاق واسع في التطبيقات المعاد بناؤها لهذا البروتوكول.
+// (Sec-MS-GEC) وفي ترويسة User-Agent معًا - يجب أن يبقى الاثنان متطابقَين.
 const CHROMIUM_VERSION = "130.0.2849.68";
-const WIN_EPOCH_OFFSET_SEC = 11644473600; // الفارق بالثواني بين 1601-01-01 و1970-01-01
+const USER_AGENT = `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${CHROMIUM_VERSION} Safari/537.36 Edg/${CHROMIUM_VERSION}`;
+// أصل امتداد "Read Aloud" الرسمي في متجر Chrome - القيمة المتوقَّعة في
+// ترويسة Origin من جانب خادم مايكروسوفت لهذه النقطة تحديدًا.
+const ORIGIN = "chrome-extension://jdiccldimpdaibmpdkjnbmckianbfold";
 
+const WIN_EPOCH_OFFSET_SEC = 11644473600n; // الفارق بالثواني بين 1601-01-01 و1970-01-01
+const HUNDRED_NS_PER_SEC = 10_000_000n;
+
+/** توقيع Sec-MS-GEC المطلوب حاليًا من مايكروسوفت لقبول اتصال WebSocket -
+ * القيمة المُوقَّعة هي "Windows FILETIME ticks" (فواصل من 100 نانوثانية
+ * منذ 1601-01-01، مقرَّبة لأقرب 5 دقائق لتحمّل انحراف الساعة)، وليست ثواني
+ * عادية كما بدا منطقيًا للوهلة الأولى - هذا الفارق (عامل ضرب ×10^7) كان
+ * يُنتج توقيعًا خاطئًا تمامًا في محاولة سابقة (رُفض الاتصال فعليًا بـ
+ * "non-101 status code" من خادم مايكروسوفت على GitHub Actions رغم أن
+ * الشبكة هناك مفتوحة، مما أثبت أن المشكلة في التوقيع لا في الشبكة).
+ * تُستخدَم BigInt حصرًا هنا لأن قيمة الـticks الناتجة (~1.3×10^18) تتجاوز
+ * Number.MAX_SAFE_INTEGER بكثير، وأي استخدام لـNumber عادي كان سيفقد
+ * الدقة صامتًا وينتج توقيعًا خاطئًا مختلفًا في كل مرة. */
 function secMsGec(): { token: string; version: string } {
-  const nowSec = Date.now() / 1000 + WIN_EPOCH_OFFSET_SEC;
-  const ticks = Math.floor(nowSec / 300) * 300; // تقريب لأقرب 5 دقائق (تسامح انحراف الساعة)
-  const hash = createHash("sha256").update(`${Math.round(ticks)}${TRUSTED_CLIENT_TOKEN}`).digest("hex");
+  const nowMs = BigInt(Date.now());
+  const totalSec = nowMs / 1000n + WIN_EPOCH_OFFSET_SEC;
+  const rounded = totalSec - (totalSec % 300n);
+  const ticks = rounded * HUNDRED_NS_PER_SEC;
+  const hash = createHash("sha256").update(`${ticks.toString()}${TRUSTED_CLIENT_TOKEN}`).digest("hex");
   return { token: hash.toUpperCase(), version: `1-${CHROMIUM_VERSION}` };
 }
 
@@ -37,20 +61,6 @@ function edgeDateString(): string {
 
 function escapeXml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
-
-async function frameToBuffer(data: unknown): Promise<Buffer> {
-  if (Buffer.isBuffer(data)) return data;
-  if (data instanceof ArrayBuffer) return Buffer.from(data);
-  if (ArrayBuffer.isView(data as ArrayBufferView)) {
-    const view = data as ArrayBufferView;
-    return Buffer.from(view.buffer, view.byteOffset, view.byteLength);
-  }
-  const maybeBlob = data as { arrayBuffer?: () => Promise<ArrayBuffer> };
-  if (maybeBlob && typeof maybeBlob.arrayBuffer === "function") {
-    return Buffer.from(await maybeBlob.arrayBuffer());
-  }
-  throw new Error("edge-tts: إطار WebSocket ثنائي بصيغة غير مدعومة");
 }
 
 /** إطارات الصوت الثنائية القادمة من الخادم مُهيّأة كالتالي: أول 2 بايت
@@ -83,16 +93,20 @@ export function synthesizeEdgeTts(text: string, voice: string, rate = "+3%", tim
 
     let settled = false;
     const chunks: Buffer[] = [];
-    let ws: WebSocket;
+
+    const ws = new WebSocket(url, {
+      headers: {
+        "User-Agent": USER_AGENT,
+        Origin: ORIGIN,
+        Pragma: "no-cache",
+        "Cache-Control": "no-cache",
+      },
+    });
 
     const timer = setTimeout(() => {
       if (settled) return;
       settled = true;
-      try {
-        ws.close();
-      } catch {
-        /* لا شيء نفعله - نتجاهل هذا الإطار المتأخر، تجميع الصوت يبقى صحيحًا */
-      }
+      ws.terminate();
       reject(new Error(`edge-tts: انتهت المهلة (${timeoutMs}ms) بلا استجابة كاملة`));
     }, timeoutMs);
 
@@ -109,15 +123,7 @@ export function synthesizeEdgeTts(text: string, voice: string, rate = "+3%", tim
       else resolve({ pcm: bufferToInt16LE(Buffer.concat(chunks)), sampleRate });
     };
 
-    try {
-      ws = new WebSocket(url);
-    } catch (err) {
-      clearTimeout(timer);
-      reject(err instanceof Error ? err : new Error(String(err)));
-      return;
-    }
-
-    ws.addEventListener("open", () => {
+    ws.on("open", () => {
       const configMessage =
         `X-Timestamp:${edgeDateString()}\r\n` +
         `Content-Type:application/json; charset=utf-8\r\n` +
@@ -149,36 +155,40 @@ export function synthesizeEdgeTts(text: string, voice: string, rate = "+3%", tim
       ws.send(ssmlMessage);
     });
 
-    ws.addEventListener("message", (event: MessageEvent) => {
-      if (typeof event.data === "string") {
-        if (event.data.includes("Path:turn.end")) finish();
+    // ws تعطي isBinary صراحة (لا حاجة لتخمين نوع البيانات كما في
+    // WebSocket العام)، والنص عند isBinary=false يصل كـ Buffer أيضًا في
+    // بعض الحالات - نحوّله بأمان في الحالتين.
+    ws.on("message", (data: Buffer, isBinary: boolean) => {
+      if (!isBinary) {
+        const text = data.toString("utf8");
+        if (text.includes("Path:turn.end")) finish();
         return;
       }
-      frameToBuffer(event.data)
-        .then((buf) => {
-          const audio = extractAudioPayload(buf);
-          if (audio && audio.length > 0) chunks.push(audio);
-        })
-        .catch(() => {
-          /* إطار غير متوقع - يُتجاهَل، الإطارات الصحيحة الأخرى تكفي لبناء الصوت */
-        });
+      const audio = extractAudioPayload(data);
+      if (audio && audio.length > 0) chunks.push(audio);
     });
 
-    // Node (عبر undici) قد يُرفق تفاصيل الخطأ الفعلي (رفض DNS/TCP/TLS، أو
-    // رفض صريح من الخادم أثناء ترقية WebSocket) في event.message أو
-    // event.error بدل رسالة عامة - نلتقطها بأقصى تفصيل متاح بدل استبدالها
-    // برسالة ثابتة، حتى يكون سبب أي فشل مستقبلي واضحًا من سجلّ CI مباشرة.
-    ws.addEventListener("error", (event: Event) => {
-      const raw = event as unknown as { message?: string; error?: unknown };
-      const detail =
-        raw.message || (raw.error instanceof Error ? raw.error.message : raw.error ? String(raw.error) : undefined);
-      finish(new Error(`edge-tts: تعذّر الاتصال${detail ? ` - ${detail}` : " (بلا تفاصيل إضافية من WebSocket)"}`));
+    // ws تُرفق Error حقيقي بكل تفاصيله (بخلاف WebSocket العام الذي يعطي
+    // Event فارغًا تقريبًا) - هذا يكشف السبب الحقيقي لأي رفض مستقبلي
+    // (مهلة TCP، رفض TLS، أو رفض HTTP صريح أثناء الترقية) مباشرة في
+    // سجلّ CI بدل تخمينه.
+    ws.on("error", (err: Error) => {
+      finish(new Error(`edge-tts: تعذّر الاتصال - ${err.message}`));
     });
 
-    ws.addEventListener("close", (event: CloseEvent) => {
+    ws.on("unexpected-response", (_req, res) => {
+      const chunks2: Buffer[] = [];
+      res.on("data", (c: Buffer) => chunks2.push(c));
+      res.on("end", () => {
+        const body = Buffer.concat(chunks2).toString("utf8").slice(0, 300);
+        finish(new Error(`edge-tts: رفض الخادم الترقية - HTTP ${res.statusCode} ${res.statusMessage}: ${body}`));
+      });
+    });
+
+    ws.on("close", (code: number, reason: Buffer) => {
       if (!settled) {
-        const reason = event.reason ? ` reason="${event.reason}"` : "";
-        finish(new Error(`edge-tts: أُغلق الاتصال قبل الاكتمال (code=${event.code}${reason})`));
+        const reasonText = reason.toString("utf8");
+        finish(new Error(`edge-tts: أُغلق الاتصال قبل الاكتمال (code=${code}${reasonText ? ` reason="${reasonText}"` : ""})`));
       }
     });
   });
