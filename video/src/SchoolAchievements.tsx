@@ -1,4 +1,4 @@
-import { AbsoluteFill, Easing, interpolate, Sequence, staticFile, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Easing, Img, interpolate, Sequence, staticFile, useCurrentFrame } from "remotion";
 import { Audio } from "@remotion/media";
 import { brand, fontFamily } from "./brand/tokens";
 import { StatsSceneChrome } from "./components/StatsSceneChrome";
@@ -219,10 +219,11 @@ const RankBeat: React.FC<{ rank: string; grade: string; year: string; standout?:
   );
 };
 
-const StudentBeat: React.FC<{ name: string; achievement: string; standout?: boolean }> = ({
+const StudentBeat: React.FC<{ name: string; achievement: string; standout?: boolean; certificate: string }> = ({
   name,
   achievement,
   standout,
+  certificate,
 }) => {
   const frame = useCurrentFrame();
   const appear = interpolate(frame, [0, 16], [0, 1], {
@@ -234,17 +235,28 @@ const StudentBeat: React.FC<{ name: string; achievement: string; standout?: bool
   const shine = interpolate(frame, [10, 26, 42], [0, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   const color = standout ? brand.gold : brand.teal;
 
+  // Certificate slides up + fades in right after the name/badge appear,
+  // synced to the moment the narration speaks this student's name.
+  const CERT_FROM = 6;
+  const CERT_DURATION = 24;
+  const certT = interpolate(frame, [CERT_FROM, CERT_FROM + CERT_DURATION], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: Easing.out(Easing.cubic),
+  });
+
   return (
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
       <Sfx kind="whoosh" at={0} volume={0.4} />
       <Sfx kind="impact" at={10} volume={standout ? 0.6 : 0.45} />
-      <div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+      <Sfx kind="tick" at={CERT_FROM + 4} volume={0.3} />
+      <div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
         <CelebrationBurst from={8} strong={standout} color={color} />
         <div
           style={{
             position: "relative",
-            width: standout ? 170 : 140,
-            height: standout ? 170 : 140,
+            width: standout ? 118 : 100,
+            height: standout ? 118 : 100,
             borderRadius: "50%",
             background: standout ? "#fdf8ee" : "#eef6f2",
             border: `3px solid ${standout ? brand.gold : brand.border}`,
@@ -255,7 +267,7 @@ const StudentBeat: React.FC<{ name: string; achievement: string; standout?: bool
             scale: appear,
           }}
         >
-          <StarIcon color={color} size={standout ? 78 : 60} />
+          <StarIcon color={color} size={standout ? 54 : 44} />
           <div
             style={{
               position: "absolute",
@@ -266,22 +278,49 @@ const StudentBeat: React.FC<{ name: string; achievement: string; standout?: bool
             }}
           />
         </div>
-        <div style={{ fontFamily, fontWeight: 900, fontSize: 44, color: brand.primaryDark, opacity: appear }}>
+        <div style={{ fontFamily, fontWeight: 900, fontSize: 34, color: brand.primaryDark, opacity: appear }}>
           {name}
         </div>
         <div
           style={{
             fontFamily,
             fontWeight: 800,
-            fontSize: standout ? 24 : 20,
+            fontSize: standout ? 20 : 18,
             color: brand.paper,
             background: color,
             borderRadius: 999,
-            padding: "8px 24px",
+            padding: "6px 20px",
             opacity: appear,
           }}
         >
           {achievement}
+        </div>
+        <div
+          style={{
+            marginTop: 6,
+            width: 900,
+            height: 600,
+            overflow: "hidden",
+            opacity: certT,
+            translate: `0 ${interpolate(certT, [0, 1], [70, 0])}px`,
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              borderRadius: 14,
+              border: `2px solid ${brand.border}`,
+              boxShadow: "0 20px 50px rgba(21,68,90,0.18)",
+              overflow: "hidden",
+              background: brand.paper,
+            }}
+          >
+            <Img
+              src={staticFile(certificate)}
+              style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
+            />
+          </div>
         </div>
       </div>
     </AbsoluteFill>
@@ -353,7 +392,7 @@ export const SchoolAchievements: React.FC = () => {
 
       {honoredStudents.map((s, i) => (
         <Sequence key={s.name} from={studentFroms[i]} durationInFrames={STUDENT_BEATS[i]} layout="absolute-fill">
-          <StudentBeat name={s.name} achievement={s.achievement} standout={s.standout} />
+          <StudentBeat name={s.name} achievement={s.achievement} standout={s.standout} certificate={s.certificate} />
         </Sequence>
       ))}
     </AbsoluteFill>

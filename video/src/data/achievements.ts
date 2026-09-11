@@ -22,9 +22,25 @@ export type HonoredStudent = {
   name: string;
   achievement: string;
   standout?: boolean;
+  certificate: string;
 };
 
+/**
+ * الأسماء محدَّثة للاسم الكامل الرسمي كما هو مطبوع حرفيًا على شهادة كل
+ * طالبة (شهادات شكر وتقدير من موهبة/وزارة التعليم، أرسلها المستخدم وأكّد
+ * أنها نفس الطالبتين المقصودتين في السرد). صور الشهادات تُعرض كما هي بلا
+ * أي تعديل.
+ */
 export const honoredStudents: HonoredStudent[] = [
-  { name: "تالا المالكي", achievement: "موهبة استثنائية", standout: true },
-  { name: "ريمان أزيبي", achievement: "موهبة" },
+  {
+    name: "تالا ماجد فالح البكيري المالكي",
+    achievement: "موهبة استثنائية",
+    standout: true,
+    certificate: "certificates/tala-certificate.jpg",
+  },
+  {
+    name: "ريمان حسين عبد الله",
+    achievement: "موهبة",
+    certificate: "certificates/reyman-certificate.jpg",
+  },
 ];
