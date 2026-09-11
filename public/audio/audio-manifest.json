@@ -1,142 +1,142 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-11T15:30:35.617Z",
+  "generatedAt": "2026-09-11T16:51:01.547Z",
   "note": "يُعاد إنشاء هذا الملف بالكامل في كل مرة يعمل فيها update-manifest.ts - لا تعدّليه يدويًا، عدّلي بدلًا منه الجداول في .claude/skills/arabic-kids-game-audio/scripts/lib/audioTable.ts.",
   "voice": {
     "excellent_01": {
-      "file": null,
+      "file": "audio/voice/excellent_01.mp3",
       "text": "ممتازة!",
       "event": "EXCELLENT",
-      "exists": false,
-      "provider": null,
-      "voiceId": null,
-      "generatedAt": null
+      "exists": true,
+      "provider": "elevenlabs",
+      "voiceId": "albaa6OioIhKtKdCEkQw",
+      "generatedAt": "2026-09-11T16:50:46.764Z"
     },
     "hero_01": {
-      "file": null,
+      "file": "audio/voice/hero_01.mp3",
       "text": "أحسنتِ يا بطلة!",
       "event": "HERO",
-      "exists": false,
-      "provider": null,
-      "voiceId": null,
-      "generatedAt": null
+      "exists": true,
+      "provider": "elevenlabs",
+      "voiceId": "albaa6OioIhKtKdCEkQw",
+      "generatedAt": "2026-09-11T16:50:47.908Z"
     },
     "amazing_01": {
-      "file": null,
+      "file": "audio/voice/amazing_01.mp3",
       "text": "واو! إجابة رائعة!",
       "event": "AMAZING",
-      "exists": false,
-      "provider": null,
-      "voiceId": null,
-      "generatedAt": null
+      "exists": true,
+      "provider": "elevenlabs",
+      "voiceId": "albaa6OioIhKtKdCEkQw",
+      "generatedAt": "2026-09-11T16:50:49.054Z"
     },
     "star_01": {
-      "file": null,
+      "file": "audio/voice/star_01.mp3",
       "text": "نجمة جديدة لك!",
       "event": "STAR",
-      "exists": false,
-      "provider": null,
-      "voiceId": null,
-      "generatedAt": null
+      "exists": true,
+      "provider": "elevenlabs",
+      "voiceId": "albaa6OioIhKtKdCEkQw",
+      "generatedAt": "2026-09-11T16:50:50.056Z"
     },
     "gem_01": {
-      "file": null,
+      "file": "audio/voice/gem_01.mp3",
       "text": "كنز جديد!",
       "event": "GEM",
-      "exists": false,
-      "provider": null,
-      "voiceId": null,
-      "generatedAt": null
+      "exists": true,
+      "provider": "elevenlabs",
+      "voiceId": "albaa6OioIhKtKdCEkQw",
+      "generatedAt": "2026-09-11T16:50:51.034Z"
     },
     "creative_01": {
-      "file": null,
+      "file": "audio/voice/creative_01.mp3",
       "text": "أبدعتِ!",
       "event": "CREATIVE",
-      "exists": false,
-      "provider": null,
-      "voiceId": null,
-      "generatedAt": null
+      "exists": true,
+      "provider": "elevenlabs",
+      "voiceId": "albaa6OioIhKtKdCEkQw",
+      "generatedAt": "2026-09-11T16:50:52.111Z"
     },
     "next_01": {
-      "file": null,
+      "file": "audio/voice/next_01.mp3",
       "text": "إلى المرحلة التالية!",
       "event": "NEXT_LEVEL",
-      "exists": false,
-      "provider": null,
-      "voiceId": null,
-      "generatedAt": null
+      "exists": true,
+      "provider": "elevenlabs",
+      "voiceId": "albaa6OioIhKtKdCEkQw",
+      "generatedAt": "2026-09-11T16:50:53.149Z"
     },
     "try_again_01": {
-      "file": null,
+      "file": "audio/voice/try_again_01.mp3",
       "text": "حاولي مرة أخرى.",
       "event": "WRONG",
-      "exists": false,
-      "provider": null,
-      "voiceId": null,
-      "generatedAt": null
+      "exists": true,
+      "provider": "elevenlabs",
+      "voiceId": "albaa6OioIhKtKdCEkQw",
+      "generatedAt": "2026-09-11T16:50:54.228Z"
     },
     "almost_01": {
-      "file": null,
+      "file": "audio/voice/almost_01.mp3",
       "text": "اقتربتِ، جرّبي مرة ثانية.",
       "event": "ALMOST",
-      "exists": false,
-      "provider": null,
-      "voiceId": null,
-      "generatedAt": null
+      "exists": true,
+      "provider": "elevenlabs",
+      "voiceId": "albaa6OioIhKtKdCEkQw",
+      "generatedAt": "2026-09-11T16:50:55.332Z"
     },
     "rocket_ready_01": {
-      "file": null,
+      "file": "audio/voice/rocket_ready_01.mp3",
       "text": "صاروخك جاهز!",
       "event": "ROCKET_READY",
-      "exists": false,
-      "provider": null,
-      "voiceId": null,
-      "generatedAt": null
+      "exists": true,
+      "provider": "elevenlabs",
+      "voiceId": "albaa6OioIhKtKdCEkQw",
+      "generatedAt": "2026-09-11T16:50:56.397Z"
     },
     "oops_01": {
-      "file": null,
+      "file": "audio/voice/oops_01.mp3",
       "text": "أووبس! أخطأتِ.",
       "event": null,
-      "exists": false,
-      "provider": null,
-      "voiceId": null,
-      "generatedAt": null
+      "exists": true,
+      "provider": "elevenlabs",
+      "voiceId": "albaa6OioIhKtKdCEkQw",
+      "generatedAt": "2026-09-11T16:50:57.469Z"
     },
     "start_01": {
-      "file": null,
+      "file": "audio/voice/start_01.mp3",
       "text": "هيا نبدأ!",
       "event": null,
-      "exists": false,
-      "provider": null,
-      "voiceId": null,
-      "generatedAt": null
+      "exists": true,
+      "provider": "elevenlabs",
+      "voiceId": "albaa6OioIhKtKdCEkQw",
+      "generatedAt": "2026-09-11T16:50:58.533Z"
     },
     "choose_game_01": {
-      "file": null,
+      "file": "audio/voice/choose_game_01.mp3",
       "text": "اختاري لعبتك!",
       "event": null,
-      "exists": false,
-      "provider": null,
-      "voiceId": null,
-      "generatedAt": null
+      "exists": true,
+      "provider": "elevenlabs",
+      "voiceId": "albaa6OioIhKtKdCEkQw",
+      "generatedAt": "2026-09-11T16:50:59.607Z"
     },
     "great_01": {
-      "file": null,
+      "file": "audio/voice/great_01.mp3",
       "text": "رائعة جدًا!",
       "event": null,
-      "exists": false,
-      "provider": null,
-      "voiceId": null,
-      "generatedAt": null
+      "exists": true,
+      "provider": "elevenlabs",
+      "voiceId": "albaa6OioIhKtKdCEkQw",
+      "generatedAt": "2026-09-11T16:51:00.605Z"
     },
     "yasalam_01": {
-      "file": null,
+      "file": "audio/voice/yasalam_01.mp3",
       "text": "يا سلام!",
       "event": null,
-      "exists": false,
-      "provider": null,
-      "voiceId": null,
-      "generatedAt": null
+      "exists": true,
+      "provider": "elevenlabs",
+      "voiceId": "albaa6OioIhKtKdCEkQw",
+      "generatedAt": "2026-09-11T16:51:01.546Z"
     }
   },
   "sfx": {
