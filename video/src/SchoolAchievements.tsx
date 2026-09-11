@@ -1,4 +1,5 @@
-import { AbsoluteFill, Easing, interpolate, Sequence, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Easing, interpolate, Sequence, staticFile, useCurrentFrame } from "remotion";
+import { Audio } from "@remotion/media";
 import { brand, fontFamily } from "./brand/tokens";
 import { StatsSceneChrome } from "./components/StatsSceneChrome";
 import { Sfx } from "./components/Sfx";
@@ -13,21 +14,22 @@ import { competitionName, competitionRanks, honoredStudents } from "./data/achie
  * StatsSceneChrome/brand tokens/Sfx exactly as-is - no new design system.
  *
  * Narration: ONE continuous ElevenLabs recording of the full script (same
- * voice as the rest of the project), not yet generated. Per-beat frame
- * counts below are a provisional word-count-proportional estimate (same
- * methodology as NARRATION-TIMING.md) targeting ~3.1 words/sec (slightly
- * faster pace, per request) - once the real single audio file arrives,
- * rescale these frame counts to its measured length keeping the same
- * proportions, and add one composition-level
- * <Audio src={staticFile("audio/achievements-narration.mp3")} /> here
- * (same pattern as Grade3Nafs.tsx), no per-beat audio needed.
+ * voice as the rest of the project), public/audio/achievements-narration.mp3,
+ * 29.57s (887 frames). Its actual pace came out slower than the originally
+ * planned ~3.1 words/sec, so per the user's own instruction ("اضبط المدة
+ * فعليًا حسب طول التعليق الصوتي") the real recording's length governs -
+ * the scene now runs ~30s total rather than the initially-targeted 14-20s,
+ * since the voice was never sped up or cut to force-fit that window.
+ * Per-beat frame counts below are the original word-count proportions
+ * rescaled to this real audio length (same methodology as
+ * NARRATION-TIMING.md - no forced alignment available in this environment).
  */
-const TITLE_BEAT = 19; // "منجزات المدرسة" (2 words)
-const SECTION1_TITLE_BEAT = 39; // "الفوز في مسابقة قادمون" (4 words)
-const RANK_BEATS = [68, 87, 48, 48]; // one per competitionRanks entry, in order
-const SECTION2_TITLE_BEAT = 48; // "كما تم تكريم الطالبات الموهوبات" (5 words)
-const STUDENT_BEATS = [77, 58]; // one per honoredStudents entry, in order
-const FINAL_HOLD = 20;
+const TITLE_BEAT = 35; // "منجزات المدرسة" (2 words)
+const SECTION1_TITLE_BEAT = 70; // "الفوز في مسابقة قادمون" (4 words)
+const RANK_BEATS = [122, 157, 87, 87]; // one per competitionRanks entry, in order
+const SECTION2_TITLE_BEAT = 87; // "كما تم تكريم الطالبات الموهوبات" (5 words)
+const STUDENT_BEATS = [139, 104]; // one per honoredStudents entry, in order
+const FINAL_HOLD = 18;
 
 export const achievementsTotalDuration =
   TITLE_BEAT +
@@ -329,6 +331,7 @@ export const SchoolAchievements: React.FC = () => {
   return (
     <AbsoluteFill style={{ background: brand.paper, fontFamily, direction: "rtl" }}>
       <StatsSceneChrome sectionTitle="منجزات المدرسة" />
+      <Audio src={staticFile("audio/achievements-narration.mp3")} />
 
       <Sequence from={titleFrom} durationInFrames={TITLE_BEAT} layout="absolute-fill">
         <TitleBeat />
