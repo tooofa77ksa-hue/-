@@ -20,6 +20,17 @@
   overflow: hidden;
 }
 
+/* زر/لوحة التحكم بالصوت هنا تحديدًا مهمة: الموسيقى تُعزف بمستواها
+   العادي (غير المخفَّت) في هذه الشاشة تحديدًا، فهذا أنسب مكان لضبطها
+   فعليًا أثناء سماعها مباشرة - بدل الاكتفاء بضبطها من داخل اللعبة حيث
+   تكون أصلًا خافتة جدًا فلا يُلاحَظ أثر التعديل بوضوح. */
+.mode-select__audio {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 10;
+}
+
 /* لحظة بصرية واحدة مقصودة: توهّج دافئ خلف العنوان يستحضر معنى "الشُعلة"
    دون أن يتكرر في أي مكان آخر من الشاشة - لا تأثيرات متناثرة إضافية. */
 .mode-select::before {
@@ -158,7 +169,13 @@
 
 .game-screen__topbar {
   position: relative;
-  z-index: 3;
+  /* أعلى من أي طبقة أخرى في الشاشة (نتيجة-جولة z-index:4، سؤال z-index:3،
+     احتفال z-index:2) - كانت لوحة إعدادات الصوت (المتفرّعة من هنا) تُحجَب
+     خلف شاشة "انتهت الجولة" لأن position:relative بلا z-index هنا لا
+     ينشئ سياق تكديس (Stacking Context) مستقلًا، فتُقارَن اللوحة داخل
+     سياق هذا الشريط (3) لا مباشرة - رفع z-index الشريط نفسه فوق الجميع
+     يضمن بقاء زر/لوحة الصوت مرئية ظاهرة دائمًا مهما ظهر فوقها. */
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -405,16 +422,21 @@
 
 /* -------------------- عناصر تحكم الصوت -------------------- */
 .audio-controls {
+  /* z-index هنا (لا فقط position) يُنشئ سياق تكديس مستقلًا لهذا العنصر
+     وكل أبنائه (اللوحة المنسدلة) - يضمن ظهورها دائمًا فوق أي شقيق آخر
+     في الصفحة (شاشة اختيار اللعبة تحديدًا لا تملك شريطًا علويًا برقم
+     تكديس مرتفع كما في GameScreen). */
   position: relative;
+  z-index: 10;
 }
 
 .audio-controls__toggle {
   background: var(--game-panel);
   border: none;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  font-size: 18px;
+  font-size: 16px;
   box-shadow: var(--shadow-soft);
   cursor: pointer;
   transition: transform 0.12s ease;
@@ -426,17 +448,17 @@
 
 .audio-controls__panel {
   position: absolute;
-  top: 48px;
+  top: 42px;
   left: 0;
   background: #fff;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-soft);
-  padding: 14px;
-  width: 220px;
+  padding: 10px;
+  width: 180px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  font-size: 13px;
+  gap: 8px;
+  font-size: 12px;
   z-index: 5;
 }
 

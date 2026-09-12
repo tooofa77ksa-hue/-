@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { GAME_MODE_LABELS } from "@/game/modes/registry";
 import { useGameSettings } from "./useGameData";
 import { useBranding } from "@/lib/useBranding";
+import { AudioControls } from "./AudioControls";
 import type { GameMode } from "@/types/models";
 
 const MODE_EMOJI: Record<GameMode, string> = {
@@ -28,6 +29,9 @@ export function ModeSelect() {
 
   return (
     <div className="mode-select">
+      <div className="mode-select__audio">
+        <AudioControls />
+      </div>
       <h1 className="mode-select__title">{branding.welcomeMessage}</h1>
       <div className="mode-select__grid">
         {activeModes.map((mode) => (
