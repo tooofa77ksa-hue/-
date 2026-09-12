@@ -127,30 +127,75 @@ service cloud.firestore {
     // ------------------------------------------------------------------
     // attempts: نتائج الاختبارات الرسمية (وليس اللعب العام - اللعب العام
     // لا يُحفظ إطلاقًا). القراءة للمعلمة فقط، لا قائمة علنية بأي نتيجة.
-    // الكتابة (إنشاء محاولة واحدة) متاحة بلا تسجيل دخول شرط أن ترتبط
-    // فعليًا بجلسة موجودة ونشطة، وأن تكون الطالبة ضمن مشاركي تلك الجلسة
-    // تحديدًا (لا يمكن انتحال محاولة باسم طالبة أخرى أو جلسة غير موجودة)،
-    // مع تحقق أساسي من شكل البيانات. لا تعديل ولا حذف إلا من المعلمة.
+    //
+    // الكتابة (إنشاء محاولة واحدة) متاحة بلا تسجيل دخول، لكن بتحقق صارم
+    // من شكل ومنطق البيانات - فحص أمني (2026-09) كشف أن التحقق السابق
+    // (نوع الحقول فقط) كان يسمح لأي حامل رابط اختبار بإرسال محاولة عبر
+    // Firestore REST API مباشرة بأي نتيجة يختارها (مثلًا correctCount
+    // مزيَّف أو scorePercentage=100 بلا علاقة بالإجابات الفعلية)، منتحلًا
+    // اسم أي طالبة ضمن الجلسة. الشروط الإضافية أدناه تُغلق هذا:
+    //   - معرّف المستند نفسه يجب أن يكون "{sessionId}_{studentId}" (لا
+    //     معرّف عشوائي) - هذا يجعل أي محاولة ثانية لنفس الطالبة في نفس
+    //     الجلسة "تعديلًا" (update) لا "إنشاءً" (create) من منظور قواعد
+    //     الأمان، فتُرفض تلقائيًا (allow update مقصور على المعلمة) دون
+    //     الحاجة لأي منطق إضافي - يمنع إغراق القاعدة بمحاولات متكررة.
+    //   - studentNameSnapshot نص غير فارغ (ملاحظة: لغة قواعد Firestore لا
+    //     تدعم فعليًا مطابقة "قيمة Map ضمن قائمة Maps" بشكل موثوق - جُرِّب
+    //     ذلك مباشرة وسبّب خطأ تنفيذ حقيقي (Null value error) حتى في الحالة
+    //     الصحيحة، فتعذّر فرض تطابق الاسم مع participants الفعلية من هنا؛
+    //     يبقى هذا خطرًا متبقيًا صغيرًا موثَّقًا - أقصى ما يمكن لمشاركة
+    //     خبيثة فعله عبره هو عرض اسم خاطئ لمحاولتها الوحيدة المسموحة هي،
+    //     لا انتحال محاولة طالبة أخرى، لأن studentId وmعرّف المستند
+    //     الحتمي أدناه يبقيان مقيَّدين تمامًا).
+    //   - gameMode يجب أن يطابق نمط الجلسة نفسه.
+    //   - totalQuestions محدود بعدد أسئلة الجلسة الفعلي (لا يمكن ادّعاء
+    //     عدد أسئلة أكبر من الجلسة الحقيقية).
+    //   - correctCount + incorrectCount == totalQuestions، وanswers.size()
+    //     == totalQuestions (لا نتيجة جزئية أو متناقضة داخليًا).
+    //   - scorePercentage يجب أن يساوي فعليًا التقريب الحسابي الصحيح لـ
+    //     correctCount/totalQuestions×100 (نفس حساب العميل تمامًا في
+    //     SessionPlayScreen.tsx) - لا يمكن تلفيق نسبة منفصلة عن العدّ.
+    //   - hasOnly تمنع إضافة أي حقل إضافي غير معروف للمستند.
+    // هذا لا يزال بلا Cloud Function (لا يتحقق من صحة كل إجابة فردية داخل
+    // answers مقابل الأسئلة الحقيقية - قيد لغة قواعد Firestore نفسها)،
+    // لكنه يرفع تكلفة أي تلاعب بشكل كبير جدًا مقارنة بالوضع السابق.
+    // لا تعديل ولا حذف إلا من المعلمة.
     // ------------------------------------------------------------------
     function sessionRefFor(sid) {
       return /databases/$(database)/documents/testSessions/$(sid);
     }
 
-    function validAttemptShape() {
-      return request.resource.data.sessionId is string &&
-        exists(sessionRefFor(request.resource.data.sessionId)) &&
-        get(sessionRefFor(request.resource.data.sessionId)).data.active == true &&
-        request.resource.data.studentId in
-          get(sessionRefFor(request.resource.data.sessionId)).data.participantIds &&
-        request.resource.data.totalQuestions is int &&
-        request.resource.data.correctCount is int &&
-        request.resource.data.incorrectCount is int &&
-        request.resource.data.scorePercentage is number;
+    function validAttemptShape(attemptId) {
+      let d = request.resource.data;
+      let session = get(sessionRefFor(d.sessionId)).data;
+      return d.sessionId is string &&
+        exists(sessionRefFor(d.sessionId)) &&
+        session.active == true &&
+        attemptId == d.sessionId + '_' + d.studentId &&
+        d.studentId in session.participantIds &&
+        d.studentNameSnapshot is string && d.studentNameSnapshot.size() > 0 &&
+        d.gameMode == session.gameMode &&
+        d.totalQuestions is int && d.totalQuestions > 0 &&
+        d.totalQuestions <= session.questionIds.size() &&
+        d.correctCount is int && d.correctCount >= 0 &&
+        d.incorrectCount is int && d.incorrectCount >= 0 &&
+        d.correctCount + d.incorrectCount == d.totalQuestions &&
+        d.scorePercentage is number &&
+        d.scorePercentage == math.round((d.correctCount * 100.0) / d.totalQuestions) &&
+        d.answers is list && d.answers.size() == d.totalQuestions &&
+        d.startedAt is number && d.completedAt is number && d.durationMs is number &&
+        d.createdAt is number &&
+        d.keys().hasOnly([
+          'sessionId', 'studentId', 'studentNameSnapshot', 'groupId', 'groupNameSnapshot',
+          'startedAt', 'completedAt', 'durationMs', 'gameMode', 'skill',
+          'totalQuestions', 'correctCount', 'incorrectCount', 'scorePercentage',
+          'answers', 'createdAt'
+        ]);
     }
 
     match /attempts/{attemptId} {
       allow read: if isStaff();
-      allow create: if validAttemptShape();
+      allow create: if validAttemptShape(attemptId);
       allow update, delete: if isStaff();
     }
 

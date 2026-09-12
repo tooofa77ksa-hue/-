@@ -397,12 +397,22 @@ export async function deleteTestSession(sessionId: string): Promise<void> {
 // ------------------------------------------------------------------
 export type AttemptInput = Omit<Attempt, "id" | "createdAt">;
 
+// معرّف حتمي (لا عشوائي) لكل محاولة: نفس الطالبة في نفس الجلسة تكتب دائمًا
+// على نفس المستند. قواعد الأمان (firestore.rules) تفرض هذا الشكل بالضبط
+// وتعتمد عليه: أي محاولة ثانية لنفس الطالبة تصبح "تعديلًا" لا "إنشاءً" من
+// منظور Firestore، فتُرفض تلقائيًا (لا يمكن إلا للمعلمة التعديل) - يمنع
+// إغراق القاعدة بمحاولات متكررة لنفس الجلسة.
+function attemptDocId(sessionId: string, studentId: string): string {
+  return `${sessionId}_${studentId}`;
+}
+
 export async function createAttempt(input: AttemptInput): Promise<string> {
-  const ref = await addDoc(attemptsCol(), {
+  const id = attemptDocId(input.sessionId, input.studentId);
+  await setDoc(doc(attemptsCol(), id), {
     ...stripUndefined(input),
     createdAt: Date.now(),
   });
-  return ref.id;
+  return id;
 }
 
 export function subscribeAttempts(onData: (attempts: Attempt[]) => void): Unsubscribe {

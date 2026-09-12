@@ -314,10 +314,26 @@ function validAttempt(overrides: Record<string, unknown> = {}) {
     correctCount: 1,
     incorrectCount: 0,
     scorePercentage: 100,
-    answers: [],
+    answers: [
+      {
+        questionId: "published-1",
+        questionTextSnapshot: "ما مرادف كلمة (سعيد)؟",
+        choicesSnapshot: ["فرِح", "حزين", "غاضب", "خائف"],
+        studentAnswer: 0,
+        correctAnswerSnapshot: 0,
+        isCorrect: true,
+        answeredAt: Date.now(),
+      },
+    ],
     createdAt: Date.now(),
     ...overrides,
   };
+}
+
+/** معرّف المحاولة الحتمي الذي تفرضه قواعد الأمان الآن - راجعي
+ * attemptDocId في src/lib/repo.ts (نفس الصيغة بالضبط). */
+function attemptDocId(a: { sessionId?: unknown; studentId?: unknown }) {
+  return `${a.sessionId ?? "session-active"}_${a.studentId ?? "student-1"}`;
 }
 
 describe("الطالبات (students) والمجموعات (groups)", () => {
@@ -409,29 +425,62 @@ describe("نتائج الاختبارات (attempts)", () => {
 
   it("طالبة مشارِكة في جلسة نشطة تستطيع حفظ محاولة صالحة بلا تسجيل دخول", async () => {
     const db = testEnv.unauthenticatedContext().firestore();
-    await assertSucceeds(db.collection("attempts").add(validAttempt()));
+    const a = validAttempt();
+    await assertSucceeds(db.collection("attempts").doc(attemptDocId(a)).set(a));
   });
 
   it("لا يمكن حفظ محاولة لجلسة غير موجودة", async () => {
     const db = testEnv.unauthenticatedContext().firestore();
-    await assertFails(db.collection("attempts").add(validAttempt({ sessionId: "no-such-session" })));
+    const a = validAttempt({ sessionId: "no-such-session" });
+    await assertFails(db.collection("attempts").doc(attemptDocId(a)).set(a));
   });
 
   it("لا يمكن حفظ محاولة لجلسة غير نشطة (active == false)", async () => {
     const db = testEnv.unauthenticatedContext().firestore();
-    await assertFails(db.collection("attempts").add(validAttempt({ sessionId: "session-inactive" })));
+    const a = validAttempt({ sessionId: "session-inactive" });
+    await assertFails(db.collection("attempts").doc(attemptDocId(a)).set(a));
   });
 
   it("لا يمكن انتحال محاولة باسم طالبة ليست ضمن مشاركي الجلسة", async () => {
     const db = testEnv.unauthenticatedContext().firestore();
-    await assertFails(db.collection("attempts").add(validAttempt({ studentId: "someone-else" })));
+    const a = validAttempt({ studentId: "someone-else" });
+    await assertFails(db.collection("attempts").doc(attemptDocId(a)).set(a));
   });
 
   it("لا يمكن حفظ محاولة بشكل بيانات غير صالح (totalQuestions ليس رقمًا)", async () => {
     const db = testEnv.unauthenticatedContext().firestore();
-    await assertFails(
-      db.collection("attempts").add(validAttempt({ totalQuestions: "واحد" as unknown as number }))
-    );
+    const a = validAttempt({ totalQuestions: "واحد" as unknown as number });
+    await assertFails(db.collection("attempts").doc(attemptDocId(a)).set(a));
+  });
+
+  it("لا يمكن حفظ محاولة بـstudentNameSnapshot فارغ", async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    const a = validAttempt({ studentNameSnapshot: "" });
+    await assertFails(db.collection("attempts").doc(attemptDocId(a)).set(a));
+  });
+
+  it("لا يمكن تلفيق scorePercentage لا يطابق correctCount/totalQuestions فعليًا", async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    const a = validAttempt({ correctCount: 0, incorrectCount: 1, scorePercentage: 100 });
+    await assertFails(db.collection("attempts").doc(attemptDocId(a)).set(a));
+  });
+
+  it("لا يمكن ادّعاء عدد أسئلة أكبر من أسئلة الجلسة الفعلية", async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    const a = validAttempt({
+      totalQuestions: 5,
+      correctCount: 5,
+      incorrectCount: 0,
+      answers: Array(5).fill(validAttempt().answers[0]),
+    });
+    await assertFails(db.collection("attempts").doc(attemptDocId(a)).set(a));
+  });
+
+  it("لا يمكن إرسال محاولة ثانية لنفس الطالبة في نفس الجلسة (إغراق/تكرار)", async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    const a = validAttempt();
+    await assertSucceeds(db.collection("attempts").doc(attemptDocId(a)).set(a));
+    await assertFails(db.collection("attempts").doc(attemptDocId(a)).set(a));
   });
 
   it("لا يستطيع أي طرف غير المعلمة قراءة النتائج (get أو list)", async () => {

@@ -13,6 +13,19 @@ function round1(n: number): number {
   return Math.round(n * 10) / 10;
 }
 
+/** يمنع حقن الصيغ (Formula Injection) عند فتح الملف ببرامج جداول بيانات
+ * تُنفّذ أي خلية نصية تبدأ بـ =/+/-/@ كصيغة حسابية: نص المصدر هنا
+ * (studentNameSnapshot/questionTextSnapshot) قادم بالكامل من بيانات
+ * لقطة (Snapshot) محفوظة وقت المحاولة، وقواعد الأمان تسمح بإنشاء محاولة
+ * بلا تسجيل دخول - فهو نص لا يُفترَض به الثقة الكاملة. exceljs الإصدار
+ * الحالي يكتب الخلايا كنص مشترك (Shared String) لا يُنفَّذ فعليًا في
+ * Excel، فهذا تحصين إضافي احترازي (Defense in Depth) لا إصلاح لثغرة
+ * مؤكَّدة - يبقى مهمًا لأنه يحمي أيضًا حال إعادة تصدير البيانات لاحقًا
+ * كـ CSV (الذي لا يملك نفس الحماية). */
+function safeExcelText(value: string): string {
+  return /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+}
+
 export async function exportResultsToExcel(
   attempts: Attempt[],
   students: Student[],
@@ -49,7 +62,7 @@ export async function exportResultsToExcel(
   ];
   for (const a of attempts) {
     summarySheet.addRow({
-      student: a.studentNameSnapshot,
+      student: safeExcelText(a.studentNameSnapshot),
       group: a.groupNameSnapshot || "—",
       game: GAME_MODE_LABELS_AR[a.gameMode] || a.gameMode,
       skill: a.skill ? SKILL_LABELS[a.skill] || a.skill : "متنوّع",
@@ -76,9 +89,9 @@ export async function exportResultsToExcel(
   for (const a of attempts) {
     for (const ans of a.answers) {
       detailsSheet.addRow({
-        student: a.studentNameSnapshot,
+        student: safeExcelText(a.studentNameSnapshot),
         date: formatDate(a.completedAt),
-        question: ans.questionTextSnapshot,
+        question: safeExcelText(ans.questionTextSnapshot),
         given: ans.choicesSnapshot[ans.studentAnswer],
         correct: ans.choicesSnapshot[ans.correctAnswerSnapshot],
         result: ans.isCorrect ? "صحيحة" : "خاطئة",
@@ -121,7 +134,7 @@ export async function exportResultsToExcel(
   for (const a of attempts) {
     for (const ans of a.answers) {
       const entry = questionStats.get(ans.questionId) || {
-        text: ans.questionTextSnapshot,
+        text: safeExcelText(ans.questionTextSnapshot),
         skill: a.skill ? SKILL_LABELS[a.skill] || a.skill : undefined,
         appearances: 0,
         correct: 0,
@@ -210,7 +223,7 @@ export async function exportResultsToExcel(
     for (const a of chronological) {
       const delta = previousScore === null ? null : round1(a.scorePercentage - previousScore);
       const row = progressSheet.addRow({
-        student: a.studentNameSnapshot,
+        student: safeExcelText(a.studentNameSnapshot),
         group: a.groupNameSnapshot || "—",
         date: formatDate(a.completedAt),
         game: GAME_MODE_LABELS_AR[a.gameMode] || a.gameMode,
