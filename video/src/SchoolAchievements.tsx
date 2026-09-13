@@ -39,6 +39,23 @@ import {
  * instruction "لا تجعل المذيعة تقرأ نص كل شهادة"). The whole scene's
  * length equals the audio's length exactly - no added silence at the end.
  *
+ * IMPORTANT correction: a first pass used a uniform words-per-second rate
+ * across all 4 paragraphs, which the user correctly flagged as out of
+ * sync. The real recording is NOT uniform - "وتواصل المدرسة... قادمون"
+ * is read much faster than the comma-heavy paragraph 1 list. Since this
+ * environment blocks both the ElevenLabs Scribe API and any local
+ * Whisper model download (huggingface.co/openaipublic.azureedge.net are
+ * both proxy-denied), there is no word-level transcript available -
+ * instead, the actual pauses between paragraphs were found locally via
+ * `ffmpeg -af silencedetect` (no network needed) on the real file, and
+ * the 4 most prominent pauses (>0.5s, clearly longer than the small
+ * mid-sentence comma pauses) were taken as the paragraph boundaries:
+ * ~1.1s/1.8s (title -> paragraph 1), ~29.6s/30.1s (paragraph 1 -> 2),
+ * ~34.1s/34.6s (paragraph 2 -> 3), ~48.5s/49.1s (paragraph 3 -> 4). The
+ * *_BEAT constants below are derived from those real boundaries (in
+ * frames), not from word-count averaging - this should track the actual
+ * recording far more closely.
+ *
  * Full narration script (as recorded, in order - opens with the section
  * title spoken aloud, per explicit user request):
  * "منجزات المدرسة. حققت المدرسة حضورًا فاعلًا في عدد من المبادرات والفعاليات التعليمية
@@ -52,14 +69,14 @@ import {
  * الفاعلة في أسبوع الفضاء العالمي. وفي مجال الموهبة، حظيت طالبات المدرسة
  * بتكريم مستحق، ومن بينهن تالا المالكي وريمان، تقديرًا لتميزهن ومواهبهن."
  */
-const S1_TITLE_BEAT = 24; // "منجزات المدرسة" (spoken)
-const S1_CARD_BEATS = [125, 125, 125, 125, 125, 127]; // 6 certificates, span=776f (word-proportional)
+const S1_TITLE_BEAT = 34; // "منجزات المدرسة" - ends at the real 1.12s pause
+const S1_CARD_BEATS = [142, 142, 142, 142, 142, 143]; // 6 certificates, span=853f (real pause at 29.56s)
 const S2_TITLE_BEAT = 24; // "قادمون"
-const S2_RANK_BEATS = [63, 63, 63, 63]; // 4 ranks, span=276f
+const S2_RANK_BEATS = [28, 28, 28, 28]; // 4 ranks, span=112f (real para2 is spoken fast, pause at 34.09s)
 const S3_TITLE_BEAT = 24; // "منجزات المعلمات"
-const S3_CARD_BEATS = [152, 152, 154]; // 3 teachers, span=482f
+const S3_CARD_BEATS = [136, 136, 135]; // 3 teachers, span=407f (real pause at 48.46s)
 const S4_TITLE_BEAT = 24; // "الموهوبات"
-const S4_STUDENT_BEATS = [126, 126]; // 2 students, span=276f
+const S4_STUDENT_BEATS = [166, 166]; // 2 students, span=332f (to the real 60.317s end)
 
 export const achievementsTotalDuration =
   S1_TITLE_BEAT +
