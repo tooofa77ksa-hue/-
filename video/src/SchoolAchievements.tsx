@@ -447,8 +447,22 @@ export const SchoolAchievements: React.FC = () => {
 
   return (
     <AbsoluteFill style={{ background: brand.paper, fontFamily, direction: "rtl" }}>
-      <StatsSceneChrome sectionTitle="منجزات المدرسة" />
       <Audio src={staticFile("audio/achievements-narration.mp3")} />
+
+      {/* Top-bar title tracks the current section - "منجزات المدرسة" shows
+          only at the very start, matching the on-screen section titles. */}
+      <Sequence from={s1TitleFrom} durationInFrames={s2TitleFrom - s1TitleFrom} layout="absolute-fill">
+        <StatsSceneChrome sectionTitle="منجزات المدرسة" />
+      </Sequence>
+      <Sequence from={s2TitleFrom} durationInFrames={s3TitleFrom - s2TitleFrom} layout="absolute-fill">
+        <StatsSceneChrome sectionTitle={competitionName} />
+      </Sequence>
+      <Sequence from={s3TitleFrom} durationInFrames={s4TitleFrom - s3TitleFrom} layout="absolute-fill">
+        <StatsSceneChrome sectionTitle="منجزات المعلمات" />
+      </Sequence>
+      <Sequence from={s4TitleFrom} durationInFrames={achievementsTotalDuration - s4TitleFrom} layout="absolute-fill">
+        <StatsSceneChrome sectionTitle="الموهوبات" />
+      </Sequence>
 
       <Sequence from={s1TitleFrom} durationInFrames={S1_TITLE_BEAT} layout="absolute-fill">
         <SectionTitle text="منجزات المدرسة" />
