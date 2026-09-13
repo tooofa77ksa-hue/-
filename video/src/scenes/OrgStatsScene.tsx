@@ -1,4 +1,5 @@
-import { AbsoluteFill, Easing, interpolate, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Easing, interpolate, Sequence, staticFile, useCurrentFrame } from "remotion";
+import { Audio } from "@remotion/media";
 import { brand, fontFamily } from "../brand/tokens";
 import { StatsSceneChrome } from "../components/StatsSceneChrome";
 import { CountUpNumber } from "../components/CountUpNumber";
@@ -14,37 +15,39 @@ import { adminsCount, economicCasesCount, healthCases, socialCasesCount, supervi
  * المعلمات+الإداريات، ثم الطالبات+الفصول، ثم الاقتصادية+الاجتماعية، ثم
  * الصحية+السكر+الصرع.
  *
- * التوقيت: لا يوجد بعد تسجيل صوتي حقيقي لهذا المشهد (المستخدمة ستسجّله
- * وترسله لاحقًا)، لذا الأرقام أدناه تقدير مبدئي بمنهجية عدد الكلمات نفسها
- * المستخدمة في NARRATION-TIMING.md (وليس عرضًا نهائيًا) - بمعدل ~11 فريم/
- * كلمة (~2.7 كلمة/ثانية، نبرة رسمية متوسطة-سريعة). بمجرد وصول الصوت
- * الحقيقي سيُعاد ضبط كل الأرقام بنفس النسب لتطابق طول الصوت الفعلي تمامًا
- * (نفس قاعدة "مدة الشريحة الناطقة = مدة صوتها بالضبط" المتّبعة في بقية
- * المشروع)، ويُضاف <Audio> حينها.
+ * التوقيت: مبني على الصوت الحقيقي (public/audio/school-stats/org-stats-line
+ * .mp3، نفس صوت "Layla" المستخدم في بقية المشروع)، طوله الفعلي 41.404
+ * ثانية = 1243 فريمًا (ceil). هذا أطول من الهدف المبدئي (18-25 ثانية) الذي
+ * ذكرته المستخدمة - لم يُقصَّ أو يُسرَّع الصوت لإجباره على مدة أقصر (نفس
+ * قاعدة "عدم التلاعب بالصوت" المتبعة في كل المشروع)، بل استُخدم طوله
+ * الحقيقي كما هو وأُعيد توزيع ظهور العناصر بالتناسب مع مواضع الكلمات في كل
+ * جملة من النص (نفس منهجية عدد الكلمات في NARRATION-TIMING.md لكن مُطبَّقة
+ * مباشرة على طول الصوت الحقيقي بدل تقدير أولي). لا يوجد أي مهلة صامتة
+ * إضافية بعد نهاية الصوت - مدة المشهد بالكامل = مدة الصوت بالضبط.
  */
 const REVEAL_DURATION = 18; // ~0.6s icon->label->count entrance
 const COUNT_DURATION = 20; // ~0.67s count-up
-const FINAL_HOLD = 24; // ~0.8s hold on the complete map before the next scene
+const AUDIO_SRC = "audio/school-stats/org-stats-line.mp3";
+
+export const ORG_STATS_DURATION = 1243; // ceil(41.404s * 30fps), the narration's exact length
 
 const ITEM_START = {
   groupTitle: 0,
-  director: 40,
-  deputy: 66,
-  guidance: 92,
-  teachers: 178,
-  licensed: 248,
-  notLicensed: 288,
-  admins: 378,
-  students: 422,
-  classes: 500,
-  economic: 578,
-  social: 644,
-  health: 711,
-  sugar: 761,
-  epilepsy: 801,
+  director: 129,
+  deputy: 172,
+  guidance: 215,
+  teachers: 258,
+  licensed: 355,
+  notLicensed: 468,
+  admins: 549,
+  students: 613,
+  classes: 742,
+  economic: 839,
+  social: 952,
+  health: 1033,
+  sugar: 1130,
+  epilepsy: 1195,
 } as const;
-
-export const ORG_STATS_DURATION = 855 + FINAL_HOLD;
 
 // ---- Layout (1920x1080, chrome header=118 / footer=64) ----
 const SPINE_TOP = 210;
@@ -132,7 +135,7 @@ const GroupTitle: React.FC = () => {
 /** Central spine, growing continuously with overall scene progress. */
 const Spine: React.FC = () => {
   const frame = useCurrentFrame();
-  const draw = interpolate(frame, [10, 830], [0, 1], {
+  const draw = interpolate(frame, [10, 1200], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: Easing.out(Easing.cubic),
@@ -296,6 +299,9 @@ export const OrgStatsScene: React.FC = () => {
   return (
     <AbsoluteFill style={{ background: brand.paper }}>
       <StatsSceneChrome sectionTitle="الهيكل الإشرافي والإحصاءات العامة" />
+      <Sequence from={0} layout="none">
+        <Audio src={staticFile(AUDIO_SRC)} />
+      </Sequence>
       <Sfx kind="whoosh" at={0} volume={0.4} />
 
       <Spine />
