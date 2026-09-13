@@ -1,4 +1,5 @@
 import { AbsoluteFill, Easing, Img, interpolate, Sequence, staticFile, useCurrentFrame } from "remotion";
+import { Audio } from "@remotion/media";
 import { brand, fontFamily } from "./brand/tokens";
 import { StatsSceneChrome } from "./components/StatsSceneChrome";
 import { Sfx } from "./components/Sfx";
@@ -18,15 +19,17 @@ import { environmentItems } from "./data/environment";
  * contrast. Only the "after" photos get a light Ken-Burns zoom, matching
  * the treatment used elsewhere in this project (SchoolKroki).
  *
- * Narration: NOT YET RECORDED. Full script below (one continuous take,
- * same voice as the rest of the project) needs to be recorded and sent -
- * every *_BEAT constant is a provisional word-count estimate (~2.7 words/
- * sec) and will be rescaled to the real recording's measured length once
- * it arrives (same methodology as every other narrated scene in this
- * project - see OrgStatsScene.tsx/SchoolAchievements.tsx for the same
- * approach), and the <Audio> tag will be added then.
+ * Narration: real ElevenLabs recording (same voice as the rest of the
+ * project), public/audio/environment-narration.mp3, 49.136s measured via
+ * ffprobe (1475 frames, ceil). Section boundaries below come from the
+ * actual pauses between sentences in the real file, found locally via
+ * `ffmpeg -af silencedetect` (no network available - see
+ * SchoolAchievements.tsx for the same fix after a first uniform-rate
+ * pass was flagged as out of sync), not from a words-per-second average.
+ * Within each item's span, the "before" hold and wipe are fixed small
+ * constants and the remaining time is the "after" hold.
  *
- * Full narration script (for recording, in order):
+ * Full narration script (as recorded, in order):
  * "في مسيرة التطوير المستمر، شهدت البيئة المدرسية تحولًا لافتًا يعكس
  * تكاتف الجهود وتعاون الجميع.
  * فالبيئة الخارجية للمدرسة، التي كانت بلا موقف مخصص لذوي الإعاقة، أصبحت
@@ -39,11 +42,12 @@ import { environmentItems } from "./data/environment";
  * يحفّز روح الاكتشاف والتجربة.
  * إنجاز يُحسب لكل من ساهم فيه، وثمرة تعاون صادق من أجل بيئة تعليمية أفضل."
  */
-const INTRO_BEAT = 156; // "في مسيرة التطوير المستمر..." (14 words)
-const ITEM_BEATS = [211, 189, 167, 167]; // exterior/restroom/gym/lab, matching each sentence's word count
-const CLOSING_BEAT = 156; // "إنجاز يُحسب لكل من ساهم فيه..." (14 words)
+const INTRO_BEAT = 208; // ends at the real 6.94s pause
+const ITEM_BEATS = [318, 297, 211, 232]; // exterior/restroom/gym/lab, from real pause boundaries
+const CLOSING_BEAT = 209; // to the real 49.136s end
 const BEFORE_HOLD = 60; // ~2s plain "before" view
 const WIPE_DURATION = 20; // ~0.67s reveal
+const AUDIO_SRC = "audio/environment-narration.mp3";
 
 export const environmentTotalDuration =
   INTRO_BEAT + ITEM_BEATS.reduce((a, b) => a + b, 0) + CLOSING_BEAT;
@@ -200,7 +204,7 @@ export const SchoolEnvironment: React.FC = () => {
   return (
     <AbsoluteFill style={{ background: brand.paper, fontFamily, direction: "rtl" }}>
       <StatsSceneChrome sectionTitle="البيئة المدرسية - قبل وبعد" />
-      {/* <Audio src={staticFile("audio/environment-narration.mp3")} /> - pending real recording */}
+      <Audio src={staticFile(AUDIO_SRC)} />
 
       <Sequence from={introFrom} durationInFrames={INTRO_BEAT} layout="absolute-fill">
         <IntroTitle />
