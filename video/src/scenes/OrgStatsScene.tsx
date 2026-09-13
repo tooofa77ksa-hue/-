@@ -31,15 +31,21 @@ const AUDIO_SRC = "audio/school-stats/org-stats-line.mp3";
 
 export const ORG_STATS_DURATION = 1243; // ceil(41.404s * 30fps), the narration's exact length
 
+/**
+ * ملاحظة: التسجيل الفعلي يذكر "الإداريات" قبل "المعلمات" (عكس ترتيب نص
+ * السرد الأصلي) - صححته المستخدمة مباشرة بعد سماع تجاوز الأيقونة للكلام،
+ * فأُعيد ترتيب ظهور هذين العنصرين (وموضعهما الأفقي RTL) ليطابق ما تُنطق
+ * فعليًا، دون تغيير ترتيب أي مجموعة أخرى.
+ */
 const ITEM_START = {
   groupTitle: 0,
   director: 129,
   deputy: 172,
   guidance: 215,
-  teachers: 258,
-  licensed: 355,
-  notLicensed: 468,
-  admins: 549,
+  admins: 258,
+  teachers: 323,
+  licensed: 420,
+  notLicensed: 532,
   students: 613,
   classes: 742,
   economic: 839,
@@ -314,6 +320,16 @@ export const OrgStatsScene: React.FC = () => {
       <StatCard
         x={960 + 260}
         y={ROW_TEACH_ADMIN_Y}
+        w={380}
+        label="الإداريات"
+        value={adminsCount}
+        from={ITEM_START.admins}
+        icon={<AdminsIcon />}
+      />
+
+      <StatCard
+        x={960 - 260}
+        y={ROW_TEACH_ADMIN_Y}
         w={440}
         label="المعلمات"
         value={teacherLicense.total}
@@ -322,28 +338,18 @@ export const OrgStatsScene: React.FC = () => {
       />
       <SubBadge
         label={`${teacherLicense.licensed} حاصلات على الرخصة`}
-        x={960 + 260 + 80}
+        x={960 - 260 + 80}
         y={ROW_TEACH_ADMIN_Y + 110}
         from={ITEM_START.licensed}
         icon={<LicenseIcon />}
       />
       <SubBadge
         label={`${teacherLicense.notLicensed} بدون رخصة`}
-        x={960 + 260 - 80}
+        x={960 - 260 - 80}
         y={ROW_TEACH_ADMIN_Y + 110}
         from={ITEM_START.notLicensed}
         icon={<NoLicenseIcon />}
         muted
-      />
-
-      <StatCard
-        x={960 - 260}
-        y={ROW_TEACH_ADMIN_Y}
-        w={380}
-        label="الإداريات"
-        value={adminsCount}
-        from={ITEM_START.admins}
-        icon={<AdminsIcon />}
       />
 
       <StatCard
