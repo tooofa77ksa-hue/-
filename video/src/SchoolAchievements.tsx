@@ -1,4 +1,5 @@
 import { AbsoluteFill, Easing, Img, interpolate, Sequence, staticFile, useCurrentFrame } from "remotion";
+import { Audio } from "@remotion/media";
 import { brand, fontFamily } from "./brand/tokens";
 import { StatsSceneChrome } from "./components/StatsSceneChrome";
 import { Sfx } from "./components/Sfx";
@@ -23,17 +24,22 @@ import {
  * Reuses StatsSceneChrome/brand tokens/Sfx exactly as-is - no new design
  * system, no new libraries.
  *
- * Narration: NOT YET RECORDED. The full script below (one continuous take,
- * same voice as the rest of the project, read slightly faster than the
- * NAFS clips) needs to be recorded and sent before final timing/audio can
- * be locked in - see the message accompanying this build. Every *_BEAT
- * constant below is a provisional word-count estimate (~3.15 words/sec)
- * targeting the user's stated 45-60s budget; all of it will be rescaled
- * proportionally to the real recording's measured length once it arrives
- * (same methodology as every other narrated scene in this project), and
- * the <Audio> tag will be added then.
+ * Narration: real ElevenLabs recording (same voice as the rest of the
+ * project), public/audio/achievements-narration.mp3, 60.317s measured via
+ * ffprobe (1810 frames, ceil) - right at the edge of the user's 45-60s
+ * budget. Section boundaries below are computed from each paragraph's word
+ * count as a share of the full 105-word script, applied to the real 1810-
+ * frame length (same word-count-proportional methodology as every other
+ * narrated scene in this project - no forced alignment/timestamps are
+ * available in this environment, see OrgStatsScene.tsx for the same
+ * approach). Within each section, the title reveal takes a fixed 24
+ * frames and the remaining span is split evenly across that section's
+ * items (they are not individually called out in the narration - it is a
+ * spoken summary while the items cascade visually, per explicit user
+ * instruction "لا تجعل المذيعة تقرأ نص كل شهادة"). The whole scene's
+ * length equals the audio's length exactly - no added silence at the end.
  *
- * Full narration script (for recording, in order - opens with the section
+ * Full narration script (as recorded, in order - opens with the section
  * title spoken aloud, per explicit user request):
  * "منجزات المدرسة. حققت المدرسة حضورًا فاعلًا في عدد من المبادرات والفعاليات التعليمية
  * والمجتمعية، ونالت شهادات شكر وتقدير من الإدارة العامة للتعليم بمحافظة
@@ -46,26 +52,24 @@ import {
  * الفاعلة في أسبوع الفضاء العالمي. وفي مجال الموهبة، حظيت طالبات المدرسة
  * بتكريم مستحق، ومن بينهن تالا المالكي وريمان، تقديرًا لتميزهن ومواهبهن."
  */
-const S1_TITLE_BEAT = 24; // "منجزات المدرسة"
-const S1_CARD_BEAT = 68; // per certificate, x6
-const S2_TITLE_BEAT = 152; // "قادمون" + intro line (16 words)
-const S2_RANK_BEAT = 50; // per rank, x4
+const S1_TITLE_BEAT = 24; // "منجزات المدرسة" (spoken)
+const S1_CARD_BEATS = [125, 125, 125, 125, 125, 127]; // 6 certificates, span=776f (word-proportional)
+const S2_TITLE_BEAT = 24; // "قادمون"
+const S2_RANK_BEATS = [63, 63, 63, 63]; // 4 ranks, span=276f
 const S3_TITLE_BEAT = 24; // "منجزات المعلمات"
-const S3_CARD_BEAT = 89; // per teacher, x3
-const S4_TITLE_BEAT = 20; // "الموهوبات"
-const S4_STUDENT_BEAT = 110; // per student, x2
-const FINAL_HOLD = 20;
+const S3_CARD_BEATS = [152, 152, 154]; // 3 teachers, span=482f
+const S4_TITLE_BEAT = 24; // "الموهوبات"
+const S4_STUDENT_BEATS = [126, 126]; // 2 students, span=276f
 
 export const achievementsTotalDuration =
   S1_TITLE_BEAT +
-  S1_CARD_BEAT * schoolAchievements.length +
+  S1_CARD_BEATS.reduce((a, b) => a + b, 0) +
   S2_TITLE_BEAT +
-  S2_RANK_BEAT * competitionRanks.length +
+  S2_RANK_BEATS.reduce((a, b) => a + b, 0) +
   S3_TITLE_BEAT +
-  S3_CARD_BEAT * teacherAchievements.length +
+  S3_CARD_BEATS.reduce((a, b) => a + b, 0) +
   S4_TITLE_BEAT +
-  S4_STUDENT_BEAT * honoredStudents.length +
-  FINAL_HOLD;
+  S4_STUDENT_BEATS.reduce((a, b) => a + b, 0);
 
 const TrophyIcon: React.FC<{ color: string; size: number }> = ({ color, size }) => (
   <svg width={size} height={size} viewBox="0 0 64 64" fill="none">
@@ -397,43 +401,43 @@ export const SchoolAchievements: React.FC = () => {
   let cursor = 0;
   const s1TitleFrom = cursor;
   cursor += S1_TITLE_BEAT;
-  const schoolFroms = schoolAchievements.map(() => {
+  const schoolFroms = S1_CARD_BEATS.map((d) => {
     const start = cursor;
-    cursor += S1_CARD_BEAT;
+    cursor += d;
     return start;
   });
   const s2TitleFrom = cursor;
   cursor += S2_TITLE_BEAT;
-  const rankFroms = competitionRanks.map(() => {
+  const rankFroms = S2_RANK_BEATS.map((d) => {
     const start = cursor;
-    cursor += S2_RANK_BEAT;
+    cursor += d;
     return start;
   });
   const s3TitleFrom = cursor;
   cursor += S3_TITLE_BEAT;
-  const teacherFroms = teacherAchievements.map(() => {
+  const teacherFroms = S3_CARD_BEATS.map((d) => {
     const start = cursor;
-    cursor += S3_CARD_BEAT;
+    cursor += d;
     return start;
   });
   const s4TitleFrom = cursor;
   cursor += S4_TITLE_BEAT;
-  const studentFroms = honoredStudents.map(() => {
+  const studentFroms = S4_STUDENT_BEATS.map((d) => {
     const start = cursor;
-    cursor += S4_STUDENT_BEAT;
+    cursor += d;
     return start;
   });
 
   return (
     <AbsoluteFill style={{ background: brand.paper, fontFamily, direction: "rtl" }}>
       <StatsSceneChrome sectionTitle="منجزات المدرسة" />
-      {/* <Audio src={staticFile("audio/achievements-narration.mp3")} /> - pending real recording, see comment above */}
+      <Audio src={staticFile("audio/achievements-narration.mp3")} />
 
       <Sequence from={s1TitleFrom} durationInFrames={S1_TITLE_BEAT} layout="absolute-fill">
         <SectionTitle text="منجزات المدرسة" />
       </Sequence>
       {schoolAchievements.map((a, i) => (
-        <Sequence key={a.image} from={schoolFroms[i]} durationInFrames={S1_CARD_BEAT} layout="absolute-fill">
+        <Sequence key={a.image} from={schoolFroms[i]} durationInFrames={S1_CARD_BEATS[i]} layout="absolute-fill">
           <CertificateCard image={a.image} caption={a.caption} />
         </Sequence>
       ))}
@@ -442,7 +446,7 @@ export const SchoolAchievements: React.FC = () => {
         <SectionTitle text={competitionName} />
       </Sequence>
       {competitionRanks.map((r, i) => (
-        <Sequence key={i} from={rankFroms[i]} durationInFrames={S2_RANK_BEAT} layout="absolute-fill">
+        <Sequence key={i} from={rankFroms[i]} durationInFrames={S2_RANK_BEATS[i]} layout="absolute-fill">
           <RankBeat rank={r.rank} grade={r.grade} year={r.year} standout={r.standout} />
         </Sequence>
       ))}
@@ -451,7 +455,7 @@ export const SchoolAchievements: React.FC = () => {
         <SectionTitle text="منجزات المعلمات" />
       </Sequence>
       {teacherAchievements.map((t, i) => (
-        <Sequence key={t.name} from={teacherFroms[i]} durationInFrames={S3_CARD_BEAT} layout="absolute-fill">
+        <Sequence key={t.name} from={teacherFroms[i]} durationInFrames={S3_CARD_BEATS[i]} layout="absolute-fill">
           <TeacherCard image={t.image} name={t.name} achievement={t.achievement} />
         </Sequence>
       ))}
@@ -460,7 +464,7 @@ export const SchoolAchievements: React.FC = () => {
         <SectionTitle text="الموهوبات" />
       </Sequence>
       {honoredStudents.map((s, i) => (
-        <Sequence key={s.shortName} from={studentFroms[i]} durationInFrames={S4_STUDENT_BEAT} layout="absolute-fill">
+        <Sequence key={s.shortName} from={studentFroms[i]} durationInFrames={S4_STUDENT_BEATS[i]} layout="absolute-fill">
           <StudentBeat shortName={s.shortName} achievement={s.achievement} standout={s.standout} certificate={s.certificate} />
         </Sequence>
       ))}
