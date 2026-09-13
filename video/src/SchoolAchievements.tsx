@@ -33,8 +33,9 @@ import {
  * (same methodology as every other narrated scene in this project), and
  * the <Audio> tag will be added then.
  *
- * Full narration script (for recording, in order):
- * "حققت المدرسة حضورًا فاعلًا في عدد من المبادرات والفعاليات التعليمية
+ * Full narration script (for recording, in order - opens with the section
+ * title spoken aloud, per explicit user request):
+ * "منجزات المدرسة. حققت المدرسة حضورًا فاعلًا في عدد من المبادرات والفعاليات التعليمية
  * والمجتمعية، ونالت شهادات شكر وتقدير من الإدارة العامة للتعليم بمحافظة
  * جدة، ومكتب تعليم السلامة، ومركز التنمية الاجتماعية بمحافظة جدة، إلى
  * جانب مشاركاتها في معارض التعليم، واليوم الوطني، ومبادرة نوابغ المستقبل،
