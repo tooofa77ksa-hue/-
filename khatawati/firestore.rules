@@ -1,0 +1,109 @@
+rules_version = '2';
+
+// قواعد أمان "خطواتي" - مشروع Firebase منفصل تمامًا عن شعلة لغتي.
+//
+// نموذج الصلاحيات:
+// - حساب "عائلة" واحد لكل طالبة (تدخل الأم مع بنتها بنفس الحساب): يقرأ
+//   ويعدّل ملف طالبته فقط، ولا يرى أي طالبة أخرى إطلاقًا.
+// - حساب "معلمة" لكل مادة (لغتي / رياضيات): يقرأ كل الطالبات وكل الأقسام،
+//   لكن لا يقدر يعدّل تقييم (rating) إلا على قسم مادته هو فقط.
+// - لا يوجد أي كتابة مباشرة على مجموعة "users" من العميل - تُنشأ فقط عبر
+//   سكربت seed بصلاحيات المسؤول (Firebase Admin SDK).
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function myUser() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isFamily() {
+      return isSignedIn() && myUser().role == 'family';
+    }
+
+    function isTeacher() {
+      return isSignedIn() && myUser().role == 'teacher';
+    }
+
+    function isFamilyOf(studentId) {
+      return isFamily() && myUser().studentId == studentId;
+    }
+
+    function teacherSubject() {
+      return myUser().subject;
+    }
+
+    match /users/{uid} {
+      allow read: if isSignedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    match /students/{studentId} {
+      allow read: if isFamilyOf(studentId) || isTeacher();
+
+      // العائلة تقدر تعدّل فقط الحقول الشخصية (الاسم المعروض، اللون،
+      // الصورة، النبذة، الاهتمامات) - لا تقدر تغيّر اسمها الحقيقي ولا
+      // ربط الحساب (familyUid) ولا تاريخ الإنشاء.
+      allow update: if isFamilyOf(studentId) &&
+        request.resource.data.name == resource.data.name &&
+        request.resource.data.familyUid == resource.data.familyUid &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        request.resource.data.nickname is string &&
+        request.resource.data.nickname.size() > 0 &&
+        request.resource.data.nickname.size() <= 60 &&
+        request.resource.data.color is string &&
+        request.resource.data.bio is string && request.resource.data.bio.size() <= 2000 &&
+        request.resource.data.interests is string && request.resource.data.interests.size() <= 1000 &&
+        (request.resource.data.photoUrl == null ||
+          (request.resource.data.photoUrl is string && request.resource.data.photoUrl.size() < 900000)) &&
+        request.resource.data.updatedAt is number &&
+        request.resource.data.keys().hasOnly(
+          ['name', 'nickname', 'color', 'photoUrl', 'bio', 'interests', 'familyUid', 'createdAt', 'updatedAt']
+        );
+
+      // الطالبات لا يُنشئن أو يُحذفن من التطبيق - فقط سكربت seed.
+      allow create, delete: if false;
+
+      match /items/{itemId} {
+        allow read: if isFamilyOf(studentId) || isTeacher();
+
+        allow create: if isFamilyOf(studentId) &&
+          request.resource.data.section in ['certificate', 'achievement', 'lughati', 'riyadiyat'] &&
+          request.resource.data.kind in ['image', 'link'] &&
+          request.resource.data.url is string &&
+          request.resource.data.url.size() > 0 && request.resource.data.url.size() < 900000 &&
+          request.resource.data.title is string &&
+          request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 120 &&
+          request.resource.data.createdAt is number &&
+          request.resource.data.rating == null &&
+          request.resource.data.seen == true &&
+          request.resource.data.keys().hasOnly(['section', 'kind', 'url', 'title', 'createdAt', 'rating', 'seen']);
+
+        // العائلة تحذف عملها بكل سهولة في أي وقت (ملفها، قرارها).
+        allow delete: if isFamilyOf(studentId);
+
+        allow update: if
+          // العائلة تفتح التنبيه فقط (تعلّم الإشعار كمقروء) - لا تلمس التقييم.
+          (isFamilyOf(studentId) &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['seen']) &&
+            request.resource.data.seen is bool)
+          ||
+          // المعلمة تقيّم فقط أعمال قسم مادتها هي، وتضع تنبيهًا جديدًا للعائلة.
+          (isTeacher() &&
+            resource.data.section == teacherSubject() &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rating', 'seen']) &&
+            request.resource.data.rating.stars is int &&
+            request.resource.data.rating.stars >= 0 && request.resource.data.rating.stars <= 5 &&
+            request.resource.data.rating.comment is string && request.resource.data.rating.comment.size() <= 500 &&
+            (request.resource.data.rating.stars >= 1 || request.resource.data.rating.comment.size() > 0) &&
+            request.resource.data.rating.ratedByUid == request.auth.uid &&
+            request.resource.data.rating.ratedBySubject == teacherSubject() &&
+            request.resource.data.rating.ratedAt is number &&
+            request.resource.data.seen == false);
+      }
+    }
+  }
+}

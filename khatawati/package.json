@@ -1,0 +1,44 @@
+{
+  "name": "khatawati-portfolio",
+  "private": true,
+  "version": "1.0.0",
+  "description": "خطواتي - ملف إنجاز رقمي تفاعلي لطالبات الصف الثالث - الابتدائية الخامسة والستون بعد المائة",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext ts,tsx --max-warnings 0",
+    "typecheck": "tsc -b --noEmit",
+    "seed": "tsx scripts/seed.ts",
+    "emulator": "firebase emulators:start --only auth,firestore,storage",
+    "test:rules": "firebase emulators:exec --only firestore,auth \"vitest run tests/rules\"",
+    "deploy:rules": "firebase deploy --project production --only firestore:rules,firestore:indexes,storage",
+    "deploy:hosting": "firebase deploy --project production --only hosting"
+  },
+  "dependencies": {
+    "firebase": "^12.18.0",
+    "qrcode": "^1.5.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^7.18.3"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@typescript-eslint/eslint-plugin": "^8.15.0",
+    "@typescript-eslint/parser": "^8.15.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^8.57.1",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-react-refresh": "^0.4.14",
+    "firebase-admin": "^13.0.2",
+    "firebase-tools": "^13.29.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.3",
+    "vitest": "^2.1.8"
+  }
+}
