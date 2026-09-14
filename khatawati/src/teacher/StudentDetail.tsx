@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/auth/AuthContext";
 import { subscribeStudent } from "@/lib/repo";
 import { SectionPanel } from "@/components/SectionPanel";
+import { GirlAvatar } from "@/components/GirlAvatar";
 import { SUBJECT_LABELS } from "@/types/models";
 import type { Student } from "@/types/models";
 
@@ -17,35 +18,41 @@ export function StudentDetail({ studentId }: { studentId: string }) {
   const subject = appUser.subject;
 
   return (
-    <div className="portfolio portfolio--readonly" style={{ ["--brand" as string]: student.color }}>
+    <div className="portfolio" style={{ ["--brand" as string]: student.color }}>
       <Link to="/teacher" className="teacher-dashboard__back">
         ← كل الطالبات
       </Link>
-      <header className="portfolio__header portfolio__header--readonly">
-        {student.photoUrl ? <img className="portfolio__photo-ro" src={student.photoUrl} alt={student.nickname} /> : null}
+      <div className="readonly-header">
+        {student.photoUrl ? <img src={student.photoUrl} alt={student.nickname} /> : <GirlAvatar color={student.color} />}
         <div>
           <h1>{student.nickname || student.name}</h1>
           {student.bio && <p>{student.bio}</p>}
-          {student.interests && (
-            <p>
-              <strong>اهتماماتها:</strong> {student.interests}
-            </p>
-          )}
-        </div>
-      </header>
-
-      <div className="portfolio__about-tab">
-        <div>
-          <h3>شهاداتها</h3>
-          <SectionPanel studentId={studentId} section="certificate" color={student.color} canAdd={false} />
-        </div>
-        <div>
-          <h3>إنجازاتها</h3>
-          <SectionPanel studentId={studentId} section="achievement" color={student.color} canAdd={false} />
+          {student.interests && <p>اهتماماتها: {student.interests}</p>}
         </div>
       </div>
 
-      <h3 className="teacher-dashboard__subject-title">أعمال {SUBJECT_LABELS[subject]} - للتقييم</h3>
+      <div className="section-heading">
+        <span className="section-heading__icon" style={{ ["--medallion" as string]: "#fdecd1" }}>
+          🏅
+        </span>
+        <h3>شهاداتها</h3>
+      </div>
+      <SectionPanel studentId={studentId} section="certificate" color={student.color} canAdd={false} />
+
+      <div className="section-heading">
+        <span className="section-heading__icon" style={{ ["--medallion" as string]: "#daf3ea" }}>
+          ⭐
+        </span>
+        <h3>إنجازاتها</h3>
+      </div>
+      <SectionPanel studentId={studentId} section="achievement" color={student.color} canAdd={false} />
+
+      <div className="section-heading">
+        <span className="section-heading__icon" style={{ ["--medallion" as string]: subject === "lughati" ? "#dff1fc" : "#ece3f7" }}>
+          {subject === "lughati" ? "📖" : "🔢"}
+        </span>
+        <h3>أعمال {SUBJECT_LABELS[subject]} - للتقييم</h3>
+      </div>
       <SectionPanel
         studentId={studentId}
         section={subject}

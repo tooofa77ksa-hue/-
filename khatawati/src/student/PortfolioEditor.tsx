@@ -1,13 +1,20 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/auth/AuthContext";
-import { subscribeStudent, updateStudentProfile } from "@/lib/repo";
+import { subscribeItems, subscribeStudent, updateStudentProfile } from "@/lib/repo";
 import { subscribeUnseenCount } from "@/lib/notifications";
 import { compressImageToDataUrl } from "@/lib/imageCompress";
 import { SectionPanel } from "@/components/SectionPanel";
-import type { Student } from "@/types/models";
+import { GirlAvatar } from "@/components/GirlAvatar";
+import type { PortfolioItem, Student } from "@/types/models";
 
-const COLORS = ["#e0568c", "#8b5fbf", "#2e9bd6", "#2ab07f", "#f0a340", "#e2554a"];
+const COLORS = ["#ec5c8d", "#8b5fbf", "#2f9bd6", "#21a67a", "#f2a63c", "#e2554a"];
 type Tab = "about" | "lughati" | "riyadiyat";
+
+const NAV_ITEMS: { tab: Tab; label: string; icon: string; medallion: string }[] = [
+  { tab: "about", label: "شهاداتي وإنجازاتي", icon: "🏅", medallion: "#fdecd1" },
+  { tab: "lughati", label: "لغتي", icon: "📖", medallion: "#dff1fc" },
+  { tab: "riyadiyat", label: "رياضيات", icon: "🔢", medallion: "#ece3f7" },
+];
 
 export function PortfolioEditor() {
   const { appUser } = useAuth();
@@ -15,6 +22,7 @@ export function PortfolioEditor() {
   const [student, setStudent] = useState<Student | null>(null);
   const [tab, setTab] = useState<Tab>("about");
   const [unseen, setUnseen] = useState(0);
+  const [allItems, setAllItems] = useState<PortfolioItem[]>([]);
 
   const [nickname, setNickname] = useState("");
   const [color, setColor] = useState(COLORS[0]);
@@ -44,8 +52,15 @@ export function PortfolioEditor() {
     return subscribeUnseenCount(studentId, setUnseen);
   }, [studentId]);
 
+  useEffect(() => {
+    if (!studentId) return;
+    return subscribeItems(studentId, null, setAllItems);
+  }, [studentId]);
+
   if (!studentId) return <div className="page-loading">جارِ التحميل...</div>;
   if (!student) return <div className="page-loading">جارِ التحميل...</div>;
+
+  const countOf = (section: PortfolioItem["section"]) => allItems.filter((it) => it.section === section).length;
 
   const handlePhoto = async (file: File | null) => {
     if (!file) return;
@@ -66,41 +81,43 @@ export function PortfolioEditor() {
 
   return (
     <div className="portfolio" style={{ ["--brand" as string]: color }}>
-      <header className="portfolio__header">
-        <div className="portfolio__photo">
-          {photoUrl ? <img src={photoUrl} alt={nickname} /> : <div className="portfolio__photo-placeholder">👧</div>}
-          <label className="portfolio__photo-change">
-            تغيير الصورة
-            <input type="file" accept="image/*" onChange={(e) => handlePhoto(e.target.files?.[0] ?? null)} hidden />
-          </label>
-          {photoUrl && (
-            <button
-              type="button"
-              className="portfolio__photo-remove"
-              onClick={() => {
-                setPhotoUrl(null);
-                setDirty(true);
-              }}
-            >
-              حذف الصورة
-            </button>
-          )}
+      <div className="profile-card">
+        <div className="profile-card__avatar">
+          {photoUrl ? <img src={photoUrl} alt={nickname} /> : <GirlAvatar color={color} />}
+          <div className="profile-card__photo-actions">
+            <label className="profile-card__photo-btn">
+              تغيير الصورة
+              <input type="file" accept="image/*" onChange={(e) => handlePhoto(e.target.files?.[0] ?? null)} hidden />
+            </label>
+            {photoUrl && (
+              <button
+                type="button"
+                className="profile-card__photo-btn profile-card__photo-btn--danger"
+                onClick={() => {
+                  setPhotoUrl(null);
+                  setDirty(true);
+                }}
+              >
+                حذف
+              </button>
+            )}
+          </div>
         </div>
-        <div className="portfolio__identity">
+        <div className="profile-card__identity">
           <input
-            className="portfolio__nickname"
+            className="profile-card__nickname"
             value={nickname}
             onChange={(e) => {
               setNickname(e.target.value);
               setDirty(true);
             }}
           />
-          <div className="portfolio__colors">
+          <div className="profile-card__colors">
             {COLORS.map((c) => (
               <button
                 key={c}
                 type="button"
-                className={`portfolio__color ${c === color ? "is-active" : ""}`}
+                className={`profile-card__color ${c === color ? "is-active" : ""}`}
                 style={{ background: c }}
                 onClick={() => {
                   setColor(c);
@@ -111,13 +128,44 @@ export function PortfolioEditor() {
             ))}
           </div>
         </div>
-      </header>
+      </div>
 
       {unseen > 0 && (
         <div className="portfolio__notify">
           🎉 عندك {unseen} تقييم جديد من المعلمة! افتحي "لغتي" أو "رياضيات" لتشوفيه.
         </div>
       )}
+
+      <div className="stat-row">
+        <div className="stat-chip">
+          <span className="stat-chip__icon" style={{ ["--medallion" as string]: "#fdecd1" }}>
+            🏅
+          </span>
+          <span className="stat-chip__number">{countOf("certificate")}</span>
+          <span className="stat-chip__label">شهادات</span>
+        </div>
+        <div className="stat-chip">
+          <span className="stat-chip__icon" style={{ ["--medallion" as string]: "#daf3ea" }}>
+            ⭐
+          </span>
+          <span className="stat-chip__number">{countOf("achievement")}</span>
+          <span className="stat-chip__label">إنجازات</span>
+        </div>
+        <div className="stat-chip">
+          <span className="stat-chip__icon" style={{ ["--medallion" as string]: "#dff1fc" }}>
+            📖
+          </span>
+          <span className="stat-chip__number">{countOf("lughati")}</span>
+          <span className="stat-chip__label">أعمال لغتي</span>
+        </div>
+        <div className="stat-chip">
+          <span className="stat-chip__icon" style={{ ["--medallion" as string]: "#ece3f7" }}>
+            🔢
+          </span>
+          <span className="stat-chip__number">{countOf("riyadiyat")}</span>
+          <span className="stat-chip__label">أعمال رياضيات</span>
+        </div>
+      </div>
 
       <section className="portfolio__about-fields">
         <label>
@@ -151,36 +199,51 @@ export function PortfolioEditor() {
         )}
       </section>
 
-      <nav className="portfolio__tabs">
-        <button className={tab === "about" ? "is-active" : ""} onClick={() => setTab("about")}>
-          شهاداتي وإنجازاتي
-        </button>
-        <button className={tab === "lughati" ? "is-active" : ""} onClick={() => setTab("lughati")}>
-          لغتي
-        </button>
-        <button className={tab === "riyadiyat" ? "is-active" : ""} onClick={() => setTab("riyadiyat")}>
-          رياضيات
-        </button>
-      </nav>
+      <div className="role-layout">
+        <nav className="side-nav">
+          {NAV_ITEMS.map((n) => (
+            <button
+              key={n.tab}
+              type="button"
+              className={`side-nav__item ${tab === n.tab ? "is-active" : ""}`}
+              onClick={() => setTab(n.tab)}
+            >
+              <span className="side-nav__icon" style={{ ["--medallion" as string]: n.medallion }}>
+                {n.icon}
+              </span>
+              {n.label}
+            </button>
+          ))}
+        </nav>
 
-      {tab === "about" && (
-        <div className="portfolio__about-tab">
-          <div>
-            <h3>شهاداتي</h3>
-            <SectionPanel studentId={studentId} section="certificate" color={color} canAdd />
-          </div>
-          <div>
-            <h3>إنجازاتي</h3>
-            <SectionPanel studentId={studentId} section="achievement" color={color} canAdd />
-          </div>
+        <div className="role-content">
+          {tab === "about" && (
+            <>
+              <div className="section-heading">
+                <span className="section-heading__icon" style={{ ["--medallion" as string]: "#fdecd1" }}>
+                  🏅
+                </span>
+                <h3>شهاداتي</h3>
+              </div>
+              <SectionPanel studentId={studentId} section="certificate" color={color} canAdd />
+
+              <div className="section-heading">
+                <span className="section-heading__icon" style={{ ["--medallion" as string]: "#daf3ea" }}>
+                  ⭐
+                </span>
+                <h3>إنجازاتي</h3>
+              </div>
+              <SectionPanel studentId={studentId} section="achievement" color={color} canAdd />
+            </>
+          )}
+          {tab === "lughati" && (
+            <SectionPanel studentId={studentId} section="lughati" color={color} canAdd markSeenOnMount />
+          )}
+          {tab === "riyadiyat" && (
+            <SectionPanel studentId={studentId} section="riyadiyat" color={color} canAdd markSeenOnMount />
+          )}
         </div>
-      )}
-      {tab === "lughati" && (
-        <SectionPanel studentId={studentId} section="lughati" color={color} canAdd markSeenOnMount />
-      )}
-      {tab === "riyadiyat" && (
-        <SectionPanel studentId={studentId} section="riyadiyat" color={color} canAdd markSeenOnMount />
-      )}
+      </div>
     </div>
   );
 }
