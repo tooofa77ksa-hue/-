@@ -5,15 +5,16 @@ import { subscribeUnseenCount } from "@/lib/notifications";
 import { compressImageToDataUrl } from "@/lib/imageCompress";
 import { SectionPanel } from "@/components/SectionPanel";
 import { GirlAvatar } from "@/components/GirlAvatar";
+import { CATEGORY_STYLE } from "@/components/icons";
 import type { PortfolioItem, Student } from "@/types/models";
 
 const COLORS = ["#ec5c8d", "#8b5fbf", "#2f9bd6", "#21a67a", "#f2a63c", "#e2554a"];
 type Tab = "about" | "lughati" | "riyadiyat";
 
-const NAV_ITEMS: { tab: Tab; label: string; icon: string; medallion: string }[] = [
-  { tab: "about", label: "شهاداتي وإنجازاتي", icon: "🏅", medallion: "#fdecd1" },
-  { tab: "lughati", label: "لغتي", icon: "📖", medallion: "#dff1fc" },
-  { tab: "riyadiyat", label: "رياضيات", icon: "🔢", medallion: "#ece3f7" },
+const NAV_ITEMS: { tab: Tab; label: string; style: (typeof CATEGORY_STYLE)[keyof typeof CATEGORY_STYLE] }[] = [
+  { tab: "about", label: "شهاداتي وإنجازاتي", style: CATEGORY_STYLE.certificate },
+  { tab: "lughati", label: "لغتي", style: CATEGORY_STYLE.lughati },
+  { tab: "riyadiyat", label: "رياضيات", style: CATEGORY_STYLE.riyadiyat },
 ];
 
 export function PortfolioEditor() {
@@ -137,34 +138,25 @@ export function PortfolioEditor() {
       )}
 
       <div className="stat-row">
-        <div className="stat-chip">
-          <span className="stat-chip__icon" style={{ ["--medallion" as string]: "#fdecd1" }}>
-            🏅
-          </span>
-          <span className="stat-chip__number">{countOf("certificate")}</span>
-          <span className="stat-chip__label">شهادات</span>
-        </div>
-        <div className="stat-chip">
-          <span className="stat-chip__icon" style={{ ["--medallion" as string]: "#daf3ea" }}>
-            ⭐
-          </span>
-          <span className="stat-chip__number">{countOf("achievement")}</span>
-          <span className="stat-chip__label">إنجازات</span>
-        </div>
-        <div className="stat-chip">
-          <span className="stat-chip__icon" style={{ ["--medallion" as string]: "#dff1fc" }}>
-            📖
-          </span>
-          <span className="stat-chip__number">{countOf("lughati")}</span>
-          <span className="stat-chip__label">أعمال لغتي</span>
-        </div>
-        <div className="stat-chip">
-          <span className="stat-chip__icon" style={{ ["--medallion" as string]: "#ece3f7" }}>
-            🔢
-          </span>
-          <span className="stat-chip__number">{countOf("riyadiyat")}</span>
-          <span className="stat-chip__label">أعمال رياضيات</span>
-        </div>
+        {(
+          [
+            ["certificate", "شهادات"],
+            ["achievement", "إنجازات"],
+            ["lughati", "أعمال لغتي"],
+            ["riyadiyat", "أعمال رياضيات"],
+          ] as const
+        ).map(([section, label]) => {
+          const { bg, fg, Icon } = CATEGORY_STYLE[section];
+          return (
+            <div className="stat-chip" key={section}>
+              <span className="stat-chip__icon" style={{ ["--medallion" as string]: bg }}>
+                <Icon color={fg} size={16} />
+              </span>
+              <span className="stat-chip__number">{countOf(section)}</span>
+              <span className="stat-chip__label">{label}</span>
+            </div>
+          );
+        })}
       </div>
 
       <section className="portfolio__about-fields">
@@ -201,35 +193,38 @@ export function PortfolioEditor() {
 
       <div className="role-layout">
         <nav className="side-nav">
-          {NAV_ITEMS.map((n) => (
-            <button
-              key={n.tab}
-              type="button"
-              className={`side-nav__item ${tab === n.tab ? "is-active" : ""}`}
-              onClick={() => setTab(n.tab)}
-            >
-              <span className="side-nav__icon" style={{ ["--medallion" as string]: n.medallion }}>
-                {n.icon}
-              </span>
-              {n.label}
-            </button>
-          ))}
+          {NAV_ITEMS.map((n) => {
+            const { bg, fg, Icon } = n.style;
+            return (
+              <button
+                key={n.tab}
+                type="button"
+                className={`side-nav__item ${tab === n.tab ? "is-active" : ""}`}
+                onClick={() => setTab(n.tab)}
+              >
+                <span className="side-nav__icon" style={{ ["--medallion" as string]: bg }}>
+                  <Icon color={fg} size={17} />
+                </span>
+                {n.label}
+              </button>
+            );
+          })}
         </nav>
 
         <div className="role-content">
           {tab === "about" && (
             <>
               <div className="section-heading">
-                <span className="section-heading__icon" style={{ ["--medallion" as string]: "#fdecd1" }}>
-                  🏅
+                <span className="section-heading__icon" style={{ ["--medallion" as string]: CATEGORY_STYLE.certificate.bg }}>
+                  <CATEGORY_STYLE.certificate.Icon color={CATEGORY_STYLE.certificate.fg} size={17} />
                 </span>
                 <h3>شهاداتي</h3>
               </div>
               <SectionPanel studentId={studentId} section="certificate" color={color} canAdd />
 
               <div className="section-heading">
-                <span className="section-heading__icon" style={{ ["--medallion" as string]: "#daf3ea" }}>
-                  ⭐
+                <span className="section-heading__icon" style={{ ["--medallion" as string]: CATEGORY_STYLE.achievement.bg }}>
+                  <CATEGORY_STYLE.achievement.Icon color={CATEGORY_STYLE.achievement.fg} size={17} />
                 </span>
                 <h3>إنجازاتي</h3>
               </div>

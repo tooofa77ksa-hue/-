@@ -4,6 +4,7 @@ import { useAuth } from "@/auth/AuthContext";
 import { subscribeStudent } from "@/lib/repo";
 import { SectionPanel } from "@/components/SectionPanel";
 import { GirlAvatar } from "@/components/GirlAvatar";
+import { CATEGORY_STYLE } from "@/components/icons";
 import { SUBJECT_LABELS } from "@/types/models";
 import type { Student } from "@/types/models";
 
@@ -16,6 +17,8 @@ export function StudentDetail({ studentId }: { studentId: string }) {
   if (!student || !appUser?.subject) return <div className="page-loading">جارِ التحميل...</div>;
 
   const subject = appUser.subject;
+  const subjectStyle = CATEGORY_STYLE[subject];
+  const SubjectIcon = subjectStyle.Icon;
 
   return (
     <div className="portfolio" style={{ ["--brand" as string]: student.color }}>
@@ -32,24 +35,24 @@ export function StudentDetail({ studentId }: { studentId: string }) {
       </div>
 
       <div className="section-heading">
-        <span className="section-heading__icon" style={{ ["--medallion" as string]: "#fdecd1" }}>
-          🏅
+        <span className="section-heading__icon" style={{ ["--medallion" as string]: CATEGORY_STYLE.certificate.bg }}>
+          <CATEGORY_STYLE.certificate.Icon color={CATEGORY_STYLE.certificate.fg} size={17} />
         </span>
         <h3>شهاداتها</h3>
       </div>
       <SectionPanel studentId={studentId} section="certificate" color={student.color} canAdd={false} />
 
       <div className="section-heading">
-        <span className="section-heading__icon" style={{ ["--medallion" as string]: "#daf3ea" }}>
-          ⭐
+        <span className="section-heading__icon" style={{ ["--medallion" as string]: CATEGORY_STYLE.achievement.bg }}>
+          <CATEGORY_STYLE.achievement.Icon color={CATEGORY_STYLE.achievement.fg} size={17} />
         </span>
         <h3>إنجازاتها</h3>
       </div>
       <SectionPanel studentId={studentId} section="achievement" color={student.color} canAdd={false} />
 
       <div className="section-heading">
-        <span className="section-heading__icon" style={{ ["--medallion" as string]: subject === "lughati" ? "#dff1fc" : "#ece3f7" }}>
-          {subject === "lughati" ? "📖" : "🔢"}
+        <span className="section-heading__icon" style={{ ["--medallion" as string]: subjectStyle.bg }}>
+          <SubjectIcon color={subjectStyle.fg} size={17} />
         </span>
         <h3>أعمال {SUBJECT_LABELS[subject]} - للتقييم</h3>
       </div>
