@@ -390,13 +390,21 @@ function programFromDb(r){
 function teamFromDb(r){ return {id:r.id, name:r.name, role:r.role, task:r.task}; }
 
 function priorityPatchToDb(patch){
-  const map = {target:'target', lastMeasured:'last_measured', executionStatus:'execution_status', responsible:'responsible', evidenceUrl:'evidence_url', notes:'notes', evidenceType:'evidence_type', evidenceNote:'evidence_note'};
+  const map = {target:'target', lastMeasured:'last_measured', executionStatus:'execution_status', responsible:'responsible', evidenceUrl:'evidence_url', notes:'notes', evidenceType:'evidence_type', evidenceNote:'evidence_note',
+    domain:'domain', framework:'framework', level:'level', baseline:'baseline', text:'text'};
   const out = {};
   for (const k in patch) if (map[k]) out[map[k]] = patch[k];
   return out;
 }
 function programPatchToDb(patch){
-  const map = {executed:'executed', achievementLevel:'achievement_level', notExecutedReason:'not_executed_reason', proposedDate:'proposed_date', evaluationTool:'evaluation_tool'};
+  const map = {executed:'executed', achievementLevel:'achievement_level', notExecutedReason:'not_executed_reason', proposedDate:'proposed_date', evaluationTool:'evaluation_tool',
+    name:'name', domain:'domain', executionDate:'execution_date'};
+  const out = {};
+  for (const k in patch) if (map[k]) out[map[k]] = patch[k];
+  return out;
+}
+function actionPatchToDb(patch){
+  const map = {domain:'domain', indicatorText:'indicator_text', improvementAction:'improvement_action', method:'method', dueDate:'due_date', needDescription:'need_description', responsible:'responsible'};
   const out = {};
   for (const k in patch) if (map[k]) out[map[k]] = patch[k];
   return out;
@@ -703,11 +711,14 @@ function renderDetail(el, p, opts){
         <div id="actionsWrap" class="hidden" style="margin-top:14px">
           <div class="field"><label>الإطار الموجه</label><div class="val">${esc(p.framework||'—')}</div></div>
           <ul class="actions-list">
-            ${acts.map(a=>`<li class="action-row">
+            ${acts.map(a=>`<li class="action-row" data-action-id="${a.id}">
               <div class="m">${esc(a.method)}</div>
               <div class="meta"><span>📅 ${esc(a.dueDate)}</span><span>👤 ${esc(a.responsible)}</span></div>
+              ${MODE==='admin'?`<div class="actions" style="margin-top:6px"><button type="button" class="btn sm ghost" data-edit-action="${a.id}">تعديل</button><button type="button" class="btn sm ghost" data-delete-action="${a.id}" style="color:#a33">${icon('trash')} حذف</button></div>`:''}
             </li>`).join('') || '<li class="empty">لا توجد إجراءات مرتبطة موثقة</li>'}
           </ul>
+          ${MODE==='admin'?`<button type="button" class="btn sm teal" id="addActionBtn" style="margin-top:10px">${icon('plus')} إضافة إجراء جديد</button>`:''}
+          <div id="actionModal"></div>
         </div>
 
         ${opts.showAdminForm && MODE==='admin' ? adminPriorityForm(p) : ''}
@@ -716,7 +727,76 @@ function renderDetail(el, p, opts){
   `;
   const toggleBtn = document.getElementById('toggleActionsBtn');
   if (toggleBtn) toggleBtn.addEventListener('click', ()=>{ document.getElementById('actionsWrap').classList.toggle('hidden'); });
+  if (MODE==='admin'){
+    document.querySelectorAll('[data-edit-action]').forEach(b=>b.addEventListener('click', ()=>{
+      openActionEditor(state.actions.find(a=>a.id===b.dataset.editAction), p, el);
+    }));
+    document.querySelectorAll('[data-delete-action]').forEach(b=>b.addEventListener('click', async ()=>{
+      if (!confirm('هل تريدين حذف هذا الإجراء نهائيًا؟ لا يمكن التراجع.')) return;
+      const id = b.dataset.deleteAction;
+      const {error} = await sb.from('actions').delete().eq('id', id);
+      if (!error){
+        state.actions = state.actions.filter(x=>x.id!==id);
+        renderDetail(el, p, opts);
+      }
+    }));
+    const addActionBtn = document.getElementById('addActionBtn');
+    if (addActionBtn) addActionBtn.addEventListener('click', ()=>{ openActionEditor(null, p, el); });
+  }
   if (opts.showAdminForm && MODE==='admin') wireAdminPriorityForm(p);
+}
+
+function openActionEditor(a, p, el){
+  const isNew = !a;
+  const modal = document.getElementById('actionModal');
+  modal.innerHTML = `
+    <div style="position:fixed;inset:0;background:rgba(15,27,32,.5);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px" id="actModalBg">
+      <div class="card" style="max-width:520px;width:100%;max-height:88vh;overflow-y:auto">
+        <div class="card-hd"><h3>${isNew?'إضافة إجراء جديد':'تعديل الإجراء'}</h3><button class="btn sm ghost" id="actModalClose">✕</button></div>
+        <div class="card-bd">
+          <form id="actForm">
+            <div class="form-grid">
+              <div class="f-field full"><label>الإجراء التحسيني</label><textarea name="improvementAction">${esc(a?.improvementAction||'')}</textarea></div>
+              <div class="f-field full"><label>طريقة التنفيذ / الآلية</label><textarea name="method">${esc(a?.method||'')}</textarea></div>
+              <div class="f-field"><label>التاريخ المستهدف</label><input name="dueDate" value="${esc(a?.dueDate||'')}"></div>
+              <div class="f-field"><label>المسؤول عن التنفيذ</label><input name="responsible" value="${esc(a?.responsible||'')}"></div>
+              <div class="f-field full"><label>وصف الاحتياج / المبرر</label><textarea name="needDescription">${esc(a?.needDescription||'')}</textarea></div>
+            </div>
+            <div class="save-bar">
+              <button type="submit" class="btn teal">${isNew?'إضافة':'حفظ'}</button>
+              <span class="save-msg" id="actSaveMsg"></span>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('actModalClose').addEventListener('click', ()=>modal.innerHTML='');
+  document.getElementById('actModalBg').addEventListener('click', e=>{ if(e.target.id==='actModalBg') modal.innerHTML=''; });
+  document.getElementById('actForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const patch = Object.fromEntries(fd.entries());
+    const msg = document.getElementById('actSaveMsg');
+    msg.textContent = 'جارِ الحفظ…'; msg.className='save-msg';
+    if (isNew){
+      const newId = 'a' + String(Date.now()).slice(-8);
+      const row = Object.assign({id:newId, domain:p.domain, indicatorText:p.text}, patch);
+      const {error} = await sb.from('actions').insert(actionPatchToDb(row));
+      if (!error){
+        state.actions.push(row);
+        msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
+        setTimeout(()=>{ modal.innerHTML=''; renderDetail(el, p, {showAdminForm:true}); }, 500);
+      } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+    } else {
+      const {error} = await sb.from('actions').update(actionPatchToDb(patch)).eq('id', a.id);
+      if (!error){
+        Object.assign(a, patch);
+        msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
+        setTimeout(()=>{ modal.innerHTML=''; renderDetail(el, p, {showAdminForm:true}); }, 500);
+      } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+    }
+  });
 }
 
 function adminPriorityForm(p){
@@ -724,6 +804,15 @@ function adminPriorityForm(p){
     <form id="priForm" style="margin-top:18px;padding-top:16px;border-top:2px dashed var(--border)">
       <h3 style="margin:0 0 12px;font-size:14.5px">تعديل المؤشر (وضع الإدارة)</h3>
       <div class="form-grid">
+        <div class="f-field full"><label>نص المؤشر</label><textarea name="text">${esc(p.text||'')}</textarea></div>
+        <div class="f-field"><label>المجال</label>
+          <select name="domain">
+            ${DOMAIN_LIST.map(d=>`<option ${normDomain(p.domain)===d?'selected':''}>${d}</option>`).join('')}
+          </select>
+        </div>
+        <div class="f-field"><label>المستوى</label><input name="level" value="${esc(p.level||'')}"></div>
+        <div class="f-field full"><label>الإطار الموجه</label><input name="framework" value="${esc(p.framework||'')}"></div>
+        <div class="f-field"><label>خط الأساس (%)</label><input name="baseline" value="${esc(p.baseline)}"></div>
         <div class="f-field"><label>المستهدف (%)</label><input name="target" value="${esc(p.target)}"></div>
         <div class="f-field"><label>آخر قياس موثق (%)</label><input name="lastMeasured" value="${esc(p.lastMeasured||'')}"></div>
         <div class="f-field"><label>حالة التنفيذ</label>
@@ -737,7 +826,8 @@ function adminPriorityForm(p){
       </div>
       <div class="save-bar">
         <button type="submit" class="btn teal">حفظ التعديلات</button>
-        <button type="button" class="btn sm ghost" id="archiveBtn">${icon('archive')} ${p.archived?'إلغاء الأرشفة':'أرشفة هذا المؤشر'}</button>
+        <button type="button" class="btn sm ghost" id="archiveBtn">${icon('archive')} ${p.archived?'إلغاء الأرشفة':'أرشفة'}</button>
+        <button type="button" class="btn sm ghost" id="deletePriBtn" style="color:#a33">${icon('trash')} حذف نهائي</button>
         <span class="save-msg" id="priSaveMsg"></span>
       </div>
     </form>
@@ -766,6 +856,16 @@ function wireAdminPriorityForm(p){
     const newVal = !p.archived;
     const {error} = await sb.from('priorities').update({archived:newVal}).eq('id', p.id);
     if (!error){ p.archived = newVal; state.selectedPriority=null; renderPriorities(document.getElementById('content')); }
+  });
+  const deleteBtn = document.getElementById('deletePriBtn');
+  if (deleteBtn) deleteBtn.addEventListener('click', async ()=>{
+    if (!confirm('هل تريدين حذف هذا المؤشر نهائيًا؟ لا يمكن التراجع.')) return;
+    const {error} = await sb.from('priorities').delete().eq('id', p.id);
+    if (!error){
+      state.priorities = state.priorities.filter(x=>x.id!==p.id);
+      state.selectedPriority = null;
+      renderPriorities(document.getElementById('content'));
+    }
   });
 }
 
@@ -815,9 +915,13 @@ function openProgramEditor(p){
       <div class="card" style="max-width:520px;width:100%;max-height:88vh;overflow-y:auto">
         <div class="card-hd"><h3>تحديث حالة البرنامج</h3><button class="btn sm ghost" id="modalClose">✕</button></div>
         <div class="card-bd">
-          <div class="field"><label>البرنامج</label><div class="val">${esc(p.name)}</div></div>
           <form id="progForm">
             <div class="form-grid">
+              <div class="f-field full"><label>اسم البرنامج / المشروع</label><input name="name" value="${esc(p.name)}"></div>
+              <div class="f-field"><label>المجال</label>
+                <select name="domain">${DOMAIN_LIST.map(d=>`<option ${normDomain(p.domain)===d?'selected':''}>${d}</option>`).join('')}</select>
+              </div>
+              <div class="f-field"><label>تاريخ التنفيذ</label><input name="executionDate" value="${esc(p.executionDate||'')}"></div>
               <div class="f-field"><label>حالة التنفيذ</label>
                 <select name="executed"><option value="" ${!p.executed?'selected':''}>لم يُحدَّث</option><option value="true" ${p.executed===true?'selected':''}>نُفّذ</option><option value="false" ${p.executed===false?'selected':''}>لم يُنفَّذ</option></select>
               </div>
@@ -831,6 +935,7 @@ function openProgramEditor(p){
             <div class="save-bar">
               <button type="submit" class="btn teal">حفظ</button>
               <button type="button" class="btn sm ghost" id="archiveProgBtn">${icon('archive')} ${p.archived?'إلغاء الأرشفة':'أرشفة'}</button>
+              <button type="button" class="btn sm ghost" id="deleteProgBtn" style="color:#a33">${icon('trash')} حذف نهائي</button>
               <span class="save-msg" id="progSaveMsg"></span>
             </div>
           </form>
@@ -858,6 +963,15 @@ function openProgramEditor(p){
     const newVal = !p.archived;
     const {error} = await sb.from('programs').update({archived:newVal}).eq('id', p.id);
     if (!error){ p.archived = newVal; modal.innerHTML=''; renderPrograms(document.getElementById('content')); }
+  });
+  document.getElementById('deleteProgBtn').addEventListener('click', async ()=>{
+    if (!confirm('هل تريدين حذف هذا البرنامج نهائيًا؟ لا يمكن التراجع.')) return;
+    const {error} = await sb.from('programs').delete().eq('id', p.id);
+    if (!error){
+      state.programs = state.programs.filter(x=>x.id!==p.id);
+      modal.innerHTML='';
+      renderPrograms(document.getElementById('content'));
+    }
   });
 }
 
@@ -1016,11 +1130,16 @@ function renderTeam(c){
         <div class="save-bar"><button type="submit" class="btn teal">${icon('plus')} إضافة العضو</button><span class="save-msg" id="teamSaveMsg"></span></div>
       </form>` : ''}
       <div class="team-grid">
-        ${state.team.map(t=>`<div class="team-card" data-id="${t.id}">
+        ${state.team.map(t=>MODE==='admin' ? `<div class="team-card" data-id="${t.id}">
+          <div class="f-field"><label>الاسم</label><input data-team-field="name" data-id="${t.id}" value="${esc(t.name)}"></div>
+          <div class="f-field"><label>الوصف الوظيفي</label><input data-team-field="role" data-id="${t.id}" value="${esc(t.role)}"></div>
+          <div class="f-field"><label>المهمة</label><input data-team-field="task" data-id="${t.id}" value="${esc(t.task)}"></div>
+          <span class="save-msg" id="teamRowMsg-${t.id}"></span>
+          <button type="button" class="btn sm ghost" data-remove-team="${t.id}" style="margin-top:8px">${icon('trash')} حذف</button>
+        </div>` : `<div class="team-card" data-id="${t.id}">
           <div class="name">${esc(t.name)}</div>
           <div class="role">${esc(t.role)}</div>
           <div class="task">${esc(t.task)}</div>
-          ${MODE==='admin'?`<button type="button" class="btn sm ghost" data-remove-team="${t.id}" style="margin-top:8px">${icon('trash')} حذف</button>`:''}
         </div>`).join('') || '<div class="empty">لا يوجد أعضاء بعد</div>'}
       </div>
     </div></div>
@@ -1042,6 +1161,17 @@ function renderTeam(c){
         renderTeam(c);
       } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
     });
+    c.querySelectorAll('[data-team-field]').forEach(inp=>inp.addEventListener('change', async ()=>{
+      const id = inp.dataset.id, field = inp.dataset.teamField, val = inp.value;
+      const t = state.team.find(x=>x.id===id);
+      const msg = document.getElementById('teamRowMsg-'+id);
+      if (msg){ msg.textContent='جارِ الحفظ…'; msg.className='save-msg'; }
+      const {error} = await sb.from('team').update({[field]: val}).eq('id', id);
+      if (!error){
+        if (t) t[field] = val;
+        if (msg){ msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok'; }
+      } else if (msg){ msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+    }));
     c.querySelectorAll('[data-remove-team]').forEach(b=>b.addEventListener('click', async ()=>{
       const id = b.dataset.removeTeam;
       if (!confirm('هل تريدين حذف هذا العضو نهائيًا؟')) return;
