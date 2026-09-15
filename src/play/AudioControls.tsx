@@ -74,6 +74,14 @@ export function AudioControls() {
           <label>
             <input
               type="checkbox"
+              checked={prefs.musicMuted}
+              onChange={(e) => manager.setPrefs({ musicMuted: e.target.checked })}
+            />
+            كتم أغنية "نافس" فقط
+          </label>
+          <label>
+            <input
+              type="checkbox"
               checked={prefs.quietMode}
               onChange={(e) => manager.setPrefs({ quietMode: e.target.checked })}
             />

@@ -67,6 +67,11 @@ export interface AudioPrefs {
   voiceVolume: number;
   sfxVolume: number;
   musicVolume: number; // موسيقى الخلفية (BackgroundMusic.tsx) - قابلة للتحكم يدويًا
+  /** كتم أغنية الخلفية ("نافس") تحديدًا، بمعزل عن كتم الصوت العام -
+   * خانة صريحة بدل الاعتماد على سحب شريط موسيقى الخلفية إلى الصفر، حتى
+   * يبقى مستوى musicVolume الذي اختارته المستخدمة محفوظًا ويعود فور
+   * إلغاء الكتم. */
+  musicMuted: boolean;
   quietMode: boolean;
   reducedMotion: boolean;
 }
@@ -334,6 +339,7 @@ export function getAudioManager(defaults?: AudioPrefs): AudioManager {
         voiceVolume: 1,
         sfxVolume: 0.7,
         musicVolume: 1,
+        musicMuted: false,
         quietMode: false,
         reducedMotion: false,
       }
