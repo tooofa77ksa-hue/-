@@ -277,7 +277,16 @@ tbody tr:hover{background:var(--surface-2)}
   .print-header .ph-kingdom{font-size:12px;color:#5b6b73;font-weight:700}
   .print-header .ph-school{font-size:19px;font-weight:800;color:#15445A;margin-top:2px}
   .print-header .ph-title{font-size:13px;color:#0DA9A6;font-weight:700;margin-top:3px}
+  .print-footer{
+    display:flex!important;flex-direction:column;align-items:flex-end;gap:4px;
+    position:fixed;bottom:0;right:0;left:0;padding:10px 0 6px;border-top:2px solid #d9e3de;background:#fff;
+  }
+  .print-footer .pf-row{display:flex;align-items:center;gap:8px;font-size:11px;color:#3d5a68;font-weight:700}
+  .print-footer .pf-row img{height:22px;width:auto}
+  .print-footer .pf-school{width:100%;text-align:center;font-size:12px;font-weight:800;color:#15445A;margin-top:4px;padding-top:4px;border-top:1px dashed #d9e3de}
+  .content{padding-bottom:90px!important}
 }
+.print-footer{display:none}
 </style>
 </head>
 <body>
@@ -323,6 +332,7 @@ const state = {
   activeSection: 'overview',
   selectedPriority: null,
   loaded: false,
+  showArchived: false,
 };
 
 const root = document.getElementById('root');
@@ -349,6 +359,12 @@ function icon(name){
     link:'M9 17H7a5 5 0 010-10h2M15 7h2a5 5 0 010 10h-2M8 12h8',
     trash:'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6',
     logout:'M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9',
+    settings:'M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z',
+    help:'M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01M12 21a9 9 0 100-18 9 9 0 000 18z',
+    archive:'M21 8v13H3V8M1 3h22v5H1zM10 12h4',
+    plus:'M12 5v14M5 12h14',
+    youtube:'M22.54 6.42a2.78 2.78 0 00-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 00-1.94 2A29 29 0 001 11.75a29 29 0 00.46 5.33A2.78 2.78 0 003.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 001.94-2 29 29 0 00.46-5.25 29 29 0 00-.46-5.33zM9.75 15.02V8.48l5.75 3.27z',
+    note:'M14 3v5h5M6 3h8l5 5v13H6zM9 13h6M9 17h6',
   };
   return `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths[name]?`<path d="${paths[name]}"/>`:''}</svg>`;
 }
@@ -360,7 +376,8 @@ function metaFromDb(r){
 }
 function priorityFromDb(r){
   return {id:r.id, domain:r.domain, framework:r.framework, level:r.level, baseline:r.baseline, text:r.text, target:r.target,
-    lastMeasured:r.last_measured, executionStatus:r.execution_status, responsible:r.responsible, evidenceUrl:r.evidence_url, notes:r.notes};
+    lastMeasured:r.last_measured, executionStatus:r.execution_status, responsible:r.responsible, evidenceUrl:r.evidence_url, notes:r.notes,
+    archived:!!r.archived, evidenceType:r.evidence_type||'link', evidenceNote:r.evidence_note||''};
 }
 function actionFromDb(r){
   return {id:r.id, domain:r.domain, indicatorText:r.indicator_text, improvementAction:r.improvement_action, method:r.method,
@@ -368,12 +385,12 @@ function actionFromDb(r){
 }
 function programFromDb(r){
   return {id:r.id, name:r.name, domain:r.domain, executionDate:r.execution_date, executed:r.executed, achievementLevel:r.achievement_level,
-    evaluationTool:r.evaluation_tool, notExecutedReason:r.not_executed_reason, proposedDate:r.proposed_date};
+    evaluationTool:r.evaluation_tool, notExecutedReason:r.not_executed_reason, proposedDate:r.proposed_date, archived:!!r.archived};
 }
 function teamFromDb(r){ return {id:r.id, name:r.name, role:r.role, task:r.task}; }
 
 function priorityPatchToDb(patch){
-  const map = {target:'target', lastMeasured:'last_measured', executionStatus:'execution_status', responsible:'responsible', evidenceUrl:'evidence_url', notes:'notes'};
+  const map = {target:'target', lastMeasured:'last_measured', executionStatus:'execution_status', responsible:'responsible', evidenceUrl:'evidence_url', notes:'notes', evidenceType:'evidence_type', evidenceNote:'evidence_note'};
   const out = {};
   for (const k in patch) if (map[k]) out[map[k]] = patch[k];
   return out;
@@ -432,6 +449,8 @@ function render(){
     {id:'programs', label:'البرامج والإجراءات', ic:'doc'},
     {id:'evidence', label:'الشواهد', ic:'list'},
     {id:'team', label:'فريق العمل', ic:'users'},
+    {id:'faq', label:'الأسئلة الشائعة', ic:'help'},
+    ...(MODE==='admin' ? [{id:'settings', label:'الإعدادات', ic:'settings'}] : []),
   ];
 
   root.innerHTML = `
@@ -476,6 +495,11 @@ function render(){
           </div>
         </div>
         <div class="content" id="content"></div>
+        <div class="print-footer">
+          <div class="pf-row"><img src="${MINISTRY_LOGO}" alt="شعار وزارة التعليم"><span>مدير المدرسة: ${esc(state.team.find(t=>t.role==='مدير المدرسة')?.name||'—')}</span></div>
+          <div class="pf-row">الإدارة العامة للتعليم بمحافظة جدة</div>
+          <div class="pf-school">${esc(state.meta?.schoolName||'مدرسة النهروان الثانوية')}</div>
+        </div>
       </main>
     </div>
   `;
@@ -496,6 +520,8 @@ function renderContent(){
   if (state.activeSection === 'programs') return renderPrograms(c);
   if (state.activeSection === 'evidence') return renderEvidence(c);
   if (state.activeSection === 'team') return renderTeam(c);
+  if (state.activeSection === 'faq') return renderFaq(c);
+  if (state.activeSection === 'settings') return renderSettings(c);
 }
 
 const DOMAIN_ICON = {
@@ -548,7 +574,7 @@ function renderOverview(c){
     {label:'البيئة المدرسية', v: find('البيئة المدرسية')?.externalEval},
   ];
 
-  const list = state.priorities.filter(p=>!state.activeDomain || normDomain(p.domain)===state.activeDomain);
+  const list = state.priorities.filter(p=>!p.archived && (!state.activeDomain || normDomain(p.domain)===state.activeDomain));
   const preview = list.slice(0,6);
   const selected = state.priorities.find(p=>p.id===state.selectedPriority) || preview[0];
 
@@ -609,13 +635,17 @@ function priListItem(p, i){
 
 /* ---------------- priorities + detail ---------------- */
 function renderPriorities(c){
-  const list = state.priorities.filter(p=>!state.activeDomain || normDomain(p.domain)===state.activeDomain);
+  const all = state.priorities.filter(p=>!state.activeDomain || normDomain(p.domain)===state.activeDomain);
+  const list = all.filter(p=>state.showArchived ? p.archived : !p.archived);
   const selected = state.priorities.find(p=>p.id===state.selectedPriority) || list[0];
+  const archivedCount = all.filter(p=>p.archived).length;
   c.innerHTML = `
     <div class="grid-2">
       <div id="detailPane"></div>
       <div class="card">
-        <div class="card-hd"><h3>المؤشرات (${list.length})</h3></div>
+        <div class="card-hd"><h3>${state.showArchived?'المؤشرات المؤرشفة':'المؤشرات'} (${list.length})</h3>
+          ${MODE==='admin' && archivedCount>0 ? `<button class="btn sm ${state.showArchived?'primary':''}" id="toggleArchivedBtn">${icon('archive')} ${state.showArchived?'عرض النشط':'عرض الأرشيف ('+archivedCount+')'}</button>` : ''}
+        </div>
         <div class="card-bd">
           <div class="search">${icon('search')}<input id="priSearch" placeholder="البحث في المؤشرات…"></div>
           <ul class="pri-list" id="priListEl">
@@ -626,6 +656,8 @@ function renderPriorities(c){
     </div>
     <div style="margin-top:18px">${domainPillsRow()}</div>
   `;
+  const toggleArchivedBtn = document.getElementById('toggleArchivedBtn');
+  if (toggleArchivedBtn) toggleArchivedBtn.addEventListener('click', ()=>{ state.showArchived=!state.showArchived; state.selectedPriority=null; renderPriorities(c); });
   c.querySelectorAll('.pri-item').forEach(el=>el.addEventListener('click',()=>{state.selectedPriority=el.dataset.id;renderPriorities(c);}));
   const search = document.getElementById('priSearch');
   search.addEventListener('input', ()=>{
@@ -705,6 +737,7 @@ function adminPriorityForm(p){
       </div>
       <div class="save-bar">
         <button type="submit" class="btn teal">حفظ التعديلات</button>
+        <button type="button" class="btn sm ghost" id="archiveBtn">${icon('archive')} ${p.archived?'إلغاء الأرشفة':'أرشفة هذا المؤشر'}</button>
         <span class="save-msg" id="priSaveMsg"></span>
       </div>
     </form>
@@ -728,13 +761,24 @@ function wireAdminPriorityForm(p){
       msg.textContent = 'تعذّر الحفظ — حاولي مجددًا'; msg.className='save-msg err';
     }
   });
+  const archiveBtn = document.getElementById('archiveBtn');
+  if (archiveBtn) archiveBtn.addEventListener('click', async ()=>{
+    const newVal = !p.archived;
+    const {error} = await sb.from('priorities').update({archived:newVal}).eq('id', p.id);
+    if (!error){ p.archived = newVal; state.selectedPriority=null; renderPriorities(document.getElementById('content')); }
+  });
 }
 
 /* ---------------- programs ---------------- */
 function renderPrograms(c){
-  const list = state.programs.filter(p=>!state.activeDomain || normDomain(p.domain)===state.activeDomain);
+  const all = state.programs.filter(p=>!state.activeDomain || normDomain(p.domain)===state.activeDomain);
+  const list = all.filter(p=>state.showArchived ? p.archived : !p.archived);
+  const archivedCount = all.filter(p=>p.archived).length;
   c.innerHTML = `
     <div class="card">
+      <div class="card-hd"><h3>${state.showArchived?'البرامج المؤرشفة':'البرامج'} (${list.length})</h3>
+        ${MODE==='admin' && archivedCount>0 ? `<button class="btn sm ${state.showArchived?'primary':''}" id="toggleArchivedBtn">${icon('archive')} ${state.showArchived?'عرض النشط':'عرض الأرشيف ('+archivedCount+')'}</button>` : ''}
+      </div>
       <div class="card-bd table-wrap">
         <table>
           <thead><tr>
@@ -759,6 +803,8 @@ function renderPrograms(c){
   `;
   if (MODE==='admin'){
     c.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>openProgramEditor(list.find(p=>p.id===b.dataset.edit))));
+    const toggleArchivedBtn = document.getElementById('toggleArchivedBtn');
+    if (toggleArchivedBtn) toggleArchivedBtn.addEventListener('click', ()=>{ state.showArchived=!state.showArchived; renderPrograms(c); });
   }
 }
 
@@ -782,7 +828,11 @@ function openProgramEditor(p){
               <div class="f-field full"><label>تاريخ التنفيذ المقترح</label><input name="proposedDate" value="${esc(p.proposedDate||'')}"></div>
               <div class="f-field full"><label>أداة التقويم المستخدمة</label><input name="evaluationTool" value="${esc(p.evaluationTool||'')}"></div>
             </div>
-            <div class="save-bar"><button type="submit" class="btn teal">حفظ</button><span class="save-msg" id="progSaveMsg"></span></div>
+            <div class="save-bar">
+              <button type="submit" class="btn teal">حفظ</button>
+              <button type="button" class="btn sm ghost" id="archiveProgBtn">${icon('archive')} ${p.archived?'إلغاء الأرشفة':'أرشفة'}</button>
+              <span class="save-msg" id="progSaveMsg"></span>
+            </div>
           </form>
         </div>
       </div>
@@ -804,6 +854,11 @@ function openProgramEditor(p){
       setTimeout(()=>{modal.innerHTML='';}, 700);
     } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
   });
+  document.getElementById('archiveProgBtn').addEventListener('click', async ()=>{
+    const newVal = !p.archived;
+    const {error} = await sb.from('programs').update({archived:newVal}).eq('id', p.id);
+    if (!error){ p.archived = newVal; modal.innerHTML=''; renderPrograms(document.getElementById('content')); }
+  });
 }
 
 /* ---------------- evidence ---------------- */
@@ -814,41 +869,71 @@ function evidenceAddForm(){
     <div class="form-grid">
       <div class="f-field full"><label>اختاري المؤشر</label>
         <select name="priorityId" required>
-          ${state.priorities.map(p=>`<option value="${p.id}">${esc(p.text.length>70?p.text.slice(0,70)+'…':p.text)}${p.evidenceUrl?' — يوجد شاهد حاليًا':''}</option>`).join('')}
+          ${state.priorities.map(p=>`<option value="${p.id}">${esc(p.text.length>70?p.text.slice(0,70)+'…':p.text)}${p.evidenceUrl||p.evidenceNote?' — يوجد شاهد حاليًا':''}</option>`).join('')}
         </select>
       </div>
-      <div class="f-field full"><label>رابط الشاهد (Google Drive، تيليجرام، أو أي رابط)</label>
-        <input name="url" type="url" placeholder="https://drive.google.com/... أو https://t.me/..." required>
+      <div class="f-field"><label>نوع الشاهد</label>
+        <select name="evType" id="evTypeSel">
+          <option value="link">رابط (Drive، ملف، أي رابط)</option>
+          <option value="youtube">مقطع يوتيوب</option>
+          <option value="text">نص / ملاحظة</option>
+        </select>
+      </div>
+      <div class="f-field full" id="evUrlWrap"><label>الرابط</label>
+        <input name="url" type="url" placeholder="https://drive.google.com/... أو https://youtube.com/...">
+      </div>
+      <div class="f-field full hidden" id="evTextWrap"><label>النص</label>
+        <textarea name="note" placeholder="اكتبي وصف الشاهد أو ملاحظة نصية..."></textarea>
       </div>
     </div>
     <div class="save-bar">
-      <button type="submit" class="btn teal">${icon('doc')} إضافة وإنشاء الباركود</button>
+      <button type="submit" class="btn teal">${icon('doc')} إضافة الشاهد</button>
       <span class="save-msg" id="evSaveMsg"></span>
     </div>
   </form>`;
 }
 
-function detectEvidenceSource(url){
-  const u = String(url||'').toLowerCase();
+function detectEvidenceSource(p){
+  const type = p.evidenceType || 'link';
+  if (type === 'text') return {label:'نص', ic:'note'};
+  const u = String(p.evidenceUrl||'').toLowerCase();
+  if (type === 'youtube' || u.includes('youtube.com') || u.includes('youtu.be')) return {label:'يوتيوب', ic:'youtube'};
   if (u.includes('drive.google.com') || u.includes('docs.google.com')) return {label:'Google Drive', ic:'cloud'};
   if (u.includes('t.me/') || u.includes('telegram.me') || u.includes('telegram.org')) return {label:'Telegram', ic:'telegram'};
   return {label:'رابط', ic:'link'};
 }
 
+function youtubeEmbedUrl(url){
+  const m = String(url||'').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{6,})/);
+  return m ? `https://www.youtube.com/embed/${m[1]}` : null;
+}
+
 function wireEvidenceAddForm(){
   const form = document.getElementById('evidenceForm');
   if (!form) return;
+  const evTypeSel = document.getElementById('evTypeSel');
+  const evUrlWrap = document.getElementById('evUrlWrap');
+  const evTextWrap = document.getElementById('evTextWrap');
+  evTypeSel.addEventListener('change', ()=>{
+    const isText = evTypeSel.value === 'text';
+    evUrlWrap.classList.toggle('hidden', isText);
+    evTextWrap.classList.toggle('hidden', !isText);
+  });
   form.addEventListener('submit', async e=>{
     e.preventDefault();
     const fd = new FormData(form);
     const id = fd.get('priorityId');
-    const url = fd.get('url');
+    const evType = fd.get('evType');
+    const url = evType === 'text' ? '' : (fd.get('url')||'');
+    const note = evType === 'text' ? (fd.get('note')||'') : '';
     const msg = document.getElementById('evSaveMsg');
+    if (evType !== 'text' && !url){ msg.textContent='أدخلي رابطًا صحيحًا'; msg.className='save-msg err'; return; }
+    if (evType === 'text' && !note){ msg.textContent='أدخلي نصًا'; msg.className='save-msg err'; return; }
     msg.textContent = 'جارِ الحفظ…'; msg.className = 'save-msg';
-    const {error} = await sb.from('priorities').update({evidence_url: url}).eq('id', id);
+    const {error} = await sb.from('priorities').update({evidence_url: url, evidence_type: evType, evidence_note: note}).eq('id', id);
     if (!error){
       const p = state.priorities.find(x=>x.id===id);
-      if (p) p.evidenceUrl = url;
+      if (p){ p.evidenceUrl = url; p.evidenceType = evType; p.evidenceNote = note; }
       msg.textContent = 'تم الحفظ ✓'; msg.className = 'save-msg ok';
       form.reset();
       renderEvidence(document.getElementById('content'));
@@ -859,23 +944,26 @@ function wireEvidenceAddForm(){
 }
 
 function evidenceCard(p){
-  const src = detectEvidenceSource(p.evidenceUrl);
+  const src = detectEvidenceSource(p);
+  const embed = src.label==='يوتيوب' ? youtubeEmbedUrl(p.evidenceUrl) : null;
   return `<div class="evidence-card">
     <div style="display:flex;align-items:center;justify-content:center;gap:6px">
       <div class="pri-dom">${esc(normDomain(p.domain))}</div>
       <span class="evidence-src">${icon(src.ic)} ${src.label}</span>
     </div>
     <div class="txt">${esc(p.text.length>70?p.text.slice(0,70)+'…':p.text)}</div>
-    <div class="qr-box" id="qr-${p.id}" title="اضغطي لفتح رابط الشاهد"></div>
+    ${p.evidenceType==='text' ? `<div class="val" style="text-align:right;padding:10px;background:var(--surface-2);border-radius:8px;font-size:12.5px">${esc(p.evidenceNote)}</div>` :
+      embed ? `<div style="aspect-ratio:16/9;border-radius:10px;overflow:hidden;margin:6px 0"><iframe src="${esc(embed)}" style="width:100%;height:100%;border:0" allowfullscreen></iframe></div>` :
+      `<div class="qr-box" id="qr-${p.id}" title="اضغطي لفتح رابط الشاهد"></div>`}
     <div class="evidence-actions">
-      <a href="${esc(p.evidenceUrl)}" target="_blank" rel="noopener" class="btn sm">${icon('doc')} فتح الرابط</a>
-      ${MODE==='admin' ? `<button type="button" class="btn sm ghost" data-remove-ev="${p.id}" title="حذف الرابط والباركود">${icon('trash')} حذف الشاهد</button>` : ''}
+      ${p.evidenceType!=='text' ? `<a href="${esc(p.evidenceUrl)}" target="_blank" rel="noopener" class="btn sm">${icon('doc')} فتح الرابط</a>` : ''}
+      ${MODE==='admin' ? `<button type="button" class="btn sm ghost" data-remove-ev="${p.id}" title="حذف الشاهد">${icon('trash')} حذف الشاهد</button>` : ''}
     </div>
   </div>`;
 }
 
 function renderEvidence(c){
-  const withEvidence = state.priorities.filter(p=>p.evidenceUrl);
+  const withEvidence = state.priorities.filter(p=>p.evidenceUrl || p.evidenceNote);
   c.innerHTML = `
     <div class="card">
       <div class="card-hd"><h3>الشواهد الموثّقة (${withEvidence.length})</h3></div>
@@ -891,15 +979,15 @@ function renderEvidence(c){
     wireEvidenceAddForm();
     c.querySelectorAll('[data-remove-ev]').forEach(b=>b.addEventListener('click', async ()=>{
       const id = b.dataset.removeEv;
-      const {error} = await sb.from('priorities').update({evidence_url: ''}).eq('id', id);
+      const {error} = await sb.from('priorities').update({evidence_url: '', evidence_type: 'link', evidence_note: ''}).eq('id', id);
       if (!error){
         const p = state.priorities.find(x=>x.id===id);
-        if (p) p.evidenceUrl = '';
+        if (p){ p.evidenceUrl = ''; p.evidenceType = 'link'; p.evidenceNote = ''; }
         renderEvidence(c);
       }
     }));
   }
-  renderQRCodes(withEvidence);
+  renderQRCodes(withEvidence.filter(p=>p.evidenceType!=='text' && !(detectEvidenceSource(p).label==='يوتيوب' && youtubeEmbedUrl(p.evidenceUrl))));
 }
 
 function renderQRCodes(list){
@@ -917,15 +1005,111 @@ function renderQRCodes(list){
 function renderTeam(c){
   c.innerHTML = `
     <div class="card"><div class="card-bd">
+      ${MODE==='admin' ? `
+      <form id="teamAddForm" style="margin-bottom:20px;padding-bottom:18px;border-bottom:1px dashed var(--border)">
+        <h3 style="margin:0 0 12px;font-size:14.5px">إضافة عضو جديد لفريق العمل</h3>
+        <div class="form-grid">
+          <div class="f-field"><label>الاسم</label><input name="name" required></div>
+          <div class="f-field"><label>الوصف الوظيفي</label><input name="role"></div>
+          <div class="f-field full"><label>المهمة</label><input name="task" placeholder="عضو / مقرر اللجنة / رئيساً..."></div>
+        </div>
+        <div class="save-bar"><button type="submit" class="btn teal">${icon('plus')} إضافة العضو</button><span class="save-msg" id="teamSaveMsg"></span></div>
+      </form>` : ''}
       <div class="team-grid">
-        ${state.team.map(t=>`<div class="team-card">
+        ${state.team.map(t=>`<div class="team-card" data-id="${t.id}">
           <div class="name">${esc(t.name)}</div>
           <div class="role">${esc(t.role)}</div>
           <div class="task">${esc(t.task)}</div>
-        </div>`).join('')}
+          ${MODE==='admin'?`<button type="button" class="btn sm ghost" data-remove-team="${t.id}" style="margin-top:8px">${icon('trash')} حذف</button>`:''}
+        </div>`).join('') || '<div class="empty">لا يوجد أعضاء بعد</div>'}
       </div>
     </div></div>
   `;
+  if (MODE==='admin'){
+    const form = document.getElementById('teamAddForm');
+    form.addEventListener('submit', async e=>{
+      e.preventDefault();
+      const fd = new FormData(form);
+      const name = fd.get('name'), role = fd.get('role')||'', task = fd.get('task')||'';
+      const msg = document.getElementById('teamSaveMsg');
+      msg.textContent = 'جارِ الحفظ…'; msg.className='save-msg';
+      const newId = 't' + String(Date.now()).slice(-8);
+      const {error} = await sb.from('team').insert({id:newId, name, role, task});
+      if (!error){
+        state.team.push({id:newId, name, role, task});
+        msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
+        form.reset();
+        renderTeam(c);
+      } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+    });
+    c.querySelectorAll('[data-remove-team]').forEach(b=>b.addEventListener('click', async ()=>{
+      const id = b.dataset.removeTeam;
+      if (!confirm('هل تريدين حذف هذا العضو نهائيًا؟')) return;
+      const {error} = await sb.from('team').delete().eq('id', id);
+      if (!error){
+        state.team = state.team.filter(t=>t.id!==id);
+        renderTeam(c);
+      }
+    }));
+  }
+}
+
+/* ---------------- FAQ ---------------- */
+const FAQ_ITEMS = [
+  {q:'كيف أدخل لوضع الإدارة؟', a:'افتحي رابط الإدارة (نفس رابط الداشبورد مضافًا له ?mode=admin)، ثم سجّلي الدخول باسم المستخدم والرمز السري الخاصين بك.'},
+  {q:'كيف أعدّل مؤشرًا؟', a:'من قائمة "مجالات التحسين"، اختاري المؤشر من القائمة، ثم عدّلي الحقول في نموذج "تعديل المؤشر" أسفل التفاصيل واضغطي "حفظ التعديلات".'},
+  {q:'كيف أضيف أو أحذف عضو فريق؟', a:'من قسم "فريق العمل" في وضع الإدارة، استخدمي نموذج "إضافة عضو جديد" أعلى الصفحة، أو زر "حذف" أسفل بطاقة أي عضو.'},
+  {q:'ما الفرق بين الحذف والأرشفة؟', a:'الأرشفة تخفي المؤشر أو البرنامج من القائمة الرئيسية دون حذف بياناته نهائيًا، ويمكن استعادته لاحقًا من زر "عرض الأرشيف". الحذف (في الشواهد وفريق العمل) نهائي.'},
+  {q:'كيف أضيف شاهدًا (رابط، يوتيوب، أو نص)؟', a:'من قسم "الشواهد" في وضع الإدارة، اختاري المؤشر ونوع الشاهد (رابط / يوتيوب / نص)، ثم أدخلي المحتوى واضغطي "إضافة الشاهد".'},
+  {q:'كيف أصدّر ملف Excel أو أطبع تقرير PDF؟', a:'من أعلى الصفحة اضغطي "تصدير Excel" لحفظ ملف إكسل احترافي، أو "طباعة / PDF" لفتح معاينة طباعة يمكن حفظها كـ PDF من نافذة الطباعة.'},
+  {q:'هل التعديلات تظهر فورًا لباقي المشاهدين؟', a:'التعديلات تُحفظ فورًا في قاعدة البيانات، وتظهر لأي شخص يفتح الرابط أو يعيد تحميل الصفحة.'},
+];
+function renderFaq(c){
+  c.innerHTML = `
+    <div class="card"><div class="card-bd">
+      ${FAQ_ITEMS.map(item=>`
+        <div style="border-bottom:1px solid var(--border);padding:14px 0">
+          <div style="font-weight:800;font-size:14px;margin-bottom:6px">${esc(item.q)}</div>
+          <div style="font-size:13px;color:var(--ink-2);line-height:1.7">${esc(item.a)}</div>
+        </div>
+      `).join('')}
+    </div></div>
+  `;
+}
+
+/* ---------------- Settings (admin only) ---------------- */
+function renderSettings(c){
+  const m = state.meta || {};
+  c.innerHTML = `
+    <div class="card"><div class="card-bd">
+      <form id="settingsForm">
+        <div class="form-grid">
+          <div class="f-field"><label>اسم المدرسة</label><input name="schoolName" value="${esc(m.schoolName||'')}"></div>
+          <div class="f-field"><label>العام الدراسي</label><input name="year" value="${esc(m.year||'')}"></div>
+          <div class="f-field"><label>المرحلة</label><input name="stage" value="${esc(m.stage||'')}"></div>
+          <div class="f-field"><label>الرقم الوزاري</label><input name="ministryNumber" value="${esc(m.ministryNumber||'')}"></div>
+        </div>
+        <div class="save-bar">
+          <button type="submit" class="btn teal">حفظ الإعدادات</button>
+          <span class="save-msg" id="settingsSaveMsg"></span>
+        </div>
+      </form>
+    </div></div>
+  `;
+  document.getElementById('settingsForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const patch = Object.fromEntries(fd.entries());
+    const msg = document.getElementById('settingsSaveMsg');
+    msg.textContent = 'جارِ الحفظ…'; msg.className='save-msg';
+    const dbPatch = {school_name:patch.schoolName, year:patch.year, stage:patch.stage, ministry_number:patch.ministryNumber};
+    const {error} = await sb.from('meta').update(dbPatch).eq('id','main');
+    if (!error){
+      Object.assign(state.meta, patch);
+      msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
+      render();
+    } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+  });
 }
 
 /* ---------------- Excel export (styled workbook via ExcelJS, real browser download) ---------------- */
