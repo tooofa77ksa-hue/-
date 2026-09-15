@@ -1,0 +1,1117 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>خطة تحسين النهروان</title>
+<meta name="description" content="لوحة متابعة خطة التحسين المدرسية - مدرسة النهروان الثانوية 1448هـ">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{color-scheme:light;box-sizing:border-box}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;padding:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+/* ============ Design tokens (Ministry of Education identity guide v3) ============ */
+:root{
+  --navy:#15445A; --teal:#0DA9A6; --blue:#3D7EB9; --green:#07A869; --gold:#C1B489; --gray:#C2C1C1;
+  --bg:#f4f6f6; --surface:#ffffff; --surface-2:#eef3f2;
+  --ink:#15445A; --ink-2:#3d5a68; --muted:#5b6b73; --border:#d9e3de;
+  --accent:var(--blue); --accent-ink:#ffffff;
+  --blue-bg:#eaf2fa; --blue-ink:#2a5f8f; --teal-bg:#e4f6f5; --green-bg:#e6f3ec; --gold-bg:#f6f1e4;
+  --ok-bg:#e7f5ee; --ok-ink:#0a6b46; --warn-bg:#f7f3e9; --warn-ink:#8a6d1f; --idle-bg:#f0f1f1; --idle-ink:#5b6b73;
+  --shadow:0 10px 30px rgba(21,68,90,.10); --shadow-lg:0 20px 50px rgba(21,68,90,.16);
+  --radius:14px; --radius-sm:9px;
+}
+body{background:var(--bg);color:var(--ink);font-family:Tajawal,'Segoe UI',Cairo,system-ui,sans-serif;line-height:1.55}
+.tabular{font-variant-numeric:tabular-nums}
+button{font-family:inherit;cursor:pointer}
+a{color:inherit}
+::selection{background:var(--teal);color:#fff}
+
+/* ============ Shell layout ============ */
+.shell{display:flex;min-height:100vh}
+.sidebar{
+  width:250px;flex:none;background:linear-gradient(180deg,var(--navy),#0e2f3f);color:#fff;
+  display:flex;flex-direction:column;padding:24px 18px;gap:20px;position:sticky;top:0;height:100vh;overflow-y:auto;
+}
+@media (max-width:860px){
+  .shell{flex-direction:column}
+  .sidebar{width:100%;height:auto;position:static;padding:14px 16px;gap:10px}
+  .brand{display:flex;align-items:center;justify-content:space-between}
+  .brand .rule{display:none}
+  .nav{flex-direction:row;flex-wrap:nowrap;overflow-x:auto;margin-top:0;gap:6px;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+  .nav button{flex:none;padding:8px 12px;font-size:13px;border-inline-start:none;border-bottom:3px solid transparent;white-space:nowrap}
+  .nav button.active{border-inline-start-color:transparent;border-bottom-color:var(--gold)}
+  .sidebar-footer{padding-top:8px;margin-top:0}
+  .sidebar-org{font-size:10px}
+  .sidebar-org img{height:20px}
+  .orgbar,.topbar{padding:12px 16px}
+  .orgbar-brand span{display:none}
+  .content{padding:16px 16px 40px}
+  .kpi-hero{flex:1 1 100%}
+}
+@media (max-width:480px){
+  .actions{width:100%}
+  .actions .btn{flex:1;justify-content:center}
+}
+.brand .school{font-weight:800;font-size:16px;line-height:1.35}
+.brand .rule{width:34px;height:3px;background:var(--gold);border-radius:2px;margin-top:8px}
+.nav{display:flex;flex-direction:column;gap:4px;margin-top:4px}
+.nav button{
+  display:flex;align-items:center;gap:10px;background:transparent;border:none;border-inline-start:3px solid transparent;color:#cfe1e6;
+  padding:11px 12px;border-radius:8px;font-size:14.5px;font-weight:600;text-align:right;transition:.15s;
+}
+.nav button:hover{background:rgba(255,255,255,.08)}
+.nav button.active{background:rgba(255,255,255,.08);color:#fff;border-inline-start-color:var(--gold)}
+.ic{width:18px;height:18px;flex:none}
+.sidebar-footer{margin-top:auto;font-size:11px;opacity:.75;padding-top:14px;border-top:1px solid rgba(255,255,255,.15)}
+.sidebar-org{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;opacity:.9;line-height:1.4}
+.sidebar-org img{height:26px;width:auto;flex:none}
+.mode-pill{
+  font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
+}
+.mode-pill.dash{background:var(--idle-bg);color:var(--ink-2)}
+.mode-pill.admin{background:var(--gold);color:#3a3320}
+
+.main{flex:1;min-width:0}
+.orgbar{
+  background:var(--surface);border-bottom:1px solid var(--border);padding:12px 26px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+}
+.orgbar-brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:13.5px;color:var(--ink-2)}
+.orgbar-brand img{height:34px;width:auto}
+.topbar{
+  position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--border);
+  padding:16px 26px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+}
+.title-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.topbar h1{font-size:21px;margin:0;font-weight:800}
+.topbar .sub{font-size:13px;color:var(--muted);margin-top:4px}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn{
+  border:1px solid var(--border);background:var(--surface);color:var(--ink);padding:9px 16px;border-radius:10px;
+  font-size:13.5px;font-weight:700;display:inline-flex;align-items:center;gap:7px;transition:.15s;
+}
+.btn:hover{border-color:var(--blue);color:var(--blue)}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.primary:hover{filter:brightness(1.06);color:#fff}
+.btn.teal{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn.teal:hover{filter:brightness(1.06);color:#fff}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--muted)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.sm{padding:6px 11px;font-size:12.5px;border-radius:8px}
+
+.content{padding:24px 26px 60px;max-width:1400px;margin:0 auto}
+.hidden{display:none!important}
+
+/* ============ Cards / KPIs ============ */
+.kpi-area{display:flex;gap:14px;margin-bottom:22px;align-items:stretch}
+@media (max-width:900px){.kpi-area{flex-direction:column}}
+.kpi-hero{
+  flex:0 0 300px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:18px 20px;display:flex;flex-direction:column;gap:10px;
+}
+.kpi-hero-hd{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.kpi-hero-hd h3{margin:0;font-size:14.5px;font-weight:800}
+.kpi-hero-icon{width:34px;height:34px;border-radius:9px;background:var(--blue-bg);color:var(--blue);display:flex;align-items:center;justify-content:center;flex:none}
+.kpi-hero .val{font-size:38px;font-weight:800;color:var(--green)}
+.kpi-hero .lbl{font-size:12.5px;color:var(--ink-2);font-weight:700}
+.kpi-hero .sub{font-size:11.5px;color:var(--muted)}
+.kpi-row{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media (max-width:1100px){.kpi-row{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+.kpi-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none}
+.kpi .val{font-size:24px;font-weight:800;color:var(--blue)}
+.kpi .lbl{font-size:12.5px;color:var(--muted);font-weight:600}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+.card-hd{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.card-hd h3{margin:0;font-size:16px;font-weight:800}
+.card-bd{padding:16px 18px}
+
+.grid-2{display:grid;grid-template-columns:1.1fr 1fr;gap:18px;align-items:start}
+@media (max-width:980px){.grid-2{grid-template-columns:1fr}}
+
+/* ============ Search / filter ============ */
+.search{display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:8px 12px;margin-bottom:12px}
+.search input{border:none;background:transparent;outline:none;flex:1;font-family:inherit;font-size:13.5px;color:var(--ink)}
+.search svg{flex:none;opacity:.55}
+
+/* ============ Priority list ============ */
+.pri-list{list-style:none;margin:0;padding:0;max-height:640px;overflow-y:auto}
+.pri-item{
+  display:flex;align-items:center;gap:12px;padding:12px 10px;border-radius:10px;cursor:pointer;border:1px solid transparent;
+}
+.pri-item:hover{background:var(--surface-2)}
+.pri-item.active{background:var(--teal-bg);border-color:var(--teal)}
+.pri-num{
+  flex:none;width:26px;height:26px;border-radius:50%;background:var(--surface-2);color:var(--navy);font-weight:800;font-size:12.5px;
+  display:flex;align-items:center;justify-content:center;
+}
+.pri-item.active .pri-num{background:var(--teal);color:#fff}
+.pri-txt{flex:1;font-size:13.5px;font-weight:600;line-height:1.4}
+.pri-dom{font-size:11px;color:var(--muted);margin-top:2px;font-weight:700}
+.pri-chevron{flex:none;color:var(--muted);opacity:.6}
+
+/* ============ Domain pills ============ */
+.domain-row{display:flex;flex-wrap:wrap;gap:10px}
+.domain-pill{
+  display:inline-flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--border);
+  padding:8px 14px;border-radius:999px;font-size:13px;font-weight:700;color:var(--ink-2);
+}
+.domain-pill .dot{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;color:#fff}
+.domain-pill.active{background:var(--teal-bg);border-color:var(--teal);color:var(--ink)}
+
+/* ============ Indicator detail ============ */
+.detail-title{font-size:16.5px;font-weight:800;line-height:1.5;margin:0 0 6px}
+.detail-tag{display:inline-flex;font-size:12px;font-weight:700;color:#fff;background:var(--blue);padding:3px 11px;border-radius:999px;margin-inline-end:6px}
+.metric-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}
+.metric{background:var(--surface-2);border-radius:10px;padding:12px;text-align:center}
+.metric .n{font-size:20px;font-weight:800;color:var(--navy)}
+.metric .l{font-size:11.5px;color:var(--muted);font-weight:700;margin-top:2px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:5px}
+.field .val{font-size:13.5px;line-height:1.6}
+.status-pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;padding:5px 12px;border-radius:999px}
+.status-pill.ok{background:var(--ok-bg);color:var(--ok-ink)}
+.status-pill.warn{background:var(--warn-bg);color:var(--warn-ink)}
+.status-pill.idle{background:var(--idle-bg);color:var(--idle-ink)}
+.actions-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.action-row{border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+.action-row .m{font-weight:700;font-size:13px}
+.action-row .meta{font-size:11.5px;color:var(--muted);margin-top:4px;display:flex;gap:10px;flex-wrap:wrap}
+
+/* ============ Tables ============ */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+@media (max-width:760px){ table{min-width:640px} }
+thead th{
+  background:var(--surface-2);color:var(--ink-2);font-weight:800;font-size:12px;padding:10px 12px;text-align:right;
+  white-space:nowrap;border-bottom:2px solid var(--border);
+}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+tbody tr:hover{background:var(--surface-2)}
+.chip{display:inline-flex;font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.chip.high{background:var(--ok-bg);color:var(--ok-ink)}
+.chip.mid{background:var(--warn-bg);color:var(--warn-ink)}
+.chip.low{background:var(--idle-bg);color:var(--idle-ink)}
+.chip.yes{background:var(--ok-bg);color:var(--ok-ink)}
+.chip.no{background:var(--idle-bg);color:var(--idle-ink)}
+
+/* ============ Forms (admin) ============ */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:760px){.form-grid{grid-template-columns:1fr}}
+.form-grid .full{grid-column:1/-1}
+.f-field label{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:6px}
+.f-field input,.f-field select,.f-field textarea{
+  width:100%;border:1px solid var(--border);border-radius:9px;padding:9px 11px;font-family:inherit;font-size:13.5px;
+  background:var(--surface);color:var(--ink);outline:none;
+}
+.f-field input:focus,.f-field select:focus,.f-field textarea:focus{border-color:var(--teal)}
+.f-field textarea{resize:vertical;min-height:64px}
+.save-bar{display:flex;align-items:center;gap:10px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
+.save-msg{font-size:12.5px;font-weight:700}
+.save-msg.ok{color:var(--ok-ink)}
+.save-msg.err{color:#a33}
+
+/* ============ Login gate ============ */
+.gate{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--navy);padding:20px}
+.gate-card{background:var(--surface);border-radius:18px;box-shadow:var(--shadow-lg);padding:34px 30px;width:100%;max-width:380px;text-align:center}
+.gate-card img{height:52px;margin-bottom:14px}
+.gate-card h2{margin:0 0 4px;font-size:18px;font-weight:800}
+.gate-card p{margin:0 0 18px;font-size:13px;color:var(--muted)}
+.gate-card input{
+  width:100%;border:1.5px solid var(--border);border-radius:10px;padding:11px 13px;font-family:inherit;font-size:14px;
+  margin-bottom:10px;outline:none;text-align:center;letter-spacing:.03em;
+}
+.gate-card input:focus{border-color:var(--teal)}
+.gate-err{color:#a33;font-size:12.5px;font-weight:700;min-height:18px;margin-bottom:6px}
+
+/* ============ Misc ============ */
+.empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:13.5px}
+.loading{display:flex;align-items:center;justify-content:center;min-height:60vh;color:var(--muted);font-size:14px}
+.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.team-card{border:1px solid var(--border);border-radius:12px;padding:14px}
+.team-card .name{font-weight:800;font-size:14px}
+.team-card .role{font-size:12.5px;color:var(--muted);margin-top:3px}
+.team-card .task{font-size:11.5px;color:var(--teal);font-weight:700;margin-top:8px}
+
+/* ============ Evidence / QR ============ */
+.evidence-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}
+.evidence-card{border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;transition:.2s;background:var(--surface)}
+.evidence-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px)}
+.evidence-card .txt{font-weight:700;font-size:13px;line-height:1.4;margin:8px 0;min-height:36px}
+.evidence-src{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;color:var(--muted)}
+.evidence-src .ic{width:13px;height:13px}
+.qr-box{
+  width:118px;height:118px;margin:6px auto;border-radius:10px;overflow:hidden;background:#fff;padding:6px;
+  border:2px solid var(--teal);cursor:pointer;animation:qrIn .4s ease-out, qrPulse 2.6s ease-in-out infinite;
+  display:flex;align-items:center;justify-content:center;
+}
+.qr-box:hover{border-color:var(--blue);transform:scale(1.04)}
+.qr-box img{width:100%;height:100%}
+@keyframes qrIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+@keyframes qrPulse{0%,100%{box-shadow:0 0 0 0 rgba(13,169,166,.35)}50%{box-shadow:0 0 0 7px rgba(13,169,166,0)}}
+.evidence-actions{display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+
+.print-header{display:none}
+@media print{
+  .sidebar,.orgbar,.gate,.topbar{display:none!important}
+  .shell{display:block}
+  .main{width:100%}
+  .content{padding:0;max-width:none}
+  body{background:#fff}
+  .card{box-shadow:none;border:1px solid #ccc;break-inside:avoid}
+  .print-header{
+    display:flex!important;align-items:center;gap:18px;padding:0 0 16px;margin-bottom:20px;
+    border-bottom:3px solid #15445A;
+  }
+  .print-header img{height:64px;width:auto}
+  .print-header .ph-kingdom{font-size:12px;color:#5b6b73;font-weight:700}
+  .print-header .ph-school{font-size:19px;font-weight:800;color:#15445A;margin-top:2px}
+  .print-header .ph-title{font-size:13px;color:#0DA9A6;font-weight:700;margin-top:3px}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+/* ============================================================
+   خطة تحسين النهروان — standalone app, real accounts, Supabase backend
+   ?mode=admin for the login/edit view, default = public dashboard
+   ============================================================ */
+const SUPABASE_URL = 'https://fqmovedqgfmshfkfebrh.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_ArurQy2vxoD7Edwytx0_Yg_74M-Q-F-';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const MINISTRY_LOGO = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAACMCAMAAADiOnPAAAAAwFBMVEX+/v4xl405pnav1tHT6ed3uLUqmHgmi5BPp5OKxbYahYtBrHdYpqiXyMZKmqjE49s7o4Rlq65DnJV6tsFnt5ekzc8WfJFbsZGCvLgyi6K94NZ9waiGvMQbi3y93ePd8Os8k6Sc0bvB3uEjjnvA3dyj1L1EsHbg7u6e0MUekXK/4OEdhKAjf5tir5tmrcBzwZcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADWrd5bAAAAQHRSTlP///////////////////////////////////////////////////////////////8AAAAAAAAAAAAAAAAAAAAAPHHThgAACsVJREFUeNrtnIl2o7gSQBHabQSG4N1JnKS3mbf9/989bQgJZIPjpdNnqDmTNmDgqiiVqkrCSTLJJJN8JeFZVsKvCgfruuavvb2AAgBo9jWZ61TJvKNTBKw4aoR+L+duX9ffHfNcyo80LYKvZA00Na2Bakf5G7n3Wrdr/fl7+mOuJa2jipakxliMPJi6fbo8NZTrVtFafCBIHXTlt4HZ4wJn+N6d9BXPpWrNXZDE1Facqu11A/0j3cWhFSd3W/oaiOnP+L5a1pSppkxgarbm6V5uMafpwKg981Bo2G0JdZTZDX5fB2GplQW8OejaN490HpyCG1XTogct3NYdTbwwxBKTB5pWWztlLNo6eMflGWq6SXrmgUNjkV+G8Eb4XA4Z1kDTRrSHsMzWHniatt3Spy4BpdYcOl6bOehf5qncylReGVFkRQT6TWl5bkxabepG/C/SE4SA7fjo2UNH05ioj4TfyIznKeubR4PZ3gR+H366UvGgwihogfaG7VO43l80ut31OqK+LX+73AhRr5fCoAnF1UGQZSbWr3ou7xaiDaSCyW2hiwBajtzSH9fFDT3/0tk78m3lE5FVwXlzAksXCpq1t3m9l0e1HVHY+0jfwi7A5kQKDFT9kCA+cHnMD1FGPDKyWCycbhFmbKxBFLuIamDGMjHyzhA2z7EIRp0RnU9BL8iY7++g15zdWnnwbvu0h6CVa82GVWxEG+DnoIe1q/107TkaNSJ2koDNLIxFmW7DiLju0qCESWrCRjQu9YP+uXbinSQg6SQu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';
+
+// The login screen still asks for a simple "username" (not an email) to keep the exact
+// same UX as before; behind the scenes it maps to a real Supabase Auth account.
+const KNOWN_LOGINS = [
+  {match: u => u === 'bader', email: 'bader@nahrawan-plan.local'},
+  {match: u => u === 'ahmad' || u.includes('احمد') || u.includes('أحمد'), email: 'ahmad@nahrawan-plan.local'},
+];
+function resolveLoginEmail(user){
+  const u = (user||'').trim().toLowerCase();
+  const hit = KNOWN_LOGINS.find(k => k.match(u));
+  return hit ? hit.email : null;
+}
+
+const params = new URLSearchParams(location.search);
+const MODE = params.get('mode') === 'admin' ? 'admin' : 'dashboard';
+const DOMAINS = ["التدريس","نواتج التعلم","الأنشطة المدرسية","النشاط الطلابي","التوجيه الطلابي","التطوير المهني المستمر","الإدارة المدرسية","البيئة المدرسية"];
+function normDomain(d){ return d === "النشاط الطلابي" ? "الأنشطة المدرسية" : d; }
+const DOMAIN_LIST = ["التدريس","نواتج التعلم","الأنشطة المدرسية","التوجيه الطلابي","التطوير المهني المستمر","الإدارة المدرسية","البيئة المدرسية"];
+
+const state = {
+  session: null,
+  authed: MODE !== 'admin',
+  meta: null,
+  team: [],
+  priorities: [],
+  actions: [],
+  programs: [],
+  activeDomain: null,
+  activeSection: 'overview',
+  selectedPriority: null,
+  loaded: false,
+};
+
+const root = document.getElementById('root');
+const esc = s => (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function icon(name){
+  const paths = {
+    home:'M3 11l9-8 9 8M5 10v10h14V10',
+    list:'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',
+    grid:'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+    users:'M17 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2M11 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75',
+    search:'M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35',
+    excel:'M14 3v5h5M17 13l-5 6-2-2.5M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V8z',
+    print:'M6 9V3h12v6M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z',
+    lock:'M5 11h14v10H5zM8 11V7a4 4 0 018 0v4',
+    leaf:'M11 21c-5 0-8-3-8-8 6 0 8 2 8 8zM19 5c-8 0-13 5-13 13 9 0 13-5 13-13z',
+    gear:'M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z',
+    book:'M4 19.5A2.5 2.5 0 016.5 17H20M4 4.5A2.5 2.5 0 016.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15z',
+    doc:'M14 3v5h5M6 3h8l5 5v13H6zM9 13h6M9 17h6',
+    chevronL:'M15 18l-6-6 6-6',
+    play:'M6 4l14 8-14 8V4z',
+    cloud:'M17.5 19H6a4 4 0 01-1-7.87A5.5 5.5 0 0115.5 8h.5a4.5 4.5 0 011.5 11z',
+    telegram:'M22 2L2 10l6 2.5M22 2l-4 18-7-6M22 2L9.5 14.5M11 13.5V19l3-3',
+    link:'M9 17H7a5 5 0 010-10h2M15 7h2a5 5 0 010 10h-2M8 12h8',
+    trash:'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6',
+    logout:'M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9',
+  };
+  return `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths[name]?`<path d="${paths[name]}"/>`:''}</svg>`;
+}
+
+/* ---------------- field mapping: DB (snake_case) <-> app (camelCase) ---------------- */
+function metaFromDb(r){
+  if (!r) return null;
+  return {schoolName:r.school_name, year:r.year, stage:r.stage, ministryNumber:r.ministry_number, performance:r.performance||[], staff:r.staff||{}};
+}
+function priorityFromDb(r){
+  return {id:r.id, domain:r.domain, framework:r.framework, level:r.level, baseline:r.baseline, text:r.text, target:r.target,
+    lastMeasured:r.last_measured, executionStatus:r.execution_status, responsible:r.responsible, evidenceUrl:r.evidence_url, notes:r.notes};
+}
+function actionFromDb(r){
+  return {id:r.id, domain:r.domain, indicatorText:r.indicator_text, improvementAction:r.improvement_action, method:r.method,
+    dueDate:r.due_date, needDescription:r.need_description, responsible:r.responsible};
+}
+function programFromDb(r){
+  return {id:r.id, name:r.name, domain:r.domain, executionDate:r.execution_date, executed:r.executed, achievementLevel:r.achievement_level,
+    evaluationTool:r.evaluation_tool, notExecutedReason:r.not_executed_reason, proposedDate:r.proposed_date};
+}
+function teamFromDb(r){ return {id:r.id, name:r.name, role:r.role, task:r.task}; }
+
+function priorityPatchToDb(patch){
+  const map = {target:'target', lastMeasured:'last_measured', executionStatus:'execution_status', responsible:'responsible', evidenceUrl:'evidence_url', notes:'notes'};
+  const out = {};
+  for (const k in patch) if (map[k]) out[map[k]] = patch[k];
+  return out;
+}
+function programPatchToDb(patch){
+  const map = {executed:'executed', achievementLevel:'achievement_level', notExecutedReason:'not_executed_reason', proposedDate:'proposed_date', evaluationTool:'evaluation_tool'};
+  const out = {};
+  for (const k in patch) if (map[k]) out[map[k]] = patch[k];
+  return out;
+}
+
+/* ---------------- data loading ---------------- */
+async function loadAll(){
+  const [metaRes, teamRes, priRes, actRes, progRes] = await Promise.all([
+    sb.from('meta').select('*').eq('id','main').maybeSingle(),
+    sb.from('team').select('*').order('id'),
+    sb.from('priorities').select('*').order('id'),
+    sb.from('actions').select('*').order('id'),
+    sb.from('programs').select('*').order('id'),
+  ]);
+  state.meta = metaFromDb(metaRes.data);
+  state.team = (teamRes.data||[]).map(teamFromDb);
+  state.priorities = (priRes.data||[]).map(priorityFromDb);
+  state.actions = (actRes.data||[]).map(actionFromDb);
+  state.programs = (progRes.data||[]).map(programFromDb);
+  state.loaded = true;
+  if (!state.selectedPriority && state.priorities.length) state.selectedPriority = state.priorities[0].id;
+  render();
+}
+
+/* ---------------- helpers ---------------- */
+function num(v){ const n = parseFloat(String(v).replace(/[^\d.]/g,'')); return isNaN(n)?null:n; }
+function achievementChip(v){
+  if (v==='عالي') return `<span class="chip high">عالي</span>`;
+  if (v==='متوسط') return `<span class="chip mid">متوسط</span>`;
+  if (v==='ضعيف') return `<span class="chip low">ضعيف</span>`;
+  return `<span class="chip low">لم يقيَّم بعد</span>`;
+}
+function executedChip(v){
+  if (v === true) return `<span class="chip yes">✓ نُفّذ</span>`;
+  if (v === false) return `<span class="chip no">لم يُنفذ</span>`;
+  return `<span class="chip low">لم يُحدَّث</span>`;
+}
+function priorityActions(p){
+  return state.actions.filter(a => a.domain === p.domain && a.indicatorText && p.text && (a.indicatorText.trim() === p.text.trim() || p.text.includes(a.indicatorText.slice(0,18)) || a.indicatorText.includes(p.text.slice(0,18))));
+}
+
+/* ---------------- render: shell ---------------- */
+function render(){
+  if (MODE === 'admin' && !state.authed){ renderGate(); return; }
+  if (!state.loaded){ root.innerHTML = `<div class="loading">جارِ تحميل بيانات خطة التحسين…</div>`; return; }
+
+  const sections = [
+    {id:'overview', label:'نظرة عامة', ic:'home'},
+    {id:'priorities', label:'مجالات التحسين', ic:'grid'},
+    {id:'programs', label:'البرامج والإجراءات', ic:'doc'},
+    {id:'evidence', label:'الشواهد', ic:'list'},
+    {id:'team', label:'فريق العمل', ic:'users'},
+  ];
+
+  root.innerHTML = `
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="school">${esc(state.meta?.schoolName || 'مدرسة النهروان الثانوية')}</div>
+          <div class="rule"></div>
+        </div>
+        <nav class="nav" id="nav">
+          ${sections.map(s=>`<button data-section="${s.id}" class="${state.activeSection===s.id?'active':''}">${icon(s.ic)}<span>${s.label}</span></button>`).join('')}
+        </nav>
+        <div class="sidebar-footer">
+          <div class="sidebar-org"><img src="${MINISTRY_LOGO}" alt="شعار وزارة التعليم"><span>الإدارة العامة للتعليم بمحافظة جدة</span></div>
+          <div style="margin-top:10px">الرقم الوزاري: ${esc(state.meta?.ministryNumber||'—')}<br>مرجع البيانات: خطة التحسين ${esc(state.meta?.year||'')} الأصلية</div>
+        </div>
+      </aside>
+      <main class="main">
+        <div class="orgbar">
+          <div class="actions">
+            <button class="btn primary" id="btnExcel">${icon('excel')} تصدير Excel</button>
+            <button class="btn" id="btnPrint">${icon('print')} طباعة / PDF</button>
+            ${MODE==='admin'?`<button class="btn ghost" id="btnLogout">${icon('logout')} تسجيل خروج</button>`:''}
+          </div>
+          <div class="orgbar-brand"><span>الإدارة العامة للتعليم بمحافظة جدة</span><img src="${MINISTRY_LOGO}" alt="شعار وزارة التعليم"></div>
+        </div>
+        <div class="topbar">
+          <div>
+            <div class="title-row">
+              <span class="mode-pill ${MODE==='admin'?'admin':'dash'}">${icon('lock')} ${MODE==='admin'?'وضع الإدارة':'عرض فقط'}</span>
+              <h1>${sections.find(s=>s.id===state.activeSection)?.label || ''}</h1>
+            </div>
+            <div class="sub">${esc(state.meta?.schoolName||'')} — خطة التحسين للعام ${esc(state.meta?.year||'')}</div>
+          </div>
+        </div>
+        <div class="print-header">
+          <img src="${MINISTRY_LOGO}" alt="شعار وزارة التعليم">
+          <div class="print-header-text">
+            <div class="ph-kingdom">المملكة العربية السعودية — وزارة التعليم</div>
+            <div class="ph-school">${esc(state.meta?.schoolName||'')}</div>
+            <div class="ph-title">تقرير خطة التحسين المدرسية — ${esc(state.meta?.stage||'')} ${esc(state.meta?.year||'')}</div>
+          </div>
+        </div>
+        <div class="content" id="content"></div>
+      </main>
+    </div>
+  `;
+
+  document.querySelectorAll('#nav button').forEach(b=>b.addEventListener('click', ()=>{ state.activeSection=b.dataset.section; state.selectedPriority=null; render(); }));
+  document.getElementById('btnExcel').addEventListener('click', exportExcel);
+  document.getElementById('btnPrint').addEventListener('click', ()=>window.print());
+  const logoutBtn = document.getElementById('btnLogout');
+  if (logoutBtn) logoutBtn.addEventListener('click', async ()=>{ await sb.auth.signOut(); state.authed=false; state.loaded=false; render(); });
+
+  renderContent();
+}
+
+function renderContent(){
+  const c = document.getElementById('content');
+  if (state.activeSection === 'overview') return renderOverview(c);
+  if (state.activeSection === 'priorities') return renderPriorities(c);
+  if (state.activeSection === 'programs') return renderPrograms(c);
+  if (state.activeSection === 'evidence') return renderEvidence(c);
+  if (state.activeSection === 'team') return renderTeam(c);
+}
+
+const DOMAIN_ICON = {
+  'التدريس':'book','نواتج التعلم':'book','الأنشطة المدرسية':'users','التوجيه الطلابي':'users',
+  'التطوير المهني المستمر':'gear','الإدارة المدرسية':'gear','البيئة المدرسية':'leaf',
+};
+const DOMAIN_COLOR = {
+  'التدريس':'teal','نواتج التعلم':'teal','الأنشطة المدرسية':'gold','التوجيه الطلابي':'teal',
+  'التطوير المهني المستمر':'blue','الإدارة المدرسية':'blue','البيئة المدرسية':'green',
+};
+function domainPillsRow(){
+  const items = [{d:null,label:'كل المجالات'}, ...DOMAIN_LIST.map(d=>({d,label:d}))];
+  return `<div class="card">
+    <div class="card-hd"><h3>مجالات الخطة</h3></div>
+    <div class="card-bd"><div class="domain-row">
+      ${items.map(it=>{
+        const c = DOMAIN_COLOR[it.d] || 'teal';
+        return `<button class="domain-pill ${state.activeDomain===it.d?'active':''}" data-domain="${esc(it.d||'')}">
+        ${it.d?`<span class="dot" style="background:var(--${c})">${icon(DOMAIN_ICON[it.d]||'grid')}</span>`:''}
+        ${esc(it.label)}
+      </button>`;}).join('')}
+    </div></div>
+  </div>`;
+}
+function wireDomainPills(c, onPick){
+  c.querySelectorAll('.domain-pill').forEach(b=>b.addEventListener('click', ()=>{
+    state.activeDomain = b.dataset.domain || null;
+    onPick();
+  }));
+}
+
+/* ---------------- overview ---------------- */
+const DOMAIN_ICON_MAP = {
+  'نواتج التعلم':'book', 'التعليم والتعلم':'book', 'الإدارة المدرسية':'gear', 'البيئة المدرسية':'leaf',
+};
+const KPI_COLOR_MAP = {
+  'البيئة المدرسية': {icon:'green', text:'gold'},
+  'الإدارة المدرسية': {icon:'blue', text:'green'},
+  'التعليم والتعلم': {icon:'blue', text:'blue'},
+  'نواتج التعلم': {icon:'teal', text:'teal'},
+};
+function renderOverview(c){
+  const perf = state.meta?.performance || [];
+  const find = d => perf.find(p=>p.domain===d);
+  const hero = find('الأداء العام للمدرسة');
+  const smallCards = [
+    {label:'نواتج التعلم', v: find('نواتج التعلم')?.externalEval},
+    {label:'التعليم والتعلم', v: find('التعليم والتعلم')?.externalEval},
+    {label:'الإدارة المدرسية', v: find('الإدارة المدرسية')?.externalEval},
+    {label:'البيئة المدرسية', v: find('البيئة المدرسية')?.externalEval},
+  ];
+
+  const list = state.priorities.filter(p=>!state.activeDomain || normDomain(p.domain)===state.activeDomain);
+  const preview = list.slice(0,6);
+  const selected = state.priorities.find(p=>p.id===state.selectedPriority) || preview[0];
+
+  c.innerHTML = `
+    <div class="kpi-area">
+      <div class="kpi-hero">
+        <div class="kpi-hero-hd"><h3>ملخص التقويم الخارجي</h3><span class="kpi-hero-icon">${icon('doc')}</span></div>
+        <div class="val tabular">${esc(hero?.externalEval??'—')}%</div>
+        <div class="lbl">الأداء العام للمدرسة</div>
+        <div class="sub">وفق الخطة المرفقة</div>
+      </div>
+      <div class="kpi-row">
+        ${smallCards.map(k=>{
+          const cc = KPI_COLOR_MAP[k.label] || {icon:'teal', text:'blue'};
+          return `<div class="kpi">
+          <span class="kpi-icon" style="background:var(--${cc.icon}-bg,var(--surface-2));color:var(--${cc.icon})">${icon(DOMAIN_ICON_MAP[k.label]||'grid')}</span>
+          <div class="val tabular" style="color:var(--${cc.text})">${esc(k.v??'—')}%</div><div class="lbl">${esc(k.label)}</div>
+        </div>`;}).join('')}
+      </div>
+    </div>
+    <div class="grid-2">
+      <div id="detailPane"></div>
+      <div class="card">
+        <div class="card-hd"><h3>أولويات التحسين (${state.priorities.length})</h3><button class="btn sm" data-goto="priorities">عرض الكل</button></div>
+        <div class="card-bd">
+          <div class="search">${icon('search')}<input id="ovSearch" placeholder="البحث في المؤشرات…"></div>
+          <ul class="pri-list" id="ovListEl">
+            ${preview.map((p,i)=>priListItem(p,i)).join('') || '<li class="empty">لا توجد بيانات</li>'}
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:18px">${domainPillsRow()}</div>
+  `;
+  c.querySelectorAll('[data-goto]').forEach(b=>b.addEventListener('click',()=>{state.activeSection=b.dataset.goto;render();}));
+  c.querySelectorAll('#ovListEl .pri-item').forEach(el=>el.addEventListener('click',()=>{state.selectedPriority=el.dataset.id;renderOverview(c);}));
+  const ovSearch = document.getElementById('ovSearch');
+  ovSearch.addEventListener('input', ()=>{
+    const q = ovSearch.value.trim();
+    const filtered = list.filter(p=>p.text.includes(q)).slice(0,6);
+    document.getElementById('ovListEl').innerHTML = filtered.map((p,i)=>priListItem(p,i)).join('') || '<li class="empty">لا نتائج</li>';
+    document.querySelectorAll('#ovListEl .pri-item').forEach(el=>el.addEventListener('click',()=>{state.selectedPriority=el.dataset.id;renderOverview(c);}));
+  });
+  wireDomainPills(c, ()=>{ state.selectedPriority=null; renderOverview(c); });
+  renderDetail(document.getElementById('detailPane'), selected, {showAdminForm:false});
+}
+
+function priListItem(p, i){
+  return `<li class="pri-item ${state.selectedPriority===p.id?'active':''}" data-id="${p.id}">
+    <span class="pri-num">${i+1}</span>
+    <span style="flex:1">
+      <div class="pri-txt">${esc(p.text)}</div>
+      <div class="pri-dom">${esc(normDomain(p.domain))}</div>
+    </span>
+    <span class="pri-chevron">${icon('chevronL')}</span>
+  </li>`;
+}
+
+/* ---------------- priorities + detail ---------------- */
+function renderPriorities(c){
+  const list = state.priorities.filter(p=>!state.activeDomain || normDomain(p.domain)===state.activeDomain);
+  const selected = state.priorities.find(p=>p.id===state.selectedPriority) || list[0];
+  c.innerHTML = `
+    <div class="grid-2">
+      <div id="detailPane"></div>
+      <div class="card">
+        <div class="card-hd"><h3>المؤشرات (${list.length})</h3></div>
+        <div class="card-bd">
+          <div class="search">${icon('search')}<input id="priSearch" placeholder="البحث في المؤشرات…"></div>
+          <ul class="pri-list" id="priListEl">
+            ${list.map((p,i)=>priListItem(p,i)).join('') || '<li class="empty">لا توجد مؤشرات ضمن هذا المجال</li>'}
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:18px">${domainPillsRow()}</div>
+  `;
+  c.querySelectorAll('.pri-item').forEach(el=>el.addEventListener('click',()=>{state.selectedPriority=el.dataset.id;renderPriorities(c);}));
+  const search = document.getElementById('priSearch');
+  search.addEventListener('input', ()=>{
+    const q = search.value.trim();
+    const filtered = list.filter(p=>p.text.includes(q));
+    document.getElementById('priListEl').innerHTML = filtered.map((p)=>priListItem(p, list.indexOf(p))).join('') || '<li class="empty">لا نتائج</li>';
+    document.querySelectorAll('.pri-item').forEach(el=>el.addEventListener('click',()=>{state.selectedPriority=el.dataset.id;renderPriorities(c);}));
+  });
+  wireDomainPills(c, ()=>{ state.selectedPriority=null; renderPriorities(c); });
+  renderDetail(document.getElementById('detailPane'), selected, {showAdminForm:true});
+}
+
+function renderDetail(el, p, opts){
+  opts = opts || {showAdminForm:true};
+  if (!p){ el.innerHTML = `<div class="card"><div class="card-bd empty">اختاري مؤشرًا من القائمة</div></div>`; return; }
+  const acts = priorityActions(p);
+  const statusLabel = p.executionStatus || 'لم يُحدَّث';
+  const statusCls = p.executionStatus==='مكتمل' ? 'ok' : (p.executionStatus==='قيد التنفيذ' ? 'warn' : 'idle');
+  const documented = !!p.lastMeasured;
+
+  el.innerHTML = `
+    <div class="card">
+      <div class="card-hd"><h3>تفاصيل المؤشر</h3>${icon('list')}</div>
+      <div class="card-bd">
+        <div class="field"><label>مجال المؤشر</label><div class="val" style="display:inline-flex;background:var(--blue-bg);color:var(--blue-ink);padding:4px 12px;border-radius:999px;font-weight:700;font-size:12.5px">${esc(normDomain(p.domain))}</div></div>
+        <h2 class="detail-title">${esc(p.text)}</h2>
+
+        <div class="metric-row" style="grid-template-columns:1fr 1fr">
+          <div class="metric"><div class="n tabular" style="color:var(--blue)">${esc(p.target)}%</div><div class="l">المستهدف</div></div>
+          <div class="metric"><div class="n tabular">${esc(p.baseline)}%</div><div class="l">خط الأساس</div></div>
+        </div>
+        <div class="metric-row" style="grid-template-columns:1fr 1fr">
+          <div class="metric"><div class="n tabular" style="font-size:14px">${documented?'موثّق':'لم يوثّق بعد'}</div><div class="l">حالة التوثيق</div></div>
+          <div class="metric"><div class="n tabular" style="font-size:14px">${esc(p.lastMeasured||'—')}</div><div class="l">آخر قياس موثق</div></div>
+        </div>
+
+        <div class="field"><label>حالة التنفيذ</label><div class="val"><span class="status-pill ${statusCls}">${esc(statusLabel)}</span></div></div>
+        <div class="field"><label>المسؤول عن التنفيذ</label><div class="val">${esc(p.responsible||'—')}</div></div>
+        ${p.evidenceUrl?`<div class="field"><label>الشواهد</label><div class="val"><a href="${esc(p.evidenceUrl)}" target="_blank" rel="noopener" style="color:var(--blue);font-weight:700">فتح رابط الشاهد ↗</a></div></div>`:''}
+        ${p.notes?`<div class="field"><label>ملاحظات</label><div class="val">${esc(p.notes)}</div></div>`:''}
+
+        <button type="button" class="btn primary" id="toggleActionsBtn" style="width:100%;justify-content:center;margin-top:8px">${icon('doc')} عرض الإجراءات والشواهد (${acts.length})</button>
+        <div id="actionsWrap" class="hidden" style="margin-top:14px">
+          <div class="field"><label>الإطار الموجه</label><div class="val">${esc(p.framework||'—')}</div></div>
+          <ul class="actions-list">
+            ${acts.map(a=>`<li class="action-row">
+              <div class="m">${esc(a.method)}</div>
+              <div class="meta"><span>📅 ${esc(a.dueDate)}</span><span>👤 ${esc(a.responsible)}</span></div>
+            </li>`).join('') || '<li class="empty">لا توجد إجراءات مرتبطة موثقة</li>'}
+          </ul>
+        </div>
+
+        ${opts.showAdminForm && MODE==='admin' ? adminPriorityForm(p) : ''}
+      </div>
+    </div>
+  `;
+  const toggleBtn = document.getElementById('toggleActionsBtn');
+  if (toggleBtn) toggleBtn.addEventListener('click', ()=>{ document.getElementById('actionsWrap').classList.toggle('hidden'); });
+  if (opts.showAdminForm && MODE==='admin') wireAdminPriorityForm(p);
+}
+
+function adminPriorityForm(p){
+  return `
+    <form id="priForm" style="margin-top:18px;padding-top:16px;border-top:2px dashed var(--border)">
+      <h3 style="margin:0 0 12px;font-size:14.5px">تعديل المؤشر (وضع الإدارة)</h3>
+      <div class="form-grid">
+        <div class="f-field"><label>المستهدف (%)</label><input name="target" value="${esc(p.target)}"></div>
+        <div class="f-field"><label>آخر قياس موثق (%)</label><input name="lastMeasured" value="${esc(p.lastMeasured||'')}"></div>
+        <div class="f-field"><label>حالة التنفيذ</label>
+          <select name="executionStatus">
+            ${['لم يبدأ','قيد التنفيذ','مكتمل'].map(o=>`<option ${p.executionStatus===o?'selected':''}>${o}</option>`).join('')}
+          </select>
+        </div>
+        <div class="f-field"><label>المسؤول عن التنفيذ</label><input name="responsible" value="${esc(p.responsible||'')}"></div>
+        <div class="f-field full"><label>رابط الشاهد</label><input name="evidenceUrl" value="${esc(p.evidenceUrl||'')}" placeholder="https://‏..."></div>
+        <div class="f-field full"><label>ملاحظات</label><textarea name="notes">${esc(p.notes||'')}</textarea></div>
+      </div>
+      <div class="save-bar">
+        <button type="submit" class="btn teal">حفظ التعديلات</button>
+        <span class="save-msg" id="priSaveMsg"></span>
+      </div>
+    </form>
+  `;
+}
+
+function wireAdminPriorityForm(p){
+  const form = document.getElementById('priForm');
+  if (!form) return;
+  form.addEventListener('submit', async e=>{
+    e.preventDefault();
+    const fd = new FormData(form);
+    const patch = Object.fromEntries(fd.entries());
+    const msg = document.getElementById('priSaveMsg');
+    msg.textContent = 'جارِ الحفظ…'; msg.className='save-msg';
+    const {error} = await sb.from('priorities').update(priorityPatchToDb(patch)).eq('id', p.id);
+    if (!error){
+      Object.assign(p, patch);
+      msg.textContent = 'تم الحفظ ✓'; msg.className='save-msg ok';
+    } else {
+      msg.textContent = 'تعذّر الحفظ — حاولي مجددًا'; msg.className='save-msg err';
+    }
+  });
+}
+
+/* ---------------- programs ---------------- */
+function renderPrograms(c){
+  const list = state.programs.filter(p=>!state.activeDomain || normDomain(p.domain)===state.activeDomain);
+  c.innerHTML = `
+    <div class="card">
+      <div class="card-bd table-wrap">
+        <table>
+          <thead><tr>
+            <th>اسم البرنامج / المشروع</th><th>المجال</th><th>تاريخ التنفيذ</th><th>التنفيذ</th><th>مستوى الإنجاز</th><th>أداة التقويم</th>
+            ${MODE==='admin'?'<th>تعديل</th>':''}
+          </tr></thead>
+          <tbody>
+            ${list.map(p=>`<tr data-id="${p.id}">
+              <td style="max-width:280px">${esc(p.name)}</td>
+              <td>${esc(normDomain(p.domain))}</td>
+              <td class="tabular">${esc(p.executionDate)}</td>
+              <td>${executedChip(p.executed)}</td>
+              <td>${achievementChip(p.achievementLevel)}</td>
+              <td>${esc(p.evaluationTool||'—')}</td>
+              ${MODE==='admin'?`<td><button class="btn sm" data-edit="${p.id}">تعديل</button></td>`:''}
+            </tr>`).join('') || `<tr><td colspan="7" class="empty">لا توجد برامج ضمن هذا المجال</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="programModal"></div>
+  `;
+  if (MODE==='admin'){
+    c.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>openProgramEditor(list.find(p=>p.id===b.dataset.edit))));
+  }
+}
+
+function openProgramEditor(p){
+  const modal = document.getElementById('programModal');
+  modal.innerHTML = `
+    <div style="position:fixed;inset:0;background:rgba(15,27,32,.5);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px" id="modalBg">
+      <div class="card" style="max-width:520px;width:100%;max-height:88vh;overflow-y:auto">
+        <div class="card-hd"><h3>تحديث حالة البرنامج</h3><button class="btn sm ghost" id="modalClose">✕</button></div>
+        <div class="card-bd">
+          <div class="field"><label>البرنامج</label><div class="val">${esc(p.name)}</div></div>
+          <form id="progForm">
+            <div class="form-grid">
+              <div class="f-field"><label>حالة التنفيذ</label>
+                <select name="executed"><option value="" ${!p.executed?'selected':''}>لم يُحدَّث</option><option value="true" ${p.executed===true?'selected':''}>نُفّذ</option><option value="false" ${p.executed===false?'selected':''}>لم يُنفَّذ</option></select>
+              </div>
+              <div class="f-field"><label>مستوى الإنجاز</label>
+                <select name="achievementLevel"><option value="">—</option>${['عالي','متوسط','ضعيف'].map(o=>`<option ${p.achievementLevel===o?'selected':''}>${o}</option>`).join('')}</select>
+              </div>
+              <div class="f-field full"><label>أسباب عدم التنفيذ (إن وجدت)</label><input name="notExecutedReason" value="${esc(p.notExecutedReason||'')}"></div>
+              <div class="f-field full"><label>تاريخ التنفيذ المقترح</label><input name="proposedDate" value="${esc(p.proposedDate||'')}"></div>
+              <div class="f-field full"><label>أداة التقويم المستخدمة</label><input name="evaluationTool" value="${esc(p.evaluationTool||'')}"></div>
+            </div>
+            <div class="save-bar"><button type="submit" class="btn teal">حفظ</button><span class="save-msg" id="progSaveMsg"></span></div>
+          </form>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('modalClose').addEventListener('click', ()=>modal.innerHTML='');
+  document.getElementById('modalBg').addEventListener('click', e=>{ if(e.target.id==='modalBg') modal.innerHTML=''; });
+  document.getElementById('progForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const patch = Object.fromEntries(fd.entries());
+    if (patch.executed==='true') patch.executed = true; else if (patch.executed==='false') patch.executed=false; else patch.executed=null;
+    const msg = document.getElementById('progSaveMsg');
+    msg.textContent='جارِ الحفظ…'; msg.className='save-msg';
+    const {error} = await sb.from('programs').update(programPatchToDb(patch)).eq('id', p.id);
+    if (!error){
+      Object.assign(p, patch);
+      msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
+      setTimeout(()=>{modal.innerHTML='';}, 700);
+    } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+  });
+}
+
+/* ---------------- evidence ---------------- */
+function evidenceAddForm(){
+  return `
+  <form id="evidenceForm" style="margin-bottom:20px;padding-bottom:18px;border-bottom:1px dashed var(--border)">
+    <h3 style="margin:0 0 12px;font-size:14.5px">إضافة شاهد جديد (وضع الإدارة)</h3>
+    <div class="form-grid">
+      <div class="f-field full"><label>اختاري المؤشر</label>
+        <select name="priorityId" required>
+          ${state.priorities.map(p=>`<option value="${p.id}">${esc(p.text.length>70?p.text.slice(0,70)+'…':p.text)}${p.evidenceUrl?' — يوجد شاهد حاليًا':''}</option>`).join('')}
+        </select>
+      </div>
+      <div class="f-field full"><label>رابط الشاهد (Google Drive، تيليجرام، أو أي رابط)</label>
+        <input name="url" type="url" placeholder="https://drive.google.com/... أو https://t.me/..." required>
+      </div>
+    </div>
+    <div class="save-bar">
+      <button type="submit" class="btn teal">${icon('doc')} إضافة وإنشاء الباركود</button>
+      <span class="save-msg" id="evSaveMsg"></span>
+    </div>
+  </form>`;
+}
+
+function detectEvidenceSource(url){
+  const u = String(url||'').toLowerCase();
+  if (u.includes('drive.google.com') || u.includes('docs.google.com')) return {label:'Google Drive', ic:'cloud'};
+  if (u.includes('t.me/') || u.includes('telegram.me') || u.includes('telegram.org')) return {label:'Telegram', ic:'telegram'};
+  return {label:'رابط', ic:'link'};
+}
+
+function wireEvidenceAddForm(){
+  const form = document.getElementById('evidenceForm');
+  if (!form) return;
+  form.addEventListener('submit', async e=>{
+    e.preventDefault();
+    const fd = new FormData(form);
+    const id = fd.get('priorityId');
+    const url = fd.get('url');
+    const msg = document.getElementById('evSaveMsg');
+    msg.textContent = 'جارِ الحفظ…'; msg.className = 'save-msg';
+    const {error} = await sb.from('priorities').update({evidence_url: url}).eq('id', id);
+    if (!error){
+      const p = state.priorities.find(x=>x.id===id);
+      if (p) p.evidenceUrl = url;
+      msg.textContent = 'تم الحفظ ✓'; msg.className = 'save-msg ok';
+      form.reset();
+      renderEvidence(document.getElementById('content'));
+    } else {
+      msg.textContent = 'تعذّر الحفظ — حاولي مجددًا'; msg.className = 'save-msg err';
+    }
+  });
+}
+
+function evidenceCard(p){
+  const src = detectEvidenceSource(p.evidenceUrl);
+  return `<div class="evidence-card">
+    <div style="display:flex;align-items:center;justify-content:center;gap:6px">
+      <div class="pri-dom">${esc(normDomain(p.domain))}</div>
+      <span class="evidence-src">${icon(src.ic)} ${src.label}</span>
+    </div>
+    <div class="txt">${esc(p.text.length>70?p.text.slice(0,70)+'…':p.text)}</div>
+    <div class="qr-box" id="qr-${p.id}" title="اضغطي لفتح رابط الشاهد"></div>
+    <div class="evidence-actions">
+      <a href="${esc(p.evidenceUrl)}" target="_blank" rel="noopener" class="btn sm">${icon('doc')} فتح الرابط</a>
+      ${MODE==='admin' ? `<button type="button" class="btn sm ghost" data-remove-ev="${p.id}" title="حذف الرابط والباركود">${icon('trash')} حذف الشاهد</button>` : ''}
+    </div>
+  </div>`;
+}
+
+function renderEvidence(c){
+  const withEvidence = state.priorities.filter(p=>p.evidenceUrl);
+  c.innerHTML = `
+    <div class="card">
+      <div class="card-hd"><h3>الشواهد الموثّقة (${withEvidence.length})</h3></div>
+      <div class="card-bd">
+        ${MODE==='admin' ? evidenceAddForm() : ''}
+        <div class="evidence-grid">
+          ${withEvidence.map(p=>evidenceCard(p)).join('') || '<div class="empty">لا توجد شواهد موثّقة بعد لأي مؤشر</div>'}
+        </div>
+      </div>
+    </div>
+  `;
+  if (MODE==='admin'){
+    wireEvidenceAddForm();
+    c.querySelectorAll('[data-remove-ev]').forEach(b=>b.addEventListener('click', async ()=>{
+      const id = b.dataset.removeEv;
+      const {error} = await sb.from('priorities').update({evidence_url: ''}).eq('id', id);
+      if (!error){
+        const p = state.priorities.find(x=>x.id===id);
+        if (p) p.evidenceUrl = '';
+        renderEvidence(c);
+      }
+    }));
+  }
+  renderQRCodes(withEvidence);
+}
+
+function renderQRCodes(list){
+  if (!window.QRCode) return;
+  list.forEach(p=>{
+    const el = document.getElementById('qr-'+p.id);
+    if (!el) return;
+    el.innerHTML = '';
+    new QRCode(el, {text: p.evidenceUrl, width:104, height:104, colorDark:'#15445A', colorLight:'#ffffff'});
+    el.addEventListener('click', ()=>window.open(p.evidenceUrl, '_blank', 'noopener'));
+  });
+}
+
+/* ---------------- team ---------------- */
+function renderTeam(c){
+  c.innerHTML = `
+    <div class="card"><div class="card-bd">
+      <div class="team-grid">
+        ${state.team.map(t=>`<div class="team-card">
+          <div class="name">${esc(t.name)}</div>
+          <div class="role">${esc(t.role)}</div>
+          <div class="task">${esc(t.task)}</div>
+        </div>`).join('')}
+      </div>
+    </div></div>
+  `;
+}
+
+/* ---------------- Excel export (styled workbook via ExcelJS, real browser download) ---------------- */
+const XL_NAVY='FF15445A', XL_WHITE='FFFFFFFF', XL_BORDER='FFD9E3DE', XL_STRIPE='FFF4F6F6';
+
+function xlStyleHeader(row){
+  row.eachCell(cell=>{
+    cell.font = {bold:true, color:{argb:XL_WHITE}, size:11, name:'Calibri'};
+    cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:XL_NAVY}};
+    cell.alignment = {horizontal:'center', vertical:'middle', wrapText:true};
+    cell.border = {top:{style:'thin',color:{argb:XL_BORDER}},bottom:{style:'thin',color:{argb:XL_BORDER}},left:{style:'thin',color:{argb:XL_BORDER}},right:{style:'thin',color:{argb:XL_BORDER}}};
+  });
+  row.height = 26;
+}
+function xlStyleBody(row, i){
+  row.eachCell(cell=>{
+    cell.alignment = {horizontal:'right', vertical:'top', wrapText:true};
+    cell.border = {top:{style:'thin',color:{argb:XL_BORDER}},bottom:{style:'thin',color:{argb:XL_BORDER}},left:{style:'thin',color:{argb:XL_BORDER}},right:{style:'thin',color:{argb:XL_BORDER}}};
+    if (i % 2 === 1) cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:XL_STRIPE}};
+  });
+}
+
+async function exportExcel(){
+  const btn = document.getElementById('btnExcel');
+  if (!window.ExcelJS){ alert('تعذّر تحميل مكتبة إكسل. جرّبي إعادة فتح الصفحة.'); return; }
+  const origHtml = btn.innerHTML;
+  btn.disabled = true; btn.innerHTML = 'جارِ التجهيز…';
+  try{
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'خطة تحسين ' + (state.meta?.schoolName||'');
+    wb.created = new Date();
+
+    let logoId = null;
+    try{
+      logoId = wb.addImage({base64: MINISTRY_LOGO, extension: 'png'});
+    }catch(e){ /* logo is decorative; export continues without it */ }
+
+    const cover = wb.addWorksheet('نظرة عامة', {views:[{rightToLeft:true}]});
+    cover.columns = [{width:4},{width:36},{width:18}];
+    if (logoId !== null) cover.addImage(logoId, {tl:{col:0.15,row:0.25}, ext:{width:88,height:68}});
+    cover.mergeCells('B2:C2');
+    cover.getCell('B2').value = 'خطة التحسين المدرسية';
+    cover.getCell('B2').font = {bold:true, size:18, color:{argb:XL_NAVY}};
+    cover.mergeCells('B3:C3');
+    cover.getCell('B3').value = state.meta?.schoolName || '';
+    cover.getCell('B3').font = {bold:true, size:14};
+    cover.mergeCells('B4:C4');
+    cover.getCell('B4').value = `${state.meta?.stage||''} · للعام ${state.meta?.year||''}`;
+    cover.getCell('B4').font = {size:12, color:{argb:'FF5B6B73'}};
+
+    let r = 7;
+    cover.getCell(`B${r}`).value = 'مؤشرات الأداء العام (التقويم الخارجي)';
+    cover.getCell(`B${r}`).font = {bold:true, size:13, color:{argb:XL_NAVY}};
+    r++;
+    (state.meta?.performance||[]).forEach(p=>{
+      cover.getCell(`B${r}`).value = p.domain;
+      cover.getCell(`C${r}`).value = (p.externalEval!=null && p.externalEval!=='') ? Number(p.externalEval)+'%' : '—';
+      cover.getCell(`B${r}`).border = {bottom:{style:'thin',color:{argb:XL_BORDER}}};
+      cover.getCell(`C${r}`).border = {bottom:{style:'thin',color:{argb:XL_BORDER}}};
+      cover.getCell(`C${r}`).font = {bold:true, color:{argb:XL_NAVY}};
+      cover.getCell(`C${r}`).alignment = {horizontal:'center'};
+      r++;
+    });
+    r += 2;
+    cover.getCell(`B${r}`).value = 'ملخص الخطة';
+    cover.getCell(`B${r}`).font = {bold:true, size:13, color:{argb:XL_NAVY}};
+    r++;
+    [
+      ['عدد أولويات التحسين', state.priorities.length],
+      ['عدد إجراءات التحسين', state.actions.length],
+      ['عدد البرامج والمتابعة', state.programs.length],
+      ['عدد أعضاء فريق العمل', state.team.length],
+      ['الرقم الوزاري', state.meta?.ministryNumber || '—'],
+    ].forEach(([label,val])=>{
+      cover.getCell(`B${r}`).value = label;
+      cover.getCell(`C${r}`).value = val;
+      cover.getCell(`C${r}`).alignment = {horizontal:'center'};
+      cover.getCell(`B${r}`).border = {bottom:{style:'thin',color:{argb:XL_BORDER}}};
+      cover.getCell(`C${r}`).border = {bottom:{style:'thin',color:{argb:XL_BORDER}}};
+      r++;
+    });
+
+    const priSheet = wb.addWorksheet('أولويات التحسين', {views:[{rightToLeft:true, state:'frozen', ySplit:1}]});
+    priSheet.columns = [
+      {header:'#', key:'n', width:4}, {header:'المجال', key:'domain', width:16},
+      {header:'الإطار', key:'framework', width:24}, {header:'المستوى', key:'level', width:10},
+      {header:'خط الأساس %', key:'baseline', width:12}, {header:'المؤشر', key:'text', width:52},
+      {header:'المستهدف %', key:'target', width:12}, {header:'آخر قياس', key:'lastMeasured', width:12},
+      {header:'حالة التنفيذ', key:'status', width:14}, {header:'المسؤول', key:'responsible', width:20},
+    ];
+    xlStyleHeader(priSheet.getRow(1));
+    state.priorities.forEach((p,i)=>{
+      const row = priSheet.addRow({n:i+1, domain:normDomain(p.domain), framework:p.framework, level:p.level,
+        baseline:p.baseline, text:p.text, target:p.target, lastMeasured:p.lastMeasured||'',
+        status:p.executionStatus||'', responsible:p.responsible||''});
+      xlStyleBody(row, i);
+    });
+
+    const progSheet = wb.addWorksheet('البرامج والمتابعة', {views:[{rightToLeft:true, state:'frozen', ySplit:1}]});
+    progSheet.columns = [
+      {header:'#', key:'n', width:4}, {header:'اسم البرنامج', key:'name', width:52},
+      {header:'المجال', key:'domain', width:18}, {header:'تاريخ التنفيذ', key:'date', width:20},
+      {header:'نُفّذ؟', key:'executed', width:10}, {header:'مستوى الإنجاز', key:'level', width:14},
+      {header:'أداة التقويم', key:'tool', width:20},
+    ];
+    xlStyleHeader(progSheet.getRow(1));
+    state.programs.forEach((p,i)=>{
+      const row = progSheet.addRow({n:i+1, name:p.name, domain:normDomain(p.domain), date:p.executionDate,
+        executed: p.executed===true?'نعم':(p.executed===false?'لا':''), level:p.achievementLevel||'', tool:p.evaluationTool||''});
+      xlStyleBody(row, i);
+    });
+
+    const teamSheet = wb.addWorksheet('فريق العمل', {views:[{rightToLeft:true, state:'frozen', ySplit:1}]});
+    teamSheet.columns = [
+      {header:'#', key:'n', width:4}, {header:'الاسم', key:'name', width:28},
+      {header:'الوصف الوظيفي', key:'role', width:24}, {header:'المهمة', key:'task', width:16},
+    ];
+    xlStyleHeader(teamSheet.getRow(1));
+    state.team.forEach((t,i)=>{
+      const row = teamSheet.addRow({n:i+1, name:t.name, role:t.role, task:t.task});
+      xlStyleBody(row, i);
+    });
+
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const filename = `خطة-تحسين-${(state.meta?.schoolName||'المدرسة').replace(/\s+/g,'-')}-${state.meta?.year||''}.xlsx`;
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+  }catch(err){
+    alert('تعذّر إنشاء ملف Excel: ' + (err?.message || 'حدث خطأ غير متوقع'));
+  }finally{
+    btn.disabled = false; btn.innerHTML = origHtml;
+  }
+}
+
+/* ---------------- login gate (real Supabase Auth) ---------------- */
+function renderGate(){
+  root.innerHTML = `
+    <div class="gate">
+      <div class="gate-card">
+        <img src="${MINISTRY_LOGO}" alt="شعار وزارة التعليم">
+        <h2>الدخول إلى إدارة الخطة</h2>
+        <p>مدرسة النهروان الثانوية — خطة التحسين 1448هـ</p>
+        <form id="gateForm">
+          <input name="user" placeholder="اسم المستخدم" autocomplete="off">
+          <input name="pin" placeholder="الرمز السري" type="password" autocomplete="off">
+          <div class="gate-err" id="gateErr"></div>
+          <button type="submit" class="btn primary" style="width:100%;justify-content:center">دخول</button>
+        </form>
+      </div>
+    </div>
+  `;
+  document.getElementById('gateForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const user = (fd.get('user')||'').trim();
+    const pin = (fd.get('pin')||'').trim();
+    const err = document.getElementById('gateErr');
+    const email = resolveLoginEmail(user);
+    if (!email){ err.textContent = 'اسم المستخدم أو الرمز السري غير صحيح'; return; }
+    const {data, error} = await sb.auth.signInWithPassword({email, password: pin});
+    if (error || !data.session){
+      err.textContent = 'اسم المستخدم أو الرمز السري غير صحيح';
+      return;
+    }
+    state.session = data.session;
+    state.authed = true;
+    loadAll();
+  });
+}
+
+/* ---------------- boot ---------------- */
+async function boot(){
+  render();
+  const {data:{session}} = await sb.auth.getSession();
+  state.session = session;
+  if (MODE === 'admin') state.authed = !!session;
+  if (state.authed) { await loadAll(); }
+  else if (MODE !== 'admin') { await loadAll(); }
+  else { render(); }
+}
+boot();
+</script>
+</body>
+</html>
