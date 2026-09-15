@@ -317,7 +317,11 @@ function resolveLoginEmail(user){
 const params = new URLSearchParams(location.search);
 const MODE = params.get('mode') === 'admin' ? 'admin' : 'dashboard';
 const DOMAINS = ["التدريس","نواتج التعلم","الأنشطة المدرسية","النشاط الطلابي","التوجيه الطلابي","التطوير المهني المستمر","الإدارة المدرسية","البيئة المدرسية"];
-function normDomain(d){ return d === "النشاط الطلابي" ? "الأنشطة المدرسية" : d; }
+function normDomain(d){
+  if (d === "النشاط الطلابي") return "الأنشطة المدرسية";
+  if (d === "المبنى المدرسي") return "البيئة المدرسية";
+  return d;
+}
 const DOMAIN_LIST = ["التدريس","نواتج التعلم","الأنشطة المدرسية","التوجيه الطلابي","التطوير المهني المستمر","الإدارة المدرسية","البيئة المدرسية"];
 
 const state = {
@@ -328,9 +332,14 @@ const state = {
   priorities: [],
   actions: [],
   programs: [],
+  domainAnalysis: [],
+  domainNotes: [],
+  planImprovements: [],
+  trash: {priorities:[], programs:[], team:[], actions:[], domainAnalysis:[], planImprovements:[]},
   activeDomain: null,
   activeSection: 'overview',
   selectedPriority: null,
+  selectedAnalysisDomain: null,
   loaded: false,
   showArchived: false,
 };
@@ -365,6 +374,7 @@ function icon(name){
     plus:'M12 5v14M5 12h14',
     youtube:'M22.54 6.42a2.78 2.78 0 00-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 00-1.94 2A29 29 0 001 11.75a29 29 0 00.46 5.33A2.78 2.78 0 003.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 001.94-2 29 29 0 00.46-5.25 29 29 0 00-.46-5.33zM9.75 15.02V8.48l5.75 3.27z',
     note:'M14 3v5h5M6 3h8l5 5v13H6zM9 13h6M9 17h6',
+    undo:'M3 7v6h6M3 13a9 9 0 1 0 3-6.7L3 9',
   };
   return `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths[name]?`<path d="${paths[name]}"/>`:''}</svg>`;
 }
@@ -372,22 +382,34 @@ function icon(name){
 /* ---------------- field mapping: DB (snake_case) <-> app (camelCase) ---------------- */
 function metaFromDb(r){
   if (!r) return null;
-  return {schoolName:r.school_name, year:r.year, stage:r.stage, ministryNumber:r.ministry_number, performance:r.performance||[], staff:r.staff||{}};
+  return {schoolName:r.school_name, year:r.year, stage:r.stage, ministryNumber:r.ministry_number, performance:r.performance||[], staff:r.staff||{},
+    gender:r.gender, buildingType:r.building_type, buildingIndependence:r.building_independence, adminIndependence:r.admin_independence,
+    period:r.period, sharedSchoolName:r.shared_school_name, learningOutcomes:r.learning_outcomes||[], quickSummary:r.quick_summary||{},
+    monitoringOfficials:r.monitoring_officials||{}, evaluationToolsNote:r.evaluation_tools_note};
 }
 function priorityFromDb(r){
   return {id:r.id, domain:r.domain, framework:r.framework, level:r.level, baseline:r.baseline, text:r.text, target:r.target,
     lastMeasured:r.last_measured, executionStatus:r.execution_status, responsible:r.responsible, evidenceUrl:r.evidence_url, notes:r.notes,
-    archived:!!r.archived, evidenceType:r.evidence_type||'link', evidenceNote:r.evidence_note||''};
+    archived:!!r.archived, evidenceType:r.evidence_type||'link', evidenceNote:r.evidence_note||'', deleted:!!r.deleted};
 }
 function actionFromDb(r){
   return {id:r.id, domain:r.domain, indicatorText:r.indicator_text, improvementAction:r.improvement_action, method:r.method,
-    dueDate:r.due_date, needDescription:r.need_description, responsible:r.responsible};
+    dueDate:r.due_date, needDescription:r.need_description, responsible:r.responsible, deleted:!!r.deleted};
 }
 function programFromDb(r){
   return {id:r.id, name:r.name, domain:r.domain, executionDate:r.execution_date, executed:r.executed, achievementLevel:r.achievement_level,
-    evaluationTool:r.evaluation_tool, notExecutedReason:r.not_executed_reason, proposedDate:r.proposed_date, archived:!!r.archived};
+    evaluationTool:r.evaluation_tool, notExecutedReason:r.not_executed_reason, proposedDate:r.proposed_date, archived:!!r.archived, deleted:!!r.deleted};
 }
-function teamFromDb(r){ return {id:r.id, name:r.name, role:r.role, task:r.task}; }
+function teamFromDb(r){ return {id:r.id, name:r.name, role:r.role, task:r.task, deleted:!!r.deleted}; }
+function domainAnalysisFromDb(r){
+  return {id:r.id, domain:r.domain, framework:r.framework, evalDomain:r.eval_domain, standard:r.standard, code:r.code,
+    indicatorText:r.indicator_text, strengthPct:r.strength_pct, weaknessPct:r.weakness_pct, archived:!!r.archived, deleted:!!r.deleted};
+}
+function domainNoteFromDb(r){ return {id:r.id, domain:r.domain, title:r.title, notesText:r.notes_text}; }
+function planImprovementFromDb(r){
+  return {id:r.id, programName:r.program_name, executionLevel:r.execution_level, lowExecutionReason:r.low_execution_reason,
+    improvementActions:r.improvement_actions, alternateResponsible:r.alternate_responsible, followupResponsible:r.followup_responsible, deleted:!!r.deleted};
+}
 
 function priorityPatchToDb(patch){
   const map = {target:'target', lastMeasured:'last_measured', executionStatus:'execution_status', responsible:'responsible', evidenceUrl:'evidence_url', notes:'notes', evidenceType:'evidence_type', evidenceNote:'evidence_note',
@@ -409,24 +431,74 @@ function actionPatchToDb(patch){
   for (const k in patch) if (map[k]) out[map[k]] = patch[k];
   return out;
 }
+function domainAnalysisPatchToDb(patch){
+  const map = {domain:'domain', framework:'framework', evalDomain:'eval_domain', standard:'standard', code:'code', indicatorText:'indicator_text', strengthPct:'strength_pct', weaknessPct:'weakness_pct'};
+  const out = {};
+  for (const k in patch) if (map[k]) out[map[k]] = patch[k];
+  return out;
+}
+function planImprovementPatchToDb(patch){
+  const map = {programName:'program_name', executionLevel:'execution_level', lowExecutionReason:'low_execution_reason', improvementActions:'improvement_actions', alternateResponsible:'alternate_responsible', followupResponsible:'followup_responsible'};
+  const out = {};
+  for (const k in patch) if (map[k]) out[map[k]] = patch[k];
+  return out;
+}
+function metaPatchToDb(patch){
+  const map = {schoolName:'school_name', year:'year', stage:'stage', ministryNumber:'ministry_number', gender:'gender',
+    buildingType:'building_type', buildingIndependence:'building_independence', adminIndependence:'admin_independence',
+    period:'period', sharedSchoolName:'shared_school_name', evaluationToolsNote:'evaluation_tools_note'};
+  const out = {};
+  for (const k in patch) if (map[k]) out[map[k]] = patch[k];
+  return out;
+}
 
 /* ---------------- data loading ---------------- */
 async function loadAll(){
-  const [metaRes, teamRes, priRes, actRes, progRes] = await Promise.all([
+  const [metaRes, teamRes, priRes, actRes, progRes, daRes, dnRes, piRes] = await Promise.all([
     sb.from('meta').select('*').eq('id','main').maybeSingle(),
     sb.from('team').select('*').order('id'),
     sb.from('priorities').select('*').order('id'),
     sb.from('actions').select('*').order('id'),
     sb.from('programs').select('*').order('id'),
+    sb.from('domain_analysis').select('*').order('id'),
+    sb.from('domain_notes').select('*').order('id'),
+    sb.from('plan_improvements').select('*').order('id'),
   ]);
   state.meta = metaFromDb(metaRes.data);
-  state.team = (teamRes.data||[]).map(teamFromDb);
-  state.priorities = (priRes.data||[]).map(priorityFromDb);
-  state.actions = (actRes.data||[]).map(actionFromDb);
-  state.programs = (progRes.data||[]).map(programFromDb);
+  const allTeam = (teamRes.data||[]).map(teamFromDb);
+  const allPri = (priRes.data||[]).map(priorityFromDb);
+  const allAct = (actRes.data||[]).map(actionFromDb);
+  const allProg = (progRes.data||[]).map(programFromDb);
+  const allDa = (daRes.data||[]).map(domainAnalysisFromDb);
+  const allPi = (piRes.data||[]).map(planImprovementFromDb);
+  state.team = allTeam.filter(x=>!x.deleted);
+  state.priorities = allPri.filter(x=>!x.deleted);
+  state.actions = allAct.filter(x=>!x.deleted);
+  state.programs = allProg.filter(x=>!x.deleted);
+  state.domainAnalysis = allDa.filter(x=>!x.deleted);
+  state.domainNotes = (dnRes.data||[]).map(domainNoteFromDb);
+  state.planImprovements = allPi.filter(x=>!x.deleted);
+  state.trash = {
+    team: allTeam.filter(x=>x.deleted),
+    priorities: allPri.filter(x=>x.deleted),
+    actions: allAct.filter(x=>x.deleted),
+    programs: allProg.filter(x=>x.deleted),
+    domainAnalysis: allDa.filter(x=>x.deleted),
+    planImprovements: allPi.filter(x=>x.deleted),
+  };
   state.loaded = true;
   if (!state.selectedPriority && state.priorities.length) state.selectedPriority = state.priorities[0].id;
   render();
+}
+const TRASH_LABELS = {priorities:'مؤشر', programs:'برنامج', team:'عضو فريق', actions:'إجراء', domainAnalysis:'عنصر تحليل واقع', planImprovements:'عنصر تحسين خطة'};
+async function softDelete(table, id, confirmMsg){
+  if (!confirm(confirmMsg)) return false;
+  const {error} = await sb.from(table).update({deleted:true, deleted_at: new Date().toISOString()}).eq('id', id);
+  return !error;
+}
+async function restoreFromTrash(table, id){
+  const {error} = await sb.from(table).update({deleted:false, deleted_at:null}).eq('id', id);
+  return !error;
 }
 
 /* ---------------- helpers ---------------- */
@@ -453,12 +525,17 @@ function render(){
 
   const sections = [
     {id:'overview', label:'نظرة عامة', ic:'home'},
+    {id:'analysis', label:'تحليل الواقع', ic:'book'},
     {id:'priorities', label:'مجالات التحسين', ic:'grid'},
     {id:'programs', label:'البرامج والإجراءات', ic:'doc'},
+    {id:'improvement', label:'تحسين الخطة', ic:'note'},
     {id:'evidence', label:'الشواهد', ic:'list'},
     {id:'team', label:'فريق العمل', ic:'users'},
     {id:'faq', label:'الأسئلة الشائعة', ic:'help'},
-    ...(MODE==='admin' ? [{id:'settings', label:'الإعدادات', ic:'settings'}] : []),
+    ...(MODE==='admin' ? [
+      {id:'settings', label:'الإعدادات', ic:'settings'},
+      {id:'trash', label:'سلة المحذوفات', ic:'trash'},
+    ] : []),
   ];
 
   root.innerHTML = `
@@ -524,12 +601,15 @@ function render(){
 function renderContent(){
   const c = document.getElementById('content');
   if (state.activeSection === 'overview') return renderOverview(c);
+  if (state.activeSection === 'analysis') return renderAnalysis(c);
   if (state.activeSection === 'priorities') return renderPriorities(c);
   if (state.activeSection === 'programs') return renderPrograms(c);
+  if (state.activeSection === 'improvement') return renderImprovement(c);
   if (state.activeSection === 'evidence') return renderEvidence(c);
   if (state.activeSection === 'team') return renderTeam(c);
   if (state.activeSection === 'faq') return renderFaq(c);
   if (state.activeSection === 'settings') return renderSettings(c);
+  if (state.activeSection === 'trash') return renderTrash(c);
 }
 
 const DOMAIN_ICON = {
@@ -615,6 +695,7 @@ function renderOverview(c){
         </div>
       </div>
     </div>
+    ${overviewSchoolInfoCard()}
     <div style="margin-top:18px">${domainPillsRow()}</div>
   `;
   c.querySelectorAll('[data-goto]').forEach(b=>b.addEventListener('click',()=>{state.activeSection=b.dataset.goto;render();}));
@@ -639,6 +720,47 @@ function priListItem(p, i){
     </span>
     <span class="pri-chevron">${icon('chevronL')}</span>
   </li>`;
+}
+
+function overviewSchoolInfoCard(){
+  const m = state.meta || {};
+  const staff = m.staff || {};
+  const perf = m.performance || [];
+  const lo = m.learningOutcomes || [];
+  const qs = m.quickSummary || {};
+  const mo = m.monitoringOfficials || {};
+  const badges = [
+    ['جنس المدرسة', m.gender], ['نوع المبنى', m.buildingType], ['استقلالية المبنى', m.buildingIndependence],
+    ['استقلالية الإدارة', m.adminIndependence], ['الفترة', m.period],
+  ].filter(([,v])=>v);
+  return `
+    <div class="card" style="margin-top:18px">
+      <div class="card-hd"><h3>بيانات المدرسة ونتائج التقويم</h3>${MODE==='admin'?`<button class="btn sm" data-goto="settings">تعديل من الإعدادات</button>`:''}</div>
+      <div class="card-bd">
+        ${badges.length ? `<div class="domain-row" style="margin-bottom:14px">${badges.map(([l,v])=>`<span class="chip low" style="font-weight:700">${esc(l)}: ${esc(v)}</span>`).join('')}</div>` : ''}
+        ${Object.keys(staff).length ? `<div class="metric-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px">
+          ${Object.entries(staff).filter(([k])=>k!=='الوصف').map(([k,v])=>`<div class="metric"><div class="n tabular" style="font-size:16px">${esc(v)}</div><div class="l">${esc(k)}</div></div>`).join('')}
+        </div>` : ''}
+        ${perf.length ? `<div class="table-wrap"><table>
+          <thead><tr><th>المجال</th><th>ذاتي</th><th>مستوى (ذاتي)</th><th>خارجي</th><th>مستوى (خارجي)</th></tr></thead>
+          <tbody>${perf.map(p=>`<tr><td>${esc(p.domain)}</td><td class="tabular">${esc(p.selfEval??'—')}${p.selfEval?'%':''}</td><td>${esc(p.selfLevel||'—')}</td><td class="tabular">${esc(p.externalEval??'—')}${p.externalEval?'%':''}</td><td>${esc(p.externalLevel||'—')}</td></tr>`).join('')}</tbody>
+        </table></div>` : ''}
+        ${lo.length ? `<div class="table-wrap" style="margin-top:14px"><table>
+          <thead><tr><th>نواتج التعلم</th><th>2024</th><th>2025</th><th>2026</th></tr></thead>
+          <tbody>${lo.map(r=>`<tr><td>${esc(r.domain)}</td><td class="tabular">${esc(r.y2024||'—')}</td><td class="tabular">${esc(r.y2025||'—')}</td><td class="tabular">${esc(r.y2026||'—')}</td></tr>`).join('')}</tbody>
+        </table></div>` : ''}
+        ${(qs.overall_value || qs.learning_value) ? `<div class="metric-row" style="grid-template-columns:1fr 1fr;margin-top:14px">
+          ${qs.overall_value?`<div class="metric"><div class="n tabular" style="color:var(--blue)">${esc(qs.overall_value)}</div><div class="l">${esc(qs.overall_label||'')}</div></div>`:''}
+          ${qs.learning_value?`<div class="metric"><div class="n tabular">${esc(qs.learning_value)}</div><div class="l">${esc(qs.learning_label||'')}</div></div>`:''}
+        </div>` : ''}
+        ${(mo.followup_responsible || mo.evaluator) ? `<div class="field" style="margin-top:14px"><label>مسؤولو المتابعة والتقويم</label><div class="val">
+          ${mo.followup_responsible?`مسؤول المتابعة: ${esc(mo.followup_responsible)}${mo.academic_affairs_deputy?' — وكيل الشؤون التعليمية: '+esc(mo.academic_affairs_deputy):''}`:''}
+          ${mo.evaluator?`<br>مسؤول التقويم: ${esc(mo.evaluator)}${mo.evaluator_role?' ('+esc(mo.evaluator_role)+')':''}`:''}
+        </div></div>` : ''}
+        ${m.evaluationToolsNote ? `<div class="field" style="margin-top:14px"><label>أدوات التقويم المستخدمة</label><div class="val">${esc(m.evaluationToolsNote)}</div></div>` : ''}
+      </div>
+    </div>
+  `;
 }
 
 /* ---------------- priorities + detail ---------------- */
@@ -732,11 +854,12 @@ function renderDetail(el, p, opts){
       openActionEditor(state.actions.find(a=>a.id===b.dataset.editAction), p, el);
     }));
     document.querySelectorAll('[data-delete-action]').forEach(b=>b.addEventListener('click', async ()=>{
-      if (!confirm('هل تريدين حذف هذا الإجراء نهائيًا؟ لا يمكن التراجع.')) return;
       const id = b.dataset.deleteAction;
-      const {error} = await sb.from('actions').delete().eq('id', id);
-      if (!error){
+      const ok = await softDelete('actions', id, 'هل تريدين حذف هذا الإجراء؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
+      if (ok){
+        const item = state.actions.find(x=>x.id===id);
         state.actions = state.actions.filter(x=>x.id!==id);
+        if (item) state.trash.actions.push(Object.assign({}, item, {deleted:true}));
         renderDetail(el, p, opts);
       }
     }));
@@ -827,7 +950,7 @@ function adminPriorityForm(p){
       <div class="save-bar">
         <button type="submit" class="btn teal">حفظ التعديلات</button>
         <button type="button" class="btn sm ghost" id="archiveBtn">${icon('archive')} ${p.archived?'إلغاء الأرشفة':'أرشفة'}</button>
-        <button type="button" class="btn sm ghost" id="deletePriBtn" style="color:#a33">${icon('trash')} حذف نهائي</button>
+        <button type="button" class="btn sm ghost" id="deletePriBtn" style="color:#a33">${icon('trash')} حذف</button>
         <span class="save-msg" id="priSaveMsg"></span>
       </div>
     </form>
@@ -859,10 +982,10 @@ function wireAdminPriorityForm(p){
   });
   const deleteBtn = document.getElementById('deletePriBtn');
   if (deleteBtn) deleteBtn.addEventListener('click', async ()=>{
-    if (!confirm('هل تريدين حذف هذا المؤشر نهائيًا؟ لا يمكن التراجع.')) return;
-    const {error} = await sb.from('priorities').delete().eq('id', p.id);
-    if (!error){
+    const ok = await softDelete('priorities', p.id, 'هل تريدين حذف هذا المؤشر؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
+    if (ok){
       state.priorities = state.priorities.filter(x=>x.id!==p.id);
+      state.trash.priorities.push(Object.assign({}, p, {deleted:true}));
       state.selectedPriority = null;
       renderPriorities(document.getElementById('content'));
     }
@@ -935,7 +1058,7 @@ function openProgramEditor(p){
             <div class="save-bar">
               <button type="submit" class="btn teal">حفظ</button>
               <button type="button" class="btn sm ghost" id="archiveProgBtn">${icon('archive')} ${p.archived?'إلغاء الأرشفة':'أرشفة'}</button>
-              <button type="button" class="btn sm ghost" id="deleteProgBtn" style="color:#a33">${icon('trash')} حذف نهائي</button>
+              <button type="button" class="btn sm ghost" id="deleteProgBtn" style="color:#a33">${icon('trash')} حذف</button>
               <span class="save-msg" id="progSaveMsg"></span>
             </div>
           </form>
@@ -965,10 +1088,10 @@ function openProgramEditor(p){
     if (!error){ p.archived = newVal; modal.innerHTML=''; renderPrograms(document.getElementById('content')); }
   });
   document.getElementById('deleteProgBtn').addEventListener('click', async ()=>{
-    if (!confirm('هل تريدين حذف هذا البرنامج نهائيًا؟ لا يمكن التراجع.')) return;
-    const {error} = await sb.from('programs').delete().eq('id', p.id);
-    if (!error){
+    const ok = await softDelete('programs', p.id, 'هل تريدين حذف هذا البرنامج؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
+    if (ok){
       state.programs = state.programs.filter(x=>x.id!==p.id);
+      state.trash.programs.push(Object.assign({}, p, {deleted:true}));
       modal.innerHTML='';
       renderPrograms(document.getElementById('content'));
     }
@@ -1174,10 +1297,11 @@ function renderTeam(c){
     }));
     c.querySelectorAll('[data-remove-team]').forEach(b=>b.addEventListener('click', async ()=>{
       const id = b.dataset.removeTeam;
-      if (!confirm('هل تريدين حذف هذا العضو نهائيًا؟')) return;
-      const {error} = await sb.from('team').delete().eq('id', id);
-      if (!error){
+      const ok = await softDelete('team', id, 'هل تريدين حذف هذا العضو؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
+      if (ok){
+        const item = state.team.find(t=>t.id===id);
         state.team = state.team.filter(t=>t.id!==id);
+        if (item) state.trash.team.push(Object.assign({}, item, {deleted:true}));
         renderTeam(c);
       }
     }));
@@ -1189,9 +1313,11 @@ const FAQ_ITEMS = [
   {q:'كيف أدخل لوضع الإدارة؟', a:'افتحي رابط الإدارة (نفس رابط الداشبورد مضافًا له ?mode=admin)، ثم سجّلي الدخول باسم المستخدم والرمز السري الخاصين بك.'},
   {q:'كيف أعدّل مؤشرًا؟', a:'من قائمة "مجالات التحسين"، اختاري المؤشر من القائمة، ثم عدّلي الحقول في نموذج "تعديل المؤشر" أسفل التفاصيل واضغطي "حفظ التعديلات".'},
   {q:'كيف أضيف أو أحذف عضو فريق؟', a:'من قسم "فريق العمل" في وضع الإدارة، استخدمي نموذج "إضافة عضو جديد" أعلى الصفحة، أو زر "حذف" أسفل بطاقة أي عضو.'},
-  {q:'ما الفرق بين الحذف والأرشفة؟', a:'الأرشفة تخفي المؤشر أو البرنامج من القائمة الرئيسية دون حذف بياناته نهائيًا، ويمكن استعادته لاحقًا من زر "عرض الأرشيف". الحذف (في الشواهد وفريق العمل) نهائي.'},
+  {q:'ما الفرق بين الحذف والأرشفة؟', a:'الأرشفة تخفي المؤشر أو البرنامج من القائمة الرئيسية دون حذف بياناته، ويمكن استعادته لاحقًا من زر "عرض الأرشيف". الحذف ينقل العنصر إلى "سلة المحذوفات" ويمكن استعادته من هناك في أي وقت.'},
+  {q:'حذفت عنصرًا بالخطأ، كيف أستعيده؟', a:'من قسم "سلة المحذوفات" في وضع الإدارة، ستجدين كل ما حذفتيه (مؤشرات، برامج، إجراءات، أعضاء فريق، عناصر تحليل واقع) مع زر "استعادة" لإرجاعه لمكانه.'},
+  {q:'أين أجد كل محتوى ملف الوورد (تحليل الواقع الكامل، نقاط القوة، البيانات الأساسية للمدرسة)؟', a:'قسم "تحليل الواقع" يعرض كل مؤشرات التقويم (نقاط القوة والضعف) حسب المجال مع الملاحظات. قسم "الإعدادات" و"نظرة عامة" يعرضان البيانات الأساسية للمدرسة، أعداد المنسوبين والطلاب، ونتائج التقويم الذاتي والخارجي.'},
   {q:'كيف أضيف شاهدًا (رابط، يوتيوب، أو نص)؟', a:'من قسم "الشواهد" في وضع الإدارة، اختاري المؤشر ونوع الشاهد (رابط / يوتيوب / نص)، ثم أدخلي المحتوى واضغطي "إضافة الشاهد".'},
-  {q:'كيف أصدّر ملف Excel أو أطبع تقرير PDF؟', a:'من أعلى الصفحة اضغطي "تصدير Excel" لحفظ ملف إكسل احترافي، أو "طباعة / PDF" لفتح معاينة طباعة يمكن حفظها كـ PDF من نافذة الطباعة.'},
+  {q:'كيف أصدّر ملف Excel أو أطبع تقرير PDF؟', a:'من أعلى الصفحة اضغطي "تصدير Excel" لحفظ ملف إكسل احترافي يشمل كل الأقسام (تحليل الواقع، الأولويات، الإجراءات، البرامج، الفريق)، أو "طباعة / PDF" لفتح معاينة طباعة يمكن حفظها كـ PDF من نافذة الطباعة.'},
   {q:'هل التعديلات تظهر فورًا لباقي المشاهدين؟', a:'التعديلات تُحفظ فورًا في قاعدة البيانات، وتظهر لأي شخص يفتح الرابط أو يعيد تحميل الصفحة.'},
 ];
 function renderFaq(c){
@@ -1208,17 +1334,60 @@ function renderFaq(c){
 }
 
 /* ---------------- Settings (admin only) ---------------- */
+const STAFF_LABELS = ['الفصول الدراسية','الوكلاء','المعلمون','موجهو الطلاب','رواد النشاط','محضرو المختبر','الوظائف الادارية','الطلاب'];
 function renderSettings(c){
   const m = state.meta || {};
+  const staff = m.staff || {};
+  const mo = m.monitoringOfficials || {};
+  const lo = (m.learningOutcomes && m.learningOutcomes.length) ? m.learningOutcomes : [{domain:'القدرات',y2024:'',y2025:'',y2026:''},{domain:'التخصص',y2024:'',y2025:'',y2026:''}];
+  const qs = m.quickSummary || {};
   c.innerHTML = `
     <div class="card"><div class="card-bd">
       <form id="settingsForm">
+        <h3 style="margin:0 0 12px;font-size:14.5px">البيانات الأساسية</h3>
         <div class="form-grid">
           <div class="f-field"><label>اسم المدرسة</label><input name="schoolName" value="${esc(m.schoolName||'')}"></div>
           <div class="f-field"><label>العام الدراسي</label><input name="year" value="${esc(m.year||'')}"></div>
           <div class="f-field"><label>المرحلة</label><input name="stage" value="${esc(m.stage||'')}"></div>
           <div class="f-field"><label>الرقم الوزاري</label><input name="ministryNumber" value="${esc(m.ministryNumber||'')}"></div>
+          <div class="f-field"><label>جنس المدرسة</label><input name="gender" value="${esc(m.gender||'')}"></div>
+          <div class="f-field"><label>نوع المبنى</label><input name="buildingType" value="${esc(m.buildingType||'')}"></div>
+          <div class="f-field"><label>استقلالية المبنى</label><input name="buildingIndependence" value="${esc(m.buildingIndependence||'')}"></div>
+          <div class="f-field"><label>استقلالية الإدارة</label><input name="adminIndependence" value="${esc(m.adminIndependence||'')}"></div>
+          <div class="f-field"><label>الفترة</label><input name="period" value="${esc(m.period||'')}"></div>
+          <div class="f-field full"><label>اسم المدرسة المشتركة في الإدارة (إن وجدت)</label><input name="sharedSchoolName" value="${esc(m.sharedSchoolName||'')}"></div>
         </div>
+
+        <h3 style="margin:20px 0 12px;font-size:14.5px">أعداد المنسوبين والطلاب</h3>
+        <div class="form-grid">
+          ${STAFF_LABELS.map(l=>`<div class="f-field"><label>${esc(l)}</label><input data-staff="${esc(l)}" value="${esc(staff[l]||'')}"></div>`).join('')}
+        </div>
+
+        <h3 style="margin:20px 0 12px;font-size:14.5px">نواتج التعلم عبر الأعوام (القدرات / التخصص)</h3>
+        <div class="table-wrap"><table><thead><tr><th>المجال</th><th>العام 2024</th><th>العام 2025</th><th>العام 2026</th></tr></thead><tbody>
+          ${lo.map((row,i)=>`<tr>
+            <td><input data-lo="${i}-domain" value="${esc(row.domain||'')}" style="width:100%"></td>
+            <td><input data-lo="${i}-y2024" value="${esc(row.y2024||'')}" style="width:100%"></td>
+            <td><input data-lo="${i}-y2025" value="${esc(row.y2025||'')}" style="width:100%"></td>
+            <td><input data-lo="${i}-y2026" value="${esc(row.y2026||'')}" style="width:100%"></td>
+          </tr>`).join('')}
+        </tbody></table></div>
+
+        <h3 style="margin:20px 0 12px;font-size:14.5px">ملخص الأداء السريع</h3>
+        <div class="form-grid">
+          <div class="f-field full"><label>${esc(qs.overall_label||'مستوى الأداء العام للمدرسة في التقويم المدرسي')}</label><input data-qs="overall_value" value="${esc(qs.overall_value||'')}"></div>
+          <div class="f-field full"><label>${esc(qs.learning_label||'مستوى المدرسة في نواتج التعلم في التقويم المدرسي')}</label><input data-qs="learning_value" value="${esc(qs.learning_value||'')}"></div>
+        </div>
+
+        <h3 style="margin:20px 0 12px;font-size:14.5px">مسؤولو المتابعة والتقويم</h3>
+        <div class="form-grid">
+          <div class="f-field"><label>مسؤول المتابعة</label><input data-mo="followup_responsible" value="${esc(mo.followup_responsible||'')}"></div>
+          <div class="f-field"><label>وكيل الشؤون التعليمية</label><input data-mo="academic_affairs_deputy" value="${esc(mo.academic_affairs_deputy||'')}"></div>
+          <div class="f-field"><label>مسؤول التقويم</label><input data-mo="evaluator" value="${esc(mo.evaluator||'')}"></div>
+          <div class="f-field"><label>صفة مسؤول التقويم</label><input data-mo="evaluator_role" value="${esc(mo.evaluator_role||'')}"></div>
+          <div class="f-field full"><label>أدوات التقويم المستخدمة</label><textarea name="evaluationToolsNote">${esc(m.evaluationToolsNote||'')}</textarea></div>
+        </div>
+
         <div class="save-bar">
           <button type="submit" class="btn teal">حفظ الإعدادات</button>
           <span class="save-msg" id="settingsSaveMsg"></span>
@@ -1232,14 +1401,333 @@ function renderSettings(c){
     const patch = Object.fromEntries(fd.entries());
     const msg = document.getElementById('settingsSaveMsg');
     msg.textContent = 'جارِ الحفظ…'; msg.className='save-msg';
-    const dbPatch = {school_name:patch.schoolName, year:patch.year, stage:patch.stage, ministry_number:patch.ministryNumber};
+
+    const newStaff = {};
+    c.querySelectorAll('[data-staff]').forEach(inp=>{ newStaff[inp.dataset.staff] = inp.value; });
+    const newLo = lo.map((row,i)=>({
+      domain: c.querySelector(`[data-lo="${i}-domain"]`).value,
+      y2024: c.querySelector(`[data-lo="${i}-y2024"]`).value,
+      y2025: c.querySelector(`[data-lo="${i}-y2025"]`).value,
+      y2026: c.querySelector(`[data-lo="${i}-y2026"]`).value,
+    }));
+    const newQs = Object.assign({}, qs);
+    c.querySelectorAll('[data-qs]').forEach(inp=>{ newQs[inp.dataset.qs] = inp.value; });
+    const newMo = {};
+    c.querySelectorAll('[data-mo]').forEach(inp=>{ newMo[inp.dataset.mo] = inp.value; });
+
+    const dbPatch = Object.assign(metaPatchToDb(patch), {
+      staff: newStaff, learning_outcomes: newLo, quick_summary: newQs, monitoring_officials: newMo,
+    });
     const {error} = await sb.from('meta').update(dbPatch).eq('id','main');
     if (!error){
-      Object.assign(state.meta, patch);
+      Object.assign(state.meta, patch, {staff:newStaff, learningOutcomes:newLo, quickSummary:newQs, monitoringOfficials:newMo});
       msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
       render();
     } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
   });
+}
+
+/* ---------------- تحليل الواقع (full situation analysis: strengths + weaknesses per domain) ---------------- */
+function renderAnalysis(c){
+  const notes = state.domainNotes;
+  const list = state.domainAnalysis.filter(a=>!a.archived && (!state.activeDomain || normDomain(a.domain)===state.activeDomain));
+  const byDomain = {};
+  list.forEach(a=>{ const d=normDomain(a.domain)||'—'; (byDomain[d]=byDomain[d]||[]).push(a); });
+  c.innerHTML = `
+    <div class="card">
+      <div class="card-hd"><h3>تحليل واقع مجالات الممارسات الإشرافية (${list.length})</h3>
+        ${MODE==='admin' ? `<button class="btn sm teal" id="addAnalysisBtn">${icon('plus')} إضافة عنصر</button>` : ''}
+      </div>
+      <div class="card-bd">
+        ${Object.keys(byDomain).length ? Object.keys(byDomain).map(dom=>{
+          const note = notes.find(n=>n.domain===dom);
+          return `
+          <div style="margin-bottom:22px">
+            <h4 style="margin:0 0 10px;font-size:14px;color:var(--blue)">${esc(dom)}</h4>
+            <div class="table-wrap"><table>
+              <thead><tr><th>الرمز</th><th>المؤشر</th><th>الإطار الموجه</th><th>نقطة قوة</th><th>نقطة ضعف</th>${MODE==='admin'?'<th>تعديل</th>':''}</tr></thead>
+              <tbody>
+                ${byDomain[dom].map(a=>`<tr data-id="${a.id}">
+                  <td class="tabular">${esc(a.code)}</td>
+                  <td style="max-width:320px">${esc(a.indicatorText)}</td>
+                  <td>${esc(a.framework||'—')}</td>
+                  <td class="tabular" style="color:#1a8a5f">${esc(a.strengthPct||'—')}</td>
+                  <td class="tabular" style="color:#b23">${esc(a.weaknessPct||'—')}</td>
+                  ${MODE==='admin'?`<td><button class="btn sm" data-edit-analysis="${a.id}">تعديل</button></td>`:''}
+                </tr>`).join('')}
+              </tbody>
+            </table></div>
+            ${note && note.notesText ? `<div class="field" style="margin-top:10px"><label>الملاحظات والمقترحات</label><div class="val">${esc(note.notesText)}</div></div>` : ''}
+            ${MODE==='admin' ? `<button type="button" class="btn sm ghost" data-edit-note="${dom}" style="margin-top:8px">${icon('doc')} تعديل الملاحظات</button>` : ''}
+          </div>`;
+        }).join('') : '<div class="empty">لا توجد بيانات تحليل ضمن هذا المجال</div>'}
+      </div>
+    </div>
+    <div style="margin-top:18px">${domainPillsRow()}</div>
+    <div id="analysisModal"></div>
+  `;
+  wireDomainPills(c, ()=>renderAnalysis(c));
+  if (MODE==='admin'){
+    c.querySelectorAll('[data-edit-analysis]').forEach(b=>b.addEventListener('click', ()=>{
+      openAnalysisEditor(state.domainAnalysis.find(a=>a.id===b.dataset.editAnalysis), c);
+    }));
+    c.querySelectorAll('[data-edit-note]').forEach(b=>b.addEventListener('click', ()=>{
+      openNoteEditor(b.dataset.editNote, c);
+    }));
+    const addBtn = document.getElementById('addAnalysisBtn');
+    if (addBtn) addBtn.addEventListener('click', ()=>openAnalysisEditor(null, c));
+  }
+}
+function openAnalysisEditor(a, c){
+  const isNew = !a;
+  const modal = document.getElementById('analysisModal');
+  modal.innerHTML = `
+    <div style="position:fixed;inset:0;background:rgba(15,27,32,.5);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px" id="anModalBg">
+      <div class="card" style="max-width:560px;width:100%;max-height:88vh;overflow-y:auto">
+        <div class="card-hd"><h3>${isNew?'إضافة عنصر تحليل واقع':'تعديل عنصر تحليل الواقع'}</h3><button class="btn sm ghost" id="anModalClose">✕</button></div>
+        <div class="card-bd">
+          <form id="anForm">
+            <div class="form-grid">
+              <div class="f-field"><label>المجال</label>
+                <select name="domain">${DOMAIN_LIST.map(d=>`<option ${normDomain(a?.domain)===d?'selected':''}>${d}</option>`).join('')}</select>
+              </div>
+              <div class="f-field"><label>الرمز</label><input name="code" value="${esc(a?.code||'')}"></div>
+              <div class="f-field full"><label>المؤشر</label><textarea name="indicatorText">${esc(a?.indicatorText||'')}</textarea></div>
+              <div class="f-field full"><label>الإطار الموجه</label><input name="framework" value="${esc(a?.framework||'')}"></div>
+              <div class="f-field"><label>مجال التقويم المدرسي</label><input name="evalDomain" value="${esc(a?.evalDomain||'')}"></div>
+              <div class="f-field"><label>المعيار</label><input name="standard" value="${esc(a?.standard||'')}"></div>
+              <div class="f-field"><label>نقطة قوة (%)</label><input name="strengthPct" value="${esc(a?.strengthPct||'')}"></div>
+              <div class="f-field"><label>نقطة ضعف (%)</label><input name="weaknessPct" value="${esc(a?.weaknessPct||'')}"></div>
+            </div>
+            <div class="save-bar">
+              <button type="submit" class="btn teal">${isNew?'إضافة':'حفظ'}</button>
+              ${!isNew?`<button type="button" class="btn sm ghost" id="deleteAnalysisBtn" style="color:#a33">${icon('trash')} حذف</button>`:''}
+              <span class="save-msg" id="anSaveMsg"></span>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('anModalClose').addEventListener('click', ()=>modal.innerHTML='');
+  document.getElementById('anModalBg').addEventListener('click', e=>{ if(e.target.id==='anModalBg') modal.innerHTML=''; });
+  document.getElementById('anForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const patch = Object.fromEntries(fd.entries());
+    const msg = document.getElementById('anSaveMsg');
+    msg.textContent = 'جارِ الحفظ…'; msg.className='save-msg';
+    if (isNew){
+      const newId = 'da' + String(Date.now()).slice(-8);
+      const row = Object.assign({id:newId}, patch);
+      const {error} = await sb.from('domain_analysis').insert(Object.assign({id:newId}, domainAnalysisPatchToDb(patch)));
+      if (!error){
+        state.domainAnalysis.push(row);
+        msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
+        setTimeout(()=>{ modal.innerHTML=''; renderAnalysis(c); }, 500);
+      } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+    } else {
+      const {error} = await sb.from('domain_analysis').update(domainAnalysisPatchToDb(patch)).eq('id', a.id);
+      if (!error){
+        Object.assign(a, patch);
+        msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
+        setTimeout(()=>{ modal.innerHTML=''; renderAnalysis(c); }, 500);
+      } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+    }
+  });
+  if (!isNew){
+    document.getElementById('deleteAnalysisBtn').addEventListener('click', async ()=>{
+      const ok = await softDelete('domain_analysis', a.id, 'هل تريدين حذف هذا العنصر؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
+      if (ok){
+        state.domainAnalysis = state.domainAnalysis.filter(x=>x.id!==a.id);
+        state.trash.domainAnalysis.push(Object.assign({}, a, {deleted:true}));
+        modal.innerHTML='';
+        renderAnalysis(c);
+      }
+    });
+  }
+}
+function openNoteEditor(domain, c){
+  const modal = document.getElementById('analysisModal');
+  const note = state.domainNotes.find(n=>n.domain===domain);
+  modal.innerHTML = `
+    <div style="position:fixed;inset:0;background:rgba(15,27,32,.5);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px" id="noteModalBg">
+      <div class="card" style="max-width:560px;width:100%;max-height:88vh;overflow-y:auto">
+        <div class="card-hd"><h3>ملاحظات ومقترحات: ${esc(domain)}</h3><button class="btn sm ghost" id="noteModalClose">✕</button></div>
+        <div class="card-bd">
+          <form id="noteForm">
+            <div class="f-field full"><label>الملاحظات والمقترحات</label><textarea name="notesText" style="min-height:140px">${esc(note?.notesText||'')}</textarea></div>
+            <div class="save-bar"><button type="submit" class="btn teal">حفظ</button><span class="save-msg" id="noteSaveMsg"></span></div>
+          </form>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('noteModalClose').addEventListener('click', ()=>modal.innerHTML='');
+  document.getElementById('noteModalBg').addEventListener('click', e=>{ if(e.target.id==='noteModalBg') modal.innerHTML=''; });
+  document.getElementById('noteForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const notesText = new FormData(e.target).get('notesText');
+    const msg = document.getElementById('noteSaveMsg');
+    msg.textContent='جارِ الحفظ…'; msg.className='save-msg';
+    if (note){
+      const {error} = await sb.from('domain_notes').update({notes_text:notesText}).eq('id', note.id);
+      if (!error){ note.notesText = notesText; msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok'; setTimeout(()=>{modal.innerHTML='';renderAnalysis(c);},500); }
+      else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+    } else {
+      const newId = 'dn' + String(Date.now()).slice(-8);
+      const {error} = await sb.from('domain_notes').insert({id:newId, domain, title:domain, notes_text:notesText});
+      if (!error){ state.domainNotes.push({id:newId, domain, title:domain, notesText}); msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok'; setTimeout(()=>{modal.innerHTML='';renderAnalysis(c);},500); }
+      else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+    }
+  });
+}
+
+/* ---------------- تحسين الخطة (plan improvement tracking) ---------------- */
+function renderImprovement(c){
+  const list = state.planImprovements;
+  c.innerHTML = `
+    <div class="card">
+      <div class="card-hd"><h3>ثامنًا: تحسين الخطة وتطويرها (${list.length})</h3>
+        ${MODE==='admin' ? `<button class="btn sm teal" id="addImprovementBtn">${icon('plus')} إضافة عنصر</button>` : ''}
+      </div>
+      <div class="card-bd table-wrap">
+        <table>
+          <thead><tr><th>اسم البرنامج</th><th>مستوى التنفيذ</th><th>أسباب تدني التنفيذ</th><th>إجراءات تحسين الخطة</th><th>المسؤول البديل</th><th>مسؤول المتابعة</th>${MODE==='admin'?'<th>تعديل</th>':''}</tr></thead>
+          <tbody>
+            ${list.map(p=>`<tr data-id="${p.id}">
+              <td>${esc(p.programName||'—')}</td>
+              <td>${esc(p.executionLevel||'—')}</td>
+              <td>${esc(p.lowExecutionReason||'—')}</td>
+              <td>${esc(p.improvementActions||'—')}</td>
+              <td>${esc(p.alternateResponsible||'—')}</td>
+              <td>${esc(p.followupResponsible||'—')}</td>
+              ${MODE==='admin'?`<td><button class="btn sm" data-edit-imp="${p.id}">تعديل</button></td>`:''}
+            </tr>`).join('') || `<tr><td colspan="7" class="empty">لا توجد عناصر بعد — أضيفي أول عنصر من زر "إضافة عنصر"</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="improvementModal"></div>
+  `;
+  if (MODE==='admin'){
+    c.querySelectorAll('[data-edit-imp]').forEach(b=>b.addEventListener('click', ()=>{
+      openImprovementEditor(state.planImprovements.find(p=>p.id===b.dataset.editImp), c);
+    }));
+    document.getElementById('addImprovementBtn').addEventListener('click', ()=>openImprovementEditor(null, c));
+  }
+}
+function openImprovementEditor(p, c){
+  const isNew = !p;
+  const modal = document.getElementById('improvementModal');
+  modal.innerHTML = `
+    <div style="position:fixed;inset:0;background:rgba(15,27,32,.5);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px" id="impModalBg">
+      <div class="card" style="max-width:560px;width:100%;max-height:88vh;overflow-y:auto">
+        <div class="card-hd"><h3>${isNew?'إضافة عنصر تحسين خطة':'تعديل عنصر تحسين الخطة'}</h3><button class="btn sm ghost" id="impModalClose">✕</button></div>
+        <div class="card-bd">
+          <form id="impForm">
+            <div class="form-grid">
+              <div class="f-field full"><label>اسم البرنامج</label><input name="programName" value="${esc(p?.programName||'')}"></div>
+              <div class="f-field"><label>مستوى التنفيذ</label>
+                <select name="executionLevel"><option value="">—</option>${['متوسط','ضعيف'].map(o=>`<option ${p?.executionLevel===o?'selected':''}>${o}</option>`).join('')}</select>
+              </div>
+              <div class="f-field full"><label>أسباب تدني مستوى التنفيذ</label><textarea name="lowExecutionReason">${esc(p?.lowExecutionReason||'')}</textarea></div>
+              <div class="f-field full"><label>إجراءات تحسين الخطة</label><textarea name="improvementActions">${esc(p?.improvementActions||'')}</textarea></div>
+              <div class="f-field"><label>اسم مسؤول تنفيذ البرنامج البديل</label><input name="alternateResponsible" value="${esc(p?.alternateResponsible||'')}"></div>
+              <div class="f-field"><label>اسم مسؤول المتابعة</label><input name="followupResponsible" value="${esc(p?.followupResponsible||'')}"></div>
+            </div>
+            <div class="save-bar">
+              <button type="submit" class="btn teal">${isNew?'إضافة':'حفظ'}</button>
+              ${!isNew?`<button type="button" class="btn sm ghost" id="deleteImpBtn" style="color:#a33">${icon('trash')} حذف</button>`:''}
+              <span class="save-msg" id="impSaveMsg"></span>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('impModalClose').addEventListener('click', ()=>modal.innerHTML='');
+  document.getElementById('impModalBg').addEventListener('click', e=>{ if(e.target.id==='impModalBg') modal.innerHTML=''; });
+  document.getElementById('impForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const patch = Object.fromEntries(fd.entries());
+    const msg = document.getElementById('impSaveMsg');
+    msg.textContent = 'جارِ الحفظ…'; msg.className='save-msg';
+    if (isNew){
+      const newId = 'pi' + String(Date.now()).slice(-8);
+      const row = Object.assign({id:newId}, patch);
+      const {error} = await sb.from('plan_improvements').insert(Object.assign({id:newId}, planImprovementPatchToDb(patch)));
+      if (!error){
+        state.planImprovements.push(row);
+        msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
+        setTimeout(()=>{ modal.innerHTML=''; renderImprovement(c); }, 500);
+      } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+    } else {
+      const {error} = await sb.from('plan_improvements').update(planImprovementPatchToDb(patch)).eq('id', p.id);
+      if (!error){
+        Object.assign(p, patch);
+        msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
+        setTimeout(()=>{ modal.innerHTML=''; renderImprovement(c); }, 500);
+      } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+    }
+  });
+  if (!isNew){
+    document.getElementById('deleteImpBtn').addEventListener('click', async ()=>{
+      const ok = await softDelete('plan_improvements', p.id, 'هل تريدين حذف هذا العنصر؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
+      if (ok){
+        state.planImprovements = state.planImprovements.filter(x=>x.id!==p.id);
+        state.trash.planImprovements.push(Object.assign({}, p, {deleted:true}));
+        modal.innerHTML='';
+        renderImprovement(c);
+      }
+    });
+  }
+}
+
+/* ---------------- سلة المحذوفات (Trash / Restore, admin only) ---------------- */
+function renderTrash(c){
+  const groups = Object.keys(state.trash).map(type=>({type, items: state.trash[type]})).filter(g=>g.items.length);
+  const total = groups.reduce((n,g)=>n+g.items.length, 0);
+  c.innerHTML = `
+    <div class="card">
+      <div class="card-hd"><h3>سلة المحذوفات (${total})</h3></div>
+      <div class="card-bd">
+        ${total===0 ? '<div class="empty">لا يوجد عناصر محذوفة حاليًا</div>' : groups.map(g=>`
+          <div style="margin-bottom:18px">
+            <h4 style="margin:0 0 8px;font-size:13.5px;color:var(--ink-2)">${esc(TRASH_LABELS[g.type])} (${g.items.length})</h4>
+            <ul class="actions-list">
+              ${g.items.map(it=>`<li class="action-row" data-trash-type="${g.type}" data-trash-id="${it.id}">
+                <div class="m">${esc(it.text||it.name||it.programName||it.indicatorText||it.method||it.id)}</div>
+                <div class="meta">
+                  <button type="button" class="btn sm" data-restore="${it.id}" data-restore-type="${g.type}">${icon('undo')} استعادة</button>
+                </div>
+              </li>`).join('')}
+            </ul>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+  c.querySelectorAll('[data-restore]').forEach(b=>b.addEventListener('click', async ()=>{
+    const id = b.dataset.restore, type = b.dataset.restoreType;
+    const tableMap = {priorities:'priorities', programs:'programs', team:'team', actions:'actions', domainAnalysis:'domain_analysis', planImprovements:'plan_improvements'};
+    const ok = await restoreFromTrash(tableMap[type], id);
+    if (ok){
+      const item = state.trash[type].find(x=>x.id===id);
+      state.trash[type] = state.trash[type].filter(x=>x.id!==id);
+      if (item){
+        const restored = Object.assign({}, item, {deleted:false});
+        if (type==='priorities') state.priorities.push(restored);
+        else if (type==='programs') state.programs.push(restored);
+        else if (type==='team') state.team.push(restored);
+        else if (type==='actions') state.actions.push(restored);
+        else if (type==='domainAnalysis') state.domainAnalysis.push(restored);
+        else if (type==='planImprovements') state.planImprovements.push(restored);
+      }
+      renderTrash(c);
+    }
+  }));
 }
 
 /* ---------------- Excel export (styled workbook via ExcelJS, real browser download) ---------------- */
@@ -1307,12 +1795,20 @@ async function exportExcel(){
     cover.getCell(`B${r}`).value = 'ملخص الخطة';
     cover.getCell(`B${r}`).font = {bold:true, size:13, color:{argb:XL_NAVY}};
     r++;
+    const m = state.meta || {};
     [
       ['عدد أولويات التحسين', state.priorities.length],
       ['عدد إجراءات التحسين', state.actions.length],
       ['عدد البرامج والمتابعة', state.programs.length],
       ['عدد أعضاء فريق العمل', state.team.length],
-      ['الرقم الوزاري', state.meta?.ministryNumber || '—'],
+      ['عدد عناصر تحليل الواقع', state.domainAnalysis.length],
+      ['الرقم الوزاري', m.ministryNumber || '—'],
+      ['جنس المدرسة', m.gender || '—'],
+      ['نوع المبنى', m.buildingType || '—'],
+      ['استقلالية المبنى', m.buildingIndependence || '—'],
+      ['استقلالية الإدارة', m.adminIndependence || '—'],
+      ['الفترة', m.period || '—'],
+      ['اسم المدرسة المشتركة', m.sharedSchoolName || '—'],
     ].forEach(([label,val])=>{
       cover.getCell(`B${r}`).value = label;
       cover.getCell(`C${r}`).value = val;
@@ -1320,6 +1816,72 @@ async function exportExcel(){
       cover.getCell(`B${r}`).border = {bottom:{style:'thin',color:{argb:XL_BORDER}}};
       cover.getCell(`C${r}`).border = {bottom:{style:'thin',color:{argb:XL_BORDER}}};
       r++;
+    });
+    if (Object.keys(m.staff||{}).length){
+      r += 1;
+      cover.getCell(`B${r}`).value = 'أعداد المنسوبين والطلاب';
+      cover.getCell(`B${r}`).font = {bold:true, size:13, color:{argb:XL_NAVY}};
+      r++;
+      Object.entries(m.staff).filter(([k])=>k!=='الوصف').forEach(([k,v])=>{
+        cover.getCell(`B${r}`).value = k; cover.getCell(`C${r}`).value = v;
+        cover.getCell(`C${r}`).alignment = {horizontal:'center'};
+        cover.getCell(`B${r}`).border = {bottom:{style:'thin',color:{argb:XL_BORDER}}};
+        cover.getCell(`C${r}`).border = {bottom:{style:'thin',color:{argb:XL_BORDER}}};
+        r++;
+      });
+    }
+    if ((m.learningOutcomes||[]).length){
+      r += 1;
+      cover.getCell(`B${r}`).value = 'نواتج التعلم عبر الأعوام';
+      cover.getCell(`B${r}`).font = {bold:true, size:13, color:{argb:XL_NAVY}};
+      r++;
+      m.learningOutcomes.forEach(row=>{
+        cover.getCell(`B${r}`).value = `${row.domain}: 2024=${row.y2024||'—'}  2025=${row.y2025||'—'}  2026=${row.y2026||'—'}`;
+        r++;
+      });
+    }
+    if (m.quickSummary && (m.quickSummary.overall_value || m.quickSummary.learning_value)){
+      r += 1;
+      if (m.quickSummary.overall_value){ cover.getCell(`B${r}`).value = m.quickSummary.overall_label; cover.getCell(`C${r}`).value = m.quickSummary.overall_value; r++; }
+      if (m.quickSummary.learning_value){ cover.getCell(`B${r}`).value = m.quickSummary.learning_label; cover.getCell(`C${r}`).value = m.quickSummary.learning_value; r++; }
+    }
+    if (m.monitoringOfficials && (m.monitoringOfficials.followup_responsible || m.monitoringOfficials.evaluator)){
+      r += 1;
+      cover.getCell(`B${r}`).value = 'مسؤولو المتابعة والتقويم';
+      cover.getCell(`B${r}`).font = {bold:true, size:13, color:{argb:XL_NAVY}};
+      r++;
+      const mo = m.monitoringOfficials;
+      if (mo.followup_responsible){ cover.getCell(`B${r}`).value = 'مسؤول المتابعة'; cover.getCell(`C${r}`).value = mo.followup_responsible; r++; }
+      if (mo.academic_affairs_deputy){ cover.getCell(`B${r}`).value = 'وكيل الشؤون التعليمية'; cover.getCell(`C${r}`).value = mo.academic_affairs_deputy; r++; }
+      if (mo.evaluator){ cover.getCell(`B${r}`).value = 'مسؤول التقويم'; cover.getCell(`C${r}`).value = mo.evaluator; r++; }
+    }
+
+    const analysisSheet = wb.addWorksheet('تحليل الواقع', {views:[{rightToLeft:true, state:'frozen', ySplit:1}]});
+    analysisSheet.columns = [
+      {header:'#', key:'n', width:4}, {header:'المجال', key:'domain', width:16},
+      {header:'الرمز', key:'code', width:12}, {header:'المؤشر', key:'indicator', width:52},
+      {header:'الإطار الموجه', key:'framework', width:26}, {header:'نقطة قوة %', key:'strength', width:12},
+      {header:'نقطة ضعف %', key:'weakness', width:12},
+    ];
+    xlStyleHeader(analysisSheet.getRow(1));
+    state.domainAnalysis.forEach((a,i)=>{
+      const row = analysisSheet.addRow({n:i+1, domain:normDomain(a.domain), code:a.code, indicator:a.indicatorText,
+        framework:a.framework||'', strength:a.strengthPct||'', weakness:a.weaknessPct||''});
+      xlStyleBody(row, i);
+    });
+
+    const actSheet = wb.addWorksheet('إجراءات التحسين', {views:[{rightToLeft:true, state:'frozen', ySplit:1}]});
+    actSheet.columns = [
+      {header:'#', key:'n', width:4}, {header:'المجال', key:'domain', width:16},
+      {header:'المؤشر', key:'indicator', width:44}, {header:'وصف الاحتياج', key:'need', width:44},
+      {header:'الإجراء التحسيني', key:'action', width:36}, {header:'أسلوب/طريقة التحسين', key:'method', width:36},
+      {header:'مدة الإنجاز', key:'due', width:20}, {header:'التنفيذ والمسؤولية', key:'resp', width:24},
+    ];
+    xlStyleHeader(actSheet.getRow(1));
+    state.actions.forEach((a,i)=>{
+      const row = actSheet.addRow({n:i+1, domain:normDomain(a.domain), indicator:a.indicatorText, need:a.needDescription||'',
+        action:a.improvementAction||'', method:a.method||'', due:a.dueDate||'', resp:a.responsible||''});
+      xlStyleBody(row, i);
     });
 
     const priSheet = wb.addWorksheet('أولويات التحسين', {views:[{rightToLeft:true, state:'frozen', ySplit:1}]});
@@ -1362,6 +1924,22 @@ async function exportExcel(){
       const row = teamSheet.addRow({n:i+1, name:t.name, role:t.role, task:t.task});
       xlStyleBody(row, i);
     });
+
+    if (state.planImprovements.length){
+      const impSheet = wb.addWorksheet('تحسين الخطة', {views:[{rightToLeft:true, state:'frozen', ySplit:1}]});
+      impSheet.columns = [
+        {header:'#', key:'n', width:4}, {header:'اسم البرنامج', key:'name', width:36},
+        {header:'مستوى التنفيذ', key:'level', width:14}, {header:'أسباب التدني', key:'reason', width:32},
+        {header:'إجراءات التحسين', key:'actions', width:36}, {header:'المسؤول البديل', key:'alt', width:20},
+        {header:'مسؤول المتابعة', key:'follow', width:20},
+      ];
+      xlStyleHeader(impSheet.getRow(1));
+      state.planImprovements.forEach((p,i)=>{
+        const row = impSheet.addRow({n:i+1, name:p.programName||'', level:p.executionLevel||'', reason:p.lowExecutionReason||'',
+          actions:p.improvementActions||'', alt:p.alternateResponsible||'', follow:p.followupResponsible||''});
+        xlStyleBody(row, i);
+      });
+    }
 
     const buffer = await wb.xlsx.writeBuffer();
     const blob = new Blob([buffer], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
