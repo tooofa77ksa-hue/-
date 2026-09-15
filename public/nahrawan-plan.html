@@ -1,0 +1,2009 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>خطة تحسين النهروان</title>
+<meta name="description" content="لوحة متابعة خطة التحسين المدرسية - مدرسة النهروان الثانوية 1448هـ">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{color-scheme:light;box-sizing:border-box}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;padding:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+/* ============ Design tokens (Ministry of Education identity guide v3) ============ */
+:root{
+  --navy:#15445A; --teal:#0DA9A6; --blue:#3D7EB9; --green:#07A869; --gold:#C1B489; --gray:#C2C1C1;
+  --bg:#f4f6f6; --surface:#ffffff; --surface-2:#eef3f2;
+  --ink:#15445A; --ink-2:#3d5a68; --muted:#5b6b73; --border:#d9e3de;
+  --accent:var(--blue); --accent-ink:#ffffff;
+  --blue-bg:#eaf2fa; --blue-ink:#2a5f8f; --teal-bg:#e4f6f5; --green-bg:#e6f3ec; --gold-bg:#f6f1e4;
+  --ok-bg:#e7f5ee; --ok-ink:#0a6b46; --warn-bg:#f7f3e9; --warn-ink:#8a6d1f; --idle-bg:#f0f1f1; --idle-ink:#5b6b73;
+  --shadow:0 10px 30px rgba(21,68,90,.10); --shadow-lg:0 20px 50px rgba(21,68,90,.16);
+  --radius:14px; --radius-sm:9px;
+}
+body{background:var(--bg);color:var(--ink);font-family:Tajawal,'Segoe UI',Cairo,system-ui,sans-serif;line-height:1.55}
+.tabular{font-variant-numeric:tabular-nums}
+button{font-family:inherit;cursor:pointer}
+a{color:inherit}
+::selection{background:var(--teal);color:#fff}
+
+/* ============ Shell layout ============ */
+.shell{display:flex;min-height:100vh}
+.sidebar{
+  width:250px;flex:none;background:linear-gradient(180deg,var(--navy),#0e2f3f);color:#fff;
+  display:flex;flex-direction:column;padding:24px 18px;gap:20px;position:sticky;top:0;height:100vh;overflow-y:auto;
+}
+@media (max-width:860px){
+  .shell{flex-direction:column}
+  .sidebar{width:100%;height:auto;position:static;padding:14px 16px;gap:10px}
+  .brand{display:flex;align-items:center;justify-content:space-between}
+  .brand .rule{display:none}
+  .nav{flex-direction:row;flex-wrap:nowrap;overflow-x:auto;margin-top:0;gap:6px;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+  .nav button{flex:none;padding:8px 12px;font-size:13px;border-inline-start:none;border-bottom:3px solid transparent;white-space:nowrap}
+  .nav button.active{border-inline-start-color:transparent;border-bottom-color:var(--gold)}
+  .sidebar-footer{padding-top:8px;margin-top:0}
+  .sidebar-org{font-size:10px}
+  .sidebar-org img{height:20px}
+  .orgbar,.topbar{padding:12px 16px}
+  .orgbar-brand span{display:none}
+  .content{padding:16px 16px 40px}
+  .kpi-hero{flex:1 1 100%}
+}
+@media (max-width:480px){
+  .actions{width:100%}
+  .actions .btn{flex:1;justify-content:center}
+}
+.brand .school{font-weight:800;font-size:16px;line-height:1.35}
+.brand .rule{width:34px;height:3px;background:var(--gold);border-radius:2px;margin-top:8px}
+.nav{display:flex;flex-direction:column;gap:4px;margin-top:4px}
+.nav button{
+  display:flex;align-items:center;gap:10px;background:transparent;border:none;border-inline-start:3px solid transparent;color:#cfe1e6;
+  padding:11px 12px;border-radius:8px;font-size:14.5px;font-weight:600;text-align:right;transition:.15s;
+}
+.nav button:hover{background:rgba(255,255,255,.08)}
+.nav button.active{background:rgba(255,255,255,.08);color:#fff;border-inline-start-color:var(--gold)}
+.ic{width:18px;height:18px;flex:none}
+.sidebar-footer{margin-top:auto;font-size:11px;opacity:.75;padding-top:14px;border-top:1px solid rgba(255,255,255,.15)}
+.sidebar-org{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;opacity:.9;line-height:1.4}
+.sidebar-org img{height:26px;width:auto;flex:none}
+.mode-pill{
+  font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
+}
+.mode-pill.dash{background:var(--idle-bg);color:var(--ink-2)}
+.mode-pill.admin{background:var(--gold);color:#3a3320}
+
+.main{flex:1;min-width:0}
+.orgbar{
+  background:var(--surface);border-bottom:1px solid var(--border);padding:12px 26px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+}
+.orgbar-brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:13.5px;color:var(--ink-2)}
+.orgbar-brand img{height:34px;width:auto}
+.topbar{
+  position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--border);
+  padding:16px 26px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+}
+.title-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.topbar h1{font-size:21px;margin:0;font-weight:800}
+.topbar .sub{font-size:13px;color:var(--muted);margin-top:4px}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn{
+  border:1px solid var(--border);background:var(--surface);color:var(--ink);padding:9px 16px;border-radius:10px;
+  font-size:13.5px;font-weight:700;display:inline-flex;align-items:center;gap:7px;transition:.15s;
+}
+.btn:hover{border-color:var(--blue);color:var(--blue)}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.primary:hover{filter:brightness(1.06);color:#fff}
+.btn.teal{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn.teal:hover{filter:brightness(1.06);color:#fff}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--muted)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.sm{padding:6px 11px;font-size:12.5px;border-radius:8px}
+
+.content{padding:24px 26px 60px;max-width:1400px;margin:0 auto}
+.hidden{display:none!important}
+
+/* ============ Cards / KPIs ============ */
+.kpi-area{display:flex;gap:14px;margin-bottom:22px;align-items:stretch}
+@media (max-width:900px){.kpi-area{flex-direction:column}}
+.kpi-hero{
+  flex:0 0 300px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:18px 20px;display:flex;flex-direction:column;gap:10px;
+}
+.kpi-hero-hd{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.kpi-hero-hd h3{margin:0;font-size:14.5px;font-weight:800}
+.kpi-hero-icon{width:34px;height:34px;border-radius:9px;background:var(--blue-bg);color:var(--blue);display:flex;align-items:center;justify-content:center;flex:none}
+.kpi-hero .val{font-size:38px;font-weight:800;color:var(--green)}
+.kpi-hero .lbl{font-size:12.5px;color:var(--ink-2);font-weight:700}
+.kpi-hero .sub{font-size:11.5px;color:var(--muted)}
+.kpi-row{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media (max-width:1100px){.kpi-row{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+.kpi-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none}
+.kpi .val{font-size:24px;font-weight:800;color:var(--blue)}
+.kpi .lbl{font-size:12.5px;color:var(--muted);font-weight:600}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+.card-hd{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.card-hd h3{margin:0;font-size:16px;font-weight:800}
+.card-bd{padding:16px 18px}
+
+.grid-2{display:grid;grid-template-columns:1.1fr 1fr;gap:18px;align-items:start}
+@media (max-width:980px){.grid-2{grid-template-columns:1fr}}
+
+/* ============ Search / filter ============ */
+.search{display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:8px 12px;margin-bottom:12px}
+.search input{border:none;background:transparent;outline:none;flex:1;font-family:inherit;font-size:13.5px;color:var(--ink)}
+.search svg{flex:none;opacity:.55}
+
+/* ============ Priority list ============ */
+.pri-list{list-style:none;margin:0;padding:0;max-height:640px;overflow-y:auto}
+.pri-item{
+  display:flex;align-items:center;gap:12px;padding:12px 10px;border-radius:10px;cursor:pointer;border:1px solid transparent;
+}
+.pri-item:hover{background:var(--surface-2)}
+.pri-item.active{background:var(--teal-bg);border-color:var(--teal)}
+.pri-num{
+  flex:none;width:26px;height:26px;border-radius:50%;background:var(--surface-2);color:var(--navy);font-weight:800;font-size:12.5px;
+  display:flex;align-items:center;justify-content:center;
+}
+.pri-item.active .pri-num{background:var(--teal);color:#fff}
+.pri-txt{flex:1;font-size:13.5px;font-weight:600;line-height:1.4}
+.pri-dom{font-size:11px;color:var(--muted);margin-top:2px;font-weight:700}
+.pri-chevron{flex:none;color:var(--muted);opacity:.6}
+
+/* ============ Domain pills ============ */
+.domain-row{display:flex;flex-wrap:wrap;gap:10px}
+.domain-pill{
+  display:inline-flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--border);
+  padding:8px 14px;border-radius:999px;font-size:13px;font-weight:700;color:var(--ink-2);
+}
+.domain-pill .dot{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;color:#fff}
+.domain-pill.active{background:var(--teal-bg);border-color:var(--teal);color:var(--ink)}
+
+/* ============ Indicator detail ============ */
+.detail-title{font-size:16.5px;font-weight:800;line-height:1.5;margin:0 0 6px}
+.detail-tag{display:inline-flex;font-size:12px;font-weight:700;color:#fff;background:var(--blue);padding:3px 11px;border-radius:999px;margin-inline-end:6px}
+.metric-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}
+.metric{background:var(--surface-2);border-radius:10px;padding:12px;text-align:center}
+.metric .n{font-size:20px;font-weight:800;color:var(--navy)}
+.metric .l{font-size:11.5px;color:var(--muted);font-weight:700;margin-top:2px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:5px}
+.field .val{font-size:13.5px;line-height:1.6}
+.status-pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;padding:5px 12px;border-radius:999px}
+.status-pill.ok{background:var(--ok-bg);color:var(--ok-ink)}
+.status-pill.warn{background:var(--warn-bg);color:var(--warn-ink)}
+.status-pill.idle{background:var(--idle-bg);color:var(--idle-ink)}
+.actions-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.action-row{border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+.action-row .m{font-weight:700;font-size:13px}
+.action-row .meta{font-size:11.5px;color:var(--muted);margin-top:4px;display:flex;gap:10px;flex-wrap:wrap}
+
+/* ============ Tables ============ */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+@media (max-width:760px){ table{min-width:640px} }
+thead th{
+  background:var(--surface-2);color:var(--ink-2);font-weight:800;font-size:12px;padding:10px 12px;text-align:right;
+  white-space:nowrap;border-bottom:2px solid var(--border);
+}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+tbody tr:hover{background:var(--surface-2)}
+.chip{display:inline-flex;font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.chip.high{background:var(--ok-bg);color:var(--ok-ink)}
+.chip.mid{background:var(--warn-bg);color:var(--warn-ink)}
+.chip.low{background:var(--idle-bg);color:var(--idle-ink)}
+.chip.yes{background:var(--ok-bg);color:var(--ok-ink)}
+.chip.no{background:var(--idle-bg);color:var(--idle-ink)}
+
+/* ============ Forms (admin) ============ */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:760px){.form-grid{grid-template-columns:1fr}}
+.form-grid .full{grid-column:1/-1}
+.f-field label{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:6px}
+.f-field input,.f-field select,.f-field textarea{
+  width:100%;border:1px solid var(--border);border-radius:9px;padding:9px 11px;font-family:inherit;font-size:13.5px;
+  background:var(--surface);color:var(--ink);outline:none;
+}
+.f-field input:focus,.f-field select:focus,.f-field textarea:focus{border-color:var(--teal)}
+.f-field textarea{resize:vertical;min-height:64px}
+.save-bar{display:flex;align-items:center;gap:10px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
+.save-msg{font-size:12.5px;font-weight:700}
+.save-msg.ok{color:var(--ok-ink)}
+.save-msg.err{color:#a33}
+
+/* ============ Login gate ============ */
+.gate{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--navy);padding:20px}
+.gate-card{background:var(--surface);border-radius:18px;box-shadow:var(--shadow-lg);padding:34px 30px;width:100%;max-width:380px;text-align:center}
+.gate-card img{height:52px;margin-bottom:14px}
+.gate-card h2{margin:0 0 4px;font-size:18px;font-weight:800}
+.gate-card p{margin:0 0 18px;font-size:13px;color:var(--muted)}
+.gate-card input{
+  width:100%;border:1.5px solid var(--border);border-radius:10px;padding:11px 13px;font-family:inherit;font-size:14px;
+  margin-bottom:10px;outline:none;text-align:center;letter-spacing:.03em;
+}
+.gate-card input:focus{border-color:var(--teal)}
+.gate-err{color:#a33;font-size:12.5px;font-weight:700;min-height:18px;margin-bottom:6px}
+
+/* ============ Misc ============ */
+.empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:13.5px}
+.loading{display:flex;align-items:center;justify-content:center;min-height:60vh;color:var(--muted);font-size:14px}
+.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.team-card{border:1px solid var(--border);border-radius:12px;padding:14px}
+.team-card .name{font-weight:800;font-size:14px}
+.team-card .role{font-size:12.5px;color:var(--muted);margin-top:3px}
+.team-card .task{font-size:11.5px;color:var(--teal);font-weight:700;margin-top:8px}
+
+/* ============ Evidence / QR ============ */
+.evidence-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}
+.evidence-card{border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;transition:.2s;background:var(--surface)}
+.evidence-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px)}
+.evidence-card .txt{font-weight:700;font-size:13px;line-height:1.4;margin:8px 0;min-height:36px}
+.evidence-src{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;color:var(--muted)}
+.evidence-src .ic{width:13px;height:13px}
+.qr-box{
+  width:118px;height:118px;margin:6px auto;border-radius:10px;overflow:hidden;background:#fff;padding:6px;
+  border:2px solid var(--teal);cursor:pointer;animation:qrIn .4s ease-out, qrPulse 2.6s ease-in-out infinite;
+  display:flex;align-items:center;justify-content:center;
+}
+.qr-box:hover{border-color:var(--blue);transform:scale(1.04)}
+.qr-box img{width:100%;height:100%}
+@keyframes qrIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+@keyframes qrPulse{0%,100%{box-shadow:0 0 0 0 rgba(13,169,166,.35)}50%{box-shadow:0 0 0 7px rgba(13,169,166,0)}}
+.evidence-actions{display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+
+.print-header{display:none}
+@media print{
+  .sidebar,.orgbar,.gate,.topbar{display:none!important}
+  .shell{display:block}
+  .main{width:100%}
+  .content{padding:0;max-width:none}
+  body{background:#fff}
+  .card{box-shadow:none;border:1px solid #ccc;break-inside:avoid}
+  .print-header{
+    display:flex!important;align-items:center;gap:18px;padding:0 0 16px;margin-bottom:20px;
+    border-bottom:3px solid #15445A;
+  }
+  .print-header img{height:64px;width:auto}
+  .print-header .ph-kingdom{font-size:12px;color:#5b6b73;font-weight:700}
+  .print-header .ph-school{font-size:19px;font-weight:800;color:#15445A;margin-top:2px}
+  .print-header .ph-title{font-size:13px;color:#0DA9A6;font-weight:700;margin-top:3px}
+  .print-footer{
+    display:flex!important;flex-direction:column;align-items:flex-end;gap:4px;
+    position:fixed;bottom:0;right:0;left:0;padding:10px 0 6px;border-top:2px solid #d9e3de;background:#fff;
+  }
+  .print-footer .pf-row{display:flex;align-items:center;gap:8px;font-size:11px;color:#3d5a68;font-weight:700}
+  .print-footer .pf-row img{height:22px;width:auto}
+  .print-footer .pf-school{width:100%;text-align:center;font-size:12px;font-weight:800;color:#15445A;margin-top:4px;padding-top:4px;border-top:1px dashed #d9e3de}
+  .content{padding-bottom:90px!important}
+}
+.print-footer{display:none}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+/* ============================================================
+   خطة تحسين النهروان — standalone app, real accounts, Supabase backend
+   ?mode=admin for the login/edit view, default = public dashboard
+   ============================================================ */
+const SUPABASE_URL = 'https://fqmovedqgfmshfkfebrh.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_ArurQy2vxoD7Edwytx0_Yg_74M-Q-F-';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const MINISTRY_LOGO = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAACgCAMAAAC8EZcfAAAAwFBMVEUAAAD1/PxZrqkno6RqsbCp5OCi1tQA//9jqqV8+Ph7fHynra5jx7KY084uoo4NfHxnqaKO0skztauRs7ExtnspnJDK+veJs7BtxbFgssOTxbuHxLqLxbuGubRWx6xyzcpuycWm7K7x+Pl//39g2K0nkcKisuI0x6RrsHL4r+RkaqyKucQAAP8A/wB1tsR5zsXys7MAcQCRuMkAH38farQgjHQalnkmzKV/f/91veCEu8L/AAA9fbcAf/8A/397t8NXbWuOAAAAQHRSTlMADPD6CR9eAaIDAwvymJ8CZeQIZAhmVJye62Pind5jX/QP/AIf/Bf6CggFmgEBppkKAlgDA2SVBwId2AH/AgJAPJvxLwAACqtJREFUeNrtWod22zoSnQEBsJukqKjLlmzHdnpeL9v+/6/2DkBKtlM270FOcs5iji1SFAleTrkzA5AoSpQoUaJEiRIlSpQoUaJEiRIlSpQoUaJEiRIlSpQnkXSv8ycbW+/T4DHkQ58aGbvPm8MNgkYyhqmQp52cSpXmZ/fMDbGMzUH4cq4rpdrxOWXD+/xvjslaa1yau+fGUD+qRL1iE4KwoLpKkgQINdeLd4xhfzia6C9KPj6kzVRmmexShn5FLwMANpQ4US94rbCxDJPYv/zM6Y27guvacjkAu6Esef4cO0FGPgBkq2SbEdWwS4dBWTeav9QO+C+Il4mSS7PnMtQcAJN/OoBlCEA1AFzfB6rmQ2DzlwUas6CYu0stnSX+WTM/JG4SQjJ2GLUeRu0GoMSbbP5F1inJ/Kk6YwZgHb2TzbL1pl5ap+AAmrGLam2gg8oDXXmg+C4+yQVUU36GBHSKU5R/JK+xmtz3JbRqJFjCaMbxFeyjRWNVZ8iPrjLSbluSvqLPq0BTqXxQeGNImP0ocZZ6FylCWTUHr5gD4edwQrWrobfEa1SDbT+hBISFtdykxgHDGEIvhg4sijAD/oJOJNrFjIzLM3H7PxHN4oq1Uhl/LF+JbZVaYvPKBT7ng8bYe6Y89GwWDEs0VrM8NfhPsqcAncKBuM4y9iZ3ivwgRab0UlRnKGUL/stBTD+RLuk1cdsal6UyBV80IQm0pF4ALBzQI7sccbADWCJLaG3uq7uBVo2LI+YHuHP/TDVrylQwzQw8CAeaSRQnVpBmSCiUF9TkOQymxcT8kSLjH8w/KlXCsoXOde5M7XDNh6gGUMkkM8qDMwkA6oEjyADprkbcFGMEvndcvAFjpONVFtGQ+m+vx9LP8Z6CCd4OQ7J/+BmZcA1y6ukFADdy4AxuKPSTO5D/gklbJffMfVEgtgUTSRlQeE+Qo9mQLAe60W7s5xn9FFTNgJCVsj5YJFokF/u7mw5FDhClLD7Xej27co94h7AdGU7jEjiFpleCq/ffQTcvmZdKvWUOLVltLZpKQSgWiHNwB8I210P4gi5gSwkWBz+FZ1IBP80kDRZlOuhTwCNopVbIXx9zOHMw/V01Q50q1pvK/dhesGipcgCLN3KS4OePtwvlAaDjbTk0aTw/51D4JJSor+Rx07FwyWmkWUdiCMUr8qlB/lNoa7uGVtObnyU5klkhpTWi64x/v0eQxwcI1iCKhXU3cxhZT1245de5SeV7D7rlK16IItm54kQqlgybA4d6za1uJJoLIy0IrjRzFNSIO4SLajnIzOAGWLJCtdCYg88VdEhYcH2pGraH0+Fm2cDmjQROoh9UA+mBqOe4lH28vQwn6g3uufJllh7qT6hMo9bSdI0z1s6hcgkIyWJ5apDSRurBFWXhqLKW2k97HoB3yAM8l50imKg77Gw8wLtSDFONpeobafu6TxSu/GppeUgThmdLMajWLnsOAJ+HAtS0uIWJrSOL26RCUgZb+DYPAEzhHN1xNnpccTytyzR31cEYOlT84ZlS+QSXHnKx23kblIsxXiYEJ65js7MNv0k1n40Aj3wOo+/UmEmEWFwlhnPyMWSNSyAowaXIeidBgifAkHUwUYt2mntTFJrO/e2hipmzbe5oXElAaH+GdsSXDtXLDR6Q8wKVY/YHFSeglkezAePUjJ5MB605tsCtFmosprwGh4gtUu6gdV8CiEXVyDyjNvXEeBKfNCeY9vmAp/7tW12JcDX2PFChQ82lHgAfTDtTvubLdZOefBbqE21KmTpF9VnLzePU9rhdBpW+s5TTN5cUNUMhsxtOkcGef6I+Sj8+gEqq/uCoLuk7kY8D/I5ETDznE/PI/5kg1xZRC1GeWsrPNdraFQno/pDlru5lltf38w2bbxYj5YOU92CW+mvJFRn7GaKbSYfFUvDIagCP5cax4ijLklCnPR1X3qEx0h9fwEI/NFNqo8A0OId90UpS4/djYSZtlUVxbU9X2EymTibiNjna7Clay8l9gPmkmUwn+Cuk81DVonPzQpMXA8BSt6pWW5lj1BOZXrBAvKIS1zXNdHK6vDhk/MkjgOmH1aNrOw4AH/of7xJ7Wrc/f+bk3NKe9Pn1Y4DopoYzWimoS8oXsm52dgB4RRdZ635/z7bNAd3Sf55JkPvLngVOLLC6RZdZVTLFRYvq/BHAAg1SJSfsZMlRZohM5ecmf/M+mLv5BSUzTjLBdEHZ0tLb3YU0ryLLJLSrU9VMOrBOWsYPAcoUTc1OhoILHR01aE0nDqC4o/QFTG6lZASIrUzJuSnuEwB0e7jddHF7jnAAwOlvPnTyKX4ffEriZKKnRk4UH3QAARjIpuQ2B4ASKPJdTygJB6i8bqAY2lQt9s6S+6fILMODS9QaBzI1HQHKhRAx8RHgBSVn/nASuFbH1a06E0kS+cd+liTZ2VESdf8bRCXu7CNA+Y6rlPjJEaAahw3WYKIkRPyf396qR1KpDwUmXg4aHOSFB7izjQfoJEk4UIO3igfx81pfKrIM4Ru8URrne3J06bfsZo6DJo9yXlXZWKcsrts+iLOQB2fDdiRrq4IWctAErTPzRqfM19xWtcp4zzIpc5Q0fXgglUOp64sPpYL7veByq3rUClyuQZkvcSjn94cZpwAvHI19fS3TkgENeVG41R8q78rRqoU+QVVzysJofLzfTzgPcxxcp3dhhef4YtC9xq/4tj30V7g762v3WVI5PvbVMF340UKuvMPZk6m+u/uMGtOnmqs51Olc7nnUT8GfXtACxaX3zMg8TqkPnhNc+OPe5+du9aulXrsR92NLsprga8P3KB165hZVIZ+3bdszOpJ61HLjiVomNFvUZK2bepWmj8O8upQVufcNocajzYZmzjQW5ZW1ZlG55rF80BG1242sdS5Wq5V0eKpwBfb4O5eGtaoL0w3a55LC3s9zABfM86riLkOdslEd9XOuVHXdVkgHqLVAvus1mpG5qjKcJC/dyRseZKvtVtkF8lA2505lm65CP6VIbXurCJwvl6/nVR+yno1nRzE902qnkFK46riuqK0YoGVjtms2qqatolmtLi9V16k506xS3YpVd3lZlZlUgRuLotf0ynCrWNUv+oSQk9D4odbNVIiVRYO1etctninKFnQ2hXboHOZW1fm0AvoMxUr9w1bUVF1edl2X9bJQ2yOhOYD1WcfNr133Kwb7BVh/2QEg9Qmra7K7a6i6DHq5DO5VyatR/KxyACdQmACUdfgahWqV5VxtYGiiDhpcd50s8LCrUD3ADPtZ3coR+XhWjQCndLG7QNVvd0FvvxWk6hn01AJgRkqqO6fBrsrMdm7WGcH3OgFoxL4WljMFq+18vWq3AKjr9bzv5qaaz3tW2RzF1Xbb97CHmqvayFKjCqKagqxha1JjwC5U47M22LF2Dy2u9taiq9zXnZRMpod1jXtNarXqEcX7vreIceyCcPq+R+z3uIBtaewbLntLL1Yswz7RxM3VcV4Ioe3vkhP9L95g+lTL//eLBXkzIqfCl1qFvEup9/JuACq7UgJ9vrUo/3J5gTZ3EPelxi95iVBhnCNvB2gty8a61MhzBe0plWuxpa+wxMP2+5/XN983vDLO60eJEiVKlChRokSJEiVKlChRokSJEiVKlChRokT5DuW/CxNz6XKNh9oAAAAASUVORK5CYII=';
+
+// The login screen still asks for a simple "username" (not an email) to keep the exact
+// same UX as before; behind the scenes it maps to a real Supabase Auth account.
+const KNOWN_LOGINS = [
+  {match: u => u === 'bader', email: 'bader@nahrawan-plan.local'},
+  {match: u => u === 'ahmad' || u.includes('احمد') || u.includes('أحمد'), email: 'ahmad@nahrawan-plan.local'},
+];
+function resolveLoginEmail(user){
+  const u = (user||'').trim().toLowerCase();
+  const hit = KNOWN_LOGINS.find(k => k.match(u));
+  return hit ? hit.email : null;
+}
+
+const params = new URLSearchParams(location.search);
+const MODE = params.get('mode') === 'admin' ? 'admin' : 'dashboard';
+const DOMAINS = ["التدريس","نواتج التعلم","الأنشطة المدرسية","النشاط الطلابي","التوجيه الطلابي","التطوير المهني المستمر","الإدارة المدرسية","البيئة المدرسية"];
+function normDomain(d){
+  if (d === "النشاط الطلابي") return "الأنشطة المدرسية";
+  if (d === "المبنى المدرسي") return "البيئة المدرسية";
+  return d;
+}
+const DOMAIN_LIST = ["التدريس","نواتج التعلم","الأنشطة المدرسية","التوجيه الطلابي","التطوير المهني المستمر","الإدارة المدرسية","البيئة المدرسية"];
+
+const state = {
+  session: null,
+  authed: MODE !== 'admin',
+  meta: null,
+  team: [],
+  priorities: [],
+  actions: [],
+  programs: [],
+  domainAnalysis: [],
+  domainNotes: [],
+  planImprovements: [],
+  trash: {priorities:[], programs:[], team:[], actions:[], domainAnalysis:[], planImprovements:[]},
+  activeDomain: null,
+  activeSection: 'overview',
+  selectedPriority: null,
+  selectedAnalysisDomain: null,
+  loaded: false,
+  showArchived: false,
+};
+
+const root = document.getElementById('root');
+const esc = s => (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function icon(name){
+  const paths = {
+    home:'M3 11l9-8 9 8M5 10v10h14V10',
+    list:'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',
+    grid:'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+    users:'M17 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2M11 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75',
+    search:'M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35',
+    excel:'M14 3v5h5M17 13l-5 6-2-2.5M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V8z',
+    print:'M6 9V3h12v6M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z',
+    lock:'M5 11h14v10H5zM8 11V7a4 4 0 018 0v4',
+    leaf:'M11 21c-5 0-8-3-8-8 6 0 8 2 8 8zM19 5c-8 0-13 5-13 13 9 0 13-5 13-13z',
+    gear:'M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z',
+    book:'M4 19.5A2.5 2.5 0 016.5 17H20M4 4.5A2.5 2.5 0 016.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15z',
+    doc:'M14 3v5h5M6 3h8l5 5v13H6zM9 13h6M9 17h6',
+    chevronL:'M15 18l-6-6 6-6',
+    play:'M6 4l14 8-14 8V4z',
+    cloud:'M17.5 19H6a4 4 0 01-1-7.87A5.5 5.5 0 0115.5 8h.5a4.5 4.5 0 011.5 11z',
+    telegram:'M22 2L2 10l6 2.5M22 2l-4 18-7-6M22 2L9.5 14.5M11 13.5V19l3-3',
+    link:'M9 17H7a5 5 0 010-10h2M15 7h2a5 5 0 010 10h-2M8 12h8',
+    trash:'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6',
+    logout:'M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9',
+    settings:'M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z',
+    help:'M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01M12 21a9 9 0 100-18 9 9 0 000 18z',
+    archive:'M21 8v13H3V8M1 3h22v5H1zM10 12h4',
+    plus:'M12 5v14M5 12h14',
+    youtube:'M22.54 6.42a2.78 2.78 0 00-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 00-1.94 2A29 29 0 001 11.75a29 29 0 00.46 5.33A2.78 2.78 0 003.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 001.94-2 29 29 0 00.46-5.25 29 29 0 00-.46-5.33zM9.75 15.02V8.48l5.75 3.27z',
+    note:'M14 3v5h5M6 3h8l5 5v13H6zM9 13h6M9 17h6',
+    undo:'M3 7v6h6M3 13a9 9 0 1 0 3-6.7L3 9',
+  };
+  return `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths[name]?`<path d="${paths[name]}"/>`:''}</svg>`;
+}
+
+/* ---------------- field mapping: DB (snake_case) <-> app (camelCase) ---------------- */
+function metaFromDb(r){
+  if (!r) return null;
+  return {schoolName:r.school_name, year:r.year, stage:r.stage, ministryNumber:r.ministry_number, performance:r.performance||[], staff:r.staff||{},
+    gender:r.gender, buildingType:r.building_type, buildingIndependence:r.building_independence, adminIndependence:r.admin_independence,
+    period:r.period, sharedSchoolName:r.shared_school_name, learningOutcomes:r.learning_outcomes||[], quickSummary:r.quick_summary||{},
+    monitoringOfficials:r.monitoring_officials||{}, evaluationToolsNote:r.evaluation_tools_note};
+}
+function priorityFromDb(r){
+  return {id:r.id, domain:r.domain, framework:r.framework, level:r.level, baseline:r.baseline, text:r.text, target:r.target,
+    lastMeasured:r.last_measured, executionStatus:r.execution_status, responsible:r.responsible, evidenceUrl:r.evidence_url, notes:r.notes,
+    archived:!!r.archived, evidenceType:r.evidence_type||'link', evidenceNote:r.evidence_note||'', deleted:!!r.deleted};
+}
+function actionFromDb(r){
+  return {id:r.id, domain:r.domain, indicatorText:r.indicator_text, improvementAction:r.improvement_action, method:r.method,
+    dueDate:r.due_date, needDescription:r.need_description, responsible:r.responsible, deleted:!!r.deleted};
+}
+function programFromDb(r){
+  return {id:r.id, name:r.name, domain:r.domain, executionDate:r.execution_date, executed:r.executed, achievementLevel:r.achievement_level,
+    evaluationTool:r.evaluation_tool, notExecutedReason:r.not_executed_reason, proposedDate:r.proposed_date, archived:!!r.archived, deleted:!!r.deleted};
+}
+function teamFromDb(r){ return {id:r.id, name:r.name, role:r.role, task:r.task, deleted:!!r.deleted}; }
+function domainAnalysisFromDb(r){
+  return {id:r.id, domain:r.domain, framework:r.framework, evalDomain:r.eval_domain, standard:r.standard, code:r.code,
+    indicatorText:r.indicator_text, strengthPct:r.strength_pct, weaknessPct:r.weakness_pct, archived:!!r.archived, deleted:!!r.deleted};
+}
+function domainNoteFromDb(r){ return {id:r.id, domain:r.domain, title:r.title, notesText:r.notes_text}; }
+function planImprovementFromDb(r){
+  return {id:r.id, programName:r.program_name, executionLevel:r.execution_level, lowExecutionReason:r.low_execution_reason,
+    improvementActions:r.improvement_actions, alternateResponsible:r.alternate_responsible, followupResponsible:r.followup_responsible, deleted:!!r.deleted};
+}
+
+function priorityPatchToDb(patch){
+  const map = {target:'target', lastMeasured:'last_measured', executionStatus:'execution_status', responsible:'responsible', evidenceUrl:'evidence_url', notes:'notes', evidenceType:'evidence_type', evidenceNote:'evidence_note',
+    domain:'domain', framework:'framework', level:'level', baseline:'baseline', text:'text'};
+  const out = {};
+  for (const k in patch) if (map[k]) out[map[k]] = patch[k];
+  return out;
+}
+function programPatchToDb(patch){
+  const map = {executed:'executed', achievementLevel:'achievement_level', notExecutedReason:'not_executed_reason', proposedDate:'proposed_date', evaluationTool:'evaluation_tool',
+    name:'name', domain:'domain', executionDate:'execution_date'};
+  const out = {};
+  for (const k in patch) if (map[k]) out[map[k]] = patch[k];
+  return out;
+}
+function actionPatchToDb(patch){
+  const map = {domain:'domain', indicatorText:'indicator_text', improvementAction:'improvement_action', method:'method', dueDate:'due_date', needDescription:'need_description', responsible:'responsible'};
+  const out = {};
+  for (const k in patch) if (map[k]) out[map[k]] = patch[k];
+  return out;
+}
+function domainAnalysisPatchToDb(patch){
+  const map = {domain:'domain', framework:'framework', evalDomain:'eval_domain', standard:'standard', code:'code', indicatorText:'indicator_text', strengthPct:'strength_pct', weaknessPct:'weakness_pct'};
+  const out = {};
+  for (const k in patch) if (map[k]) out[map[k]] = patch[k];
+  return out;
+}
+function planImprovementPatchToDb(patch){
+  const map = {programName:'program_name', executionLevel:'execution_level', lowExecutionReason:'low_execution_reason', improvementActions:'improvement_actions', alternateResponsible:'alternate_responsible', followupResponsible:'followup_responsible'};
+  const out = {};
+  for (const k in patch) if (map[k]) out[map[k]] = patch[k];
+  return out;
+}
+function metaPatchToDb(patch){
+  const map = {schoolName:'school_name', year:'year', stage:'stage', ministryNumber:'ministry_number', gender:'gender',
+    buildingType:'building_type', buildingIndependence:'building_independence', adminIndependence:'admin_independence',
+    period:'period', sharedSchoolName:'shared_school_name', evaluationToolsNote:'evaluation_tools_note'};
+  const out = {};
+  for (const k in patch) if (map[k]) out[map[k]] = patch[k];
+  return out;
+}
+
+/* ---------------- data loading ---------------- */
+async function loadAll(){
+  const [metaRes, teamRes, priRes, actRes, progRes, daRes, dnRes, piRes] = await Promise.all([
+    sb.from('meta').select('*').eq('id','main').maybeSingle(),
+    sb.from('team').select('*').order('id'),
+    sb.from('priorities').select('*').order('id'),
+    sb.from('actions').select('*').order('id'),
+    sb.from('programs').select('*').order('id'),
+    sb.from('domain_analysis').select('*').order('id'),
+    sb.from('domain_notes').select('*').order('id'),
+    sb.from('plan_improvements').select('*').order('id'),
+  ]);
+  state.meta = metaFromDb(metaRes.data);
+  const allTeam = (teamRes.data||[]).map(teamFromDb);
+  const allPri = (priRes.data||[]).map(priorityFromDb);
+  const allAct = (actRes.data||[]).map(actionFromDb);
+  const allProg = (progRes.data||[]).map(programFromDb);
+  const allDa = (daRes.data||[]).map(domainAnalysisFromDb);
+  const allPi = (piRes.data||[]).map(planImprovementFromDb);
+  state.team = allTeam.filter(x=>!x.deleted);
+  state.priorities = allPri.filter(x=>!x.deleted);
+  state.actions = allAct.filter(x=>!x.deleted);
+  state.programs = allProg.filter(x=>!x.deleted);
+  state.domainAnalysis = allDa.filter(x=>!x.deleted);
+  state.domainNotes = (dnRes.data||[]).map(domainNoteFromDb);
+  state.planImprovements = allPi.filter(x=>!x.deleted);
+  state.trash = {
+    team: allTeam.filter(x=>x.deleted),
+    priorities: allPri.filter(x=>x.deleted),
+    actions: allAct.filter(x=>x.deleted),
+    programs: allProg.filter(x=>x.deleted),
+    domainAnalysis: allDa.filter(x=>x.deleted),
+    planImprovements: allPi.filter(x=>x.deleted),
+  };
+  state.loaded = true;
+  if (!state.selectedPriority && state.priorities.length) state.selectedPriority = state.priorities[0].id;
+  render();
+}
+const TRASH_LABELS = {priorities:'مؤشر', programs:'برنامج', team:'عضو فريق', actions:'إجراء', domainAnalysis:'عنصر تحليل واقع', planImprovements:'عنصر تحسين خطة'};
+async function softDelete(table, id, confirmMsg){
+  if (!confirm(confirmMsg)) return false;
+  const {error} = await sb.from(table).update({deleted:true, deleted_at: new Date().toISOString()}).eq('id', id);
+  return !error;
+}
+async function restoreFromTrash(table, id){
+  const {error} = await sb.from(table).update({deleted:false, deleted_at:null}).eq('id', id);
+  return !error;
+}
+
+/* ---------------- helpers ---------------- */
+function num(v){ const n = parseFloat(String(v).replace(/[^\d.]/g,'')); return isNaN(n)?null:n; }
+function achievementChip(v){
+  if (v==='عالي') return `<span class="chip high">عالي</span>`;
+  if (v==='متوسط') return `<span class="chip mid">متوسط</span>`;
+  if (v==='ضعيف') return `<span class="chip low">ضعيف</span>`;
+  return `<span class="chip low">لم يقيَّم بعد</span>`;
+}
+function executedChip(v){
+  if (v === true) return `<span class="chip yes">✓ نُفّذ</span>`;
+  if (v === false) return `<span class="chip no">لم يُنفذ</span>`;
+  return `<span class="chip low">لم يُحدَّث</span>`;
+}
+function priorityActions(p){
+  return state.actions.filter(a => a.domain === p.domain && a.indicatorText && p.text && (a.indicatorText.trim() === p.text.trim() || p.text.includes(a.indicatorText.slice(0,18)) || a.indicatorText.includes(p.text.slice(0,18))));
+}
+
+/* ---------------- render: shell ---------------- */
+function render(){
+  if (MODE === 'admin' && !state.authed){ renderGate(); return; }
+  if (!state.loaded){ root.innerHTML = `<div class="loading">جارِ تحميل بيانات خطة التحسين…</div>`; return; }
+
+  const sections = [
+    {id:'overview', label:'نظرة عامة', ic:'home'},
+    {id:'analysis', label:'تحليل الواقع', ic:'book'},
+    {id:'priorities', label:'مجالات التحسين', ic:'grid'},
+    {id:'programs', label:'البرامج والإجراءات', ic:'doc'},
+    {id:'improvement', label:'تحسين الخطة', ic:'note'},
+    {id:'evidence', label:'الشواهد', ic:'list'},
+    {id:'team', label:'فريق العمل', ic:'users'},
+    {id:'faq', label:'الأسئلة الشائعة', ic:'help'},
+    ...(MODE==='admin' ? [
+      {id:'settings', label:'الإعدادات', ic:'settings'},
+      {id:'trash', label:'سلة المحذوفات', ic:'trash'},
+    ] : []),
+  ];
+
+  root.innerHTML = `
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="school">${esc(state.meta?.schoolName || 'مدرسة النهروان الثانوية')}</div>
+          <div class="rule"></div>
+        </div>
+        <nav class="nav" id="nav">
+          ${sections.map(s=>`<button data-section="${s.id}" class="${state.activeSection===s.id?'active':''}">${icon(s.ic)}<span>${s.label}</span></button>`).join('')}
+        </nav>
+        <div class="sidebar-footer">
+          <div class="sidebar-org"><img src="${MINISTRY_LOGO}" alt="شعار وزارة التعليم"><span>الإدارة العامة للتعليم بمحافظة جدة</span></div>
+          <div style="margin-top:10px">الرقم الوزاري: ${esc(state.meta?.ministryNumber||'—')}<br>مرجع البيانات: خطة التحسين ${esc(state.meta?.year||'')} الأصلية</div>
+        </div>
+      </aside>
+      <main class="main">
+        <div class="orgbar">
+          <div class="actions">
+            <button class="btn primary" id="btnExcel">${icon('excel')} تصدير Excel</button>
+            <button class="btn" id="btnPrint">${icon('print')} طباعة / PDF</button>
+            ${MODE==='admin'?`<button class="btn ghost" id="btnLogout">${icon('logout')} تسجيل خروج</button>`:''}
+          </div>
+          <div class="orgbar-brand"><span>الإدارة العامة للتعليم بمحافظة جدة</span><img src="${MINISTRY_LOGO}" alt="شعار وزارة التعليم"></div>
+        </div>
+        <div class="topbar">
+          <div>
+            <div class="title-row">
+              <span class="mode-pill ${MODE==='admin'?'admin':'dash'}">${icon('lock')} ${MODE==='admin'?'وضع الإدارة':'عرض فقط'}</span>
+              <h1>${sections.find(s=>s.id===state.activeSection)?.label || ''}</h1>
+            </div>
+            <div class="sub">${esc(state.meta?.schoolName||'')} — خطة التحسين للعام ${esc(state.meta?.year||'')}</div>
+          </div>
+        </div>
+        <div class="print-header">
+          <img src="${MINISTRY_LOGO}" alt="شعار وزارة التعليم">
+          <div class="print-header-text">
+            <div class="ph-kingdom">المملكة العربية السعودية — وزارة التعليم</div>
+            <div class="ph-school">${esc(state.meta?.schoolName||'')}</div>
+            <div class="ph-title">تقرير خطة التحسين المدرسية — ${esc(state.meta?.stage||'')} ${esc(state.meta?.year||'')}</div>
+          </div>
+        </div>
+        <div class="content" id="content"></div>
+        <div class="print-footer">
+          <div class="pf-row"><img src="${MINISTRY_LOGO}" alt="شعار وزارة التعليم"><span>مدير المدرسة: ${esc(state.team.find(t=>t.role==='مدير المدرسة')?.name||'—')}</span></div>
+          <div class="pf-row">الإدارة العامة للتعليم بمحافظة جدة</div>
+          <div class="pf-school">${esc(state.meta?.schoolName||'مدرسة النهروان الثانوية')}</div>
+        </div>
+      </main>
+    </div>
+  `;
+
+  document.querySelectorAll('#nav button').forEach(b=>b.addEventListener('click', ()=>{ state.activeSection=b.dataset.section; state.selectedPriority=null; render(); }));
+  document.getElementById('btnExcel').addEventListener('click', exportExcel);
+  document.getElementById('btnPrint').addEventListener('click', ()=>window.print());
+  const logoutBtn = document.getElementById('btnLogout');
+  if (logoutBtn) logoutBtn.addEventListener('click', async ()=>{ await sb.auth.signOut(); state.authed=false; state.loaded=false; render(); });
+
+  renderContent();
+}
+
+function renderContent(){
+  const c = document.getElementById('content');
+  if (state.activeSection === 'overview') return renderOverview(c);
+  if (state.activeSection === 'analysis') return renderAnalysis(c);
+  if (state.activeSection === 'priorities') return renderPriorities(c);
+  if (state.activeSection === 'programs') return renderPrograms(c);
+  if (state.activeSection === 'improvement') return renderImprovement(c);
+  if (state.activeSection === 'evidence') return renderEvidence(c);
+  if (state.activeSection === 'team') return renderTeam(c);
+  if (state.activeSection === 'faq') return renderFaq(c);
+  if (state.activeSection === 'settings') return renderSettings(c);
+  if (state.activeSection === 'trash') return renderTrash(c);
+}
+
+const DOMAIN_ICON = {
+  'التدريس':'book','نواتج التعلم':'book','الأنشطة المدرسية':'users','التوجيه الطلابي':'users',
+  'التطوير المهني المستمر':'gear','الإدارة المدرسية':'gear','البيئة المدرسية':'leaf',
+};
+const DOMAIN_COLOR = {
+  'التدريس':'teal','نواتج التعلم':'teal','الأنشطة المدرسية':'gold','التوجيه الطلابي':'teal',
+  'التطوير المهني المستمر':'blue','الإدارة المدرسية':'blue','البيئة المدرسية':'green',
+};
+function domainPillsRow(){
+  const items = [{d:null,label:'كل المجالات'}, ...DOMAIN_LIST.map(d=>({d,label:d}))];
+  return `<div class="card">
+    <div class="card-hd"><h3>مجالات الخطة</h3></div>
+    <div class="card-bd"><div class="domain-row">
+      ${items.map(it=>{
+        const c = DOMAIN_COLOR[it.d] || 'teal';
+        return `<button class="domain-pill ${state.activeDomain===it.d?'active':''}" data-domain="${esc(it.d||'')}">
+        ${it.d?`<span class="dot" style="background:var(--${c})">${icon(DOMAIN_ICON[it.d]||'grid')}</span>`:''}
+        ${esc(it.label)}
+      </button>`;}).join('')}
+    </div></div>
+  </div>`;
+}
+function wireDomainPills(c, onPick){
+  c.querySelectorAll('.domain-pill').forEach(b=>b.addEventListener('click', ()=>{
+    state.activeDomain = b.dataset.domain || null;
+    onPick();
+  }));
+}
+
+/* ---------------- overview ---------------- */
+const DOMAIN_ICON_MAP = {
+  'نواتج التعلم':'book', 'التعليم والتعلم':'book', 'الإدارة المدرسية':'gear', 'البيئة المدرسية':'leaf',
+};
+const KPI_COLOR_MAP = {
+  'البيئة المدرسية': {icon:'green', text:'gold'},
+  'الإدارة المدرسية': {icon:'blue', text:'green'},
+  'التعليم والتعلم': {icon:'blue', text:'blue'},
+  'نواتج التعلم': {icon:'teal', text:'teal'},
+};
+function renderOverview(c){
+  const perf = state.meta?.performance || [];
+  const find = d => perf.find(p=>p.domain===d);
+  const hero = find('الأداء العام للمدرسة');
+  const smallCards = [
+    {label:'نواتج التعلم', v: find('نواتج التعلم')?.externalEval},
+    {label:'التعليم والتعلم', v: find('التعليم والتعلم')?.externalEval},
+    {label:'الإدارة المدرسية', v: find('الإدارة المدرسية')?.externalEval},
+    {label:'البيئة المدرسية', v: find('البيئة المدرسية')?.externalEval},
+  ];
+
+  const list = state.priorities.filter(p=>!p.archived && (!state.activeDomain || normDomain(p.domain)===state.activeDomain));
+  const preview = list.slice(0,6);
+  const selected = state.priorities.find(p=>p.id===state.selectedPriority) || preview[0];
+
+  c.innerHTML = `
+    <div class="kpi-area">
+      <div class="kpi-hero">
+        <div class="kpi-hero-hd"><h3>ملخص التقويم الخارجي</h3><span class="kpi-hero-icon">${icon('doc')}</span></div>
+        <div class="val tabular">${esc(hero?.externalEval??'—')}%</div>
+        <div class="lbl">الأداء العام للمدرسة</div>
+        <div class="sub">وفق الخطة المرفقة</div>
+      </div>
+      <div class="kpi-row">
+        ${smallCards.map(k=>{
+          const cc = KPI_COLOR_MAP[k.label] || {icon:'teal', text:'blue'};
+          return `<div class="kpi">
+          <span class="kpi-icon" style="background:var(--${cc.icon}-bg,var(--surface-2));color:var(--${cc.icon})">${icon(DOMAIN_ICON_MAP[k.label]||'grid')}</span>
+          <div class="val tabular" style="color:var(--${cc.text})">${esc(k.v??'—')}%</div><div class="lbl">${esc(k.label)}</div>
+        </div>`;}).join('')}
+      </div>
+    </div>
+    <div class="grid-2">
+      <div id="detailPane"></div>
+      <div class="card">
+        <div class="card-hd"><h3>أولويات التحسين (${state.priorities.length})</h3><button class="btn sm" data-goto="priorities">عرض الكل</button></div>
+        <div class="card-bd">
+          <div class="search">${icon('search')}<input id="ovSearch" placeholder="البحث في المؤشرات…"></div>
+          <ul class="pri-list" id="ovListEl">
+            ${preview.map((p,i)=>priListItem(p,i)).join('') || '<li class="empty">لا توجد بيانات</li>'}
+          </ul>
+        </div>
+      </div>
+    </div>
+    ${overviewSchoolInfoCard()}
+    <div style="margin-top:18px">${domainPillsRow()}</div>
+  `;
+  c.querySelectorAll('[data-goto]').forEach(b=>b.addEventListener('click',()=>{state.activeSection=b.dataset.goto;render();}));
+  c.querySelectorAll('#ovListEl .pri-item').forEach(el=>el.addEventListener('click',()=>{state.selectedPriority=el.dataset.id;renderOverview(c);}));
+  const ovSearch = document.getElementById('ovSearch');
+  ovSearch.addEventListener('input', ()=>{
+    const q = ovSearch.value.trim();
+    const filtered = list.filter(p=>p.text.includes(q)).slice(0,6);
+    document.getElementById('ovListEl').innerHTML = filtered.map((p,i)=>priListItem(p,i)).join('') || '<li class="empty">لا نتائج</li>';
+    document.querySelectorAll('#ovListEl .pri-item').forEach(el=>el.addEventListener('click',()=>{state.selectedPriority=el.dataset.id;renderOverview(c);}));
+  });
+  wireDomainPills(c, ()=>{ state.selectedPriority=null; renderOverview(c); });
+  renderDetail(document.getElementById('detailPane'), selected, {showAdminForm:false});
+}
+
+function priListItem(p, i){
+  return `<li class="pri-item ${state.selectedPriority===p.id?'active':''}" data-id="${p.id}">
+    <span class="pri-num">${i+1}</span>
+    <span style="flex:1">
+      <div class="pri-txt">${esc(p.text)}</div>
+      <div class="pri-dom">${esc(normDomain(p.domain))}</div>
+    </span>
+    <span class="pri-chevron">${icon('chevronL')}</span>
+  </li>`;
+}
+
+function overviewSchoolInfoCard(){
+  const m = state.meta || {};
+  const staff = m.staff || {};
+  const perf = m.performance || [];
+  const lo = m.learningOutcomes || [];
+  const qs = m.quickSummary || {};
+  const mo = m.monitoringOfficials || {};
+  const badges = [
+    ['جنس المدرسة', m.gender], ['نوع المبنى', m.buildingType], ['استقلالية المبنى', m.buildingIndependence],
+    ['استقلالية الإدارة', m.adminIndependence], ['الفترة', m.period],
+  ].filter(([,v])=>v);
+  return `
+    <div class="card" style="margin-top:18px">
+      <div class="card-hd"><h3>بيانات المدرسة ونتائج التقويم</h3>${MODE==='admin'?`<button class="btn sm" data-goto="settings">تعديل من الإعدادات</button>`:''}</div>
+      <div class="card-bd">
+        ${badges.length ? `<div class="domain-row" style="margin-bottom:14px">${badges.map(([l,v])=>`<span class="chip low" style="font-weight:700">${esc(l)}: ${esc(v)}</span>`).join('')}</div>` : ''}
+        ${Object.keys(staff).length ? `<div class="metric-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px">
+          ${Object.entries(staff).filter(([k])=>k!=='الوصف').map(([k,v])=>`<div class="metric"><div class="n tabular" style="font-size:16px">${esc(v)}</div><div class="l">${esc(k)}</div></div>`).join('')}
+        </div>` : ''}
+        ${perf.length ? `<div class="table-wrap"><table>
+          <thead><tr><th>المجال</th><th>ذاتي</th><th>مستوى (ذاتي)</th><th>خارجي</th><th>مستوى (خارجي)</th></tr></thead>
+          <tbody>${perf.map(p=>`<tr><td>${esc(p.domain)}</td><td class="tabular">${esc(p.selfEval??'—')}${p.selfEval?'%':''}</td><td>${esc(p.selfLevel||'—')}</td><td class="tabular">${esc(p.externalEval??'—')}${p.externalEval?'%':''}</td><td>${esc(p.externalLevel||'—')}</td></tr>`).join('')}</tbody>
+        </table></div>` : ''}
+        ${lo.length ? `<div class="table-wrap" style="margin-top:14px"><table>
+          <thead><tr><th>نواتج التعلم</th><th>2024</th><th>2025</th><th>2026</th></tr></thead>
+          <tbody>${lo.map(r=>`<tr><td>${esc(r.domain)}</td><td class="tabular">${esc(r.y2024||'—')}</td><td class="tabular">${esc(r.y2025||'—')}</td><td class="tabular">${esc(r.y2026||'—')}</td></tr>`).join('')}</tbody>
+        </table></div>` : ''}
+        ${(qs.overall_value || qs.learning_value) ? `<div class="metric-row" style="grid-template-columns:1fr 1fr;margin-top:14px">
+          ${qs.overall_value?`<div class="metric"><div class="n tabular" style="color:var(--blue)">${esc(qs.overall_value)}</div><div class="l">${esc(qs.overall_label||'')}</div></div>`:''}
+          ${qs.learning_value?`<div class="metric"><div class="n tabular">${esc(qs.learning_value)}</div><div class="l">${esc(qs.learning_label||'')}</div></div>`:''}
+        </div>` : ''}
+        ${(mo.followup_responsible || mo.evaluator) ? `<div class="field" style="margin-top:14px"><label>مسؤولو المتابعة والتقويم</label><div class="val">
+          ${mo.followup_responsible?`مسؤول المتابعة: ${esc(mo.followup_responsible)}${mo.academic_affairs_deputy?' — وكيل الشؤون التعليمية: '+esc(mo.academic_affairs_deputy):''}`:''}
+          ${mo.evaluator?`<br>مسؤول التقويم: ${esc(mo.evaluator)}${mo.evaluator_role?' ('+esc(mo.evaluator_role)+')':''}`:''}
+        </div></div>` : ''}
+        ${m.evaluationToolsNote ? `<div class="field" style="margin-top:14px"><label>أدوات التقويم المستخدمة</label><div class="val">${esc(m.evaluationToolsNote)}</div></div>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+/* ---------------- priorities + detail ---------------- */
+function renderPriorities(c){
+  const all = state.priorities.filter(p=>!state.activeDomain || normDomain(p.domain)===state.activeDomain);
+  const list = all.filter(p=>state.showArchived ? p.archived : !p.archived);
+  const selected = state.priorities.find(p=>p.id===state.selectedPriority) || list[0];
+  const archivedCount = all.filter(p=>p.archived).length;
+  c.innerHTML = `
+    <div class="grid-2">
+      <div id="detailPane"></div>
+      <div class="card">
+        <div class="card-hd"><h3>${state.showArchived?'المؤشرات المؤرشفة':'المؤشرات'} (${list.length})</h3>
+          ${MODE==='admin' && archivedCount>0 ? `<button class="btn sm ${state.showArchived?'primary':''}" id="toggleArchivedBtn">${icon('archive')} ${state.showArchived?'عرض النشط':'عرض الأرشيف ('+archivedCount+')'}</button>` : ''}
+        </div>
+        <div class="card-bd">
+          <div class="search">${icon('search')}<input id="priSearch" placeholder="البحث في المؤشرات…"></div>
+          <ul class="pri-list" id="priListEl">
+            ${list.map((p,i)=>priListItem(p,i)).join('') || '<li class="empty">لا توجد مؤشرات ضمن هذا المجال</li>'}
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:18px">${domainPillsRow()}</div>
+  `;
+  const toggleArchivedBtn = document.getElementById('toggleArchivedBtn');
+  if (toggleArchivedBtn) toggleArchivedBtn.addEventListener('click', ()=>{ state.showArchived=!state.showArchived; state.selectedPriority=null; renderPriorities(c); });
+  c.querySelectorAll('.pri-item').forEach(el=>el.addEventListener('click',()=>{state.selectedPriority=el.dataset.id;renderPriorities(c);}));
+  const search = document.getElementById('priSearch');
+  search.addEventListener('input', ()=>{
+    const q = search.value.trim();
+    const filtered = list.filter(p=>p.text.includes(q));
+    document.getElementById('priListEl').innerHTML = filtered.map((p)=>priListItem(p, list.indexOf(p))).join('') || '<li class="empty">لا نتائج</li>';
+    document.querySelectorAll('.pri-item').forEach(el=>el.addEventListener('click',()=>{state.selectedPriority=el.dataset.id;renderPriorities(c);}));
+  });
+  wireDomainPills(c, ()=>{ state.selectedPriority=null; renderPriorities(c); });
+  renderDetail(document.getElementById('detailPane'), selected, {showAdminForm:true});
+}
+
+function renderDetail(el, p, opts){
+  opts = opts || {showAdminForm:true};
+  if (!p){ el.innerHTML = `<div class="card"><div class="card-bd empty">اختاري مؤشرًا من القائمة</div></div>`; return; }
+  const acts = priorityActions(p);
+  const statusLabel = p.executionStatus || 'لم يُحدَّث';
+  const statusCls = p.executionStatus==='مكتمل' ? 'ok' : (p.executionStatus==='قيد التنفيذ' ? 'warn' : 'idle');
+  const documented = !!p.lastMeasured;
+
+  el.innerHTML = `
+    <div class="card">
+      <div class="card-hd"><h3>تفاصيل المؤشر</h3>${icon('list')}</div>
+      <div class="card-bd">
+        <div class="field"><label>مجال المؤشر</label><div class="val" style="display:inline-flex;background:var(--blue-bg);color:var(--blue-ink);padding:4px 12px;border-radius:999px;font-weight:700;font-size:12.5px">${esc(normDomain(p.domain))}</div></div>
+        <h2 class="detail-title">${esc(p.text)}</h2>
+
+        <div class="metric-row" style="grid-template-columns:1fr 1fr">
+          <div class="metric"><div class="n tabular" style="color:var(--blue)">${esc(p.target)}%</div><div class="l">المستهدف</div></div>
+          <div class="metric"><div class="n tabular">${esc(p.baseline)}%</div><div class="l">خط الأساس</div></div>
+        </div>
+        <div class="metric-row" style="grid-template-columns:1fr 1fr">
+          <div class="metric"><div class="n tabular" style="font-size:14px">${documented?'موثّق':'لم يوثّق بعد'}</div><div class="l">حالة التوثيق</div></div>
+          <div class="metric"><div class="n tabular" style="font-size:14px">${esc(p.lastMeasured||'—')}</div><div class="l">آخر قياس موثق</div></div>
+        </div>
+
+        <div class="field"><label>حالة التنفيذ</label><div class="val"><span class="status-pill ${statusCls}">${esc(statusLabel)}</span></div></div>
+        <div class="field"><label>المسؤول عن التنفيذ</label><div class="val">${esc(p.responsible||'—')}</div></div>
+        ${p.evidenceUrl?`<div class="field"><label>الشواهد</label><div class="val"><a href="${esc(p.evidenceUrl)}" target="_blank" rel="noopener" style="color:var(--blue);font-weight:700">فتح رابط الشاهد ↗</a></div></div>`:''}
+        ${p.notes?`<div class="field"><label>ملاحظات</label><div class="val">${esc(p.notes)}</div></div>`:''}
+
+        <button type="button" class="btn primary" id="toggleActionsBtn" style="width:100%;justify-content:center;margin-top:8px">${icon('doc')} عرض الإجراءات والشواهد (${acts.length})</button>
+        <div id="actionsWrap" class="hidden" style="margin-top:14px">
+          <div class="field"><label>الإطار الموجه</label><div class="val">${esc(p.framework||'—')}</div></div>
+          <ul class="actions-list">
+            ${acts.map(a=>`<li class="action-row" data-action-id="${a.id}">
+              <div class="m">${esc(a.method)}</div>
+              <div class="meta"><span>📅 ${esc(a.dueDate)}</span><span>👤 ${esc(a.responsible)}</span></div>
+              ${MODE==='admin'?`<div class="actions" style="margin-top:6px"><button type="button" class="btn sm ghost" data-edit-action="${a.id}">تعديل</button><button type="button" class="btn sm ghost" data-delete-action="${a.id}" style="color:#a33">${icon('trash')} حذف</button></div>`:''}
+            </li>`).join('') || '<li class="empty">لا توجد إجراءات مرتبطة موثقة</li>'}
+          </ul>
+          ${MODE==='admin'?`<button type="button" class="btn sm teal" id="addActionBtn" style="margin-top:10px">${icon('plus')} إضافة إجراء جديد</button>`:''}
+          <div id="actionModal"></div>
+        </div>
+
+        ${opts.showAdminForm && MODE==='admin' ? adminPriorityForm(p) : ''}
+      </div>
+    </div>
+  `;
+  const toggleBtn = document.getElementById('toggleActionsBtn');
+  if (toggleBtn) toggleBtn.addEventListener('click', ()=>{ document.getElementById('actionsWrap').classList.toggle('hidden'); });
+  if (MODE==='admin'){
+    document.querySelectorAll('[data-edit-action]').forEach(b=>b.addEventListener('click', ()=>{
+      openActionEditor(state.actions.find(a=>a.id===b.dataset.editAction), p, el);
+    }));
+    document.querySelectorAll('[data-delete-action]').forEach(b=>b.addEventListener('click', async ()=>{
+      const id = b.dataset.deleteAction;
+      const ok = await softDelete('actions', id, 'هل تريدين حذف هذا الإجراء؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
+      if (ok){
+        const item = state.actions.find(x=>x.id===id);
+        state.actions = state.actions.filter(x=>x.id!==id);
+        if (item) state.trash.actions.push(Object.assign({}, item, {deleted:true}));
+        renderDetail(el, p, opts);
+      }
+    }));
+    const addActionBtn = document.getElementById('addActionBtn');
+    if (addActionBtn) addActionBtn.addEventListener('click', ()=>{ openActionEditor(null, p, el); });
+  }
+  if (opts.showAdminForm && MODE==='admin') wireAdminPriorityForm(p);
+}
+
+function openActionEditor(a, p, el){
+  const isNew = !a;
+  const modal = document.getElementById('actionModal');
+  modal.innerHTML = `
+    <div style="position:fixed;inset:0;background:rgba(15,27,32,.5);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px" id="actModalBg">
+      <div class="card" style="max-width:520px;width:100%;max-height:88vh;overflow-y:auto">
+        <div class="card-hd"><h3>${isNew?'إضافة إجراء جديد':'تعديل الإجراء'}</h3><button class="btn sm ghost" id="actModalClose">✕</button></div>
+        <div class="card-bd">
+          <form id="actForm">
+            <div class="form-grid">
+              <div class="f-field full"><label>الإجراء التحسيني</label><textarea name="improvementAction">${esc(a?.improvementAction||'')}</textarea></div>
+              <div class="f-field full"><label>طريقة التنفيذ / الآلية</label><textarea name="method">${esc(a?.method||'')}</textarea></div>
+              <div class="f-field"><label>التاريخ المستهدف</label><input name="dueDate" value="${esc(a?.dueDate||'')}"></div>
+              <div class="f-field"><label>المسؤول عن التنفيذ</label><input name="responsible" value="${esc(a?.responsible||'')}"></div>
+              <div class="f-field full"><label>وصف الاحتياج / المبرر</label><textarea name="needDescription">${esc(a?.needDescription||'')}</textarea></div>
+            </div>
+            <div class="save-bar">
+              <button type="submit" class="btn teal">${isNew?'إضافة':'حفظ'}</button>
+              <span class="save-msg" id="actSaveMsg"></span>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('actModalClose').addEventListener('click', ()=>modal.innerHTML='');
+  document.getElementById('actModalBg').addEventListener('click', e=>{ if(e.target.id==='actModalBg') modal.innerHTML=''; });
+  document.getElementById('actForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const patch = Object.fromEntries(fd.entries());
+    const msg = document.getElementById('actSaveMsg');
+    msg.textContent = 'جارِ الحفظ…'; msg.className='save-msg';
+    if (isNew){
+      const newId = 'a' + String(Date.now()).slice(-8);
+      const row = Object.assign({id:newId, domain:p.domain, indicatorText:p.text}, patch);
+      const {error} = await sb.from('actions').insert(actionPatchToDb(row));
+      if (!error){
+        state.actions.push(row);
+        msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
+        setTimeout(()=>{ modal.innerHTML=''; renderDetail(el, p, {showAdminForm:true}); }, 500);
+      } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+    } else {
+      const {error} = await sb.from('actions').update(actionPatchToDb(patch)).eq('id', a.id);
+      if (!error){
+        Object.assign(a, patch);
+        msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
+        setTimeout(()=>{ modal.innerHTML=''; renderDetail(el, p, {showAdminForm:true}); }, 500);
+      } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+    }
+  });
+}
+
+function adminPriorityForm(p){
+  return `
+    <form id="priForm" style="margin-top:18px;padding-top:16px;border-top:2px dashed var(--border)">
+      <h3 style="margin:0 0 12px;font-size:14.5px">تعديل المؤشر (وضع الإدارة)</h3>
+      <div class="form-grid">
+        <div class="f-field full"><label>نص المؤشر</label><textarea name="text">${esc(p.text||'')}</textarea></div>
+        <div class="f-field"><label>المجال</label>
+          <select name="domain">
+            ${DOMAIN_LIST.map(d=>`<option ${normDomain(p.domain)===d?'selected':''}>${d}</option>`).join('')}
+          </select>
+        </div>
+        <div class="f-field"><label>المستوى</label><input name="level" value="${esc(p.level||'')}"></div>
+        <div class="f-field full"><label>الإطار الموجه</label><input name="framework" value="${esc(p.framework||'')}"></div>
+        <div class="f-field"><label>خط الأساس (%)</label><input name="baseline" value="${esc(p.baseline)}"></div>
+        <div class="f-field"><label>المستهدف (%)</label><input name="target" value="${esc(p.target)}"></div>
+        <div class="f-field"><label>آخر قياس موثق (%)</label><input name="lastMeasured" value="${esc(p.lastMeasured||'')}"></div>
+        <div class="f-field"><label>حالة التنفيذ</label>
+          <select name="executionStatus">
+            ${['لم يبدأ','قيد التنفيذ','مكتمل'].map(o=>`<option ${p.executionStatus===o?'selected':''}>${o}</option>`).join('')}
+          </select>
+        </div>
+        <div class="f-field"><label>المسؤول عن التنفيذ</label><input name="responsible" value="${esc(p.responsible||'')}"></div>
+        <div class="f-field full"><label>رابط الشاهد</label><input name="evidenceUrl" value="${esc(p.evidenceUrl||'')}" placeholder="https://‏..."></div>
+        <div class="f-field full"><label>ملاحظات</label><textarea name="notes">${esc(p.notes||'')}</textarea></div>
+      </div>
+      <div class="save-bar">
+        <button type="submit" class="btn teal">حفظ التعديلات</button>
+        <button type="button" class="btn sm ghost" id="archiveBtn">${icon('archive')} ${p.archived?'إلغاء الأرشفة':'أرشفة'}</button>
+        <button type="button" class="btn sm ghost" id="deletePriBtn" style="color:#a33">${icon('trash')} حذف</button>
+        <span class="save-msg" id="priSaveMsg"></span>
+      </div>
+    </form>
+  `;
+}
+
+function wireAdminPriorityForm(p){
+  const form = document.getElementById('priForm');
+  if (!form) return;
+  form.addEventListener('submit', async e=>{
+    e.preventDefault();
+    const fd = new FormData(form);
+    const patch = Object.fromEntries(fd.entries());
+    const msg = document.getElementById('priSaveMsg');
+    msg.textContent = 'جارِ الحفظ…'; msg.className='save-msg';
+    const {error} = await sb.from('priorities').update(priorityPatchToDb(patch)).eq('id', p.id);
+    if (!error){
+      Object.assign(p, patch);
+      msg.textContent = 'تم الحفظ ✓'; msg.className='save-msg ok';
+    } else {
+      msg.textContent = 'تعذّر الحفظ — حاولي مجددًا'; msg.className='save-msg err';
+    }
+  });
+  const archiveBtn = document.getElementById('archiveBtn');
+  if (archiveBtn) archiveBtn.addEventListener('click', async ()=>{
+    const newVal = !p.archived;
+    const {error} = await sb.from('priorities').update({archived:newVal}).eq('id', p.id);
+    if (!error){ p.archived = newVal; state.selectedPriority=null; renderPriorities(document.getElementById('content')); }
+  });
+  const deleteBtn = document.getElementById('deletePriBtn');
+  if (deleteBtn) deleteBtn.addEventListener('click', async ()=>{
+    const ok = await softDelete('priorities', p.id, 'هل تريدين حذف هذا المؤشر؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
+    if (ok){
+      state.priorities = state.priorities.filter(x=>x.id!==p.id);
+      state.trash.priorities.push(Object.assign({}, p, {deleted:true}));
+      state.selectedPriority = null;
+      renderPriorities(document.getElementById('content'));
+    }
+  });
+}
+
+/* ---------------- programs ---------------- */
+function renderPrograms(c){
+  const all = state.programs.filter(p=>!state.activeDomain || normDomain(p.domain)===state.activeDomain);
+  const list = all.filter(p=>state.showArchived ? p.archived : !p.archived);
+  const archivedCount = all.filter(p=>p.archived).length;
+  c.innerHTML = `
+    <div class="card">
+      <div class="card-hd"><h3>${state.showArchived?'البرامج المؤرشفة':'البرامج'} (${list.length})</h3>
+        ${MODE==='admin' && archivedCount>0 ? `<button class="btn sm ${state.showArchived?'primary':''}" id="toggleArchivedBtn">${icon('archive')} ${state.showArchived?'عرض النشط':'عرض الأرشيف ('+archivedCount+')'}</button>` : ''}
+      </div>
+      <div class="card-bd table-wrap">
+        <table>
+          <thead><tr>
+            <th>اسم البرنامج / المشروع</th><th>المجال</th><th>تاريخ التنفيذ</th><th>التنفيذ</th><th>مستوى الإنجاز</th><th>أداة التقويم</th>
+            ${MODE==='admin'?'<th>تعديل</th>':''}
+          </tr></thead>
+          <tbody>
+            ${list.map(p=>`<tr data-id="${p.id}">
+              <td style="max-width:280px">${esc(p.name)}</td>
+              <td>${esc(normDomain(p.domain))}</td>
+              <td class="tabular">${esc(p.executionDate)}</td>
+              <td>${executedChip(p.executed)}</td>
+              <td>${achievementChip(p.achievementLevel)}</td>
+              <td>${esc(p.evaluationTool||'—')}</td>
+              ${MODE==='admin'?`<td><button class="btn sm" data-edit="${p.id}">تعديل</button></td>`:''}
+            </tr>`).join('') || `<tr><td colspan="7" class="empty">لا توجد برامج ضمن هذا المجال</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="programModal"></div>
+  `;
+  if (MODE==='admin'){
+    c.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>openProgramEditor(list.find(p=>p.id===b.dataset.edit))));
+    const toggleArchivedBtn = document.getElementById('toggleArchivedBtn');
+    if (toggleArchivedBtn) toggleArchivedBtn.addEventListener('click', ()=>{ state.showArchived=!state.showArchived; renderPrograms(c); });
+  }
+}
+
+function openProgramEditor(p){
+  const modal = document.getElementById('programModal');
+  modal.innerHTML = `
+    <div style="position:fixed;inset:0;background:rgba(15,27,32,.5);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px" id="modalBg">
+      <div class="card" style="max-width:520px;width:100%;max-height:88vh;overflow-y:auto">
+        <div class="card-hd"><h3>تحديث حالة البرنامج</h3><button class="btn sm ghost" id="modalClose">✕</button></div>
+        <div class="card-bd">
+          <form id="progForm">
+            <div class="form-grid">
+              <div class="f-field full"><label>اسم البرنامج / المشروع</label><input name="name" value="${esc(p.name)}"></div>
+              <div class="f-field"><label>المجال</label>
+                <select name="domain">${DOMAIN_LIST.map(d=>`<option ${normDomain(p.domain)===d?'selected':''}>${d}</option>`).join('')}</select>
+              </div>
+              <div class="f-field"><label>تاريخ التنفيذ</label><input name="executionDate" value="${esc(p.executionDate||'')}"></div>
+              <div class="f-field"><label>حالة التنفيذ</label>
+                <select name="executed"><option value="" ${!p.executed?'selected':''}>لم يُحدَّث</option><option value="true" ${p.executed===true?'selected':''}>نُفّذ</option><option value="false" ${p.executed===false?'selected':''}>لم يُنفَّذ</option></select>
+              </div>
+              <div class="f-field"><label>مستوى الإنجاز</label>
+                <select name="achievementLevel"><option value="">—</option>${['عالي','متوسط','ضعيف'].map(o=>`<option ${p.achievementLevel===o?'selected':''}>${o}</option>`).join('')}</select>
+              </div>
+              <div class="f-field full"><label>أسباب عدم التنفيذ (إن وجدت)</label><input name="notExecutedReason" value="${esc(p.notExecutedReason||'')}"></div>
+              <div class="f-field full"><label>تاريخ التنفيذ المقترح</label><input name="proposedDate" value="${esc(p.proposedDate||'')}"></div>
+              <div class="f-field full"><label>أداة التقويم المستخدمة</label><input name="evaluationTool" value="${esc(p.evaluationTool||'')}"></div>
+            </div>
+            <div class="save-bar">
+              <button type="submit" class="btn teal">حفظ</button>
+              <button type="button" class="btn sm ghost" id="archiveProgBtn">${icon('archive')} ${p.archived?'إلغاء الأرشفة':'أرشفة'}</button>
+              <button type="button" class="btn sm ghost" id="deleteProgBtn" style="color:#a33">${icon('trash')} حذف</button>
+              <span class="save-msg" id="progSaveMsg"></span>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('modalClose').addEventListener('click', ()=>modal.innerHTML='');
+  document.getElementById('modalBg').addEventListener('click', e=>{ if(e.target.id==='modalBg') modal.innerHTML=''; });
+  document.getElementById('progForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const patch = Object.fromEntries(fd.entries());
+    if (patch.executed==='true') patch.executed = true; else if (patch.executed==='false') patch.executed=false; else patch.executed=null;
+    const msg = document.getElementById('progSaveMsg');
+    msg.textContent='جارِ الحفظ…'; msg.className='save-msg';
+    const {error} = await sb.from('programs').update(programPatchToDb(patch)).eq('id', p.id);
+    if (!error){
+      Object.assign(p, patch);
+      msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
+      setTimeout(()=>{modal.innerHTML='';}, 700);
+    } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+  });
+  document.getElementById('archiveProgBtn').addEventListener('click', async ()=>{
+    const newVal = !p.archived;
+    const {error} = await sb.from('programs').update({archived:newVal}).eq('id', p.id);
+    if (!error){ p.archived = newVal; modal.innerHTML=''; renderPrograms(document.getElementById('content')); }
+  });
+  document.getElementById('deleteProgBtn').addEventListener('click', async ()=>{
+    const ok = await softDelete('programs', p.id, 'هل تريدين حذف هذا البرنامج؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
+    if (ok){
+      state.programs = state.programs.filter(x=>x.id!==p.id);
+      state.trash.programs.push(Object.assign({}, p, {deleted:true}));
+      modal.innerHTML='';
+      renderPrograms(document.getElementById('content'));
+    }
+  });
+}
+
+/* ---------------- evidence ---------------- */
+function evidenceAddForm(){
+  return `
+  <form id="evidenceForm" style="margin-bottom:20px;padding-bottom:18px;border-bottom:1px dashed var(--border)">
+    <h3 style="margin:0 0 12px;font-size:14.5px">إضافة شاهد جديد (وضع الإدارة)</h3>
+    <div class="form-grid">
+      <div class="f-field full"><label>اختاري المؤشر</label>
+        <select name="priorityId" required>
+          ${state.priorities.map(p=>`<option value="${p.id}">${esc(p.text.length>70?p.text.slice(0,70)+'…':p.text)}${p.evidenceUrl||p.evidenceNote?' — يوجد شاهد حاليًا':''}</option>`).join('')}
+        </select>
+      </div>
+      <div class="f-field"><label>نوع الشاهد</label>
+        <select name="evType" id="evTypeSel">
+          <option value="link">رابط (Drive، ملف، أي رابط)</option>
+          <option value="youtube">مقطع يوتيوب</option>
+          <option value="text">نص / ملاحظة</option>
+        </select>
+      </div>
+      <div class="f-field full" id="evUrlWrap"><label>الرابط</label>
+        <input name="url" type="url" placeholder="https://drive.google.com/... أو https://youtube.com/...">
+      </div>
+      <div class="f-field full hidden" id="evTextWrap"><label>النص</label>
+        <textarea name="note" placeholder="اكتبي وصف الشاهد أو ملاحظة نصية..."></textarea>
+      </div>
+    </div>
+    <div class="save-bar">
+      <button type="submit" class="btn teal">${icon('doc')} إضافة الشاهد</button>
+      <span class="save-msg" id="evSaveMsg"></span>
+    </div>
+  </form>`;
+}
+
+function detectEvidenceSource(p){
+  const type = p.evidenceType || 'link';
+  if (type === 'text') return {label:'نص', ic:'note'};
+  const u = String(p.evidenceUrl||'').toLowerCase();
+  if (type === 'youtube' || u.includes('youtube.com') || u.includes('youtu.be')) return {label:'يوتيوب', ic:'youtube'};
+  if (u.includes('drive.google.com') || u.includes('docs.google.com')) return {label:'Google Drive', ic:'cloud'};
+  if (u.includes('t.me/') || u.includes('telegram.me') || u.includes('telegram.org')) return {label:'Telegram', ic:'telegram'};
+  return {label:'رابط', ic:'link'};
+}
+
+function youtubeEmbedUrl(url){
+  const m = String(url||'').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{6,})/);
+  return m ? `https://www.youtube.com/embed/${m[1]}` : null;
+}
+
+function wireEvidenceAddForm(){
+  const form = document.getElementById('evidenceForm');
+  if (!form) return;
+  const evTypeSel = document.getElementById('evTypeSel');
+  const evUrlWrap = document.getElementById('evUrlWrap');
+  const evTextWrap = document.getElementById('evTextWrap');
+  evTypeSel.addEventListener('change', ()=>{
+    const isText = evTypeSel.value === 'text';
+    evUrlWrap.classList.toggle('hidden', isText);
+    evTextWrap.classList.toggle('hidden', !isText);
+  });
+  form.addEventListener('submit', async e=>{
+    e.preventDefault();
+    const fd = new FormData(form);
+    const id = fd.get('priorityId');
+    const evType = fd.get('evType');
+    const url = evType === 'text' ? '' : (fd.get('url')||'');
+    const note = evType === 'text' ? (fd.get('note')||'') : '';
+    const msg = document.getElementById('evSaveMsg');
+    if (evType !== 'text' && !url){ msg.textContent='أدخلي رابطًا صحيحًا'; msg.className='save-msg err'; return; }
+    if (evType === 'text' && !note){ msg.textContent='أدخلي نصًا'; msg.className='save-msg err'; return; }
+    msg.textContent = 'جارِ الحفظ…'; msg.className = 'save-msg';
+    const {error} = await sb.from('priorities').update({evidence_url: url, evidence_type: evType, evidence_note: note}).eq('id', id);
+    if (!error){
+      const p = state.priorities.find(x=>x.id===id);
+      if (p){ p.evidenceUrl = url; p.evidenceType = evType; p.evidenceNote = note; }
+      msg.textContent = 'تم الحفظ ✓'; msg.className = 'save-msg ok';
+      form.reset();
+      renderEvidence(document.getElementById('content'));
+    } else {
+      msg.textContent = 'تعذّر الحفظ — حاولي مجددًا'; msg.className = 'save-msg err';
+    }
+  });
+}
+
+function evidenceCard(p){
+  const src = detectEvidenceSource(p);
+  const embed = src.label==='يوتيوب' ? youtubeEmbedUrl(p.evidenceUrl) : null;
+  return `<div class="evidence-card">
+    <div style="display:flex;align-items:center;justify-content:center;gap:6px">
+      <div class="pri-dom">${esc(normDomain(p.domain))}</div>
+      <span class="evidence-src">${icon(src.ic)} ${src.label}</span>
+    </div>
+    <div class="txt">${esc(p.text.length>70?p.text.slice(0,70)+'…':p.text)}</div>
+    ${p.evidenceType==='text' ? `<div class="val" style="text-align:right;padding:10px;background:var(--surface-2);border-radius:8px;font-size:12.5px">${esc(p.evidenceNote)}</div>` :
+      embed ? `<div style="aspect-ratio:16/9;border-radius:10px;overflow:hidden;margin:6px 0"><iframe src="${esc(embed)}" style="width:100%;height:100%;border:0" allowfullscreen></iframe></div>` :
+      `<div class="qr-box" id="qr-${p.id}" title="اضغطي لفتح رابط الشاهد"></div>`}
+    <div class="evidence-actions">
+      ${p.evidenceType!=='text' ? `<a href="${esc(p.evidenceUrl)}" target="_blank" rel="noopener" class="btn sm">${icon('doc')} فتح الرابط</a>` : ''}
+      ${MODE==='admin' ? `<button type="button" class="btn sm ghost" data-remove-ev="${p.id}" title="حذف الشاهد">${icon('trash')} حذف الشاهد</button>` : ''}
+    </div>
+  </div>`;
+}
+
+function renderEvidence(c){
+  const withEvidence = state.priorities.filter(p=>p.evidenceUrl || p.evidenceNote);
+  c.innerHTML = `
+    <div class="card">
+      <div class="card-hd"><h3>الشواهد الموثّقة (${withEvidence.length})</h3></div>
+      <div class="card-bd">
+        ${MODE==='admin' ? evidenceAddForm() : ''}
+        <div class="evidence-grid">
+          ${withEvidence.map(p=>evidenceCard(p)).join('') || '<div class="empty">لا توجد شواهد موثّقة بعد لأي مؤشر</div>'}
+        </div>
+      </div>
+    </div>
+  `;
+  if (MODE==='admin'){
+    wireEvidenceAddForm();
+    c.querySelectorAll('[data-remove-ev]').forEach(b=>b.addEventListener('click', async ()=>{
+      const id = b.dataset.removeEv;
+      const {error} = await sb.from('priorities').update({evidence_url: '', evidence_type: 'link', evidence_note: ''}).eq('id', id);
+      if (!error){
+        const p = state.priorities.find(x=>x.id===id);
+        if (p){ p.evidenceUrl = ''; p.evidenceType = 'link'; p.evidenceNote = ''; }
+        renderEvidence(c);
+      }
+    }));
+  }
+  renderQRCodes(withEvidence.filter(p=>p.evidenceType!=='text' && !(detectEvidenceSource(p).label==='يوتيوب' && youtubeEmbedUrl(p.evidenceUrl))));
+}
+
+function renderQRCodes(list){
+  if (!window.QRCode) return;
+  list.forEach(p=>{
+    const el = document.getElementById('qr-'+p.id);
+    if (!el) return;
+    el.innerHTML = '';
+    new QRCode(el, {text: p.evidenceUrl, width:104, height:104, colorDark:'#15445A', colorLight:'#ffffff'});
+    el.addEventListener('click', ()=>window.open(p.evidenceUrl, '_blank', 'noopener'));
+  });
+}
+
+/* ---------------- team ---------------- */
+function renderTeam(c){
+  c.innerHTML = `
+    <div class="card"><div class="card-bd">
+      ${MODE==='admin' ? `
+      <form id="teamAddForm" style="margin-bottom:20px;padding-bottom:18px;border-bottom:1px dashed var(--border)">
+        <h3 style="margin:0 0 12px;font-size:14.5px">إضافة عضو جديد لفريق العمل</h3>
+        <div class="form-grid">
+          <div class="f-field"><label>الاسم</label><input name="name" required></div>
+          <div class="f-field"><label>الوصف الوظيفي</label><input name="role"></div>
+          <div class="f-field full"><label>المهمة</label><input name="task" placeholder="عضو / مقرر اللجنة / رئيساً..."></div>
+        </div>
+        <div class="save-bar"><button type="submit" class="btn teal">${icon('plus')} إضافة العضو</button><span class="save-msg" id="teamSaveMsg"></span></div>
+      </form>` : ''}
+      <div class="team-grid">
+        ${state.team.map(t=>MODE==='admin' ? `<div class="team-card" data-id="${t.id}">
+          <div class="f-field"><label>الاسم</label><input data-team-field="name" data-id="${t.id}" value="${esc(t.name)}"></div>
+          <div class="f-field"><label>الوصف الوظيفي</label><input data-team-field="role" data-id="${t.id}" value="${esc(t.role)}"></div>
+          <div class="f-field"><label>المهمة</label><input data-team-field="task" data-id="${t.id}" value="${esc(t.task)}"></div>
+          <span class="save-msg" id="teamRowMsg-${t.id}"></span>
+          <button type="button" class="btn sm ghost" data-remove-team="${t.id}" style="margin-top:8px">${icon('trash')} حذف</button>
+        </div>` : `<div class="team-card" data-id="${t.id}">
+          <div class="name">${esc(t.name)}</div>
+          <div class="role">${esc(t.role)}</div>
+          <div class="task">${esc(t.task)}</div>
+        </div>`).join('') || '<div class="empty">لا يوجد أعضاء بعد</div>'}
+      </div>
+    </div></div>
+  `;
+  if (MODE==='admin'){
+    const form = document.getElementById('teamAddForm');
+    form.addEventListener('submit', async e=>{
+      e.preventDefault();
+      const fd = new FormData(form);
+      const name = fd.get('name'), role = fd.get('role')||'', task = fd.get('task')||'';
+      const msg = document.getElementById('teamSaveMsg');
+      msg.textContent = 'جارِ الحفظ…'; msg.className='save-msg';
+      const newId = 't' + String(Date.now()).slice(-8);
+      const {error} = await sb.from('team').insert({id:newId, name, role, task});
+      if (!error){
+        state.team.push({id:newId, name, role, task});
+        msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
+        form.reset();
+        renderTeam(c);
+      } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+    });
+    c.querySelectorAll('[data-team-field]').forEach(inp=>inp.addEventListener('change', async ()=>{
+      const id = inp.dataset.id, field = inp.dataset.teamField, val = inp.value;
+      const t = state.team.find(x=>x.id===id);
+      const msg = document.getElementById('teamRowMsg-'+id);
+      if (msg){ msg.textContent='جارِ الحفظ…'; msg.className='save-msg'; }
+      const {error} = await sb.from('team').update({[field]: val}).eq('id', id);
+      if (!error){
+        if (t) t[field] = val;
+        if (msg){ msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok'; }
+      } else if (msg){ msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+    }));
+    c.querySelectorAll('[data-remove-team]').forEach(b=>b.addEventListener('click', async ()=>{
+      const id = b.dataset.removeTeam;
+      const ok = await softDelete('team', id, 'هل تريدين حذف هذا العضو؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
+      if (ok){
+        const item = state.team.find(t=>t.id===id);
+        state.team = state.team.filter(t=>t.id!==id);
+        if (item) state.trash.team.push(Object.assign({}, item, {deleted:true}));
+        renderTeam(c);
+      }
+    }));
+  }
+}
+
+/* ---------------- FAQ ---------------- */
+const FAQ_ITEMS = [
+  {q:'كيف أدخل لوضع الإدارة؟', a:'افتحي رابط الإدارة (نفس رابط الداشبورد مضافًا له ?mode=admin)، ثم سجّلي الدخول باسم المستخدم والرمز السري الخاصين بك.'},
+  {q:'كيف أعدّل مؤشرًا؟', a:'من قائمة "مجالات التحسين"، اختاري المؤشر من القائمة، ثم عدّلي الحقول في نموذج "تعديل المؤشر" أسفل التفاصيل واضغطي "حفظ التعديلات".'},
+  {q:'كيف أضيف أو أحذف عضو فريق؟', a:'من قسم "فريق العمل" في وضع الإدارة، استخدمي نموذج "إضافة عضو جديد" أعلى الصفحة، أو زر "حذف" أسفل بطاقة أي عضو.'},
+  {q:'ما الفرق بين الحذف والأرشفة؟', a:'الأرشفة تخفي المؤشر أو البرنامج من القائمة الرئيسية دون حذف بياناته، ويمكن استعادته لاحقًا من زر "عرض الأرشيف". الحذف ينقل العنصر إلى "سلة المحذوفات" ويمكن استعادته من هناك في أي وقت.'},
+  {q:'حذفت عنصرًا بالخطأ، كيف أستعيده؟', a:'من قسم "سلة المحذوفات" في وضع الإدارة، ستجدين كل ما حذفتيه (مؤشرات، برامج، إجراءات، أعضاء فريق، عناصر تحليل واقع) مع زر "استعادة" لإرجاعه لمكانه.'},
+  {q:'أين أجد كل محتوى ملف الوورد (تحليل الواقع الكامل، نقاط القوة، البيانات الأساسية للمدرسة)؟', a:'قسم "تحليل الواقع" يعرض كل مؤشرات التقويم (نقاط القوة والضعف) حسب المجال مع الملاحظات. قسم "الإعدادات" و"نظرة عامة" يعرضان البيانات الأساسية للمدرسة، أعداد المنسوبين والطلاب، ونتائج التقويم الذاتي والخارجي.'},
+  {q:'كيف أضيف شاهدًا (رابط، يوتيوب، أو نص)؟', a:'من قسم "الشواهد" في وضع الإدارة، اختاري المؤشر ونوع الشاهد (رابط / يوتيوب / نص)، ثم أدخلي المحتوى واضغطي "إضافة الشاهد".'},
+  {q:'كيف أصدّر ملف Excel أو أطبع تقرير PDF؟', a:'من أعلى الصفحة اضغطي "تصدير Excel" لحفظ ملف إكسل احترافي يشمل كل الأقسام (تحليل الواقع، الأولويات، الإجراءات، البرامج، الفريق)، أو "طباعة / PDF" لفتح معاينة طباعة يمكن حفظها كـ PDF من نافذة الطباعة.'},
+  {q:'هل التعديلات تظهر فورًا لباقي المشاهدين؟', a:'التعديلات تُحفظ فورًا في قاعدة البيانات، وتظهر لأي شخص يفتح الرابط أو يعيد تحميل الصفحة.'},
+];
+function renderFaq(c){
+  c.innerHTML = `
+    <div class="card"><div class="card-bd">
+      ${FAQ_ITEMS.map(item=>`
+        <div style="border-bottom:1px solid var(--border);padding:14px 0">
+          <div style="font-weight:800;font-size:14px;margin-bottom:6px">${esc(item.q)}</div>
+          <div style="font-size:13px;color:var(--ink-2);line-height:1.7">${esc(item.a)}</div>
+        </div>
+      `).join('')}
+    </div></div>
+  `;
+}
+
+/* ---------------- Settings (admin only) ---------------- */
+const STAFF_LABELS = ['الفصول الدراسية','الوكلاء','المعلمون','موجهو الطلاب','رواد النشاط','محضرو المختبر','الوظائف الادارية','الطلاب'];
+function renderSettings(c){
+  const m = state.meta || {};
+  const staff = m.staff || {};
+  const mo = m.monitoringOfficials || {};
+  const lo = (m.learningOutcomes && m.learningOutcomes.length) ? m.learningOutcomes : [{domain:'القدرات',y2024:'',y2025:'',y2026:''},{domain:'التخصص',y2024:'',y2025:'',y2026:''}];
+  const qs = m.quickSummary || {};
+  c.innerHTML = `
+    <div class="card"><div class="card-bd">
+      <form id="settingsForm">
+        <h3 style="margin:0 0 12px;font-size:14.5px">البيانات الأساسية</h3>
+        <div class="form-grid">
+          <div class="f-field"><label>اسم المدرسة</label><input name="schoolName" value="${esc(m.schoolName||'')}"></div>
+          <div class="f-field"><label>العام الدراسي</label><input name="year" value="${esc(m.year||'')}"></div>
+          <div class="f-field"><label>المرحلة</label><input name="stage" value="${esc(m.stage||'')}"></div>
+          <div class="f-field"><label>الرقم الوزاري</label><input name="ministryNumber" value="${esc(m.ministryNumber||'')}"></div>
+          <div class="f-field"><label>جنس المدرسة</label><input name="gender" value="${esc(m.gender||'')}"></div>
+          <div class="f-field"><label>نوع المبنى</label><input name="buildingType" value="${esc(m.buildingType||'')}"></div>
+          <div class="f-field"><label>استقلالية المبنى</label><input name="buildingIndependence" value="${esc(m.buildingIndependence||'')}"></div>
+          <div class="f-field"><label>استقلالية الإدارة</label><input name="adminIndependence" value="${esc(m.adminIndependence||'')}"></div>
+          <div class="f-field"><label>الفترة</label><input name="period" value="${esc(m.period||'')}"></div>
+          <div class="f-field full"><label>اسم المدرسة المشتركة في الإدارة (إن وجدت)</label><input name="sharedSchoolName" value="${esc(m.sharedSchoolName||'')}"></div>
+        </div>
+
+        <h3 style="margin:20px 0 12px;font-size:14.5px">أعداد المنسوبين والطلاب</h3>
+        <div class="form-grid">
+          ${STAFF_LABELS.map(l=>`<div class="f-field"><label>${esc(l)}</label><input data-staff="${esc(l)}" value="${esc(staff[l]||'')}"></div>`).join('')}
+        </div>
+
+        <h3 style="margin:20px 0 12px;font-size:14.5px">نواتج التعلم عبر الأعوام (القدرات / التخصص)</h3>
+        <div class="table-wrap"><table><thead><tr><th>المجال</th><th>العام 2024</th><th>العام 2025</th><th>العام 2026</th></tr></thead><tbody>
+          ${lo.map((row,i)=>`<tr>
+            <td><input data-lo="${i}-domain" value="${esc(row.domain||'')}" style="width:100%"></td>
+            <td><input data-lo="${i}-y2024" value="${esc(row.y2024||'')}" style="width:100%"></td>
+            <td><input data-lo="${i}-y2025" value="${esc(row.y2025||'')}" style="width:100%"></td>
+            <td><input data-lo="${i}-y2026" value="${esc(row.y2026||'')}" style="width:100%"></td>
+          </tr>`).join('')}
+        </tbody></table></div>
+
+        <h3 style="margin:20px 0 12px;font-size:14.5px">ملخص الأداء السريع</h3>
+        <div class="form-grid">
+          <div class="f-field full"><label>${esc(qs.overall_label||'مستوى الأداء العام للمدرسة في التقويم المدرسي')}</label><input data-qs="overall_value" value="${esc(qs.overall_value||'')}"></div>
+          <div class="f-field full"><label>${esc(qs.learning_label||'مستوى المدرسة في نواتج التعلم في التقويم المدرسي')}</label><input data-qs="learning_value" value="${esc(qs.learning_value||'')}"></div>
+        </div>
+
+        <h3 style="margin:20px 0 12px;font-size:14.5px">مسؤولو المتابعة والتقويم</h3>
+        <div class="form-grid">
+          <div class="f-field"><label>مسؤول المتابعة</label><input data-mo="followup_responsible" value="${esc(mo.followup_responsible||'')}"></div>
+          <div class="f-field"><label>وكيل الشؤون التعليمية</label><input data-mo="academic_affairs_deputy" value="${esc(mo.academic_affairs_deputy||'')}"></div>
+          <div class="f-field"><label>مسؤول التقويم</label><input data-mo="evaluator" value="${esc(mo.evaluator||'')}"></div>
+          <div class="f-field"><label>صفة مسؤول التقويم</label><input data-mo="evaluator_role" value="${esc(mo.evaluator_role||'')}"></div>
+          <div class="f-field full"><label>أدوات التقويم المستخدمة</label><textarea name="evaluationToolsNote">${esc(m.evaluationToolsNote||'')}</textarea></div>
+        </div>
+
+        <div class="save-bar">
+          <button type="submit" class="btn teal">حفظ الإعدادات</button>
+          <span class="save-msg" id="settingsSaveMsg"></span>
+        </div>
+      </form>
+    </div></div>
+  `;
+  document.getElementById('settingsForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const patch = Object.fromEntries(fd.entries());
+    const msg = document.getElementById('settingsSaveMsg');
+    msg.textContent = 'جارِ الحفظ…'; msg.className='save-msg';
+
+    const newStaff = {};
+    c.querySelectorAll('[data-staff]').forEach(inp=>{ newStaff[inp.dataset.staff] = inp.value; });
+    const newLo = lo.map((row,i)=>({
+      domain: c.querySelector(`[data-lo="${i}-domain"]`).value,
+      y2024: c.querySelector(`[data-lo="${i}-y2024"]`).value,
+      y2025: c.querySelector(`[data-lo="${i}-y2025"]`).value,
+      y2026: c.querySelector(`[data-lo="${i}-y2026"]`).value,
+    }));
+    const newQs = Object.assign({}, qs);
+    c.querySelectorAll('[data-qs]').forEach(inp=>{ newQs[inp.dataset.qs] = inp.value; });
+    const newMo = {};
+    c.querySelectorAll('[data-mo]').forEach(inp=>{ newMo[inp.dataset.mo] = inp.value; });
+
+    const dbPatch = Object.assign(metaPatchToDb(patch), {
+      staff: newStaff, learning_outcomes: newLo, quick_summary: newQs, monitoring_officials: newMo,
+    });
+    const {error} = await sb.from('meta').update(dbPatch).eq('id','main');
+    if (!error){
+      Object.assign(state.meta, patch, {staff:newStaff, learningOutcomes:newLo, quickSummary:newQs, monitoringOfficials:newMo});
+      msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
+      render();
+    } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+  });
+}
+
+/* ---------------- تحليل الواقع (full situation analysis: strengths + weaknesses per domain) ---------------- */
+function renderAnalysis(c){
+  const notes = state.domainNotes;
+  const list = state.domainAnalysis.filter(a=>!a.archived && (!state.activeDomain || normDomain(a.domain)===state.activeDomain));
+  const byDomain = {};
+  list.forEach(a=>{ const d=normDomain(a.domain)||'—'; (byDomain[d]=byDomain[d]||[]).push(a); });
+  c.innerHTML = `
+    <div class="card">
+      <div class="card-hd"><h3>تحليل واقع مجالات الممارسات الإشرافية (${list.length})</h3>
+        ${MODE==='admin' ? `<button class="btn sm teal" id="addAnalysisBtn">${icon('plus')} إضافة عنصر</button>` : ''}
+      </div>
+      <div class="card-bd">
+        ${Object.keys(byDomain).length ? Object.keys(byDomain).map(dom=>{
+          const note = notes.find(n=>n.domain===dom);
+          return `
+          <div style="margin-bottom:22px">
+            <h4 style="margin:0 0 10px;font-size:14px;color:var(--blue)">${esc(dom)}</h4>
+            <div class="table-wrap"><table>
+              <thead><tr><th>الرمز</th><th>المؤشر</th><th>الإطار الموجه</th><th>نقطة قوة</th><th>نقطة ضعف</th>${MODE==='admin'?'<th>تعديل</th>':''}</tr></thead>
+              <tbody>
+                ${byDomain[dom].map(a=>`<tr data-id="${a.id}">
+                  <td class="tabular">${esc(a.code)}</td>
+                  <td style="max-width:320px">${esc(a.indicatorText)}</td>
+                  <td>${esc(a.framework||'—')}</td>
+                  <td class="tabular" style="color:#1a8a5f">${esc(a.strengthPct||'—')}</td>
+                  <td class="tabular" style="color:#b23">${esc(a.weaknessPct||'—')}</td>
+                  ${MODE==='admin'?`<td><button class="btn sm" data-edit-analysis="${a.id}">تعديل</button></td>`:''}
+                </tr>`).join('')}
+              </tbody>
+            </table></div>
+            ${note && note.notesText ? `<div class="field" style="margin-top:10px"><label>الملاحظات والمقترحات</label><div class="val">${esc(note.notesText)}</div></div>` : ''}
+            ${MODE==='admin' ? `<button type="button" class="btn sm ghost" data-edit-note="${dom}" style="margin-top:8px">${icon('doc')} تعديل الملاحظات</button>` : ''}
+          </div>`;
+        }).join('') : '<div class="empty">لا توجد بيانات تحليل ضمن هذا المجال</div>'}
+      </div>
+    </div>
+    <div style="margin-top:18px">${domainPillsRow()}</div>
+    <div id="analysisModal"></div>
+  `;
+  wireDomainPills(c, ()=>renderAnalysis(c));
+  if (MODE==='admin'){
+    c.querySelectorAll('[data-edit-analysis]').forEach(b=>b.addEventListener('click', ()=>{
+      openAnalysisEditor(state.domainAnalysis.find(a=>a.id===b.dataset.editAnalysis), c);
+    }));
+    c.querySelectorAll('[data-edit-note]').forEach(b=>b.addEventListener('click', ()=>{
+      openNoteEditor(b.dataset.editNote, c);
+    }));
+    const addBtn = document.getElementById('addAnalysisBtn');
+    if (addBtn) addBtn.addEventListener('click', ()=>openAnalysisEditor(null, c));
+  }
+}
+function openAnalysisEditor(a, c){
+  const isNew = !a;
+  const modal = document.getElementById('analysisModal');
+  modal.innerHTML = `
+    <div style="position:fixed;inset:0;background:rgba(15,27,32,.5);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px" id="anModalBg">
+      <div class="card" style="max-width:560px;width:100%;max-height:88vh;overflow-y:auto">
+        <div class="card-hd"><h3>${isNew?'إضافة عنصر تحليل واقع':'تعديل عنصر تحليل الواقع'}</h3><button class="btn sm ghost" id="anModalClose">✕</button></div>
+        <div class="card-bd">
+          <form id="anForm">
+            <div class="form-grid">
+              <div class="f-field"><label>المجال</label>
+                <select name="domain">${DOMAIN_LIST.map(d=>`<option ${normDomain(a?.domain)===d?'selected':''}>${d}</option>`).join('')}</select>
+              </div>
+              <div class="f-field"><label>الرمز</label><input name="code" value="${esc(a?.code||'')}"></div>
+              <div class="f-field full"><label>المؤشر</label><textarea name="indicatorText">${esc(a?.indicatorText||'')}</textarea></div>
+              <div class="f-field full"><label>الإطار الموجه</label><input name="framework" value="${esc(a?.framework||'')}"></div>
+              <div class="f-field"><label>مجال التقويم المدرسي</label><input name="evalDomain" value="${esc(a?.evalDomain||'')}"></div>
+              <div class="f-field"><label>المعيار</label><input name="standard" value="${esc(a?.standard||'')}"></div>
+              <div class="f-field"><label>نقطة قوة (%)</label><input name="strengthPct" value="${esc(a?.strengthPct||'')}"></div>
+              <div class="f-field"><label>نقطة ضعف (%)</label><input name="weaknessPct" value="${esc(a?.weaknessPct||'')}"></div>
+            </div>
+            <div class="save-bar">
+              <button type="submit" class="btn teal">${isNew?'إضافة':'حفظ'}</button>
+              ${!isNew?`<button type="button" class="btn sm ghost" id="deleteAnalysisBtn" style="color:#a33">${icon('trash')} حذف</button>`:''}
+              <span class="save-msg" id="anSaveMsg"></span>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('anModalClose').addEventListener('click', ()=>modal.innerHTML='');
+  document.getElementById('anModalBg').addEventListener('click', e=>{ if(e.target.id==='anModalBg') modal.innerHTML=''; });
+  document.getElementById('anForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const patch = Object.fromEntries(fd.entries());
+    const msg = document.getElementById('anSaveMsg');
+    msg.textContent = 'جارِ الحفظ…'; msg.className='save-msg';
+    if (isNew){
+      const newId = 'da' + String(Date.now()).slice(-8);
+      const row = Object.assign({id:newId}, patch);
+      const {error} = await sb.from('domain_analysis').insert(Object.assign({id:newId}, domainAnalysisPatchToDb(patch)));
+      if (!error){
+        state.domainAnalysis.push(row);
+        msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
+        setTimeout(()=>{ modal.innerHTML=''; renderAnalysis(c); }, 500);
+      } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+    } else {
+      const {error} = await sb.from('domain_analysis').update(domainAnalysisPatchToDb(patch)).eq('id', a.id);
+      if (!error){
+        Object.assign(a, patch);
+        msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
+        setTimeout(()=>{ modal.innerHTML=''; renderAnalysis(c); }, 500);
+      } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+    }
+  });
+  if (!isNew){
+    document.getElementById('deleteAnalysisBtn').addEventListener('click', async ()=>{
+      const ok = await softDelete('domain_analysis', a.id, 'هل تريدين حذف هذا العنصر؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
+      if (ok){
+        state.domainAnalysis = state.domainAnalysis.filter(x=>x.id!==a.id);
+        state.trash.domainAnalysis.push(Object.assign({}, a, {deleted:true}));
+        modal.innerHTML='';
+        renderAnalysis(c);
+      }
+    });
+  }
+}
+function openNoteEditor(domain, c){
+  const modal = document.getElementById('analysisModal');
+  const note = state.domainNotes.find(n=>n.domain===domain);
+  modal.innerHTML = `
+    <div style="position:fixed;inset:0;background:rgba(15,27,32,.5);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px" id="noteModalBg">
+      <div class="card" style="max-width:560px;width:100%;max-height:88vh;overflow-y:auto">
+        <div class="card-hd"><h3>ملاحظات ومقترحات: ${esc(domain)}</h3><button class="btn sm ghost" id="noteModalClose">✕</button></div>
+        <div class="card-bd">
+          <form id="noteForm">
+            <div class="f-field full"><label>الملاحظات والمقترحات</label><textarea name="notesText" style="min-height:140px">${esc(note?.notesText||'')}</textarea></div>
+            <div class="save-bar"><button type="submit" class="btn teal">حفظ</button><span class="save-msg" id="noteSaveMsg"></span></div>
+          </form>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('noteModalClose').addEventListener('click', ()=>modal.innerHTML='');
+  document.getElementById('noteModalBg').addEventListener('click', e=>{ if(e.target.id==='noteModalBg') modal.innerHTML=''; });
+  document.getElementById('noteForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const notesText = new FormData(e.target).get('notesText');
+    const msg = document.getElementById('noteSaveMsg');
+    msg.textContent='جارِ الحفظ…'; msg.className='save-msg';
+    if (note){
+      const {error} = await sb.from('domain_notes').update({notes_text:notesText}).eq('id', note.id);
+      if (!error){ note.notesText = notesText; msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok'; setTimeout(()=>{modal.innerHTML='';renderAnalysis(c);},500); }
+      else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+    } else {
+      const newId = 'dn' + String(Date.now()).slice(-8);
+      const {error} = await sb.from('domain_notes').insert({id:newId, domain, title:domain, notes_text:notesText});
+      if (!error){ state.domainNotes.push({id:newId, domain, title:domain, notesText}); msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok'; setTimeout(()=>{modal.innerHTML='';renderAnalysis(c);},500); }
+      else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+    }
+  });
+}
+
+/* ---------------- تحسين الخطة (plan improvement tracking) ---------------- */
+function renderImprovement(c){
+  const list = state.planImprovements;
+  c.innerHTML = `
+    <div class="card">
+      <div class="card-hd"><h3>ثامنًا: تحسين الخطة وتطويرها (${list.length})</h3>
+        ${MODE==='admin' ? `<button class="btn sm teal" id="addImprovementBtn">${icon('plus')} إضافة عنصر</button>` : ''}
+      </div>
+      <div class="card-bd table-wrap">
+        <table>
+          <thead><tr><th>اسم البرنامج</th><th>مستوى التنفيذ</th><th>أسباب تدني التنفيذ</th><th>إجراءات تحسين الخطة</th><th>المسؤول البديل</th><th>مسؤول المتابعة</th>${MODE==='admin'?'<th>تعديل</th>':''}</tr></thead>
+          <tbody>
+            ${list.map(p=>`<tr data-id="${p.id}">
+              <td>${esc(p.programName||'—')}</td>
+              <td>${esc(p.executionLevel||'—')}</td>
+              <td>${esc(p.lowExecutionReason||'—')}</td>
+              <td>${esc(p.improvementActions||'—')}</td>
+              <td>${esc(p.alternateResponsible||'—')}</td>
+              <td>${esc(p.followupResponsible||'—')}</td>
+              ${MODE==='admin'?`<td><button class="btn sm" data-edit-imp="${p.id}">تعديل</button></td>`:''}
+            </tr>`).join('') || `<tr><td colspan="7" class="empty">لا توجد عناصر بعد — أضيفي أول عنصر من زر "إضافة عنصر"</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="improvementModal"></div>
+  `;
+  if (MODE==='admin'){
+    c.querySelectorAll('[data-edit-imp]').forEach(b=>b.addEventListener('click', ()=>{
+      openImprovementEditor(state.planImprovements.find(p=>p.id===b.dataset.editImp), c);
+    }));
+    document.getElementById('addImprovementBtn').addEventListener('click', ()=>openImprovementEditor(null, c));
+  }
+}
+function openImprovementEditor(p, c){
+  const isNew = !p;
+  const modal = document.getElementById('improvementModal');
+  modal.innerHTML = `
+    <div style="position:fixed;inset:0;background:rgba(15,27,32,.5);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px" id="impModalBg">
+      <div class="card" style="max-width:560px;width:100%;max-height:88vh;overflow-y:auto">
+        <div class="card-hd"><h3>${isNew?'إضافة عنصر تحسين خطة':'تعديل عنصر تحسين الخطة'}</h3><button class="btn sm ghost" id="impModalClose">✕</button></div>
+        <div class="card-bd">
+          <form id="impForm">
+            <div class="form-grid">
+              <div class="f-field full"><label>اسم البرنامج</label><input name="programName" value="${esc(p?.programName||'')}"></div>
+              <div class="f-field"><label>مستوى التنفيذ</label>
+                <select name="executionLevel"><option value="">—</option>${['متوسط','ضعيف'].map(o=>`<option ${p?.executionLevel===o?'selected':''}>${o}</option>`).join('')}</select>
+              </div>
+              <div class="f-field full"><label>أسباب تدني مستوى التنفيذ</label><textarea name="lowExecutionReason">${esc(p?.lowExecutionReason||'')}</textarea></div>
+              <div class="f-field full"><label>إجراءات تحسين الخطة</label><textarea name="improvementActions">${esc(p?.improvementActions||'')}</textarea></div>
+              <div class="f-field"><label>اسم مسؤول تنفيذ البرنامج البديل</label><input name="alternateResponsible" value="${esc(p?.alternateResponsible||'')}"></div>
+              <div class="f-field"><label>اسم مسؤول المتابعة</label><input name="followupResponsible" value="${esc(p?.followupResponsible||'')}"></div>
+            </div>
+            <div class="save-bar">
+              <button type="submit" class="btn teal">${isNew?'إضافة':'حفظ'}</button>
+              ${!isNew?`<button type="button" class="btn sm ghost" id="deleteImpBtn" style="color:#a33">${icon('trash')} حذف</button>`:''}
+              <span class="save-msg" id="impSaveMsg"></span>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('impModalClose').addEventListener('click', ()=>modal.innerHTML='');
+  document.getElementById('impModalBg').addEventListener('click', e=>{ if(e.target.id==='impModalBg') modal.innerHTML=''; });
+  document.getElementById('impForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const patch = Object.fromEntries(fd.entries());
+    const msg = document.getElementById('impSaveMsg');
+    msg.textContent = 'جارِ الحفظ…'; msg.className='save-msg';
+    if (isNew){
+      const newId = 'pi' + String(Date.now()).slice(-8);
+      const row = Object.assign({id:newId}, patch);
+      const {error} = await sb.from('plan_improvements').insert(Object.assign({id:newId}, planImprovementPatchToDb(patch)));
+      if (!error){
+        state.planImprovements.push(row);
+        msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
+        setTimeout(()=>{ modal.innerHTML=''; renderImprovement(c); }, 500);
+      } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+    } else {
+      const {error} = await sb.from('plan_improvements').update(planImprovementPatchToDb(patch)).eq('id', p.id);
+      if (!error){
+        Object.assign(p, patch);
+        msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
+        setTimeout(()=>{ modal.innerHTML=''; renderImprovement(c); }, 500);
+      } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+    }
+  });
+  if (!isNew){
+    document.getElementById('deleteImpBtn').addEventListener('click', async ()=>{
+      const ok = await softDelete('plan_improvements', p.id, 'هل تريدين حذف هذا العنصر؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
+      if (ok){
+        state.planImprovements = state.planImprovements.filter(x=>x.id!==p.id);
+        state.trash.planImprovements.push(Object.assign({}, p, {deleted:true}));
+        modal.innerHTML='';
+        renderImprovement(c);
+      }
+    });
+  }
+}
+
+/* ---------------- سلة المحذوفات (Trash / Restore, admin only) ---------------- */
+function renderTrash(c){
+  const groups = Object.keys(state.trash).map(type=>({type, items: state.trash[type]})).filter(g=>g.items.length);
+  const total = groups.reduce((n,g)=>n+g.items.length, 0);
+  c.innerHTML = `
+    <div class="card">
+      <div class="card-hd"><h3>سلة المحذوفات (${total})</h3></div>
+      <div class="card-bd">
+        ${total===0 ? '<div class="empty">لا يوجد عناصر محذوفة حاليًا</div>' : groups.map(g=>`
+          <div style="margin-bottom:18px">
+            <h4 style="margin:0 0 8px;font-size:13.5px;color:var(--ink-2)">${esc(TRASH_LABELS[g.type])} (${g.items.length})</h4>
+            <ul class="actions-list">
+              ${g.items.map(it=>`<li class="action-row" data-trash-type="${g.type}" data-trash-id="${it.id}">
+                <div class="m">${esc(it.text||it.name||it.programName||it.indicatorText||it.method||it.id)}</div>
+                <div class="meta">
+                  <button type="button" class="btn sm" data-restore="${it.id}" data-restore-type="${g.type}">${icon('undo')} استعادة</button>
+                </div>
+              </li>`).join('')}
+            </ul>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+  c.querySelectorAll('[data-restore]').forEach(b=>b.addEventListener('click', async ()=>{
+    const id = b.dataset.restore, type = b.dataset.restoreType;
+    const tableMap = {priorities:'priorities', programs:'programs', team:'team', actions:'actions', domainAnalysis:'domain_analysis', planImprovements:'plan_improvements'};
+    const ok = await restoreFromTrash(tableMap[type], id);
+    if (ok){
+      const item = state.trash[type].find(x=>x.id===id);
+      state.trash[type] = state.trash[type].filter(x=>x.id!==id);
+      if (item){
+        const restored = Object.assign({}, item, {deleted:false});
+        if (type==='priorities') state.priorities.push(restored);
+        else if (type==='programs') state.programs.push(restored);
+        else if (type==='team') state.team.push(restored);
+        else if (type==='actions') state.actions.push(restored);
+        else if (type==='domainAnalysis') state.domainAnalysis.push(restored);
+        else if (type==='planImprovements') state.planImprovements.push(restored);
+      }
+      renderTrash(c);
+    }
+  }));
+}
+
+/* ---------------- Excel export (styled workbook via ExcelJS, real browser download) ---------------- */
+const XL_NAVY='FF15445A', XL_WHITE='FFFFFFFF', XL_BORDER='FFD9E3DE', XL_STRIPE='FFF4F6F6';
+
+function xlStyleHeader(row){
+  row.eachCell(cell=>{
+    cell.font = {bold:true, color:{argb:XL_WHITE}, size:11, name:'Calibri'};
+    cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:XL_NAVY}};
+    cell.alignment = {horizontal:'center', vertical:'middle', wrapText:true};
+    cell.border = {top:{style:'thin',color:{argb:XL_BORDER}},bottom:{style:'thin',color:{argb:XL_BORDER}},left:{style:'thin',color:{argb:XL_BORDER}},right:{style:'thin',color:{argb:XL_BORDER}}};
+  });
+  row.height = 26;
+}
+function xlStyleBody(row, i){
+  row.eachCell(cell=>{
+    cell.alignment = {horizontal:'right', vertical:'top', wrapText:true};
+    cell.border = {top:{style:'thin',color:{argb:XL_BORDER}},bottom:{style:'thin',color:{argb:XL_BORDER}},left:{style:'thin',color:{argb:XL_BORDER}},right:{style:'thin',color:{argb:XL_BORDER}}};
+    if (i % 2 === 1) cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:XL_STRIPE}};
+  });
+}
+
+async function exportExcel(){
+  const btn = document.getElementById('btnExcel');
+  if (!window.ExcelJS){ alert('تعذّر تحميل مكتبة إكسل. جرّبي إعادة فتح الصفحة.'); return; }
+  const origHtml = btn.innerHTML;
+  btn.disabled = true; btn.innerHTML = 'جارِ التجهيز…';
+  try{
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'خطة تحسين ' + (state.meta?.schoolName||'');
+    wb.created = new Date();
+
+    let logoId = null;
+    try{
+      logoId = wb.addImage({base64: MINISTRY_LOGO, extension: 'png'});
+    }catch(e){ /* logo is decorative; export continues without it */ }
+
+    const cover = wb.addWorksheet('نظرة عامة', {views:[{rightToLeft:true}]});
+    cover.columns = [{width:4},{width:36},{width:18}];
+    if (logoId !== null) cover.addImage(logoId, {tl:{col:0.15,row:0.25}, ext:{width:88,height:68}});
+    cover.mergeCells('B2:C2');
+    cover.getCell('B2').value = 'خطة التحسين المدرسية';
+    cover.getCell('B2').font = {bold:true, size:18, color:{argb:XL_NAVY}};
+    cover.mergeCells('B3:C3');
+    cover.getCell('B3').value = state.meta?.schoolName || '';
+    cover.getCell('B3').font = {bold:true, size:14};
+    cover.mergeCells('B4:C4');
+    cover.getCell('B4').value = `${state.meta?.stage||''} · للعام ${state.meta?.year||''}`;
+    cover.getCell('B4').font = {size:12, color:{argb:'FF5B6B73'}};
+
+    let r = 7;
+    cover.getCell(`B${r}`).value = 'مؤشرات الأداء العام (التقويم الخارجي)';
+    cover.getCell(`B${r}`).font = {bold:true, size:13, color:{argb:XL_NAVY}};
+    r++;
+    (state.meta?.performance||[]).forEach(p=>{
+      cover.getCell(`B${r}`).value = p.domain;
+      cover.getCell(`C${r}`).value = (p.externalEval!=null && p.externalEval!=='') ? Number(p.externalEval)+'%' : '—';
+      cover.getCell(`B${r}`).border = {bottom:{style:'thin',color:{argb:XL_BORDER}}};
+      cover.getCell(`C${r}`).border = {bottom:{style:'thin',color:{argb:XL_BORDER}}};
+      cover.getCell(`C${r}`).font = {bold:true, color:{argb:XL_NAVY}};
+      cover.getCell(`C${r}`).alignment = {horizontal:'center'};
+      r++;
+    });
+    r += 2;
+    cover.getCell(`B${r}`).value = 'ملخص الخطة';
+    cover.getCell(`B${r}`).font = {bold:true, size:13, color:{argb:XL_NAVY}};
+    r++;
+    const m = state.meta || {};
+    [
+      ['عدد أولويات التحسين', state.priorities.length],
+      ['عدد إجراءات التحسين', state.actions.length],
+      ['عدد البرامج والمتابعة', state.programs.length],
+      ['عدد أعضاء فريق العمل', state.team.length],
+      ['عدد عناصر تحليل الواقع', state.domainAnalysis.length],
+      ['الرقم الوزاري', m.ministryNumber || '—'],
+      ['جنس المدرسة', m.gender || '—'],
+      ['نوع المبنى', m.buildingType || '—'],
+      ['استقلالية المبنى', m.buildingIndependence || '—'],
+      ['استقلالية الإدارة', m.adminIndependence || '—'],
+      ['الفترة', m.period || '—'],
+      ['اسم المدرسة المشتركة', m.sharedSchoolName || '—'],
+    ].forEach(([label,val])=>{
+      cover.getCell(`B${r}`).value = label;
+      cover.getCell(`C${r}`).value = val;
+      cover.getCell(`C${r}`).alignment = {horizontal:'center'};
+      cover.getCell(`B${r}`).border = {bottom:{style:'thin',color:{argb:XL_BORDER}}};
+      cover.getCell(`C${r}`).border = {bottom:{style:'thin',color:{argb:XL_BORDER}}};
+      r++;
+    });
+    if (Object.keys(m.staff||{}).length){
+      r += 1;
+      cover.getCell(`B${r}`).value = 'أعداد المنسوبين والطلاب';
+      cover.getCell(`B${r}`).font = {bold:true, size:13, color:{argb:XL_NAVY}};
+      r++;
+      Object.entries(m.staff).filter(([k])=>k!=='الوصف').forEach(([k,v])=>{
+        cover.getCell(`B${r}`).value = k; cover.getCell(`C${r}`).value = v;
+        cover.getCell(`C${r}`).alignment = {horizontal:'center'};
+        cover.getCell(`B${r}`).border = {bottom:{style:'thin',color:{argb:XL_BORDER}}};
+        cover.getCell(`C${r}`).border = {bottom:{style:'thin',color:{argb:XL_BORDER}}};
+        r++;
+      });
+    }
+    if ((m.learningOutcomes||[]).length){
+      r += 1;
+      cover.getCell(`B${r}`).value = 'نواتج التعلم عبر الأعوام';
+      cover.getCell(`B${r}`).font = {bold:true, size:13, color:{argb:XL_NAVY}};
+      r++;
+      m.learningOutcomes.forEach(row=>{
+        cover.getCell(`B${r}`).value = `${row.domain}: 2024=${row.y2024||'—'}  2025=${row.y2025||'—'}  2026=${row.y2026||'—'}`;
+        r++;
+      });
+    }
+    if (m.quickSummary && (m.quickSummary.overall_value || m.quickSummary.learning_value)){
+      r += 1;
+      if (m.quickSummary.overall_value){ cover.getCell(`B${r}`).value = m.quickSummary.overall_label; cover.getCell(`C${r}`).value = m.quickSummary.overall_value; r++; }
+      if (m.quickSummary.learning_value){ cover.getCell(`B${r}`).value = m.quickSummary.learning_label; cover.getCell(`C${r}`).value = m.quickSummary.learning_value; r++; }
+    }
+    if (m.monitoringOfficials && (m.monitoringOfficials.followup_responsible || m.monitoringOfficials.evaluator)){
+      r += 1;
+      cover.getCell(`B${r}`).value = 'مسؤولو المتابعة والتقويم';
+      cover.getCell(`B${r}`).font = {bold:true, size:13, color:{argb:XL_NAVY}};
+      r++;
+      const mo = m.monitoringOfficials;
+      if (mo.followup_responsible){ cover.getCell(`B${r}`).value = 'مسؤول المتابعة'; cover.getCell(`C${r}`).value = mo.followup_responsible; r++; }
+      if (mo.academic_affairs_deputy){ cover.getCell(`B${r}`).value = 'وكيل الشؤون التعليمية'; cover.getCell(`C${r}`).value = mo.academic_affairs_deputy; r++; }
+      if (mo.evaluator){ cover.getCell(`B${r}`).value = 'مسؤول التقويم'; cover.getCell(`C${r}`).value = mo.evaluator; r++; }
+    }
+
+    const analysisSheet = wb.addWorksheet('تحليل الواقع', {views:[{rightToLeft:true, state:'frozen', ySplit:1}]});
+    analysisSheet.columns = [
+      {header:'#', key:'n', width:4}, {header:'المجال', key:'domain', width:16},
+      {header:'الرمز', key:'code', width:12}, {header:'المؤشر', key:'indicator', width:52},
+      {header:'الإطار الموجه', key:'framework', width:26}, {header:'نقطة قوة %', key:'strength', width:12},
+      {header:'نقطة ضعف %', key:'weakness', width:12},
+    ];
+    xlStyleHeader(analysisSheet.getRow(1));
+    state.domainAnalysis.forEach((a,i)=>{
+      const row = analysisSheet.addRow({n:i+1, domain:normDomain(a.domain), code:a.code, indicator:a.indicatorText,
+        framework:a.framework||'', strength:a.strengthPct||'', weakness:a.weaknessPct||''});
+      xlStyleBody(row, i);
+    });
+
+    const actSheet = wb.addWorksheet('إجراءات التحسين', {views:[{rightToLeft:true, state:'frozen', ySplit:1}]});
+    actSheet.columns = [
+      {header:'#', key:'n', width:4}, {header:'المجال', key:'domain', width:16},
+      {header:'المؤشر', key:'indicator', width:44}, {header:'وصف الاحتياج', key:'need', width:44},
+      {header:'الإجراء التحسيني', key:'action', width:36}, {header:'أسلوب/طريقة التحسين', key:'method', width:36},
+      {header:'مدة الإنجاز', key:'due', width:20}, {header:'التنفيذ والمسؤولية', key:'resp', width:24},
+    ];
+    xlStyleHeader(actSheet.getRow(1));
+    state.actions.forEach((a,i)=>{
+      const row = actSheet.addRow({n:i+1, domain:normDomain(a.domain), indicator:a.indicatorText, need:a.needDescription||'',
+        action:a.improvementAction||'', method:a.method||'', due:a.dueDate||'', resp:a.responsible||''});
+      xlStyleBody(row, i);
+    });
+
+    const priSheet = wb.addWorksheet('أولويات التحسين', {views:[{rightToLeft:true, state:'frozen', ySplit:1}]});
+    priSheet.columns = [
+      {header:'#', key:'n', width:4}, {header:'المجال', key:'domain', width:16},
+      {header:'الإطار', key:'framework', width:24}, {header:'المستوى', key:'level', width:10},
+      {header:'خط الأساس %', key:'baseline', width:12}, {header:'المؤشر', key:'text', width:52},
+      {header:'المستهدف %', key:'target', width:12}, {header:'آخر قياس', key:'lastMeasured', width:12},
+      {header:'حالة التنفيذ', key:'status', width:14}, {header:'المسؤول', key:'responsible', width:20},
+    ];
+    xlStyleHeader(priSheet.getRow(1));
+    state.priorities.forEach((p,i)=>{
+      const row = priSheet.addRow({n:i+1, domain:normDomain(p.domain), framework:p.framework, level:p.level,
+        baseline:p.baseline, text:p.text, target:p.target, lastMeasured:p.lastMeasured||'',
+        status:p.executionStatus||'', responsible:p.responsible||''});
+      xlStyleBody(row, i);
+    });
+
+    const progSheet = wb.addWorksheet('البرامج والمتابعة', {views:[{rightToLeft:true, state:'frozen', ySplit:1}]});
+    progSheet.columns = [
+      {header:'#', key:'n', width:4}, {header:'اسم البرنامج', key:'name', width:52},
+      {header:'المجال', key:'domain', width:18}, {header:'تاريخ التنفيذ', key:'date', width:20},
+      {header:'نُفّذ؟', key:'executed', width:10}, {header:'مستوى الإنجاز', key:'level', width:14},
+      {header:'أداة التقويم', key:'tool', width:20},
+    ];
+    xlStyleHeader(progSheet.getRow(1));
+    state.programs.forEach((p,i)=>{
+      const row = progSheet.addRow({n:i+1, name:p.name, domain:normDomain(p.domain), date:p.executionDate,
+        executed: p.executed===true?'نعم':(p.executed===false?'لا':''), level:p.achievementLevel||'', tool:p.evaluationTool||''});
+      xlStyleBody(row, i);
+    });
+
+    const teamSheet = wb.addWorksheet('فريق العمل', {views:[{rightToLeft:true, state:'frozen', ySplit:1}]});
+    teamSheet.columns = [
+      {header:'#', key:'n', width:4}, {header:'الاسم', key:'name', width:28},
+      {header:'الوصف الوظيفي', key:'role', width:24}, {header:'المهمة', key:'task', width:16},
+    ];
+    xlStyleHeader(teamSheet.getRow(1));
+    state.team.forEach((t,i)=>{
+      const row = teamSheet.addRow({n:i+1, name:t.name, role:t.role, task:t.task});
+      xlStyleBody(row, i);
+    });
+
+    if (state.planImprovements.length){
+      const impSheet = wb.addWorksheet('تحسين الخطة', {views:[{rightToLeft:true, state:'frozen', ySplit:1}]});
+      impSheet.columns = [
+        {header:'#', key:'n', width:4}, {header:'اسم البرنامج', key:'name', width:36},
+        {header:'مستوى التنفيذ', key:'level', width:14}, {header:'أسباب التدني', key:'reason', width:32},
+        {header:'إجراءات التحسين', key:'actions', width:36}, {header:'المسؤول البديل', key:'alt', width:20},
+        {header:'مسؤول المتابعة', key:'follow', width:20},
+      ];
+      xlStyleHeader(impSheet.getRow(1));
+      state.planImprovements.forEach((p,i)=>{
+        const row = impSheet.addRow({n:i+1, name:p.programName||'', level:p.executionLevel||'', reason:p.lowExecutionReason||'',
+          actions:p.improvementActions||'', alt:p.alternateResponsible||'', follow:p.followupResponsible||''});
+        xlStyleBody(row, i);
+      });
+    }
+
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const filename = `خطة-تحسين-${(state.meta?.schoolName||'المدرسة').replace(/\s+/g,'-')}-${state.meta?.year||''}.xlsx`;
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+  }catch(err){
+    alert('تعذّر إنشاء ملف Excel: ' + (err?.message || 'حدث خطأ غير متوقع'));
+  }finally{
+    btn.disabled = false; btn.innerHTML = origHtml;
+  }
+}
+
+/* ---------------- login gate (real Supabase Auth) ---------------- */
+function renderGate(){
+  root.innerHTML = `
+    <div class="gate">
+      <div class="gate-card">
+        <img src="${MINISTRY_LOGO}" alt="شعار وزارة التعليم">
+        <h2>الدخول إلى إدارة الخطة</h2>
+        <p>مدرسة النهروان الثانوية — خطة التحسين 1448هـ</p>
+        <form id="gateForm">
+          <input name="user" placeholder="اسم المستخدم" autocomplete="off">
+          <input name="pin" placeholder="الرمز السري" type="password" autocomplete="off">
+          <div class="gate-err" id="gateErr"></div>
+          <button type="submit" class="btn primary" style="width:100%;justify-content:center">دخول</button>
+        </form>
+      </div>
+    </div>
+  `;
+  document.getElementById('gateForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const user = (fd.get('user')||'').trim();
+    const pin = (fd.get('pin')||'').trim();
+    const err = document.getElementById('gateErr');
+    const email = resolveLoginEmail(user);
+    if (!email){ err.textContent = 'اسم المستخدم أو الرمز السري غير صحيح'; return; }
+    const {data, error} = await sb.auth.signInWithPassword({email, password: pin});
+    if (error || !data.session){
+      err.textContent = 'اسم المستخدم أو الرمز السري غير صحيح';
+      return;
+    }
+    state.session = data.session;
+    state.authed = true;
+    loadAll();
+  });
+}
+
+/* ---------------- boot ---------------- */
+async function boot(){
+  render();
+  const {data:{session}} = await sb.auth.getSession();
+  state.session = session;
+  if (MODE === 'admin') state.authed = !!session;
+  if (state.authed) { await loadAll(); }
+  else if (MODE !== 'admin') { await loadAll(); }
+  else { render(); }
+}
+boot();
+</script>
+</body>
+</html>
