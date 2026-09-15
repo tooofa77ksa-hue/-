@@ -54,13 +54,6 @@ export function IconCalculator({ size = 20, color = "currentColor" }: IconProps)
   );
 }
 
-export const CATEGORY_STYLE = {
-  certificate: { bg: "#fdecd1", fg: "#b8791f", Icon: IconMedal },
-  achievement: { bg: "#daf3ea", fg: "#158a63", Icon: IconStar },
-  lughati: { bg: "#dff1fc", fg: "#1c6f95", Icon: IconBook },
-  riyadiyat: { bg: "#ece3f7", fg: "#6b3fa0", Icon: IconCalculator },
-} as const;
-
 export function IconHeart({ size = 20, color = "currentColor" }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -71,3 +64,50 @@ export function IconHeart({ size = 20, color = "currentColor" }: IconProps) {
     </svg>
   );
 }
+
+export function IconGlobe({ size = 20, color = "currentColor" }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="9.5" fill={color} />
+      <path
+        d="M12 2.5v19M2.5 12h19M4.6 6.7c2 1.4 4.7 2.2 7.4 2.2s5.4-.8 7.4-2.2M4.6 17.3c2-1.4 4.7-2.2 7.4-2.2s5.4.8 7.4 2.2"
+        stroke="#fff"
+        strokeWidth="1.1"
+        fill="none"
+        opacity="0.85"
+      />
+    </svg>
+  );
+}
+
+export function IconFlask({ size = 20, color = "currentColor" }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path
+        d="M9.2 2.5h5.6v1.6h-1v4.5l5.1 9c1 1.7-.3 3.9-2.3 3.9H7.4c-2 0-3.3-2.2-2.3-3.9l5.1-9V4.1h-1V2.5z"
+        fill={color}
+      />
+      <path d="M7.5 14.8h9" stroke="#fff" strokeWidth="1.1" opacity="0.7" />
+    </svg>
+  );
+}
+
+export function IconCrescent({ size = 20, color = "currentColor" }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M13 2a10 10 0 100 20 7.4 7.4 0 010-20z" fill={color} />
+      <path d="M19 3.3l.9 2.2 2.2.9-2.2.9-.9 2.2-.9-2.2-2.2-.9 2.2-.9z" fill={color} />
+    </svg>
+  );
+}
+
+export const CATEGORY_STYLE = {
+  certificate: { bg: "#fdecd1", fg: "#b8791f", Icon: IconMedal },
+  achievement: { bg: "#daf3ea", fg: "#158a63", Icon: IconStar },
+  lughati: { bg: "#dff1fc", fg: "#1c6f95", Icon: IconBook },
+  riyadiyat: { bg: "#ece3f7", fg: "#6b3fa0", Icon: IconCalculator },
+  english: { bg: "#d9f2f0", fg: "#0f766e", Icon: IconGlobe },
+  science: { bg: "#e3f3d9", fg: "#4d7c0f", Icon: IconFlask },
+  islamic: { bg: "#f5ecd7", fg: "#92702a", Icon: IconCrescent },
+  life_skills: { bg: "#fbe3ef", fg: "#a3235a", Icon: IconHeart },
+} as const;

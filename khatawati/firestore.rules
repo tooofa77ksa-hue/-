@@ -71,7 +71,8 @@ service cloud.firestore {
         allow read: if isFamilyOf(studentId) || isTeacher();
 
         allow create: if isFamilyOf(studentId) &&
-          request.resource.data.section in ['certificate', 'achievement', 'lughati', 'riyadiyat'] &&
+          request.resource.data.section in
+            ['certificate', 'achievement', 'lughati', 'riyadiyat', 'english', 'science', 'islamic', 'life_skills'] &&
           request.resource.data.kind in ['image', 'link'] &&
           request.resource.data.url is string &&
           request.resource.data.url.size() > 0 && request.resource.data.url.size() < 900000 &&

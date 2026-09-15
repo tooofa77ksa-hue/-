@@ -1,4 +1,4 @@
-export type Subject = "lughati" | "riyadiyat";
+export type Subject = "lughati" | "riyadiyat" | "english" | "science" | "islamic" | "life_skills";
 export type ItemSection = "certificate" | "achievement" | Subject;
 export type ItemKind = "image" | "link";
 
@@ -52,11 +52,8 @@ export interface PortfolioItem {
 export const SUBJECT_LABELS: Record<Subject, string> = {
   lughati: "لغتي",
   riyadiyat: "رياضيات",
-};
-
-export const SECTION_LABELS: Record<ItemSection, string> = {
-  certificate: "شهاداتي",
-  achievement: "إنجازاتي",
-  lughati: "أعمالي - لغتي",
-  riyadiyat: "أعمالي - رياضيات",
+  english: "الإنجليزي",
+  science: "العلوم",
+  islamic: "الدراسات الإسلامية",
+  life_skills: "مهارات حياتية",
 };

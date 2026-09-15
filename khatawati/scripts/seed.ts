@@ -51,6 +51,10 @@ interface TeacherSeed {
 const TEACHERS: TeacherSeed[] = [
   { username: "dalal", password: "Dalal#2025", name: "دلال السناني", subject: "lughati" },
   { username: "samira", password: "Samira#2025", name: "سميرة الشريف", subject: "riyadiyat" },
+  { username: "aisha", password: "Aisha#2025", name: "عائشة البلادي", subject: "english" },
+  { username: "hanan", password: "Hanan#2025", name: "حنان العمري", subject: "science" },
+  { username: "badriya", password: "Badriya#2025", name: "بدرية السفري", subject: "islamic" },
+  { username: "abeer", password: "Abeer#2025", name: "عبير المطيري", subject: "life_skills" },
 ];
 
 async function ensureAuthUser(email: string, password: string, displayName: string) {

@@ -6,15 +6,16 @@ import { compressImageToDataUrl } from "@/lib/imageCompress";
 import { SectionPanel } from "@/components/SectionPanel";
 import { GirlAvatar } from "@/components/GirlAvatar";
 import { CATEGORY_STYLE } from "@/components/icons";
-import type { PortfolioItem, Student } from "@/types/models";
+import { SUBJECT_LABELS } from "@/types/models";
+import type { PortfolioItem, Student, Subject } from "@/types/models";
 
 const COLORS = ["#ec5c8d", "#8b5fbf", "#2f9bd6", "#21a67a", "#f2a63c", "#e2554a"];
-type Tab = "about" | "lughati" | "riyadiyat";
+const SUBJECTS: Subject[] = ["lughati", "riyadiyat", "english", "science", "islamic", "life_skills"];
+type Tab = "about" | Subject;
 
 const NAV_ITEMS: { tab: Tab; label: string; style: (typeof CATEGORY_STYLE)[keyof typeof CATEGORY_STYLE] }[] = [
   { tab: "about", label: "شهاداتي وإنجازاتي", style: CATEGORY_STYLE.certificate },
-  { tab: "lughati", label: "لغتي", style: CATEGORY_STYLE.lughati },
-  { tab: "riyadiyat", label: "رياضيات", style: CATEGORY_STYLE.riyadiyat },
+  ...SUBJECTS.map((s) => ({ tab: s as Tab, label: SUBJECT_LABELS[s], style: CATEGORY_STYLE[s] })),
 ];
 
 export function PortfolioEditor() {
@@ -133,7 +134,7 @@ export function PortfolioEditor() {
 
       {unseen > 0 && (
         <div className="portfolio__notify">
-          🎉 عندك {unseen} تقييم جديد من المعلمة! افتحي "لغتي" أو "رياضيات" لتشوفيه.
+          🎉 عندك {unseen} تقييم جديد من المعلمة! افتحي مادتها لتشوفيه.
         </div>
       )}
 
@@ -142,8 +143,7 @@ export function PortfolioEditor() {
           [
             ["certificate", "شهادات"],
             ["achievement", "إنجازات"],
-            ["lughati", "أعمال لغتي"],
-            ["riyadiyat", "أعمال رياضيات"],
+            ...SUBJECTS.map((s) => [s, `أعمال ${SUBJECT_LABELS[s]}`] as const),
           ] as const
         ).map(([section, label]) => {
           const { bg, fg, Icon } = CATEGORY_STYLE[section];
@@ -212,7 +212,7 @@ export function PortfolioEditor() {
         </nav>
 
         <div className="role-content">
-          {tab === "about" && (
+          {tab === "about" ? (
             <>
               <div className="section-heading">
                 <span className="section-heading__icon" style={{ ["--medallion" as string]: CATEGORY_STYLE.certificate.bg }}>
@@ -230,12 +230,8 @@ export function PortfolioEditor() {
               </div>
               <SectionPanel studentId={studentId} section="achievement" color={color} canAdd />
             </>
-          )}
-          {tab === "lughati" && (
-            <SectionPanel studentId={studentId} section="lughati" color={color} canAdd markSeenOnMount />
-          )}
-          {tab === "riyadiyat" && (
-            <SectionPanel studentId={studentId} section="riyadiyat" color={color} canAdd markSeenOnMount />
+          ) : (
+            <SectionPanel studentId={studentId} section={tab} color={color} canAdd markSeenOnMount />
           )}
         </div>
       </div>
