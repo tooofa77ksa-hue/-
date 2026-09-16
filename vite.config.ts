@@ -28,6 +28,18 @@ export default defineConfig({
         manualChunks(id) {
           if (id.includes("node_modules/phaser")) return "phaser";
           if (id.includes("node_modules/firebase")) return "firebase";
+          // حزم "إنجازي يحكي" الثقيلة تُعزَل كلٌّ على حدة: three لا يُطلب
+          // إلا عند تشغيل مشهد البطل، وlottie لا يُطلب إلا عند لحظة
+          // نجاح/نجمة/تاج. وضعها في حزمة القسم كان سيُحمّل الهاتف ما
+          // لا يعرضه أصلًا.
+          if (
+            id.includes("node_modules/three/") ||
+            id.includes("node_modules/@react-three/") ||
+            id.includes("node_modules/three-stdlib/")
+          ) {
+            return "three";
+          }
+          if (id.includes("node_modules/lottie-web")) return "lottie";
           if (id.includes("node_modules/react-dom") || id.includes("node_modules/react/")) return "react-vendor";
         },
       },

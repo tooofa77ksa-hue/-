@@ -9,6 +9,9 @@ import { useBranding } from "@/lib/useBranding";
 // إلا داخل /teacher.
 const PlayApp = lazy(() => import("@/play/PlayApp"));
 const TeacherApp = lazy(() => import("@/teacher/TeacherApp"));
+// "إنجازي يحكي" قسم مستقل بهويته البصرية ورموزه وحركته؛ لا يُحمَّل أي
+// من ذلك (ولا Motion ولا Three ولا Lottie) قبل دخول /injazi فعلًا.
+const InjaziApp = lazy(() => import("@/injazi/InjaziApp"));
 
 function Loading() {
   return (
@@ -53,6 +56,22 @@ function Home() {
           دخول المعلمة
         </Link>
       </div>
+      <div style={{ marginTop: 20 }}>
+        <Link
+          to="/injazi"
+          style={{
+            display: "inline-block",
+            color: "var(--brand-primary-dark)",
+            padding: "10px 18px",
+            borderRadius: 12,
+            textDecoration: "none",
+            fontWeight: 700,
+            border: "2px dashed var(--brand-border)",
+          }}
+        >
+          إنجازي يحكي · دفتر إنجازات الصف الرابع
+        </Link>
+      </div>
     </div>
   );
 }
@@ -77,6 +96,7 @@ export default function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/play/*" element={<PlayApp />} />
+              <Route path="/injazi/*" element={<InjaziApp />} />
               <Route path="/teacher/*" element={<TeacherApp />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

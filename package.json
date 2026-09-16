@@ -18,18 +18,25 @@
     "deploy:hosting": "firebase deploy --project production --only hosting"
   },
   "dependencies": {
+    "@react-three/drei": "^9.122.0",
+    "@react-three/fiber": "^8.18.0",
     "exceljs": "^4.4.0",
     "firebase": "^12.18.0",
+    "lottie-web": "^5.13.0",
+    "lucide-react": "^1.46.0",
+    "motion": "^13.3.0",
     "phaser": "^3.86.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^7.18.3"
+    "react-router-dom": "^7.18.3",
+    "three": "^0.169.0"
   },
   "devDependencies": {
     "@breezystack/lamejs": "^1.2.7",
     "@firebase/rules-unit-testing": "^5.0.2",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.1",
+    "@types/three": "^0.169.0",
     "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.8.1",
     "@typescript-eslint/parser": "^8.8.1",

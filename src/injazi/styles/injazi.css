@@ -1,0 +1,942 @@
+/*
+  إنجازي يحكي — أنماط القسم
+  ------------------------------------------------------------------
+  كل ما هنا مُنطاق تحت .injazi. المسافات والمحاذاة تُكتب بخصائص منطقية
+  (inline-start/end) لا بـ left/right، فينقلب التخطيط كاملًا مع اتجاه
+  الصفحة دون ورقة أنماط ثانية.
+  لا تُستخدَم في الحركة سوى transform و opacity، وما عداهما (ظل، عرض،
+  لون) يُغيَّر عند التحويم فقط لا داخل حلقة متكررة.
+*/
+
+.injazi {
+  position: relative;
+  min-height: 100%;
+  font-family: var(--iz-font-body);
+  color: var(--iz-ink);
+  background: var(--iz-paper);
+  overflow-x: clip;
+}
+
+/* تدرّج ورقي ثابت خلف كل الشاشات — طبقة واحدة لا تتحرك ولا تُعاد رسمها */
+.iz-sky-wash {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  height: 420px;
+  z-index: var(--iz-z-decor);
+  pointer-events: none;
+  background:
+    radial-gradient(60% 70% at 80% 0%, rgba(195, 174, 245, 0.35), transparent 70%),
+    radial-gradient(52% 60% at 15% 5%, rgba(143, 203, 255, 0.3), transparent 72%),
+    linear-gradient(180deg, var(--iz-paper-deep), var(--iz-paper) 88%);
+}
+
+.injazi > *:not(.iz-sky-wash) {
+  position: relative;
+  z-index: 2;
+}
+
+/* -------------------- شريط القسم -------------------- */
+.iz-nav {
+  display: flex;
+  justify-content: center;
+  padding: var(--iz-s-4) var(--iz-s-4) 0;
+}
+
+.iz-nav__inner {
+  display: inline-flex;
+  gap: var(--iz-s-1);
+  padding: 6px;
+  border-radius: var(--iz-r-pill);
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid var(--iz-line);
+  box-shadow: var(--iz-sh-1);
+  backdrop-filter: blur(8px);
+}
+
+.iz-nav__link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--iz-r-pill);
+  padding: 9px 18px;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--iz-ink-soft);
+  text-decoration: none;
+}
+
+.iz-nav__link.active,
+.iz-nav__link[aria-current="page"] {
+  color: #fff;
+}
+
+.iz-nav__pill {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--iz-r-pill);
+  background: linear-gradient(180deg, var(--iz-plum), var(--iz-plum-deep));
+  box-shadow: var(--iz-sh-1);
+}
+
+.iz-nav__content {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--iz-s-2);
+}
+
+/* -------------------- هيكل الصفحة -------------------- */
+.iz-page {
+  max-width: 1080px;
+  margin-inline: auto;
+  padding: var(--iz-s-5) var(--iz-s-4) var(--iz-s-8);
+}
+
+.iz-page--narrow {
+  max-width: 720px;
+}
+
+.iz-page__title,
+.iz-section-title {
+  font-family: var(--iz-font-display);
+  font-weight: 800;
+  color: var(--iz-ink);
+  margin: 0 0 var(--iz-s-4);
+}
+
+.iz-page__title {
+  font-size: clamp(26px, 5vw, 34px);
+}
+
+.iz-section-title {
+  font-size: clamp(20px, 3.6vw, 25px);
+}
+
+.iz-notice {
+  color: var(--iz-ink-soft);
+  margin-block-end: var(--iz-s-4);
+}
+
+/* -------------------- البطل -------------------- */
+.iz-hero {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  align-items: center;
+  gap: var(--iz-s-6);
+  padding-block: var(--iz-s-5) var(--iz-s-7);
+}
+
+.iz-hero__eyebrow {
+  display: inline-block;
+  margin: 0 0 var(--iz-s-3);
+  padding: 5px 14px;
+  border-radius: var(--iz-r-pill);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--iz-line);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--iz-ink-soft);
+}
+
+.iz-hero__title {
+  font-family: var(--iz-font-display);
+  font-weight: 800;
+  font-size: clamp(38px, 8vw, 68px);
+  line-height: 1.12;
+  margin: 0 0 var(--iz-s-3);
+  letter-spacing: -0.5px;
+}
+
+.iz-hero__title-accent {
+  background: linear-gradient(120deg, var(--iz-plum), var(--iz-rose-deep) 60%, var(--iz-gold-deep));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.iz-hero__body {
+  max-width: 46ch;
+  margin: 0 0 var(--iz-s-5);
+  font-size: clamp(15px, 2.4vw, 18px);
+  line-height: 1.85;
+  color: var(--iz-ink-soft);
+}
+
+.iz-hero__stage {
+  display: grid;
+  place-items: center;
+}
+
+.iz-hero-object {
+  position: relative;
+  width: min(360px, 82vw);
+  aspect-ratio: 1;
+}
+
+.iz-hero-flat {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.iz-hero-flat__star {
+  position: absolute;
+  inset-block-start: 4%;
+  inset-inline-end: 16%;
+  filter: drop-shadow(var(--iz-sh-glow));
+}
+
+.iz-hero-flat__pencil {
+  position: absolute;
+  inset-block-end: 14%;
+  inset-inline-start: 8%;
+}
+
+/* -------------------- الملخّص -------------------- */
+.iz-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--iz-s-3);
+  margin-block-end: var(--iz-s-7);
+}
+
+.iz-summary__cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--iz-s-4) var(--iz-s-3);
+  border-radius: var(--iz-r-md);
+  background: var(--iz-surface);
+  border: 1px solid var(--iz-line);
+  box-shadow: var(--iz-sh-1), var(--iz-sh-top-light);
+  color: var(--iz-plum-deep);
+  text-align: center;
+}
+
+.iz-summary__cell strong {
+  font-family: var(--iz-font-display);
+  font-size: 28px;
+  color: var(--iz-ink);
+  line-height: 1.1;
+}
+
+.iz-summary__cell span {
+  font-size: 13px;
+  color: var(--iz-ink-muted);
+}
+
+/* -------------------- بطاقات المواد -------------------- */
+.iz-subjects__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--iz-s-4);
+}
+
+/* منصّة المنظور: المنظور على الأب حتى يبقى الميلان طبيعيًا مهما كان
+   حجم البطاقة، ولا يتراكم على العناصر الداخلية. */
+.iz-card-stage {
+  perspective: 1000px;
+}
+
+.iz-card-stage--flat {
+  perspective: none;
+}
+
+.iz-card {
+  position: relative;
+  border-radius: var(--iz-r-lg);
+  background: var(--iz-surface);
+  border: 1px solid var(--iz-line);
+  box-shadow: var(--iz-sh-1), var(--iz-sh-top-light);
+  transform-style: preserve-3d;
+  overflow: hidden;
+  transition: box-shadow var(--iz-t-base) var(--iz-ease-clay);
+}
+
+.iz-card--interactive:hover {
+  box-shadow: var(--iz-sh-3), var(--iz-sh-top-light);
+}
+
+.iz-subject__inner {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--iz-s-4);
+  width: 100%;
+  padding: var(--iz-s-4) var(--iz-s-5) var(--iz-s-5);
+  background: none;
+  border: 0;
+  font: inherit;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.iz-subject__name {
+  display: flex;
+  align-items: center;
+  gap: var(--iz-s-2);
+  margin: 0 0 4px;
+  font-family: var(--iz-font-display);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.iz-subject__hint {
+  margin: 0 0 var(--iz-s-3);
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--iz-ink-muted);
+}
+
+.iz-subject__go {
+  color: var(--iz-ink-muted);
+}
+
+/* السهم يشير إلى جهة التقدّم في القراءة، فينقلب مع اللغة لا مع الشاشة */
+[dir="ltr"] .iz-subject__go {
+  transform: scaleX(-1);
+}
+
+.iz-subject__progress {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline-start: 0;
+  width: var(--iz-progress, 0%);
+  height: 5px;
+  border-start-end-radius: var(--iz-r-pill);
+  border-end-end-radius: var(--iz-r-pill);
+  background: linear-gradient(90deg, var(--iz-gold-light), var(--iz-gold));
+  transition: width var(--iz-t-slow) var(--iz-ease-clay);
+}
+
+/* -------------------- الأزرار -------------------- */
+.iz-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--iz-s-2);
+  border: 0;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: var(--iz-font-display);
+  font-weight: 800;
+  border-radius: var(--iz-r-pill);
+  padding: 12px 24px;
+  font-size: 16px;
+  /* السماكة السفلية (0 Npx 0) هي "جسم" الزر، لا ظل جمالي */
+  box-shadow: var(--iz-sh-1), var(--iz-sh-top-light), 0 5px 0 var(--iz-btn-mass, transparent);
+  transition: box-shadow var(--iz-t-tap) var(--iz-ease-clay);
+}
+
+.iz-btn:active {
+  box-shadow: var(--iz-sh-1), var(--iz-sh-top-light), 0 2px 0 var(--iz-btn-mass, transparent);
+}
+
+.iz-btn--lg {
+  padding: 15px 30px;
+  font-size: 18px;
+}
+
+.iz-btn--block {
+  width: 100%;
+}
+
+.iz-btn--primary {
+  --iz-btn-mass: var(--iz-plum-deep);
+  background: linear-gradient(180deg, var(--iz-plum), var(--iz-plum-deep));
+  color: #fff;
+}
+
+.iz-btn--soft {
+  --iz-btn-mass: var(--iz-line-strong);
+  background: var(--iz-surface);
+  color: var(--iz-plum-deep);
+  border: 1px solid var(--iz-line);
+}
+
+.iz-btn--ghost {
+  background: transparent;
+  color: var(--iz-ink-soft);
+  box-shadow: none;
+}
+
+.iz-btn--ghost:hover {
+  background: var(--iz-surface-sunk);
+}
+
+/* الحذف فعل لا رجعة فيه: يبقى هادئًا حتى تقترب منه اليد، ثم يعلن نفسه */
+.iz-btn--ghost.iz-btn--danger:hover,
+.iz-btn--ghost.iz-btn--danger:focus-visible {
+  background: rgba(240, 115, 110, 0.12);
+  color: #b23b37;
+}
+
+.iz-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  box-shadow: none;
+}
+
+.iz-btn__icon {
+  display: inline-flex;
+}
+
+.iz-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-block-end: var(--iz-s-4);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--iz-ink-muted);
+  text-decoration: none;
+}
+
+.iz-back:hover {
+  color: var(--iz-plum-deep);
+}
+
+[dir="ltr"] .iz-back svg {
+  transform: scaleX(-1);
+}
+
+/* -------------------- النجوم -------------------- */
+.iz-stars {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.iz-star {
+  display: inline-flex;
+  transform-origin: center;
+}
+
+.iz-star--empty {
+  opacity: 0.22;
+  filter: saturate(0.1);
+}
+
+.iz-moment {
+  display: grid;
+  place-items: center;
+}
+
+/* -------------------- شاشة الحكاية -------------------- */
+.iz-tell__head {
+  display: flex;
+  align-items: center;
+  gap: var(--iz-s-4);
+  padding: var(--iz-s-4) var(--iz-s-5);
+  margin-block-end: var(--iz-s-5);
+  border-radius: var(--iz-r-lg);
+  background: linear-gradient(180deg, var(--iz-tone-wash, rgba(255, 255, 255, 0.9)), var(--iz-surface));
+  border: 1px solid var(--iz-line);
+  box-shadow: var(--iz-sh-1), var(--iz-sh-top-light);
+}
+
+.iz-tell__title {
+  margin: 0 0 4px;
+  font-family: var(--iz-font-display);
+  font-size: clamp(22px, 4.5vw, 28px);
+  font-weight: 800;
+}
+
+.iz-tell__prompt {
+  margin: 0 0 var(--iz-s-3);
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--iz-ink-soft);
+}
+
+.iz-form {
+  position: relative;
+  display: grid;
+  gap: var(--iz-s-4);
+  padding: var(--iz-s-5);
+  border-radius: var(--iz-r-lg);
+  background: var(--iz-surface);
+  border: 1px solid var(--iz-line);
+  box-shadow: var(--iz-sh-2), var(--iz-sh-top-light);
+}
+
+.iz-field {
+  display: grid;
+  gap: 6px;
+}
+
+.iz-field__label {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--iz-ink-soft);
+}
+
+.iz-field__input {
+  width: 100%;
+  padding: 13px 16px;
+  border-radius: var(--iz-r-sm);
+  border: 2px solid var(--iz-line);
+  background: var(--iz-surface-sunk);
+  font-family: inherit;
+  font-size: 16px; /* 16px يمنع iOS من تكبير الصفحة عند التركيز */
+  color: var(--iz-ink);
+  text-align: start;
+  transition: border-color var(--iz-t-fast) var(--iz-ease-soft),
+    background-color var(--iz-t-fast) var(--iz-ease-soft);
+}
+
+.iz-field__input:focus {
+  outline: none;
+  border-color: var(--iz-plum);
+  background: var(--iz-surface);
+}
+
+.iz-field__input--area {
+  resize: vertical;
+  line-height: 1.85;
+}
+
+.iz-field__meter {
+  font-size: 12.5px;
+  color: var(--iz-ink-muted);
+}
+
+.iz-form__success {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--iz-s-3);
+  padding: var(--iz-s-5);
+  border-radius: var(--iz-r-lg);
+  /* شبه معتم عمدًا: النموذج خلفه يجب ألا يُقرأ الآن، واللحظة يجب أن
+     تكون هي كل ما تراه الطالبة لثانيتين. */
+  background: var(--iz-paper);
+  text-align: center;
+}
+
+.iz-form__success-text {
+  margin: 0;
+  font-family: var(--iz-font-display);
+  font-size: 21px;
+  font-weight: 800;
+}
+
+.iz-form__success-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--iz-s-3);
+  justify-content: center;
+}
+
+/* -------------------- الدفتر -------------------- */
+.iz-journal {
+  display: grid;
+  gap: var(--iz-s-3);
+}
+
+.iz-entry {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: var(--iz-s-4);
+  width: 100%;
+  padding: var(--iz-s-4) var(--iz-s-5);
+  background: none;
+  border: 0;
+  font: inherit;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.iz-entry__object {
+  display: inline-flex;
+  padding: 10px;
+  border-radius: var(--iz-r-md);
+  background: var(--iz-surface-sunk);
+}
+
+.iz-entry__text {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.iz-entry__title {
+  font-family: var(--iz-font-display);
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.iz-entry__meta {
+  font-size: 12.5px;
+  color: var(--iz-ink-muted);
+}
+
+.iz-entry__excerpt {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--iz-ink-soft);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.iz-entry-detail {
+  display: grid;
+  gap: var(--iz-s-4);
+  justify-items: start;
+}
+
+.iz-entry-detail__head {
+  display: flex;
+  align-items: center;
+  gap: var(--iz-s-3);
+  width: 100%;
+  padding: var(--iz-s-3) var(--iz-s-4);
+  border-radius: var(--iz-r-md);
+  background: var(--iz-tone-wash, var(--iz-surface-sunk));
+}
+
+.iz-entry-detail__subject {
+  margin: 0;
+  font-family: var(--iz-font-display);
+  font-weight: 800;
+  font-size: 17px;
+}
+
+.iz-entry-detail__date {
+  margin: 0;
+  font-size: 13px;
+  color: var(--iz-ink-muted);
+}
+
+.iz-entry-detail__story {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.95;
+  color: var(--iz-ink-soft);
+  white-space: pre-wrap;
+}
+
+/* -------------------- الحالة الفارغة -------------------- */
+.iz-empty {
+  display: grid;
+  justify-items: center;
+  gap: var(--iz-s-2);
+  padding: var(--iz-s-7) var(--iz-s-4);
+  text-align: center;
+}
+
+.iz-empty__title {
+  margin: var(--iz-s-3) 0 0;
+  font-family: var(--iz-font-display);
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.iz-empty__body {
+  margin: 0;
+  max-width: 38ch;
+  line-height: 1.8;
+  color: var(--iz-ink-soft);
+}
+
+.iz-empty__action {
+  margin-block-start: var(--iz-s-3);
+}
+
+/* -------------------- اللوح المنزلق -------------------- */
+.iz-sheet-layer {
+  position: fixed;
+  inset: 0;
+  z-index: var(--iz-z-overlay);
+}
+
+.iz-sheet__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(46, 36, 56, 0.45);
+}
+
+.iz-sheet {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  background: var(--iz-paper);
+  box-shadow: var(--iz-sh-3);
+  outline: none;
+}
+
+.iz-sheet--side {
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: min(460px, 92vw);
+  border-start-end-radius: var(--iz-r-xl);
+  border-end-end-radius: var(--iz-r-xl);
+}
+
+.iz-sheet--bottom {
+  inset-inline: 0;
+  inset-block-end: 0;
+  max-height: 84vh;
+  border-start-start-radius: var(--iz-r-xl);
+  border-start-end-radius: var(--iz-r-xl);
+}
+
+.iz-sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--iz-s-3);
+  padding: var(--iz-s-4) var(--iz-s-5);
+  border-block-end: 1px solid var(--iz-line);
+}
+
+.iz-sheet__title {
+  margin: 0;
+  font-family: var(--iz-font-display);
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.iz-sheet__close {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--iz-r-pill);
+  border: 1px solid var(--iz-line);
+  background: var(--iz-surface);
+  color: var(--iz-ink-soft);
+  cursor: pointer;
+}
+
+.iz-sheet__body {
+  padding: var(--iz-s-5);
+  overflow-y: auto;
+}
+
+/* -------------------- تأكيد الحفظ -------------------- */
+.iz-toasts {
+  position: fixed;
+  inset-block-end: var(--iz-s-5);
+  inset-inline: var(--iz-s-4);
+  z-index: var(--iz-z-toast);
+  display: grid;
+  gap: var(--iz-s-2);
+  justify-items: center;
+  pointer-events: none;
+}
+
+.iz-toast {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--iz-s-2);
+  pointer-events: auto;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 12px 20px;
+  border-radius: var(--iz-r-pill);
+  color: #fff;
+  background: var(--iz-ink);
+  box-shadow: var(--iz-sh-3);
+}
+
+.iz-toast--success {
+  background: linear-gradient(180deg, #4bb98c, #35996f);
+}
+
+.iz-toast--info {
+  background: linear-gradient(180deg, var(--iz-plum), var(--iz-plum-deep));
+}
+
+.iz-toast--danger {
+  background: linear-gradient(180deg, #e8625d, #c74a45);
+}
+
+.iz-toast__icon {
+  display: inline-flex;
+}
+
+/* -------------------- الفراشات -------------------- */
+.iz-butterflies {
+  position: fixed;
+  inset: 0;
+  z-index: var(--iz-z-butterflies);
+  overflow: hidden;
+  /* الشرط الأهم: لا تعترض الفراشات أي زر أو نص تحتها */
+  pointer-events: none;
+}
+
+.iz-butterflies__flight {
+  position: absolute;
+  inset-block-start: 0;
+  left: 0; /* نقطة صفر فيزيائية: إحداثيات الطيران ليست اتجاه قراءة */
+  will-change: transform, opacity;
+}
+
+.iz-butterfly__wing {
+  transform-box: view-box;
+  transform-origin: 30px 24px;
+  animation: iz-flap 340ms var(--iz-ease-soft) infinite;
+}
+
+@keyframes iz-flap {
+  0%,
+  100% {
+    transform: scaleX(1);
+  }
+  50% {
+    transform: scaleX(0.4);
+  }
+}
+
+/* -------------------- لحظة التاج -------------------- */
+.iz-crown-scene {
+  position: fixed;
+  inset: 0;
+  z-index: var(--iz-z-overlay);
+  display: grid;
+  place-items: center;
+  padding: var(--iz-s-5);
+  background: rgba(46, 36, 56, 0.55);
+  backdrop-filter: blur(6px);
+  cursor: pointer;
+}
+
+.iz-crown-scene__card {
+  display: grid;
+  justify-items: center;
+  gap: var(--iz-s-2);
+  max-width: 420px;
+  padding: var(--iz-s-6) var(--iz-s-5);
+  border-radius: var(--iz-r-xl);
+  background: var(--iz-paper);
+  box-shadow: var(--iz-sh-3);
+  text-align: center;
+}
+
+.iz-crown-scene__title {
+  margin: var(--iz-s-2) 0 0;
+  font-family: var(--iz-font-display);
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--iz-gold-deep);
+}
+
+.iz-crown-scene__body {
+  margin: 0;
+  line-height: 1.85;
+  color: var(--iz-ink-soft);
+}
+
+.iz-confetti {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.iz-confetti__piece {
+  position: absolute;
+  width: 10px;
+  height: 15px;
+  border-radius: 3px;
+  will-change: transform, opacity;
+}
+
+/* -------------------- ألوان المادة -------------------- */
+.iz-tone--rose {
+  --iz-tone-wash: rgba(255, 157, 176, 0.18);
+}
+.iz-tone--apricot {
+  --iz-tone-wash: rgba(255, 184, 119, 0.2);
+}
+.iz-tone--lemon {
+  --iz-tone-wash: rgba(255, 217, 125, 0.24);
+}
+.iz-tone--mint {
+  --iz-tone-wash: rgba(143, 224, 192, 0.22);
+}
+.iz-tone--sky {
+  --iz-tone-wash: rgba(143, 203, 255, 0.22);
+}
+.iz-tone--lilac {
+  --iz-tone-wash: rgba(195, 174, 245, 0.22);
+}
+.iz-tone--gold {
+  --iz-tone-wash: rgba(246, 185, 59, 0.2);
+}
+
+/* -------------------- التركيز -------------------- */
+.injazi :focus-visible {
+  outline: 3px solid var(--iz-plum);
+  outline-offset: 3px;
+  border-radius: var(--iz-r-xs);
+}
+
+/* -------------------- الهاتف أولًا -------------------- */
+@media (max-width: 860px) {
+  .iz-hero {
+    grid-template-columns: 1fr;
+    text-align: center;
+    padding-block-end: var(--iz-s-5);
+  }
+
+  .iz-hero__body {
+    margin-inline: auto;
+  }
+
+  /* الجسم يسبق النص على الهاتف: صورة واحدة تشرح القسم قبل أي جملة */
+  .iz-hero__stage {
+    order: -1;
+  }
+
+  .iz-hero-object {
+    width: min(260px, 70vw);
+  }
+
+  .iz-subjects__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .iz-summary__cell strong {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 420px) {
+  .iz-page {
+    padding-inline: var(--iz-s-3);
+  }
+
+  .iz-subject__inner {
+    gap: var(--iz-s-3);
+    padding-inline: var(--iz-s-4);
+  }
+}
+
+/* لا حركة تلقائية إطلاقًا عند طلب تقليل الحركة — بما فيها رفرفة الأجنحة */
+@media (prefers-reduced-motion: reduce) {
+  .injazi *,
+  .injazi *::before,
+  .injazi *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
