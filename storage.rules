@@ -1,0 +1,103 @@
+rules_version = '2';
+
+// ====================================================================
+// قواعد Firebase Storage — «إنجازي يحكي»
+// --------------------------------------------------------------------
+// المبدأ نفسه المطبَّق في Firestore: الدور يُقرأ من
+// apps/injazi/users/{uid} في Firestore، فلا يمكن لأي عميل منح نفسه
+// صلاحية عبر بيانات يرسلها مع الطلب.
+//
+// الحدود (الحجم والنوع) مكرّرة هنا عمدًا رغم وجودها في الواجهة: فحص
+// المتصفح تجميلي ويُتجاوَز بطلب مباشر إلى واجهة التخزين.
+// ====================================================================
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function userDoc() {
+      return firestore.get(/databases/(default)/documents/apps/injazi/users/$(request.auth.uid)).data;
+    }
+
+    function hasProfile() {
+      return signedIn() &&
+        firestore.exists(/databases/(default)/documents/apps/injazi/users/$(request.auth.uid));
+    }
+
+    function role() {
+      return hasProfile() && userDoc().get('active', true) == true ? userDoc().role : 'guest';
+    }
+
+    function isAdmin() {
+      return role() == 'admin';
+    }
+
+    function isTeacher() {
+      return role() == 'teacher';
+    }
+
+    function isParentOf(studentId) {
+      return role() == 'parent' && studentId in userDoc().get('studentIds', []);
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/(jpeg|png|webp|gif|avif)');
+    }
+
+    function isDoc() {
+      return request.resource.contentType == 'application/pdf';
+    }
+
+    function isVideo() {
+      return request.resource.contentType.matches('video/(mp4|webm|quicktime)');
+    }
+
+    function isAudio() {
+      return request.resource.contentType.matches('audio/(mpeg|mp3|wav|ogg|aac|x-m4a)');
+    }
+
+    function under(mb) {
+      return request.resource.size < mb * 1024 * 1024;
+    }
+
+    // ---------------- ملفات الطالبات ----------------
+    // القراءة عامة: الصور تُعرض في صفحة عامة، وروابط التنزيل تحمل رمزًا
+    // عشوائيًا لا يُخمَّن.
+    match /students/{studentId}/{allPaths=**} {
+      allow read: if true;
+
+      // ولي الأمر يرفع لابنته فقط. المعلمة لا ترفع ولا تحذف ملفات
+      // الطالبات إطلاقًا — دورها التقييم لا تعديل الأعمال.
+      allow create, update: if (isAdmin() || isParentOf(studentId))
+        && ((isImage() && under(8)) || (isDoc() && under(20)) || (isVideo() && under(20)));
+
+      allow delete: if isAdmin() || isParentOf(studentId);
+    }
+
+    // ---------------- صور المعلمات ----------------
+    match /teachers/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && isImage() && under(8);
+    }
+
+    // ---------------- الشعار وأغنية المنصة ----------------
+    match /settings/audio/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && isAudio() && under(15);
+    }
+
+    match /settings/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && isImage() && under(8);
+    }
+
+    // المعلمة تقرأ ما تحتاجه للتقييم، ولا تكتب شيئًا خارج ما سبق.
+    match /{allPaths=**} {
+      allow read: if isTeacher() || isAdmin();
+      allow write: if false;
+    }
+  }
+}

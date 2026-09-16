@@ -1,6 +1,7 @@
 import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 
 // إعدادات Vite: تقسيم الحزم بحيث لا يُحمَّل Phaser إلا داخل /play
 // ولا يُحمَّل Dashboard إلا داخل /teacher (Code splitting عبر React.lazy في المسارات)
@@ -11,7 +12,7 @@ import react from "@vitejs/plugin-react";
 // يبقى دائمًا على الجذر "/" بلا أي تأثير.
 export default defineConfig({
   base: process.env.VITE_BASE_PATH || "/",
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
   // مطابق لـ tsconfig.app.json (paths: "@/*") - بدون هذا، الإنتاج
   // (vite build) كان يحل المسار @ تلقائيًا بينما خادم التطوير (vite dev)
   // لا يحلّه (يعتمدان على مسارات حل مختلفة)، فيفشل npm run dev فقط.

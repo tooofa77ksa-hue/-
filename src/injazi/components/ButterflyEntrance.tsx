@@ -11,6 +11,7 @@
   مع تمايل خفيف مستقل للجناحَين، فيبدو الطيران عضويًا بلا مكتبة مسارات.
 */
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { useCapability } from "@/injazi/lib/useCapability";
 
@@ -114,17 +115,26 @@ export function ButterflyEntrance() {
   const { reducedMotion } = useCapability();
   const [flying, setFlying] = useState(false);
 
+  // الإقلاع والتوقيت في تأثيرين منفصلين عمدًا.
+  // StrictMode يشغّل التأثير مرتين مع تنظيف بينهما: لو كان المؤقّت داخل
+  // تأثير الإقلاع، لأُلغي في التنظيف ثم خرجت الدورة الثانية مبكرًا (لأن
+  // العلامة صارت مسجَّلة) فلا يُعاد ضبطه أبدًا — وتبقى الفراشات تطير
+  // إلى ما لا نهاية. ربط المؤقّت بحالة flying يجعله يُعاد ضبطه دائمًا.
   useEffect(() => {
     if (reducedMotion || hasSeen()) return;
     markSeen();
     setFlying(true);
+  }, [reducedMotion]);
+
+  useEffect(() => {
+    if (!flying) return;
     const longestDelay = FLIGHTS.reduce((max, f) => Math.max(max, f.delay), 0);
     const timer = window.setTimeout(
       () => setFlying(false),
       (longestDelay + FLIGHT_SECONDS) * 1000,
     );
     return () => window.clearTimeout(timer);
-  }, [reducedMotion]);
+  }, [flying]);
 
   // القياس يُلتقط مرة واحدة عند بدء الرحلة: اللحظة أقصر من أن تستحق
   // متابعة تغيّر المقاس، وتجنّبه يمنع إعادة حساب أثناء الطيران.
@@ -137,7 +147,8 @@ export function ButterflyEntrance() {
   );
 
   return (
-    <AnimatePresence>
+    createPortal(
+<AnimatePresence>
       {flying && (
         <div className="iz-butterflies" aria-hidden="true">
           {FLIGHTS.map((flight, index) => (
@@ -169,7 +180,9 @@ export function ButterflyEntrance() {
           ))}
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
+  )
   );
 }
 

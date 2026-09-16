@@ -199,6 +199,138 @@ service cloud.firestore {
       allow update, delete: if isStaff();
     }
 
+
+    // ==================================================================
+    // «إنجازي يحكي» — كل شيء تحت apps/injazi/... معزولًا عن شُعلة لغتي
+    // ------------------------------------------------------------------
+    // مبدأ واحد: الدور يُقرأ من apps/injazi/users/{uid} فقط، ولا يستطيع
+    // أي عميل كتابة ذلك المستند إطلاقًا إلا مشرفة موجودة مسبقًا — فلا
+    // يمكن لأي حساب أن يرقّي نفسه.
+    // ==================================================================
+
+    function izUser() {
+      return get(/databases/$(database)/documents/apps/injazi/users/$(request.auth.uid)).data;
+    }
+
+    function izHasProfile() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/apps/injazi/users/$(request.auth.uid));
+    }
+
+    function izActive() {
+      return izHasProfile() && izUser().get('active', true) == true;
+    }
+
+    function izRole() {
+      return izActive() ? izUser().role : 'guest';
+    }
+
+    function izIsAdmin() {
+      return izRole() == 'admin';
+    }
+
+    function izIsTeacher() {
+      return izRole() == 'teacher';
+    }
+
+    // ولي أمر هذه الطالبة بالذات — لا أي طالبة أخرى.
+    function izIsParentOf(studentId) {
+      return izRole() == 'parent' && studentId in izUser().get('studentIds', []);
+    }
+
+    function izCanEditStudent(studentId) {
+      return izIsAdmin() || izIsParentOf(studentId);
+    }
+
+    // المعلمة تقيّم موادها فقط. subjectIds مخزّنة في ملف الصلاحيات نفسه
+    // حتى لا تحتاج القاعدة قراءتين متسلسلتين.
+    function izTeaches(subjectId) {
+      return izIsTeacher() && subjectId in izUser().get('subjectIds', []);
+    }
+
+    // الخصوصية: public للجميع، school لأي حساب فعّال، private للمالكة
+    // والإدارة وهيئة التدريس.
+    function izCanRead(data, studentId) {
+      return data.get('visibility', 'public') == 'public'
+        || izIsAdmin() || izIsTeacher()
+        || (data.get('visibility', 'public') == 'school' && izActive())
+        || izCanEditStudent(studentId);
+    }
+
+    match /apps/injazi/users/{uid} {
+      // كل مستخدمة تقرأ ملفها؛ الإدارة تقرأ الجميع؛ المعلمة تقرأ لتعرف
+      // من قيّم ماذا.
+      allow read: if isSignedIn() && (request.auth.uid == uid || izIsAdmin() || izIsTeacher());
+      // الكتابة للمشرفات فقط. لا bootstrap من العميل: أول مشرفة تُنشَأ
+      // بسكربت Admin SDK (npm run injazi:seed).
+      allow write: if izIsAdmin();
+    }
+
+    match /apps/injazi/students/{studentId} {
+      // بطاقة الطالبة (الاسم والصورة) عامة عمدًا: الصفحة الرئيسية مفتوحة
+      // ويجب أن تعرض المعرض دون تسجيل دخول.
+      allow read: if true;
+      allow create, delete: if izIsAdmin();
+      allow update: if izCanEditStudent(studentId)
+        // ولي الأمر لا يغيّر ترتيب الظهور ولا يفعّل/يعطّل الملف.
+        && (izIsAdmin() || !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['order', 'active']));
+    }
+
+    match /apps/injazi/teachers/{teacherId} {
+      allow read: if true;
+      allow write: if izIsAdmin();
+    }
+
+    match /apps/injazi/subjects/{subjectId} {
+      allow read: if true;
+      allow write: if izIsAdmin();
+    }
+
+    match /apps/injazi/projects/{projectId} {
+      allow read: if izCanRead(resource.data, resource.data.studentId);
+      allow create: if izCanEditStudent(request.resource.data.studentId);
+      allow update: if izCanEditStudent(resource.data.studentId)
+        && request.resource.data.studentId == resource.data.studentId;
+      allow delete: if izCanEditStudent(resource.data.studentId);
+    }
+
+    match /apps/injazi/achievements/{achievementId} {
+      allow read: if izCanRead(resource.data, resource.data.studentId);
+      allow create: if izCanEditStudent(request.resource.data.studentId);
+      allow update: if izCanEditStudent(resource.data.studentId)
+        && request.resource.data.studentId == resource.data.studentId;
+      allow delete: if izCanEditStudent(resource.data.studentId);
+    }
+
+    match /apps/injazi/evaluations/{evaluationId} {
+      // التقييم يظهر في ملف الطالبة العام، فقراءته عامة.
+      allow read: if true;
+      // المعلمة تكتب تقييم مادتها فقط، وباسمها هي لا باسم زميلتها.
+      allow create, update: if izIsAdmin()
+        || (izTeaches(request.resource.data.subjectId)
+            && request.resource.data.teacherId == izUser().get('teacherId', request.auth.uid)
+            && request.resource.data.stars is int
+            && request.resource.data.stars >= 1
+            && request.resource.data.stars <= 5
+            && request.resource.data.badge is bool
+            && request.resource.data.status in ['excellent', 'complete', 'needs-revision']);
+      allow delete: if izIsAdmin();
+    }
+
+    match /apps/injazi/settings/{docId} {
+      allow read: if true;
+      allow write: if izIsAdmin();
+    }
+
+    match /apps/injazi/activityLogs/{logId} {
+      // السجل للإدارة وحدها قراءةً؛ الكتابة لأي حساب فعّال لأنه أثر جانبي
+      // لعملية مسموح بها أصلًا. لا تعديل ولا حذف: سجل لا يُزوَّر.
+      allow read: if izIsAdmin();
+      allow create: if izActive();
+      allow update, delete: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

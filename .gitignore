@@ -12,3 +12,4 @@ ui-debug.log
 serviceAccountKey.json
 *.tsbuildinfo
 .DS_Store
+.e2e-shots/

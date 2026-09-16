@@ -7,6 +7,7 @@
   عند تقليل الحركة: تبقى الرسالة والتاج، وتختفي القُصاصات فقط.
 */
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { LottieMoment } from "@/injazi/components/LottieMoment";
 import { useCapability } from "@/injazi/lib/useCapability";
@@ -46,7 +47,8 @@ export function CrownCelebration({ open, subjectName, onClose }: Props) {
   }, [open, onClose]);
 
   return (
-    <AnimatePresence>
+    createPortal(
+<AnimatePresence>
       {open && (
         <motion.div
           className="iz-crown-scene"
@@ -76,7 +78,9 @@ export function CrownCelebration({ open, subjectName, onClose }: Props) {
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
+  )
   );
 }
 

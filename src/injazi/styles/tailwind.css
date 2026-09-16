@@ -1,0 +1,10 @@
+/*
+  Tailwind v4 — بلا Preflight عمدًا.
+  Preflight يصفّر أنماط المتصفح عالميًا، وهذا المستودع يحتوي مشروعًا
+  قائمًا (شُعلة لغتي) بأنماطه الخاصة؛ إدخال تصفير عام كان سيكسره.
+  لذلك نستورد طبقتَي theme وutilities فقط، فتبقى أدوات Tailwind متاحة
+  داخل "إنجازي يحكي" دون أي أثر على بقية المنصة.
+*/
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);

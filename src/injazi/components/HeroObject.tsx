@@ -31,11 +31,17 @@ function readSceneColors(element: HTMLElement): SceneColors {
     book1: token("--iz-lilac", "#c3aef5"),
     book2: token("--iz-sky", "#8fcbff"),
     book3: token("--iz-mint", "#8fe0c0"),
+    pencil: token("--iz-rose", "#ff9db0"),
+    bag: token("--iz-apricot", "#ffb877"),
+    device: token("--iz-lilac-deep", "#9a82d8"),
   };
 }
 
-export function HeroObject() {
-  const { allow3D, reducedMotion } = useCapability();
+export function HeroObject({ enabled = true }: { enabled?: boolean }) {
+  const { allow3D: capable, reducedMotion } = useCapability();
+  // مفتاح الميزة من لوحة الإدارة يعلو قدرة الجهاز: إن أطفأته المشرفة
+  // فلا يُطلب ملف three إطلاقًا حتى على حاسب قوي.
+  const allow3D = capable && enabled;
   const host = useRef<HTMLDivElement | null>(null);
   const [visible, setVisible] = useState(false);
   const [colors, setColors] = useState<SceneColors | null>(null);

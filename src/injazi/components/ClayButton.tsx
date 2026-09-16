@@ -12,8 +12,8 @@ import { DUR, EASE_CLAY } from "@/injazi/motion/motion";
 
 const MotionLink = motion.create(Link);
 
-type Variant = "primary" | "soft" | "ghost";
-type Size = "md" | "lg";
+type Variant = "primary" | "soft" | "ghost" | "danger" | "gold";
+type Size = "sm" | "md" | "lg";
 
 type Props = {
   children: ReactNode;
@@ -27,6 +27,10 @@ type Props = {
   disabled?: boolean;
   block?: boolean;
   className?: string;
+  /** يمنع النقر المكرر ويُظهر أن العملية جارية — لا زر بلا حالة انتظار. */
+  loading?: boolean;
+  title?: string;
+  ariaLabel?: string;
 };
 
 export function ClayButton({
@@ -40,18 +44,23 @@ export function ClayButton({
   disabled = false,
   block = false,
   className = "",
+  loading = false,
+  title,
+  ariaLabel,
 }: Props) {
+  const blocked = disabled || loading;
   const classes = [
     "iz-btn",
     `iz-btn--${variant}`,
     `iz-btn--${size}`,
     block ? "iz-btn--block" : "",
+    loading ? "iz-btn--loading" : "",
     className,
   ]
     .filter(Boolean)
     .join(" ");
 
-  const gesture = disabled
+  const gesture = blocked
     ? {}
     : {
         whileHover: { y: -3 },
@@ -61,14 +70,14 @@ export function ClayButton({
 
   const content = (
     <>
-      {icon && <span className="iz-btn__icon">{icon}</span>}
+      {loading ? <span className="iz-spinner" aria-hidden="true" /> : icon && <span className="iz-btn__icon">{icon}</span>}
       <span className="iz-btn__label">{children}</span>
     </>
   );
 
-  if (to && !disabled) {
+  if (to && !blocked) {
     return (
-      <MotionLink to={to} className={classes} onClick={onClick} {...gesture}>
+      <MotionLink to={to} className={classes} onClick={onClick} title={title} aria-label={ariaLabel} {...gesture}>
         {content}
       </MotionLink>
     );
@@ -79,7 +88,10 @@ export function ClayButton({
       type={type}
       className={classes}
       onClick={onClick}
-      disabled={disabled}
+      disabled={blocked}
+      title={title}
+      aria-label={ariaLabel}
+      aria-busy={loading || undefined}
       {...gesture}
     >
       {content}

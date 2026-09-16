@@ -5,6 +5,7 @@
   role="status" حتى تصل الرسالة لقارئ الشاشة كما تصل للعين.
 */
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { Check, Info, TriangleAlert } from "lucide-react";
 import { DUR, EASE_CLAY, EASE_SOFT } from "@/injazi/motion/motion";
@@ -22,7 +23,7 @@ export function ToastHost() {
 
   useEffect(() => subscribeToasts(setToasts), []);
 
-  return (
+  return createPortal(
     <div className="iz-toasts" role="status" aria-live="polite">
       <AnimatePresence initial={false}>
         {toasts.map((toast) => {
@@ -47,6 +48,7 @@ export function ToastHost() {
           );
         })}
       </AnimatePresence>
-    </div>
+    </div>,
+    document.body,
   );
 }

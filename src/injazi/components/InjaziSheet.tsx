@@ -8,6 +8,7 @@
   وبالنقر خارج اللوح.
 */
 import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import type { ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { X } from "lucide-react";
@@ -44,7 +45,8 @@ export function InjaziSheet({ open, title, onClose, children }: Props) {
   const enterFrom = compact ? { y: 40, x: 0 } : { x: inlineX(48), y: 0 };
 
   return (
-    <AnimatePresence>
+    createPortal(
+<AnimatePresence>
       {open && (
         <div className="iz-sheet-layer">
           <motion.div
@@ -85,6 +87,8 @@ export function InjaziSheet({ open, title, onClose, children }: Props) {
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
+  )
   );
 }
