@@ -56,6 +56,7 @@ export const COL = {
   achievements: `${ROOT}/achievements`,
   settings: `${ROOT}/settings`,
   activity: `${ROOT}/activityLogs`,
+  media: `${ROOT}/media`,
 } as const;
 
 export const SETTINGS_DOC_ID = "app";

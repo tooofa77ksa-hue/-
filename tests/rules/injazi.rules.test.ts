@@ -345,6 +345,77 @@ describe("هجمات محدَّدة على تصعيد الصلاحية", () => {
   });
 });
 
+
+describe("مخزن الصور (media)", () => {
+  const image = (ownerUid: string, extra: Record<string, unknown> = {}) => ({
+    ownerUid,
+    studentId: STUDENT_A,
+    name: "photo.webp",
+    mime: "image/webp",
+    size: 1234,
+    data: "data:image/webp;base64,AAAA",
+    createdAt: new Date().toISOString(),
+    ...extra,
+  });
+
+  it("الصور تُقرأ من الجميع (الصفحة الرئيسية مفتوحة)", async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), `${ROOT}/media/m1`), image("parentA"));
+    });
+    await assertSucceeds(getDoc(doc(guest(), `${ROOT}/media/m1`)));
+  });
+
+  it("ولي الأمر يحفظ صورة باسمه هو", async () => {
+    await assertSucceeds(setDoc(doc(as("parentA"), `${ROOT}/media/m2`), image("parentA")));
+  });
+
+  it("لا يحفظ صورة باسم مستخدمة أخرى", async () => {
+    await assertFails(setDoc(doc(as("parentA"), `${ROOT}/media/m3`), image("parentB")));
+  });
+
+  it("الزائرة لا تحفظ صورًا", async () => {
+    await assertFails(setDoc(doc(guest(), `${ROOT}/media/m4`), image("parentA")));
+  });
+
+  it("ترفض نوعًا غير صورة", async () => {
+    await assertFails(
+      setDoc(doc(as("parentA"), `${ROOT}/media/m5`), image("parentA", { mime: "text/html" })),
+    );
+    await assertFails(
+      setDoc(doc(as("parentA"), `${ROOT}/media/m6`), image("parentA", { mime: "application/pdf" })),
+    );
+  });
+
+  it("ترفض صورة تتجاوز حد المستند", async () => {
+    await assertFails(
+      setDoc(
+        doc(as("parentA"), `${ROOT}/media/m7`),
+        image("parentA", { data: "x".repeat(970000) }),
+      ),
+    );
+  });
+
+  it("الصورة غير قابلة للتعديل بعد الحفظ", async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), `${ROOT}/media/m8`), image("parentA"));
+    });
+    await assertFails(
+      updateDoc(doc(as("parentA"), `${ROOT}/media/m8`), { data: "data:image/webp;base64,BBBB" }),
+    );
+  });
+
+  it("يحذف صوره فقط، والمشرفة تحذف أي صورة", async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), `${ROOT}/media/m9`), image("parentA"));
+      await setDoc(doc(ctx.firestore(), `${ROOT}/media/m10`), image("parentA"));
+    });
+    await assertFails(deleteDoc(doc(as("parentB"), `${ROOT}/media/m9`)));
+    await assertFails(deleteDoc(doc(as("mathTeacher"), `${ROOT}/media/m9`)));
+    await assertSucceeds(deleteDoc(doc(as("parentA"), `${ROOT}/media/m9`)));
+    await assertSucceeds(deleteDoc(doc(as("admin1"), `${ROOT}/media/m10`)));
+  });
+});
+
 it("المخطّط الأساسي مبذور كما هو متوقَّع", async () => {
   const snapshot = await getDocs(collection(guest(), `${ROOT}/students`));
   expect(snapshot.size).toBe(2);

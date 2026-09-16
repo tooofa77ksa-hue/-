@@ -5,6 +5,7 @@
   دائمًا — الرابط هنا يأتي من مُدخلات المستخدمة.
 */
 import { motion } from "motion/react";
+import { Media } from "@/injazi/ui/Media";
 import { CalendarDays, ExternalLink, Eye, FileText, Film, Pencil, Trash2 } from "lucide-react";
 import { ClayCard } from "@/injazi/components/ClayCard";
 import { ClayObject } from "@/injazi/components/ClayObject";
@@ -47,7 +48,7 @@ export function ProjectCard({ project, subject, evaluations, canEdit, onEdit, on
           >
             <div className="iz-project__cover">
               {project.coverUrl ? (
-                <img src={project.coverUrl} alt="" loading="lazy" decoding="async" />
+                <Media src={project.coverUrl} alt="" />
               ) : (
                 <span className={`iz-project__cover-fallback iz-tone--${subject?.tone ?? "lilac"}`}>
                   <Icon name={subject?.icon ?? "BookOpen"} size={30} />

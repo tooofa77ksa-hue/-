@@ -4,6 +4,7 @@
   العرض فقط — نموذجان منفصلان كانا سيضاعفان الصيانة بلا مقابل.
 */
 import { useEffect, useState } from "react";
+import { Media } from "@/injazi/ui/Media";
 import { Trash2 } from "lucide-react";
 import { ClayButton } from "@/injazi/components/ClayButton";
 import { Modal } from "@/injazi/ui/Modal";
@@ -140,7 +141,7 @@ export function AchievementEditor({ open, student, kind, achievement, actor, onC
         <div className="iz-cover-row">
           {image ? (
             <div className="iz-thumb">
-              <img src={image.url} alt={`صورة ${noun}`} />
+              <Media src={image.url} alt={`صورة ${noun}`} />
               <button
                 type="button"
                 className="iz-thumb__remove"

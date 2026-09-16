@@ -6,12 +6,13 @@
   الأغنية: رفع/استبدال/حذف MP3 مع تشغيل، تكرار، ومستوى صوت افتراضي.
 */
 import { useEffect, useState } from "react";
+import { Media } from "@/injazi/ui/Media";
 import { motion } from "motion/react";
 import { Music, Save, Trash2 } from "lucide-react";
 import { ClayButton } from "@/injazi/components/ClayButton";
 import { Field, Notice, Panel, SectionTitle, SelectInput, TextInput } from "@/injazi/ui/primitives";
 import { Uploader } from "@/injazi/ui/Uploader";
-import { PLATFORM_SCOPE, deleteFile } from "@/injazi/services/storage";
+import { MEDIA_BACKEND, PLATFORM_SCOPE, deleteFile } from "@/injazi/services/storage";
 import { logActivity, saveSettings } from "@/injazi/services/repo";
 import { useSession, useSettings } from "@/injazi/hooks/useLive";
 import { showToast } from "@/injazi/lib/toast";
@@ -105,7 +106,7 @@ export function AdminSettings() {
         <div className="iz-cover-row">
           {form.logoUrl ? (
             <div className="iz-thumb">
-              <img src={form.logoUrl} alt="شعار المنصة" />
+              <Media src={form.logoUrl} alt="شعار المنصة" />
               <button
                 type="button"
                 className="iz-thumb__remove"
@@ -228,17 +229,32 @@ export function AdminSettings() {
           <p className="iz-field__meter">لم تُرفع أغنية بعد — زر الموسيقى مخفيّ حتى تُرفع.</p>
         )}
 
-        <Uploader
-          scope={PLATFORM_SCOPE}
-          kind="settings/audio"
-          accept="audio"
-          label={form.audioUrl ? "استبدال الأغنية (MP3)" : "رفع الأغنية (MP3)"}
-          onUploaded={async (files) => {
-            await deleteFile(form.audioPath);
-            set("audioUrl", files[0].url);
-            set("audioPath", files[0].path);
-          }}
-        />
+        {MEDIA_BACKEND === "firestore" ? (
+          <Field
+            label="رابط الأغنية"
+            hint="ملف MP3 لا يُحفظ في قاعدة البيانات. ضعي الملف داخل مجلد public/audio في المستودع واكتبي /audio/اسم-الملف.mp3 — أو ألصقي أي رابط مباشر لملف MP3."
+          >
+            <TextInput
+              value={form.audioUrl ?? ""}
+              onChange={(e) => set("audioUrl", e.target.value.trim() || null)}
+              placeholder="/audio/injazi-song.mp3"
+              inputMode="url"
+              dir="ltr"
+            />
+          </Field>
+        ) : (
+          <Uploader
+            scope={PLATFORM_SCOPE}
+            kind="settings/audio"
+            accept="audio"
+            label={form.audioUrl ? "استبدال الأغنية (MP3)" : "رفع الأغنية (MP3)"}
+            onUploaded={async (files) => {
+              await deleteFile(form.audioPath);
+              set("audioUrl", files[0].url);
+              set("audioPath", files[0].path);
+            }}
+          />
+        )}
 
         <div className="iz-form-grid">
           <Field label="اسم المقطع">

@@ -6,6 +6,7 @@
   (لا صورة مولَّدة ولا صورة من بنك صور).
 */
 import type { CSSProperties } from "react";
+import { Media } from "@/injazi/ui/Media";
 import { motion } from "motion/react";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
@@ -43,7 +44,15 @@ export function StudentCard({ student, crowns = 0 }: { student: Student; crowns?
           transition={{ duration: DUR.base, ease: EASE_POP }}
         >
           {student.photoUrl ? (
-            <img src={student.photoUrl} alt={`صورة ${student.name}`} loading="lazy" decoding="async" />
+            <Media
+              src={student.photoUrl}
+              alt={`صورة ${student.name}`}
+              fallback={
+                <span className="iz-student-card__initial" aria-hidden="true">
+                  {student.name.trim().charAt(0)}
+                </span>
+              }
+            />
           ) : (
             <span className="iz-student-card__initial" aria-hidden="true">
               {student.name.trim().charAt(0)}

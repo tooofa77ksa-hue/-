@@ -5,6 +5,7 @@
   واحدة (repo.deleteStudent) فلا تبقى بيانات يتيمة في قاعدة البيانات.
 */
 import { useEffect, useMemo, useState } from "react";
+import { Media } from "@/injazi/ui/Media";
 import { motion } from "motion/react";
 import { Eye, Link2, Pencil, Plus, Search, Trash2, UserPlus } from "lucide-react";
 import { ClayButton } from "@/injazi/components/ClayButton";
@@ -111,7 +112,7 @@ export function AdminStudents() {
               <motion.div className="iz-admin-row" variants={riseItem}>
                 <span className="iz-admin-row__avatar">
                   {student.photoUrl ? (
-                    <img src={student.photoUrl} alt="" loading="lazy" />
+                    <Media src={student.photoUrl} alt="" fallback={<span aria-hidden="true">{student.name.charAt(0)}</span>} />
                   ) : (
                     <span aria-hidden="true">{student.name.charAt(0)}</span>
                   )}

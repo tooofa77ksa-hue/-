@@ -5,6 +5,7 @@
   والقواعد الأمنية تمنع التعديل فعليًا حتى لو ظهر الزر بالخطأ.
 */
 import { useMemo, useState } from "react";
+import { Media } from "@/injazi/ui/Media";
 import type { CSSProperties } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Link, useParams } from "react-router-dom";
@@ -151,7 +152,12 @@ export function StudentPortfolio() {
 
         <motion.div className="iz-profile__avatar" variants={riseItem}>
           {student.photoUrl ? (
-            <img src={student.photoUrl} alt={`صورة ${student.name}`} />
+            <Media
+              src={student.photoUrl}
+              alt={`صورة ${student.name}`}
+              loading="eager"
+              fallback={<span aria-hidden="true">{student.name.trim().charAt(0)}</span>}
+            />
           ) : (
             <span aria-hidden="true">{student.name.trim().charAt(0)}</span>
           )}
@@ -354,7 +360,7 @@ export function StudentPortfolio() {
                   <ClayCard>
                     <article className="iz-achievement">
                       {row.imageUrl && (
-                        <img className="iz-achievement__image" src={row.imageUrl} alt="" loading="lazy" />
+                        <Media className="iz-achievement__image" src={row.imageUrl} alt="" />
                       )}
                       <div className="iz-achievement__body">
                         <h4>{row.title}</h4>

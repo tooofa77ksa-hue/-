@@ -1,12 +1,25 @@
 /*
-  رفع الملفات إلى Firebase Storage.
+  رفع الملفات.
+  ------------------------------------------------------------------
+  الوجهة الافتراضية هي Firestore (services/media.ts) لا Cloud Storage،
+  لأن الأخير صار يتطلب بطاقة بنكية منذ فبراير ٢٠٢٦ وهذه المنصة مدرسية
+  مجانية بالكامل. الدوال هنا تحتفظ بالواجهة نفسها، فلو فُعِّل التخزين
+  السحابي يومًا يكفي قلب MEDIA_BACKEND.
   الصور تُضغَط وتُحوَّل إلى WebP في المتصفح قبل الرفع: أولياء الأمور
   يرفعون من الجوال، وصورة 4MB من الكاميرا تصبح ~150KB دون فرق مرئي —
   وهذا وحده أكبر مكسب أداء في المشروع.
 */
 import { deleteObject, getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { auth, storage, isStorageUsable } from "@/injazi/firebase/client";
+import { deleteMedia, isMediaRef, saveMedia } from "@/injazi/services/media";
 import type { MediaKind } from "@/injazi/types/models";
+
+/**
+ * "firestore" = مجاني بلا بطاقة (صور فقط).
+ * "storage"   = Cloud Storage (يتطلب خطة Blaze، ويدعم PDF والفيديو).
+ * التبديل لا يكسر البيانات القديمة: مكوّن Media يعرض الشكلين معًا.
+ */
+export const MEDIA_BACKEND: "firestore" | "storage" = "firestore";
 
 export const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 export const MAX_FILE_BYTES = 20 * 1024 * 1024;
@@ -28,13 +41,24 @@ export function kindOf(mime: string): MediaKind {
 
 /** فحص النوع والحجم قبل أي عمل — نفس الحدود مطبّقة في Storage Rules. */
 export function validate(file: File, accept: "image" | "media" | "audio"): void {
+  // على وجهة Firestore تُقبل الصور وحدها: حد المستند مليون بايت لا يتسع
+  // لملف PDF أو فيديو. البديل مبنيّ أصلًا وأفضل: رابط Drive/YouTube مع
+  // رمز QR يُولَّد تلقائيًا.
   const allowed =
-    accept === "image"
+    MEDIA_BACKEND === "firestore"
       ? IMAGE_MIMES
-      : accept === "audio"
-        ? AUDIO_MIMES
-        : [...IMAGE_MIMES, ...DOC_MIMES, ...VIDEO_MIMES];
+      : accept === "image"
+        ? IMAGE_MIMES
+        : accept === "audio"
+          ? AUDIO_MIMES
+          : [...IMAGE_MIMES, ...DOC_MIMES, ...VIDEO_MIMES];
+
   if (!allowed.includes(file.type)) {
+    if (MEDIA_BACKEND === "firestore" && accept !== "image") {
+      throw new UploadError(
+        "هنا تُرفع الصور فقط. لملفات PDF والفيديو: ارفعيها على Google Drive أو YouTube وألصقي الرابط في قسم «روابط» — يُولَّد له رمز QR تلقائيًا.",
+      );
+    }
     throw new UploadError(`نوع الملف غير مدعوم: ${file.type || "غير معروف"}`);
   }
   const max = accept === "image" ? MAX_IMAGE_BYTES : accept === "audio" ? MAX_AUDIO_BYTES : MAX_FILE_BYTES;
@@ -74,7 +98,25 @@ export async function compressImage(file: File, maxEdge = 1600, quality = 0.82):
 export type UploadResult = { url: string; path: string; size: number; mime: string };
 
 /** رفع مع تقدّم حقيقي — شريط التقدّم في الواجهة يعكس البايتات لا مؤقتًا. */
-export function uploadFile(
+export async function uploadFile(
+  path: string,
+  data: Blob,
+  onProgress?: (percent: number) => void,
+  meta?: { studentId?: string | null; name?: string },
+): Promise<UploadResult> {
+  if (MEDIA_BACKEND === "firestore") {
+    // لا تقدّم فعلي بالبايتات هنا (الحفظ كتابة واحدة)، فنُظهر مرحلتين
+    // صادقتين: بدء الضغط ثم الاكتمال — لا شريط وهمي يتحرك بلا معنى.
+    onProgress?.(10);
+    const saved = await saveMedia(data, { name: meta?.name ?? "image", studentId: meta?.studentId });
+    onProgress?.(100);
+    return { url: saved.ref, path: saved.ref, size: saved.size, mime: saved.mime };
+  }
+
+  return uploadToCloudStorage(path, data, onProgress);
+}
+
+function uploadToCloudStorage(
   path: string,
   data: Blob,
   onProgress?: (percent: number) => void,
@@ -99,7 +141,14 @@ export function uploadFile(
 
 /** حذف ملف. غياب الملف ليس خطأً — الهدف أن يختفي، وقد اختفى. */
 export async function deleteFile(path: string | null | undefined): Promise<void> {
-  if (!path || !isStorageUsable) return;
+  if (!path) return;
+  // الشكل يحدّد الوجهة، لا الإعداد: مرجع Firestore يُحذف من Firestore
+  // حتى بعد تبديل الوجهة، فلا تبقى صورة قديمة بلا طريقة لحذفها.
+  if (isMediaRef(path)) {
+    await deleteMedia(path);
+    return;
+  }
+  if (!isStorageUsable) return;
   try {
     await deleteObject(ref(storage, path));
   } catch {

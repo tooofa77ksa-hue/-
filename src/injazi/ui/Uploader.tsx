@@ -69,7 +69,10 @@ export function Uploader({
   const push = useCallback(
     async (blob: Blob, name: string) => {
       const path = makePath(scope, kind, name);
-      const result = await uploadFile(path, blob, setProgress);
+      // studentId يُشتق من النطاق ويُخزَّن مع الصورة، فتبني عليه القواعد
+      // الأمنية قرار من يملك حذفها.
+      const studentId = scope.startsWith("students/") ? scope.split("/")[1] : null;
+      const result = await uploadFile(path, blob, setProgress, { studentId, name });
       return { ...result, name, kind: kindOf(blob.type) } satisfies UploadedFile;
     },
     [scope, kind],

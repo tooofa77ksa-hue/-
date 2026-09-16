@@ -5,6 +5,7 @@
   منح شارة التميّز يُشغّل لحظة التاج مرة واحدة عند المنح فقط.
 */
 import { useEffect, useState } from "react";
+import { Media } from "@/injazi/ui/Media";
 import { ExternalLink, FileText, Film } from "lucide-react";
 import { ClayButton } from "@/injazi/components/ClayButton";
 import { ClayObject } from "@/injazi/components/ClayObject";
@@ -124,7 +125,7 @@ export function EvaluationEditor({
         {project && (
           <>
             <div className="iz-eval-context">
-              {project.coverUrl && <img src={project.coverUrl} alt="" className="iz-eval-context__cover" />}
+              {project.coverUrl && <Media src={project.coverUrl} alt="" className="iz-eval-context__cover" />}
               <div>
                 <p className="iz-eval-context__student">{student?.name ?? "طالبة"}</p>
                 <p className="iz-eval-context__subject">
@@ -141,7 +142,7 @@ export function EvaluationEditor({
                   {project.media.map((item) =>
                     item.kind === "image" ? (
                       <a key={item.id} href={item.url} target="_blank" rel="noopener noreferrer" className="iz-thumb">
-                        <img src={item.url} alt={item.name} loading="lazy" />
+                        <Media src={item.url} alt={item.name} />
                       </a>
                     ) : (
                       <a

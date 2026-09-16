@@ -6,6 +6,7 @@
   المعاينة حيّة: التغيير يظهر في البطاقة أعلى النافذة قبل الحفظ.
 */
 import { useEffect, useState } from "react";
+import { Media } from "@/injazi/ui/Media";
 import type { CSSProperties } from "react";
 import { motion } from "motion/react";
 import { Check, Trash2 } from "lucide-react";
@@ -110,7 +111,7 @@ export function PersonalizePanel({ open, student, actor, onClose }: Props) {
         <div className={`iz-preview__cover iz-cover--${coverStyle}`} aria-hidden="true" />
         <div className="iz-preview__avatar">
           {photo ? (
-            <img src={photo.url} alt={`صورة ${name}`} />
+            <Media src={photo.url} alt={`صورة ${name}`} />
           ) : (
             <span aria-hidden="true">{name.trim().charAt(0) || "؟"}</span>
           )}

@@ -7,6 +7,7 @@
   لأن القواعد الأمنية تقرأ subjectIds من ملف الصلاحيات لا من المعلمة.
 */
 import { useEffect, useMemo, useState } from "react";
+import { Media } from "@/injazi/ui/Media";
 import { motion } from "motion/react";
 import { Mail, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { ClayButton } from "@/injazi/components/ClayButton";
@@ -107,7 +108,7 @@ export function AdminTeachers() {
                 <motion.div className="iz-admin-row" variants={riseItem}>
                   <span className="iz-admin-row__avatar">
                     {teacher.photoUrl ? (
-                      <img src={teacher.photoUrl} alt="" loading="lazy" />
+                      <Media src={teacher.photoUrl} alt="" fallback={<span aria-hidden="true">{teacher.name.charAt(0)}</span>} />
                     ) : (
                       <span aria-hidden="true">{teacher.name.charAt(0)}</span>
                     )}
@@ -365,7 +366,7 @@ function TeacherEditor({
           <div className="iz-cover-row">
             {photo && (
               <div className="iz-thumb">
-                <img src={photo.url} alt="" />
+                <Media src={photo.url} alt="صورة المعلمة" />
                 <button
                   type="button"
                   className="iz-thumb__remove"

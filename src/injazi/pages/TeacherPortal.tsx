@@ -5,6 +5,7 @@
   تفضيلًا بل صلاحية.
 */
 import { useMemo, useState } from "react";
+import { Media } from "@/injazi/ui/Media";
 import { motion } from "motion/react";
 import {
   CheckCircle2,
@@ -222,7 +223,7 @@ export function TeacherPortal() {
                     >
                       <span className="iz-review-row__avatar">
                         {student?.photoUrl ? (
-                          <img src={student.photoUrl} alt="" loading="lazy" />
+                          <Media src={student.photoUrl} alt="" fallback={<span aria-hidden="true">{student?.name?.charAt(0) ?? "؟"}</span>} />
                         ) : (
                           <span aria-hidden="true">{student?.name?.charAt(0) ?? "؟"}</span>
                         )}

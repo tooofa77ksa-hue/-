@@ -289,12 +289,30 @@ if (cropOpened) {
   await page.locator(".iz-modal").last().locator(".iz-modal__foot button").last().click();
   await page.waitForTimeout(6000);
 }
-const uploadedSrc = await page.locator(".iz-preview__avatar img").getAttribute("src").catch(() => null);
+// لا نتحقّق من عنوان بعينه: الصورة قد تُحفظ في Firestore (data:) أو في
+// Storage (http)، والضمان المطلوب واحد في الحالتين — صورة فُكّ ترميزها
+// فعلًا ولها أبعاد حقيقية، لا مربّع فارغ ولا رسالة خطأ.
+const uploaded = await page
+  .locator(".iz-preview__avatar img")
+  .evaluate((img) => ({
+    src: img.currentSrc || img.src,
+    width: img.naturalWidth,
+    height: img.naturalHeight,
+  }))
+  .catch(() => null);
 const uploadErrors = await page.locator(".iz-field__error").allTextContents();
+const uploadKind = uploaded?.src?.startsWith("data:image/")
+  ? "Firestore"
+  : uploaded?.src?.includes("9199")
+    ? "Storage"
+    : "غير معروف";
 ok(
-  "رفع صورة الطالبة فعليًا إلى Storage (قصّ + ضغط WebP)",
-  Boolean(uploadedSrc && uploadedSrc.includes("9199")) && uploadErrors.length === 0,
-  uploadErrors.join(" | ") || (uploadedSrc ? "تم" : "لا توجد صورة"),
+  "رفع صورة الطالبة فعليًا (قصّ + ضغط + حفظ)",
+  Boolean(uploaded && uploaded.width > 0 && uploaded.height > 0) &&
+    uploadKind !== "غير معروف" &&
+    uploadErrors.length === 0,
+  uploadErrors.join(" | ") ||
+    (uploaded ? `${uploadKind} — ${uploaded.width}×${uploaded.height}` : "لا توجد صورة"),
 );
 // حفظ التخصيص ليُخزَّن الرابط في Firestore
 await page.locator(".iz-modal").last().locator(".iz-modal__foot button").last().click();

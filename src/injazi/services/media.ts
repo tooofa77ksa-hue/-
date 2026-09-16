@@ -1,0 +1,172 @@
+/*
+  مخزن الصور داخل Firestore — بلا Cloud Storage وبلا تكلفة.
+  ==================================================================
+  لماذا؟ منذ فبراير ٢٠٢٦ صار Cloud Storage يتطلب ربط بطاقة بنكية مهما
+  كان حجم الاستخدام. هذه المنصة لمدرسة ابتدائية، والقرار أن تبقى مجانية
+  بالكامل — فتُحفَظ الصور داخل قاعدة البيانات نفسها (الخطة المجانية
+  تعطي ١ جيجابايت، وصورة مضغوطة ~١٥٠ كيلوبايت، أي ما يكفي مئات الطالبات).
+
+  ثلاثة قرارات تصميمية تستحق الشرح:
+
+  1) كل صورة في مستند مستقل (apps/injazi/media/{id})، لا داخل مستند
+     الطالبة. لو حُشرت الصورة في مستند الطالبة لحمَّلت الصفحة الرئيسية
+     صور الطالبات السبع كاملةً مع كل قراءة، ولاقترب المستند من حد
+     المليون بايت. المستند المرجعي يحمل معرّفًا فقط.
+
+  2) المرجع يُخزَّن كنص "iz-media://{id}" لا كرابط. هذا يبقي الحقل
+     نفسه (photoUrl) صالحًا للرابط العادي أيضًا، فلو فُعِّل Cloud
+     Storage لاحقًا تعمل الروابط القديمة والجديدة معًا بلا ترحيل.
+
+  3) حد المستند في Firestore ~١ ميجابايت، وترميز base64 يزيد الحجم
+     الثلث. لذلك الحد الفعلي للصورة ~٧٠٠ كيلوبايت، ويُضغَط تلقائيًا
+     على مراحل حتى ينزل تحته قبل أي محاولة حفظ.
+*/
+import { addDoc, collection, deleteDoc, doc, getDoc } from "firebase/firestore";
+import { auth, db, isFirebaseUsable } from "@/injazi/firebase/client";
+import { COL } from "@/injazi/services/repo";
+
+/** بادئة تميّز مرجع الصورة المحفوظة في Firestore عن أي رابط عادي. */
+export const MEDIA_PREFIX = "iz-media://";
+
+/** الحد الآمن للبايتات قبل الترميز (مستند Firestore ~1MiB). */
+export const MAX_MEDIA_BYTES = 700 * 1024;
+
+const IMAGE_MIMES = ["image/webp", "image/jpeg", "image/png", "image/avif"];
+
+export class MediaError extends Error {}
+
+export const isMediaRef = (value: string | null | undefined): boolean =>
+  typeof value === "string" && value.startsWith(MEDIA_PREFIX);
+
+const idOf = (ref: string) => ref.slice(MEDIA_PREFIX.length);
+
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new MediaError("تعذّرت قراءة الصورة."));
+    reader.readAsDataURL(blob);
+  });
+}
+
+/**
+ * يضغط الصورة على مراحل حتى تنزل تحت الحد.
+ * التنازل عن الأبعاد قبل الجودة مقصود: تصغير صورة ٤٠٠٠ بكسل إلى ١٤٠٠
+ * لا يُلاحَظ في بطاقة أو ملف إنجاز، بينما خفض الجودة يظهر كتشويش.
+ */
+export async function fitForFirestore(source: Blob): Promise<Blob> {
+  if (source.size <= MAX_MEDIA_BYTES && IMAGE_MIMES.includes(source.type)) return source;
+
+  const steps: { edge: number; quality: number }[] = [
+    { edge: 1400, quality: 0.82 },
+    { edge: 1100, quality: 0.78 },
+    { edge: 900, quality: 0.72 },
+    { edge: 700, quality: 0.66 },
+  ];
+
+  let bitmap: ImageBitmap;
+  try {
+    bitmap = await createImageBitmap(source);
+  } catch {
+    throw new MediaError("تعذّرت قراءة الصورة — جرّبي صيغة أخرى (JPG أو PNG).");
+  }
+
+  try {
+    for (const step of steps) {
+      const scale = Math.min(1, step.edge / Math.max(bitmap.width, bitmap.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+      canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+      const context = canvas.getContext("2d");
+      if (!context) throw new MediaError("تعذّر تجهيز الصورة.");
+      context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, "image/webp", step.quality),
+      );
+      if (blob && blob.size <= MAX_MEDIA_BYTES) return blob;
+    }
+  } finally {
+    bitmap.close?.();
+  }
+
+  throw new MediaError(
+    "الصورة كبيرة جدًا حتى بعد الضغط. جرّبي صورة أصغر أو قصّيها قبل الرفع.",
+  );
+}
+
+export type SavedMedia = { ref: string; size: number; mime: string };
+
+/**
+ * يحفظ الصورة ويعيد مرجعها.
+ * ownerUid و studentId يُخزَّنان لأن القواعد الأمنية تبني عليهما قرار
+ * الحذف — لا يمكن لأحد حذف صورة غيره.
+ */
+export async function saveMedia(
+  blob: Blob,
+  meta: { name: string; studentId?: string | null },
+): Promise<SavedMedia> {
+  if (!isFirebaseUsable) throw new MediaError("لم تُضبَط إعدادات Firebase بعد.");
+  const uid = auth.currentUser?.uid;
+  if (!uid) throw new MediaError("يلزم تسجيل الدخول قبل رفع أي صورة.");
+
+  const fitted = await fitForFirestore(blob);
+  const dataUrl = await blobToDataUrl(fitted);
+
+  const created = await addDoc(collection(db, COL.media), {
+    ownerUid: uid,
+    studentId: meta.studentId ?? null,
+    name: meta.name.slice(-80),
+    mime: fitted.type,
+    size: fitted.size,
+    data: dataUrl,
+    createdAt: new Date().toISOString(),
+  });
+
+  return { ref: `${MEDIA_PREFIX}${created.id}`, size: fitted.size, mime: fitted.type };
+}
+
+/** حذف صورة. غياب المستند ليس خطأً — الهدف أن تختفي، وقد اختفت. */
+export async function deleteMedia(reference: string | null | undefined): Promise<void> {
+  if (!isMediaRef(reference) || !isFirebaseUsable) return;
+  try {
+    await deleteDoc(doc(db, COL.media, idOf(reference as string)));
+  } catch {
+    /* محذوفة مسبقًا أو بلا صلاحية: لا توقف تحديث المستند المرجعي */
+  }
+}
+
+// ---------------------------------------------------------------- القراءة
+
+/**
+ * ذاكرة مؤقتة داخل الصفحة.
+ * بدونها تُقرأ صورة الطالبة من Firestore مع كل إعادة رسم لبطاقتها،
+ * فتستهلك حصة القراءات اليومية بلا داعٍ وتُظهر وميضًا عند كل تحديث.
+ */
+const cache = new Map<string, string>();
+const inflight = new Map<string, Promise<string | null>>();
+
+export async function resolveMedia(reference: string): Promise<string | null> {
+  const id = idOf(reference);
+  const cached = cache.get(id);
+  if (cached) return cached;
+
+  const pending = inflight.get(id);
+  if (pending) return pending;
+
+  const request = (async () => {
+    try {
+      const snapshot = await getDoc(doc(db, COL.media, id));
+      const data = snapshot.exists() ? (snapshot.data().data as string) : null;
+      if (data) cache.set(id, data);
+      return data;
+    } catch {
+      return null;
+    } finally {
+      inflight.delete(id);
+    }
+  })();
+
+  inflight.set(id, request);
+  return request;
+}

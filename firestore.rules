@@ -331,6 +331,31 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+
+    // ------------------------------------------------------------------
+    // media: الصور محفوظة داخل Firestore لا في Cloud Storage (قرار مقصود:
+    // التخزين السحابي صار يتطلب بطاقة بنكية، والمنصة مدرسية مجانية).
+    // كل صورة مستند مستقل حتى لا تنتفخ مستندات الطالبات ولا تُحمَّل الصور
+    // مع كل قراءة للقائمة.
+    // ------------------------------------------------------------------
+    match /apps/injazi/media/{mediaId} {
+      // القراءة عامة: الصور تُعرض في صفحة مفتوحة للجميع.
+      allow read: if true;
+
+      allow create: if izActive()
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.data is string
+        // حد مستند Firestore مليون بايت؛ نبقى تحته بهامش آمن.
+        && request.resource.data.data.size() < 960000
+        && request.resource.data.mime in ['image/webp', 'image/jpeg', 'image/png', 'image/avif'];
+
+      // الصورة غير قابلة للتعديل: الاستبدال يعني صورة جديدة وحذف القديمة،
+      // فلا يمكن تبديل محتوى صورة يشير إليها مستند طالبة أخرى.
+      allow update: if false;
+
+      allow delete: if izIsAdmin() || resource.data.ownerUid == request.auth.uid;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

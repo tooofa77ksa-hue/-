@@ -5,6 +5,7 @@
   روابط مع توليد QR فوري لكل رابط، وضبط الخصوصية.
 */
 import { useEffect, useState } from "react";
+import { Media } from "@/injazi/ui/Media";
 import { AnimatePresence, motion } from "motion/react";
 import { FileText, Film, Link2, Plus, Trash2 } from "lucide-react";
 import { ClayButton } from "@/injazi/components/ClayButton";
@@ -14,7 +15,7 @@ import { Field, Notice, SelectInput, TextArea, TextInput } from "@/injazi/ui/pri
 import { QRCard } from "@/injazi/ui/QRCard";
 import { QR_FRAMES, detectLinkKind, normalizeUrl, type QrFrame } from "@/injazi/ui/qr";
 import { Uploader, type UploadedFile } from "@/injazi/ui/Uploader";
-import { deleteFile, studentScope } from "@/injazi/services/storage";
+import { MEDIA_BACKEND, deleteFile, studentScope } from "@/injazi/services/storage";
 import { createProject, logActivity, updateProject } from "@/injazi/services/repo";
 import { showToast } from "@/injazi/lib/toast";
 import { VISIBILITY_LABEL } from "@/injazi/lib/permissions";
@@ -244,7 +245,7 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
         <div className="iz-cover-row">
           {cover ? (
             <div className="iz-thumb">
-              <img src={cover.url} alt="غلاف المشروع" />
+              <Media src={cover.url} alt="غلاف المشروع" />
               <button
                 type="button"
                 className="iz-thumb__remove"
@@ -277,13 +278,13 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
 
       {/* ---------------- المرفقات ---------------- */}
       <section className="iz-editor-block">
-        <h3 className="iz-editor-block__title">المرفقات (صور، PDF، فيديو)</h3>
+        <h3 className="iz-editor-block__title">صور المشروع</h3>
         {media.length > 0 && (
           <div className="iz-media-grid">
             {media.map((item) => (
               <div key={item.id} className="iz-thumb">
                 {item.kind === "image" ? (
-                  <img src={item.url} alt={item.name} loading="lazy" />
+                  <Media src={item.url} alt={item.name} />
                 ) : (
                   <a className="iz-thumb__file" href={item.url} target="_blank" rel="noopener noreferrer">
                     {item.kind === "video" ? <Film size={22} /> : <FileText size={22} />}
@@ -305,9 +306,9 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
         <Uploader
           scope={scope}
           kind="projects/media"
-          accept="media"
+          accept={MEDIA_BACKEND === "firestore" ? "image" : "media"}
           multiple
-          label="رفع مرفقات"
+          label="رفع صور"
           onUploaded={(files: UploadedFile[]) =>
             setMedia((current) => [
               ...current,
@@ -328,6 +329,10 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
       {/* ---------------- الروابط و QR ---------------- */}
       <section className="iz-editor-block">
         <h3 className="iz-editor-block__title">روابط (Drive، YouTube، Telegram، أي رابط)</h3>
+        <p className="iz-field__meter" style={{ marginBlockEnd: "var(--iz-s-3)" }}>
+          أوراق العمل وملفات PDF والفيديو تُرفع على Google Drive أو YouTube، ويُلصق رابطها هنا —
+          ويُولَّد له رمز QR تلقائيًا.
+        </p>
         <div className="iz-link-row">
           <TextInput
             value={linkDraft}

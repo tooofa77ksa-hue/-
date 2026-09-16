@@ -5,6 +5,7 @@
   الإبهام يصل إلى أسفل الشاشة لا إلى أعلاها.
 */
 import { useState } from "react";
+import { Media } from "@/injazi/ui/Media";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
@@ -39,7 +40,7 @@ export function SiteHeader() {
     <header className="iz-header">
       <Link to="/" className="iz-header__brand">
         {settings.logoUrl ? (
-          <img className="iz-header__logo" src={settings.logoUrl} alt="" />
+          <Media className="iz-header__logo" src={settings.logoUrl} alt="" loading="eager" />
         ) : (
           <ClayObject name="star" tone="gold" size={38} grounded={false} />
         )}
