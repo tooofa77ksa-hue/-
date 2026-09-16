@@ -1,5 +1,5 @@
 /*
-  تهيئة «إنجازي يحكي».
+  تهيئة «إنجازي يحكي» — للمحاكي فقط.
   ------------------------------------------------------------------
   يُنشئ البيانات الأولى: الطالبات السبع، المواد الخمس، المعلمات
   الخمس بحساباتهن، حساب المشرفة، والإعدادات.
@@ -12,9 +12,9 @@
     FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 \
     GOOGLE_CLOUD_PROJECT=<projectId> npm run injazi:seed
 
-  التشغيل على الإنتاج:
-    GOOGLE_APPLICATION_CREDENTIALS=./serviceAccount.json \
-    GOOGLE_CLOUD_PROJECT=<projectId> npm run injazi:seed
+  للإنتاج استخدمي سكربتًا آخر: npm run injazi:bootstrap
+  (حسابات .local وكلمات المرور الافتراضية هنا صالحة للمحاكي وحده،
+  ولذلك يرفض هذا السكربت العمل خارجه.)
 */
 import { cert, initializeApp, applicationDefault } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
@@ -30,6 +30,16 @@ const ADMIN_EMAIL = process.env.INJAZI_ADMIN_EMAIL || "admin@injazi.local";
 const ADMIN_PASSWORD = process.env.INJAZI_ADMIN_PASSWORD || "Injazi#2026";
 const DEFAULT_TEACHER_PASSWORD = process.env.INJAZI_TEACHER_PASSWORD || "Teacher#2026";
 const DEFAULT_PARENT_PASSWORD = process.env.INJAZI_PARENT_PASSWORD || "Parent#2026";
+
+// حارس صريح: هذه البيانات (admin@injazi.local وكلمات مرور معروفة) يجب
+// ألا تصل إلى مشروع حقيقي بأي حال، ولو بخطأ في متغيّر بيئة.
+if (!USING_EMULATOR) {
+  console.error(
+    "\n✗ هذا السكربت للمحاكي فقط — يُنشئ حسابات .local بكلمات مرور معروفة.\n" +
+      "  للإنتاج: npm run injazi:bootstrap\n",
+  );
+  process.exit(1);
+}
 
 const credentialsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
 // على المحاكي لا تُمرَّر بيانات اعتماد إطلاقًا: تمرير undefined صراحةً

@@ -23,6 +23,28 @@ const missingKeys = Object.entries(firebaseConfig)
 
 export const isFirebaseConfigured = missingKeys.length === 0;
 
+/**
+ * أسماء المتغيّرات الناقصة — تُعرَض للمشرفة في شاشة خطأ واضحة بدل أن
+ * يبدو الموقع فارغًا بلا سبب. تُصدَّر لأن الفشل الصامت في الإنتاج أسوأ
+ * من الخطأ الظاهر: الصفحة الفارغة تبدو "لا توجد بيانات" لا "لم يُضبَط
+ * الاتصال".
+ */
+const ENV_NAME: Record<string, string> = {
+  apiKey: "VITE_FIREBASE_API_KEY",
+  authDomain: "VITE_FIREBASE_AUTH_DOMAIN",
+  projectId: "VITE_FIREBASE_PROJECT_ID",
+  storageBucket: "VITE_FIREBASE_STORAGE_BUCKET",
+  messagingSenderId: "VITE_FIREBASE_MESSAGING_SENDER_ID",
+  appId: "VITE_FIREBASE_APP_ID",
+};
+
+/**
+ * أسماء متغيّرات البيئة الناقصة كما تُكتب في منصة النشر بالضبط — لا
+ * أسماء مفاتيح Firebase الداخلية (apiKey…)، لأن من يقرأ الرسالة يحتاج
+ * الاسم الذي سيلصقه في الإعدادات لا الاسم الذي يستخدمه الـ SDK.
+ */
+export const missingFirebaseEnvKeys: string[] = missingKeys.map((key) => ENV_NAME[key] ?? key);
+
 if (!isFirebaseConfigured) {
   // eslint-disable-next-line no-console
   console.warn(

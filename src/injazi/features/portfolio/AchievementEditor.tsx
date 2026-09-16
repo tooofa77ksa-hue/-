@@ -9,7 +9,7 @@ import { ClayButton } from "@/injazi/components/ClayButton";
 import { Modal } from "@/injazi/ui/Modal";
 import { Field, Notice, SelectInput, TextArea, TextInput } from "@/injazi/ui/primitives";
 import { Uploader } from "@/injazi/ui/Uploader";
-import { deleteFile } from "@/injazi/services/storage";
+import { deleteFile, studentScope } from "@/injazi/services/storage";
 import { createAchievement, logActivity, updateAchievement } from "@/injazi/services/repo";
 import { showToast } from "@/injazi/lib/toast";
 import { VISIBILITY_LABEL } from "@/injazi/lib/permissions";
@@ -157,7 +157,8 @@ export function AchievementEditor({ open, student, kind, achievement, actor, onC
             <p className="iz-field__meter">لا توجد صورة.</p>
           )}
           <Uploader
-            folder={`students/${student.id}/achievements`}
+            scope={studentScope(student.id)}
+            kind="achievements"
             accept="image"
             crop
             cropAspect={4 / 3}

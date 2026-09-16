@@ -30,7 +30,10 @@ type Area = { x: number; y: number; width: number; height: number };
 export type UploadedFile = UploadResult & { name: string; kind: MediaKind };
 
 type Props = {
-  folder: string;
+  /** نطاق الملكية: studentScope(id) أو PLATFORM_SCOPE. */
+  scope: string;
+  /** المجلد داخل النطاق (profile، projects/covers، settings/audio…). */
+  kind: string;
   accept?: "image" | "media" | "audio";
   multiple?: boolean;
   /** يفتح نافذة القصّ للصور — يُستخدَم لصورة الطالبة والغلاف. */
@@ -41,7 +44,8 @@ type Props = {
 };
 
 export function Uploader({
-  folder,
+  scope,
+  kind,
   accept = "media",
   multiple = false,
   crop = false,
@@ -64,11 +68,11 @@ export function Uploader({
 
   const push = useCallback(
     async (blob: Blob, name: string) => {
-      const path = makePath(folder, name);
+      const path = makePath(scope, kind, name);
       const result = await uploadFile(path, blob, setProgress);
       return { ...result, name, kind: kindOf(blob.type) } satisfies UploadedFile;
     },
-    [folder],
+    [scope, kind],
   );
 
   async function handleFiles(event: ChangeEvent<HTMLInputElement>) {

@@ -277,6 +277,74 @@ describe("عزل التطبيقين", () => {
   });
 });
 
+
+describe("هجمات محدَّدة على تصعيد الصلاحية", () => {
+  it("المعلمة لا تغيّر موادها المسنَدة (لا في ملف الصلاحيات ولا في مستندها)", async () => {
+    const db = as("mathTeacher");
+    // محاولة منح النفس مادة زميلتها عبر ملف الصلاحيات
+    await assertFails(
+      updateDoc(doc(db, `${ROOT}/users/mathTeacher`), { subjectIds: [SUBJECT_MATH, SUBJECT_ARABIC] }),
+    );
+    // ومحاولة الالتفاف عبر مستند المعلمة نفسه
+    await assertFails(
+      setDoc(doc(db, `${ROOT}/teachers/t-math`), { name: "سميرة", email: "t1@x", subjectIds: [SUBJECT_ARABIC] }),
+    );
+    // ومحاولة إسناد المادة لنفسها من مستند المادة
+    await assertFails(updateDoc(doc(db, `${ROOT}/subjects/${SUBJECT_MATH}`), { teacherId: "t-math" }));
+  });
+
+  it("المعلمة لا تنقل ملكية مشروع إلى طالبة أخرى", async () => {
+    await assertFails(
+      updateDoc(doc(as("mathTeacher"), `${ROOT}/projects/p-a-math`), { studentId: STUDENT_B }),
+    );
+  });
+
+  it("المعلمة لا تُنشئ حساب مشرفة ولا ترقّي نفسها", async () => {
+    const db = as("mathTeacher");
+    await assertFails(
+      setDoc(doc(db, `${ROOT}/users/newAdmin`), { role: "admin", name: "مزيّفة", email: "x@x", active: true }),
+    );
+    await assertFails(updateDoc(doc(db, `${ROOT}/users/mathTeacher`), { role: "admin" }));
+  });
+
+  it("ولي الأمر لا يُنشئ مشرفة ولا معلمة", async () => {
+    const db = as("parentA");
+    await assertFails(
+      setDoc(doc(db, `${ROOT}/users/anotherAdmin`), { role: "admin", name: "مزيّفة", email: "y@y", active: true }),
+    );
+    await assertFails(
+      setDoc(doc(db, `${ROOT}/users/anotherTeacher`), {
+        role: "teacher", name: "مزيّفة", email: "z@z", active: true, subjectIds: [SUBJECT_MATH],
+      }),
+    );
+  });
+
+  it("ولي الأمر لا يربط طالبة أخرى بحسابه", async () => {
+    await assertFails(
+      updateDoc(doc(as("parentA"), `${ROOT}/users/parentA`), { studentIds: [STUDENT_A, STUDENT_B] }),
+    );
+  });
+
+  it("الزائرة لا تكتب شيئًا في أي مجموعة", async () => {
+    const db = guest();
+    await assertFails(setDoc(doc(db, `${ROOT}/students/x`), { name: "x", visibility: "public" }));
+    await assertFails(setDoc(doc(db, `${ROOT}/subjects/x`), { name: "x", order: 0, archived: false }));
+    await assertFails(updateDoc(doc(db, `${ROOT}/settings/app`), { tagline: "x" }));
+    await assertFails(
+      setDoc(doc(db, `${ROOT}/evaluations/x`), {
+        projectId: "p-a-math", studentId: STUDENT_A, subjectId: SUBJECT_MATH,
+        teacherId: "t-math", teacherName: "x", stars: 5, badge: true, comment: "", status: "excellent",
+      }),
+    );
+  });
+
+  it("المنع الافتراضي: أي مسار خارج المخطّط مرفوض للجميع", async () => {
+    await assertFails(getDoc(doc(as("admin1"), `${ROOT}/unknownCollection/x`)));
+    await assertFails(setDoc(doc(as("admin1"), `${ROOT}/unknownCollection/x`), { a: 1 }));
+    await assertFails(getDoc(doc(guest(), "randomTopLevel/x")));
+  });
+});
+
 it("المخطّط الأساسي مبذور كما هو متوقَّع", async () => {
   const snapshot = await getDocs(collection(guest(), `${ROOT}/students`));
   expect(snapshot.size).toBe(2);

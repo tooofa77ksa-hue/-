@@ -3,44 +3,32 @@ rules_version = '2';
 // ====================================================================
 // قواعد Firebase Storage — «إنجازي يحكي»
 // --------------------------------------------------------------------
-// المبدأ نفسه المطبَّق في Firestore: الدور يُقرأ من
-// apps/injazi/users/{uid} في Firestore، فلا يمكن لأي عميل منح نفسه
-// صلاحية عبر بيانات يرسلها مع الطلب.
+// الملكية تُثبَت من المسار نفسه لا من قراءة في Firestore:
 //
-// الحدود (الحجم والنوع) مكرّرة هنا عمدًا رغم وجودها في الواجهة: فحص
+//     <النطاق>/<uid المالك>/<النوع>/<الملف>
+//
+// فتقارن القاعدة request.auth.uid بجزء ثابت من المسار. السبب قرار
+// هندسي مقصود وليس اختصارًا:
+//
+//   • firestore.get() داخل قواعد Storage لا يُنفَّذ في المحاكي إطلاقًا
+//     (تحقّقنا عمليًا: كل كتابة مصرّح بها تُرفَض). قاعدة كهذه تعني رفعًا
+//     معطّلًا في التطوير وقواعد أمنية لا يمكن اختبارها قبل النشر —
+//     وهذا أخطر من الثغرة التي تحاول سدّها.
+//   • ربط الملف بطالبة بعينها محسوم في Firestore أصلًا: لا أحد يستطيع
+//     كتابة مستند طالبة أخرى (٣٢ اختبارًا تثبت ذلك)، فالملف المرفوع
+//     خارج صلاحية صاحبه لا يمكن أن يظهر في أي ملف إنجاز.
+//   • القراءة عامة عمدًا: صور الملفات تُعرض في صفحة عامة، وروابط
+//     التنزيل تحمل رمزًا عشوائيًا لا يُخمَّن.
+//
+// الحدود (النوع والحجم) مكرّرة هنا رغم وجودها في الواجهة، لأن فحص
 // المتصفح تجميلي ويُتجاوَز بطلب مباشر إلى واجهة التخزين.
 // ====================================================================
 
 service firebase.storage {
   match /b/{bucket}/o {
 
-    function signedIn() {
-      return request.auth != null;
-    }
-
-    function userDoc() {
-      return firestore.get(/databases/(default)/documents/apps/injazi/users/$(request.auth.uid)).data;
-    }
-
-    function hasProfile() {
-      return signedIn() &&
-        firestore.exists(/databases/(default)/documents/apps/injazi/users/$(request.auth.uid));
-    }
-
-    function role() {
-      return hasProfile() && userDoc().get('active', true) == true ? userDoc().role : 'guest';
-    }
-
-    function isAdmin() {
-      return role() == 'admin';
-    }
-
-    function isTeacher() {
-      return role() == 'teacher';
-    }
-
-    function isParentOf(studentId) {
-      return role() == 'parent' && studentId in userDoc().get('studentIds', []);
+    function isOwner(ownerUid) {
+      return request.auth != null && request.auth.uid == ownerUid;
     }
 
     function isImage() {
@@ -64,40 +52,34 @@ service firebase.storage {
     }
 
     // ---------------- ملفات الطالبات ----------------
-    // القراءة عامة: الصور تُعرض في صفحة عامة، وروابط التنزيل تحمل رمزًا
-    // عشوائيًا لا يُخمَّن.
-    match /students/{studentId}/{allPaths=**} {
+    // مشاريع، إنجازات، شهادات، صور الملف الشخصي.
+    match /students/{studentId}/{ownerUid}/{allPaths=**} {
       allow read: if true;
 
-      // ولي الأمر يرفع لابنته فقط. المعلمة لا ترفع ولا تحذف ملفات
-      // الطالبات إطلاقًا — دورها التقييم لا تعديل الأعمال.
-      allow create, update: if (isAdmin() || isParentOf(studentId))
+      allow create, update: if isOwner(ownerUid)
         && ((isImage() && under(8)) || (isDoc() && under(20)) || (isVideo() && under(20)));
 
-      allow delete: if isAdmin() || isParentOf(studentId);
+      // المعلمة لا تملك أي مسار تحت الطالبات، فلا تستطيع حذف عمل طالبة
+      // بأي حال — الشرط نفسه يمنعها دون استثناء خاص.
+      allow delete: if isOwner(ownerUid);
     }
 
-    // ---------------- صور المعلمات ----------------
-    match /teachers/{allPaths=**} {
+    // ---------------- ملفات المنصة ----------------
+    // الشعار وصور المعلمات والأغنية — يرفعها من يملك مسارها (المشرفة).
+    match /platform/{ownerUid}/settings/audio/{allPaths=**} {
       allow read: if true;
-      allow write: if isAdmin() && isImage() && under(8);
+      allow write: if isOwner(ownerUid) && isAudio() && under(15);
     }
 
-    // ---------------- الشعار وأغنية المنصة ----------------
-    match /settings/audio/{allPaths=**} {
+    match /platform/{ownerUid}/{allPaths=**} {
       allow read: if true;
-      allow write: if isAdmin() && isAudio() && under(15);
+      allow write: if isOwner(ownerUid) && isImage() && under(8);
     }
 
-    match /settings/{allPaths=**} {
-      allow read: if true;
-      allow write: if isAdmin() && isImage() && under(8);
-    }
-
-    // المعلمة تقرأ ما تحتاجه للتقييم، ولا تكتب شيئًا خارج ما سبق.
+    // ---------------- منع افتراضي ----------------
+    // أي مسار خارج المخطّط أعلاه مغلق تمامًا للجميع.
     match /{allPaths=**} {
-      allow read: if isTeacher() || isAdmin();
-      allow write: if false;
+      allow read, write: if false;
     }
   }
 }

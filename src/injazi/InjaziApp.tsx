@@ -13,11 +13,13 @@ import { AnimatePresence } from "motion/react";
 import { ClayObject } from "@/injazi/components/ClayObject";
 import { ToastHost } from "@/injazi/components/ToastHost";
 import { SiteHeader } from "@/injazi/app/SiteHeader";
+import { ConfigGate } from "@/injazi/app/ConfigGate";
 import { RequireRole } from "@/injazi/app/RequireRole";
 import { LoginPage } from "@/injazi/pages/LoginPage";
 import { PublicHome } from "@/injazi/pages/PublicHome";
 import { StudentPortfolio } from "@/injazi/pages/StudentPortfolio";
 import { ensureDisplayFont } from "@/injazi/lib/displayFont";
+import { startAppCheck } from "@/injazi/firebase/appCheck";
 import { useSettings } from "@/injazi/hooks/useLive";
 import "@/injazi/styles/tailwind.css";
 import "@/injazi/styles/tokens.css";
@@ -60,6 +62,9 @@ export default function InjaziApp() {
 
   useEffect(() => {
     ensureDisplayFont();
+    // App Check يُهيَّأ مرة واحدة عند الإقلاع، ويتخطّى نفسه بهدوء إن لم
+    // يُضبَط مفتاحه أو كانت المحاكيات تعمل.
+    void startAppCheck();
   }, []);
 
   // الطبقات العائمة تعيش في <body> خارج شجرة .injazi، فتُكتب رموز
@@ -83,6 +88,7 @@ export default function InjaziApp() {
       <SiteHeader />
 
       <main className="iz-main">
+        <ConfigGate>
         <Suspense fallback={<Loading />}>
           <AnimatePresence mode="wait" initial={false}>
             <Routes location={location} key={location.pathname}>
@@ -121,6 +127,7 @@ export default function InjaziApp() {
             </Routes>
           </AnimatePresence>
         </Suspense>
+        </ConfigGate>
       </main>
 
       <footer className="iz-footer">

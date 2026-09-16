@@ -5,7 +5,7 @@
   وهذا وحده أكبر مكسب أداء في المشروع.
 */
 import { deleteObject, getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
-import { storage, isStorageUsable } from "@/injazi/firebase/client";
+import { auth, storage, isStorageUsable } from "@/injazi/firebase/client";
 import type { MediaKind } from "@/injazi/types/models";
 
 export const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
@@ -107,8 +107,29 @@ export async function deleteFile(path: string | null | undefined): Promise<void>
   }
 }
 
-/** مسار فريد داخل مجلد منظّم حسب الطالبة/القسم. */
-export function makePath(folder: string, fileName: string): string {
-  const safe = fileName.replace(/[^\w.\-؀-ۿ]/g, "_").slice(-60);
-  return `${folder}/${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}-${safe}`;
+/**
+ * مسار الرفع: <النطاق>/<uid المالك>/<النوع>/<اسم فريد>
+ *
+ * وجود uid الرافع كجزء ثابت من المسار ليس تنظيمًا بل هو آلية الحماية
+ * نفسها: قواعد Storage تقارنه بـ request.auth.uid مباشرة، فلا تحتاج
+ * قراءة من Firestore للتحقق من الملكية. وهذا مقصود لسببين:
+ *   • محاكي Storage لا ينفّذ firestore.get() داخل القواعد، فأي قاعدة
+ *     تعتمد عليه تكون غير قابلة للاختبار محليًا وتكسر الرفع في التطوير
+ *     كليًا — تحقّقنا من ذلك عمليًا عبر المتصفح والمحاكي معًا.
+ *   • ربط الملف بطالبة بعينها محسوم أصلًا في Firestore: لا أحد يستطيع
+ *     كتابة مستند طالبة أخرى، فلا يمكن إظهار ملف مرفوع في ملف غيرها
+ *     مهما كان مساره.
+ */
+export function makePath(scope: string, kind: string, fileName: string): string {
+  const uid = auth.currentUser?.uid;
+  if (!uid) throw new UploadError("يلزم تسجيل الدخول قبل رفع أي ملف.");
+  const safe = fileName.replace(/[^\w.\-\u0600-\u06FF]/g, "_").slice(-60);
+  const unique = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+  return `${scope}/${uid}/${kind}/${unique}-${safe}`;
 }
+
+/** نطاق ملفات طالبة بعينها. */
+export const studentScope = (studentId: string) => `students/${studentId}`;
+
+/** نطاق ملفات المنصة (الشعار، الأغنية، صور المعلمات). */
+export const PLATFORM_SCOPE = "platform";

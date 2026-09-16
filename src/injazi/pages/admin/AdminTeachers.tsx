@@ -27,7 +27,7 @@ import {
   updateTeacher,
 } from "@/injazi/services/repo";
 import { createAccount } from "@/injazi/services/auth";
-import { deleteFile } from "@/injazi/services/storage";
+import { PLATFORM_SCOPE, deleteFile } from "@/injazi/services/storage";
 import { useSession, useSubjects, useTeachers, useUsers } from "@/injazi/hooks/useLive";
 import { showToast } from "@/injazi/lib/toast";
 import { pageVariants, riseItem, staggerContainer } from "@/injazi/motion/motion";
@@ -380,7 +380,8 @@ function TeacherEditor({
               </div>
             )}
             <Uploader
-              folder="teachers"
+              scope={PLATFORM_SCOPE}
+              kind="teachers"
               accept="image"
               crop
               cropAspect={1}

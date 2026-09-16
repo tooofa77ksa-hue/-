@@ -91,7 +91,7 @@ export async function createAccount(
 ): Promise<string> {
   if (!isFirebaseUsable) throw new AuthError("لم تُضبَط إعدادات Firebase بعد.");
   const { initializeApp, deleteApp, getApp } = await import("firebase/app");
-  const { getAuth, connectAuthEmulator } = await import("firebase/auth");
+  const { getAuth } = await import("firebase/auth");
 
   const secondary = initializeApp(getApp().options, `injazi-admin-${Date.now()}`);
   const secondaryAuth = getAuth(secondary);
@@ -99,7 +99,12 @@ export async function createAccount(
   // التطبيق الثانوي لا يرث اتصال المحاكي من التطبيق الأساسي: لكل نسخة
   // Auth إعدادها الخاص. بدون هذا السطر يذهب إنشاء الحسابات إلى Firebase
   // الحقيقي أثناء التطوير فيفشل، بينما يبدو كل شيء سليمًا في الإنتاج.
+  //
+  // الاستيراد داخل الشرط لا خارجه: import.meta.env.DEV يُستبدَل بـ false
+  // وقت البناء، فيسقط هذا الفرع بكامله ولا يبقى في حزمة الإنتاج أي
+  // ذكر لدوال المحاكي إطلاقًا.
   if (import.meta.env.DEV && import.meta.env.VITE_USE_FIREBASE_EMULATORS === "true") {
+    const { connectAuthEmulator } = await import("firebase/auth");
     connectAuthEmulator(secondaryAuth, "http://127.0.0.1:9099", { disableWarnings: true });
   }
   try {

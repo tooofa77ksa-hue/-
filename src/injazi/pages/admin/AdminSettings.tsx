@@ -11,7 +11,7 @@ import { Music, Save, Trash2 } from "lucide-react";
 import { ClayButton } from "@/injazi/components/ClayButton";
 import { Field, Notice, Panel, SectionTitle, SelectInput, TextInput } from "@/injazi/ui/primitives";
 import { Uploader } from "@/injazi/ui/Uploader";
-import { deleteFile } from "@/injazi/services/storage";
+import { PLATFORM_SCOPE, deleteFile } from "@/injazi/services/storage";
 import { logActivity, saveSettings } from "@/injazi/services/repo";
 import { useSession, useSettings } from "@/injazi/hooks/useLive";
 import { showToast } from "@/injazi/lib/toast";
@@ -123,7 +123,8 @@ export function AdminSettings() {
             <p className="iz-field__meter">لا يوجد شعار — يظهر اسم المنصة نصًّا.</p>
           )}
           <Uploader
-            folder="settings"
+            scope={PLATFORM_SCOPE}
+            kind="settings"
             accept="image"
             label={form.logoUrl ? "استبدال الشعار" : "رفع شعار"}
             onUploaded={async (files) => {
@@ -228,7 +229,8 @@ export function AdminSettings() {
         )}
 
         <Uploader
-          folder="settings/audio"
+          scope={PLATFORM_SCOPE}
+          kind="settings/audio"
           accept="audio"
           label={form.audioUrl ? "استبدال الأغنية (MP3)" : "رفع الأغنية (MP3)"}
           onUploaded={async (files) => {

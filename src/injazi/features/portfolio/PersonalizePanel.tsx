@@ -14,7 +14,7 @@ import { Modal } from "@/injazi/ui/Modal";
 import { Field, Notice, TextArea, TextInput } from "@/injazi/ui/primitives";
 import { IconPicker, Icon } from "@/injazi/ui/IconPicker";
 import { Uploader } from "@/injazi/ui/Uploader";
-import { deleteFile } from "@/injazi/services/storage";
+import { deleteFile, studentScope } from "@/injazi/services/storage";
 import { logActivity, updateStudent } from "@/injazi/services/repo";
 import { showToast } from "@/injazi/lib/toast";
 import { ACCENT_PRESETS, CARD_STYLES, COVER_STYLES, THEMES, themeVars } from "@/injazi/themes/themes";
@@ -126,7 +126,8 @@ export function PersonalizePanel({ open, student, actor, onClose }: Props) {
         <h3 className="iz-editor-block__title">صورة الطالبة</h3>
         <div className="iz-cover-row">
           <Uploader
-            folder={`students/${student.id}/profile`}
+            scope={studentScope(student.id)}
+            kind="profile"
             accept="image"
             crop
             cropAspect={1}

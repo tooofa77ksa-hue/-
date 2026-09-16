@@ -9,6 +9,12 @@ import { writeFileSync } from "node:fs";
 const BASE = "http://127.0.0.1:5173/#";
 const OUT = process.env.IZ_SHOTS || "./.e2e-shots";
 import { mkdirSync } from "node:fs";
+
+// PNG صالح 2×2 لاختبار الرفع الحقيقي
+const TEST_PNG = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFElEQVR42mP8z8BQz0AEYBxVSF+FABJADveWkH6oAAAAAElFTkSuQmCC",
+  "base64",
+);
 mkdirSync(OUT, { recursive: true });
 const EXE = "/opt/pw-browsers/chromium";
 
@@ -271,6 +277,33 @@ await page.waitForTimeout(2200);
 const achievements = await page.locator(".iz-achievement").count();
 ok("إضافة إنجاز", achievements >= 1, `العدد: ${achievements}`);
 
+// --- رفع صورة الطالبة فعليًا (قصّ + ضغط + Storage)
+const pngPath = `${OUT}/e2e-upload.png`;
+writeFileSync(pngPath, TEST_PNG);
+await page.getByRole("button", { name: /تخصيص الملف/ }).click();
+await page.waitForTimeout(900);
+await page.locator('.iz-modal input[type="file"]').first().setInputFiles(pngPath);
+await page.waitForTimeout(2500);
+const cropOpened = await page.locator(".iz-crop").count();
+if (cropOpened) {
+  await page.locator(".iz-modal").last().locator(".iz-modal__foot button").last().click();
+  await page.waitForTimeout(6000);
+}
+const uploadedSrc = await page.locator(".iz-preview__avatar img").getAttribute("src").catch(() => null);
+const uploadErrors = await page.locator(".iz-field__error").allTextContents();
+ok(
+  "رفع صورة الطالبة فعليًا إلى Storage (قصّ + ضغط WebP)",
+  Boolean(uploadedSrc && uploadedSrc.includes("9199")) && uploadErrors.length === 0,
+  uploadErrors.join(" | ") || (uploadedSrc ? "تم" : "لا توجد صورة"),
+);
+// حفظ التخصيص ليُخزَّن الرابط في Firestore
+await page.locator(".iz-modal").last().locator(".iz-modal__foot button").last().click();
+await page.waitForTimeout(2500);
+ok(
+  "الصورة المرفوعة تظهر في ترويسة الملف بعد الحفظ",
+  (await page.locator(".iz-profile__avatar img").count()) === 1,
+);
+
 // --- عزل الصلاحيات: محاولة فتح ملف طالبة أخرى
 await page.goto(`${BASE}/`, { waitUntil: "domcontentloaded" });
 await page.waitForTimeout(1500);
@@ -359,6 +392,54 @@ const focusVisible = await page.evaluate(() => {
   return getComputedStyle(el).outlineStyle !== "none" || el.matches(":focus-visible");
 });
 ok("التنقّل بلوحة المفاتيح يُظهر حلقة تركيز", Boolean(focusVisible));
+
+// ==================== 7) القياسات الست ====================
+const SIZES = [
+  { w: 375, h: 812, name: "iPhone SE/13 mini" },
+  { w: 390, h: 844, name: "iPhone 13/14" },
+  { w: 430, h: 932, name: "iPhone Pro Max" },
+  { w: 768, h: 1024, name: "iPad" },
+  { w: 1024, h: 768, name: "Laptop صغير" },
+  { w: 1440, h: 900, name: "Desktop" },
+];
+
+const ROUTES = [
+  { path: "/", label: "الرئيسية" },
+  { path: "/login", label: "الدخول" },
+];
+
+const overflows = [];
+for (const size of SIZES) {
+  const vctx = await browser.newContext({ viewport: { width: size.w, height: size.h } });
+  const vpage = await vctx.newPage();
+  attach(vpage, `vp${size.w}`);
+
+  for (const route of ROUTES) {
+    await vpage.goto(`${BASE}${route.path}`, { waitUntil: "domcontentloaded" });
+    await vpage.waitForTimeout(2200);
+    const over = await vpage.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    if (over > 1) overflows.push(`${size.w}px ${route.label}: +${over}px`);
+  }
+
+  // ملف طالبة + نافذة (المودال أكثر ما يتجاوز الحدود)
+  await vpage.goto(`${BASE}/`, { waitUntil: "domcontentloaded" });
+  await vpage.waitForTimeout(2200);
+  const card = vpage.locator(".iz-student-card__cta").first();
+  if (await card.count()) {
+    await card.click();
+    await vpage.waitForTimeout(2200);
+    const over = await vpage.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    if (over > 1) overflows.push(`${size.w}px ملف الطالبة: +${over}px`);
+  }
+
+  await vpage.screenshot({ path: `${OUT}/vp-${size.w}.png` });
+  await vctx.close();
+}
+ok("لا تمرير أفقي في أي من القياسات الستة", overflows.length === 0, overflows.join("، ") || "375/390/430/768/1024/1440");
 
 await browser.close();
 

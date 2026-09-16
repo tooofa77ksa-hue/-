@@ -14,7 +14,7 @@ import { Field, Notice, SelectInput, TextArea, TextInput } from "@/injazi/ui/pri
 import { QRCard } from "@/injazi/ui/QRCard";
 import { QR_FRAMES, detectLinkKind, normalizeUrl, type QrFrame } from "@/injazi/ui/qr";
 import { Uploader, type UploadedFile } from "@/injazi/ui/Uploader";
-import { deleteFile } from "@/injazi/services/storage";
+import { deleteFile, studentScope } from "@/injazi/services/storage";
 import { createProject, logActivity, updateProject } from "@/injazi/services/repo";
 import { showToast } from "@/injazi/lib/toast";
 import { VISIBILITY_LABEL } from "@/injazi/lib/permissions";
@@ -80,7 +80,7 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
     }
   }, [open, project, subjects]);
 
-  const folder = `students/${student.id}/projects`;
+  const scope = studentScope(student.id);
   const ready = form.title.trim().length >= 2 && form.subjectId !== "";
 
   function addLink() {
@@ -261,7 +261,8 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
             <p className="iz-field__meter">لم تُضَف صورة غلاف بعد.</p>
           )}
           <Uploader
-            folder={`${folder}/covers`}
+            scope={scope}
+            kind="projects/covers"
             accept="image"
             crop
             cropAspect={4 / 3}
@@ -302,7 +303,8 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
           </div>
         )}
         <Uploader
-          folder={`${folder}/media`}
+          scope={scope}
+          kind="projects/media"
           accept="media"
           multiple
           label="رفع مرفقات"

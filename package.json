@@ -17,7 +17,8 @@
     "deploy:rules": "firebase deploy --project production --only firestore:rules,firestore:indexes,storage",
     "deploy:hosting": "firebase deploy --project production --only hosting",
     "injazi:seed": "tsx scripts/seedInjazi.ts",
-    "test:e2e": "sh scripts/test-injazi-e2e.sh"
+    "test:e2e": "sh scripts/test-injazi-e2e.sh",
+    "injazi:bootstrap": "tsx scripts/bootstrapProduction.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

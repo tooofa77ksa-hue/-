@@ -13,3 +13,15 @@ serviceAccountKey.json
 *.tsbuildinfo
 .DS_Store
 .e2e-shots/
+
+# بيانات اعتماد لا تُرفع إطلاقًا (STEP 3)
+.env.local
+.env.production
+.env.production.local
+.env.development.local
+service-account*.json
+serviceAccount*.json
+firebase-admin*.json
+credentials*.json
+*-service-account.json
+.vercel
