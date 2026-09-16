@@ -348,7 +348,7 @@ const state = {
   domainNotes: [],
   planImprovements: [],
   trash: {priorities:[], programs:[], team:[], actions:[], domainAnalysis:[], planImprovements:[]},
-  editMode: false,
+  editMode: true,
   activeDomain: null,
   activeSection: 'overview',
   selectedPriority: null,
@@ -576,7 +576,7 @@ function render(){
           <div class="actions">
             <button class="btn primary" id="btnExcel">${icon('excel')} تصدير Excel</button>
             <button class="btn" id="btnPrint">${icon('print')} طباعة / PDF</button>
-            ${MODE==='admin'?`<button class="btn ${state.editMode?'primary':'teal'}" id="btnEditToggle">${icon('lock')} ${state.editMode?'إنهاء التحرير':'تفعيل التحرير'}</button>`:''}
+            ${MODE==='admin'?`<button class="btn ${state.editMode?'teal':'primary'}" id="btnEditToggle">${icon(state.editMode?'doc':'lock')} ${state.editMode?'التحرير مفعّل — إيقاف مؤقت':'تفعيل التحرير'}</button>`:''}
             ${MODE==='admin'?`<button class="btn ghost" id="btnLogout">${icon('logout')} تسجيل خروج</button>`:''}
           </div>
           <div class="orgbar-brand"><span>الإدارة العامة للتعليم بمحافظة جدة</span><img src="${MINISTRY_LOGO}" alt="شعار وزارة التعليم"></div>
@@ -584,7 +584,7 @@ function render(){
         <div class="topbar">
           <div>
             <div class="title-row">
-              <span class="mode-pill ${MODE==='admin'?'admin':'dash'}">${icon('lock')} ${MODE==='admin'?(state.editMode?'التحرير مفعّل':'وضع الإدارة — للعرض'):'عرض فقط'}</span>
+              <span class="mode-pill ${MODE==='admin'?'admin':'dash'}">${icon(canEdit()?'doc':'lock')} ${MODE==='admin'?(state.editMode?'وضع الإدارة — التعديل متاح':'وضع الإدارة — متوقف مؤقتًا'):'عرض فقط'}</span>
               <h1>${sections.find(s=>s.id===state.activeSection)?.label || ''}</h1>
             </div>
             <div class="sub">${esc(state.meta?.schoolName||'')} — خطة التحسين للعام ${esc(state.meta?.year||'')}</div>
@@ -612,7 +612,7 @@ function render(){
   document.getElementById('btnExcel').addEventListener('click', exportExcel);
   document.getElementById('btnPrint').addEventListener('click', ()=>window.print());
   const logoutBtn = document.getElementById('btnLogout');
-  if (logoutBtn) logoutBtn.addEventListener('click', async ()=>{ await sb.auth.signOut(); state.authed=false; state.loaded=false; state.editMode=false; render(); });
+  if (logoutBtn) logoutBtn.addEventListener('click', async ()=>{ await sb.auth.signOut(); state.authed=false; state.loaded=false; state.editMode=true; render(); });
   const editToggleBtn = document.getElementById('btnEditToggle');
   if (editToggleBtn) editToggleBtn.addEventListener('click', ()=>{
     state.editMode = !state.editMode;
@@ -747,7 +747,7 @@ function renderOverview(c){
     document.querySelectorAll('#ovListEl .pri-item').forEach(el=>el.addEventListener('click',()=>{state.selectedPriority=el.dataset.id;renderOverview(c);}));
   });
   wireDomainPills(c, ()=>{ state.selectedPriority=null; renderOverview(c); });
-  renderDetail(document.getElementById('detailPane'), selected, {showAdminForm:false});
+  renderDetail(document.getElementById('detailPane'), selected, {showAdminForm:true});
 }
 
 function priListItem(p, i){
