@@ -67,7 +67,7 @@ attach(page, "public");
 await page.goto(`${BASE}/`, { waitUntil: "domcontentloaded" });
 await page.waitForTimeout(2500);
 const cards = await page.locator(".iz-student-card").count();
-ok("الصفحة العامة تعرض بطاقات الطالبات السبع", cards === 7, `العدد: ${cards}`);
+ok("الصفحة العامة تعرض بطاقات الطالبات الثماني", cards === 8, `العدد: ${cards}`);
 
 const canvas3d = await page.locator(".iz-hero-object canvas").count();
 ok("المشهد ثلاثي الأبعاد يعمل على سطح المكتب", canvas3d === 1);
@@ -108,7 +108,7 @@ await page.locator(".iz-modal input").first().fill("سارة التجريبية"
 await page.locator(".iz-modal__foot button").last().click();
 await page.waitForTimeout(2000);
 const afterCreate = await page.locator(".iz-admin-row").count();
-ok("إنشاء طالبة جديدة", afterCreate === 8, `العدد: ${afterCreate}`);
+ok("إنشاء طالبة جديدة", afterCreate === 9, `العدد: ${afterCreate}`);
 
 // --- تعديل طالبة
 const newRow = page.locator(".iz-admin-row").filter({ hasText: "سارة التجريبية" });
@@ -197,7 +197,7 @@ const confirmShown = await page.locator(".iz-confirm").count();
 await page.locator(".iz-modal__foot button").last().click();
 await page.waitForTimeout(2500);
 const afterDelete = await page.locator(".iz-admin-row").count();
-ok("حذف طالبة بنافذة تأكيد", confirmShown === 1 && afterDelete === 7, `العدد بعد الحذف: ${afterDelete}`);
+ok("حذف طالبة بنافذة تأكيد", confirmShown === 1 && afterDelete === 8, `العدد بعد الحذف: ${afterDelete}`);
 
 // ==================== 3) ولي الأمر ====================
 await logout(page);
@@ -205,8 +205,8 @@ await login(page, "parent1@injazi.local", "Parent#2026");
 await page.goto(`${BASE}/`, { waitUntil: "domcontentloaded" });
 await page.waitForTimeout(1800);
 
-// ملف ابنته (تالا) — أول بطاقة
-await page.locator(".iz-student-card").filter({ hasText: "تالا" }).locator(".iz-student-card__cta").click();
+// ملف ابنته (نادين) — أول بطاقة، وهي STUDENTS[0] في سكربت التهيئة
+await page.locator(".iz-student-card").filter({ hasText: "نادين" }).locator(".iz-student-card__cta").click();
 await page.waitForTimeout(2000);
 const canEditOwn = await page.getByRole("button", { name: /تخصيص الملف/ }).count();
 ok("ولي الأمر يرى أزرار التعديل في ملف ابنته", canEditOwn === 1);

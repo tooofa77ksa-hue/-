@@ -101,13 +101,14 @@ async function readAdminPassword(): Promise<string> {
 // ------------------------------------------------------------ البيانات
 
 const STUDENTS = [
-  { name: "تالا القريقري", themeId: "lavender", decorIcon: "Sparkles" },
-  { name: "روز الحمراني", themeId: "pink", decorIcon: "Heart" },
-  { name: "لانا الشهري", themeId: "sky", decorIcon: "Rocket" },
-  { name: "ندى السهلي", themeId: "mint", decorIcon: "Leaf" },
-  { name: "ريتاج عواجي", themeId: "peach", decorIcon: "Palette" },
   { name: "نادين الشمراني", themeId: "sunny", decorIcon: "Star" },
-  { name: "جنى الشريف", themeId: "lavender", decorIcon: "Music" },
+  { name: "لانا الشهري", themeId: "sky", decorIcon: "Rocket" },
+  { name: "تالا القريقري", themeId: "lavender", decorIcon: "Sparkles" },
+  { name: "ندى السهلي", themeId: "mint", decorIcon: "Leaf" },
+  { name: "جنى الشريف", themeId: "peach", decorIcon: "Music" },
+  { name: "ريتاج عواجي", themeId: "sunny", decorIcon: "Palette" },
+  { name: "روز الحمراني", themeId: "pink", decorIcon: "Heart" },
+  { name: "مريم باشماخ", themeId: "lavender", decorIcon: "Flower2" },
 ];
 
 const SUBJECTS = [
