@@ -1,6 +1,7 @@
 {
   "projects": {
     "default": "demo-shualat-lughati",
-    "production": "lughati165"
+    "production": "lughati165",
+    "injazi": "injazi-yahki-165"
   }
 }
