@@ -2965,3 +2965,89 @@
     transition-duration: 0.001ms !important;
   }
 }
+
+/* ==================== الإدخال الأول ====================
+   بطاقة تظهر مرة واحدة في عمر المنصة: حين تكون فارغة تمامًا. حضورها
+   أقوى من بقية البطاقات عمدًا (حافة مضيئة ووهج) لأنها الفعل الوحيد
+   المطلوب على الشاشة حينها.
+*/
+.iz-firstrun {
+  position: relative;
+  display: flex;
+  gap: var(--iz-s-5);
+  align-items: flex-start;
+  margin-block-end: var(--iz-s-6);
+  padding: var(--iz-s-5);
+  border-radius: var(--iz-r-lg);
+  background: linear-gradient(170deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--iz-line-strong);
+  box-shadow: var(--iz-sh-2), 0 0 60px -30px var(--iz-accent);
+  overflow: hidden;
+}
+
+.iz-firstrun::before {
+  content: "";
+  position: absolute;
+  inset: -1px -1px auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--iz-line-strong), transparent);
+}
+
+.iz-firstrun__mark {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--iz-r-md);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--iz-line);
+  color: var(--iz-accent);
+  box-shadow: 0 0 34px -8px var(--iz-accent);
+}
+
+.iz-firstrun__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.iz-firstrun__title {
+  margin: 0;
+  font-family: var(--iz-font-display);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.iz-firstrun__body {
+  margin: var(--iz-s-2) 0 0;
+  color: var(--iz-ink-soft);
+  font-size: 14.5px;
+}
+
+.iz-firstrun__list {
+  list-style: none;
+  margin: var(--iz-s-4) 0;
+  padding: 0;
+  display: grid;
+  gap: var(--iz-s-2);
+  font-size: 14px;
+  color: var(--iz-ink-soft);
+}
+
+.iz-firstrun__list li {
+  display: flex;
+  align-items: center;
+  gap: var(--iz-s-2);
+}
+
+.iz-firstrun__list svg {
+  flex: none;
+  color: var(--iz-success);
+}
+
+@media (max-width: 640px) {
+  .iz-firstrun {
+    flex-direction: column;
+    gap: var(--iz-s-4);
+  }
+}
