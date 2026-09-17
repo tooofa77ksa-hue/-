@@ -5,6 +5,7 @@ import { useGameSettings } from "./useGameData";
 import { useBranding } from "@/lib/useBranding";
 import { AudioControls } from "./AudioControls";
 import { RocketModeIcon, SquishyModeIcon, MagicGateModeIcon } from "@/components/ModeIcons";
+import { SparkField } from "@/components/SparkField";
 import type { ComponentType } from "react";
 import type { GameMode } from "@/types/models";
 
@@ -31,6 +32,7 @@ export function ModeSelect() {
 
   return (
     <div className="mode-select">
+      <SparkField />
       <div className="mode-select__audio">
         <AudioControls />
       </div>

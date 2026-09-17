@@ -54,6 +54,60 @@
   }
 }
 
+/* شرر/جمرات دافئة تطفو للأعلى وتخفت - زخرفة CSS بحتة خفيفة جدًا على
+   الأداء (لا Canvas، لا JS متكرر)، بنفس تقنية خطواتي لكن بألوان ذهبية/
+   برتقالية تنسجم مع توهج الشُعلة بدل أزرق بارد لا يناسب الهوية. */
+.spark-field {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.spark-field__dot {
+  position: absolute;
+  bottom: -10px;
+  border-radius: 50%;
+  opacity: 0;
+  animation-name: sparkRise;
+  animation-timing-function: ease-in;
+  animation-iteration-count: infinite;
+}
+
+.spark-field__dot--gold {
+  background: radial-gradient(circle, #fff3c4 0%, var(--game-gold) 70%);
+  box-shadow: 0 0 6px rgba(255, 203, 61, 0.7);
+}
+
+.spark-field__dot--orange {
+  background: radial-gradient(circle, #ffd9b3 0%, var(--game-accent-1) 70%);
+  box-shadow: 0 0 6px rgba(255, 138, 61, 0.7);
+}
+
+@keyframes sparkRise {
+  0% {
+    transform: translateY(0) scale(0.6);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.9;
+  }
+  85% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(-70vh) scale(1);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spark-field {
+    display: none;
+  }
+}
+
 .mode-select__title {
   position: relative;
   color: var(--game-ink);
@@ -76,8 +130,13 @@
 
 .mode-card {
   position: relative;
-  background: var(--game-panel);
-  border: none;
+  /* تأثير زجاجي خفيف (Glassmorphism) - شفافية أعلى من --game-panel
+     الأصلي + تمويه للخلفية خلف البطاقة، فقط 3 بطاقات بهذه الشاشة
+     فلا كلفة أداء ملحوظة على الجوال. */
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
   border-top: 5px solid var(--mode-accent, var(--game-accent-1));
   border-radius: var(--radius-lg);
   padding: 26px 12px 22px;
