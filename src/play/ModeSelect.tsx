@@ -4,12 +4,14 @@ import { GAME_MODE_LABELS } from "@/game/modes/registry";
 import { useGameSettings } from "./useGameData";
 import { useBranding } from "@/lib/useBranding";
 import { AudioControls } from "./AudioControls";
+import { RocketModeIcon, SquishyModeIcon, MagicGateModeIcon } from "@/components/ModeIcons";
+import type { ComponentType } from "react";
 import type { GameMode } from "@/types/models";
 
-const MODE_EMOJI: Record<GameMode, string> = {
-  rocket_mission: "🚀",
-  squishy_treasure: "💎",
-  magic_gate: "🌈",
+const MODE_ICON: Record<GameMode, ComponentType> = {
+  rocket_mission: RocketModeIcon,
+  squishy_treasure: SquishyModeIcon,
+  magic_gate: MagicGateModeIcon,
 };
 
 const ALL_MODES: GameMode[] = ["rocket_mission", "squishy_treasure", "magic_gate"];
@@ -34,16 +36,21 @@ export function ModeSelect() {
       </div>
       <h1 className="mode-select__title">{branding.welcomeMessage}</h1>
       <div className="mode-select__grid">
-        {activeModes.map((mode) => (
-          <button
-            key={mode}
-            className={`mode-card mode-card--${mode} ${leaving === mode ? "is-leaving" : ""}`}
-            onClick={() => handlePick(mode)}
-          >
-            <span className="mode-card__emoji">{MODE_EMOJI[mode]}</span>
-            <span className="mode-card__label">{GAME_MODE_LABELS[mode]}</span>
-          </button>
-        ))}
+        {activeModes.map((mode) => {
+          const Icon = MODE_ICON[mode];
+          return (
+            <button
+              key={mode}
+              className={`mode-card mode-card--${mode} ${leaving === mode ? "is-leaving" : ""}`}
+              onClick={() => handlePick(mode)}
+            >
+              <span className="mode-card__emoji">
+                <Icon />
+              </span>
+              <span className="mode-card__label">{GAME_MODE_LABELS[mode]}</span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
