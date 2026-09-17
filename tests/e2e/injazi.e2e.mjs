@@ -72,12 +72,59 @@ ok("الصفحة العامة تعرض بطاقات الطالبات الثما�
 const canvas3d = await page.locator(".iz-hero-object canvas").count();
 ok("المشهد ثلاثي الأبعاد يعمل على سطح المكتب", canvas3d === 1);
 
-// أطول رحلة = آخر تأخير (0.9) + مدّة الطيران (4.2) = 5.1 ثانية،
-// والهامش هنا يغطّي زمن التركيب قبل الإقلاع.
-await page.waitForTimeout(6500);
+/*
+  انتظار حتمي بدل رقم ثابت: أطول رحلة 5.1 ثانية، لكن زمن التركيب وحركة
+  الخروج يضافان إليها ويختلفان من جهاز لآخر — والرقم الثابت يجعل
+  الاختبار يرسب على التباطؤ لا على العطل. المطلوب إثباته أنها تختفي،
+  والانتظار حتى الاختفاء بمهلة سخية هو ما يثبته.
+*/
+let butterfliesCleared = true;
+try {
+  await page.locator(".iz-butterflies__flight").first().waitFor({ state: "detached", timeout: 12000 });
+} catch {
+  butterfliesCleared = false;
+}
 const butterflies = await page.locator(".iz-butterflies__flight").count();
-ok("الفراشات تختفي ولا تبقى معلّقة", butterflies === 0);
+ok("الفراشات تختفي ولا تبقى معلّقة", butterfliesCleared && butterflies === 0, `المتبقّي: ${butterflies}`);
 await page.screenshot({ path: `${OUT}/e2e-01-home.png` });
+
+// --- الإنشودة: الملف يُقدَّم فعلًا، ويُشغَّل ويُكتَم ويتوقّف
+const anthem = await page.evaluate(async () => {
+  const res = await fetch("/audio/injazi/nasheed.mp3", { method: "HEAD" });
+  return { status: res.status, type: res.headers.get("content-type") };
+});
+ok(
+  "ملف الإنشودة يُقدَّم بنوعه الصحيح",
+  anthem.status === 200 && anthem.type === "audio/mpeg",
+  `${anthem.status} · ${anthem.type}`,
+);
+
+await page.locator(".iz-music__btn").click();
+await page.waitForTimeout(2500);
+const playing = await page.locator(".iz-music audio").evaluate((el) => ({
+  paused: el.paused,
+  t: el.currentTime,
+}));
+ok(
+  "الإنشودة تبدأ فعلًا بعد الضغط",
+  playing.paused === false && playing.t > 0.3,
+  `الثانية: ${playing.t.toFixed(1)}`,
+);
+
+await page.locator(".iz-music__more").click();
+await page.waitForTimeout(500);
+const muted = await page.locator(".iz-music audio").evaluate((el) => el.muted);
+await page.locator(".iz-music__more").click();
+await page.waitForTimeout(400);
+const unmuted = await page.locator(".iz-music audio").evaluate((el) => el.muted);
+ok("زر الكتم يكتم ويُلغي الكتم", muted === true && unmuted === false);
+
+await page.locator(".iz-music__btn").click();
+await page.waitForTimeout(700);
+ok(
+  "زر الإيقاف يوقف الإنشودة",
+  (await page.locator(".iz-music audio").evaluate((el) => el.paused)) === true,
+);
 
 // بحث
 await page.locator(".iz-search__input").first().fill("روز");
