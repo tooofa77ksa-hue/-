@@ -81,6 +81,18 @@ a{color:inherit}
 .mode-pill.admin{background:var(--gold);color:#3a3320}
 
 .main{flex:1;min-width:0}
+.clock-bar{
+  background:var(--navy);color:#fff;padding:8px 26px;
+  display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap;
+  font-size:12.5px;font-weight:700;
+}
+.clock-item{display:flex;align-items:center;gap:8px}
+.clock-label{opacity:.75;font-weight:600}
+.clock-time{font-variant-numeric:tabular-nums;letter-spacing:.5px;font-size:13.5px}
+@media (max-width:640px){
+  .clock-bar{padding:8px 14px;gap:10px 20px;font-size:11.5px}
+  .clock-time{font-size:12.5px}
+}
 .orgbar{
   background:var(--surface);border-bottom:1px solid var(--border);padding:12px 26px;
   display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
@@ -263,7 +275,7 @@ tbody tr:hover{background:var(--surface-2)}
 
 .print-header{display:none}
 @media print{
-  .sidebar,.orgbar,.gate,.topbar{display:none!important}
+  .sidebar,.orgbar,.gate,.topbar,.clock-bar{display:none!important}
   .shell{display:block}
   .main{width:100%}
   .content{padding:0;max-width:none}
@@ -336,6 +348,7 @@ const state = {
   domainNotes: [],
   planImprovements: [],
   trash: {priorities:[], programs:[], team:[], actions:[], domainAnalysis:[], planImprovements:[]},
+  editMode: true,
   activeDomain: null,
   activeSection: 'overview',
   selectedPriority: null,
@@ -344,6 +357,7 @@ const state = {
   showArchived: false,
 };
 
+function canEdit(){ return MODE==='admin' && state.editMode; }
 const root = document.getElementById('root');
 const esc = s => (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
@@ -532,7 +546,7 @@ function render(){
     {id:'evidence', label:'الشواهد', ic:'list'},
     {id:'team', label:'فريق العمل', ic:'users'},
     {id:'faq', label:'الأسئلة الشائعة', ic:'help'},
-    ...(MODE==='admin' ? [
+    ...(canEdit() ? [
       {id:'settings', label:'الإعدادات', ic:'settings'},
       {id:'trash', label:'سلة المحذوفات', ic:'trash'},
     ] : []),
@@ -554,10 +568,15 @@ function render(){
         </div>
       </aside>
       <main class="main">
+        <div class="clock-bar" id="clockBar">
+          <div class="clock-item"><span class="clock-label">توقيت جدة — السعودية</span><span class="clock-time" id="clockSA">--:--:--</span></div>
+          <div class="clock-item"><span class="clock-label">التوقيت العالمي UTC</span><span class="clock-time" id="clockUTC">--:--:--</span></div>
+        </div>
         <div class="orgbar">
           <div class="actions">
             <button class="btn primary" id="btnExcel">${icon('excel')} تصدير Excel</button>
             <button class="btn" id="btnPrint">${icon('print')} طباعة / PDF</button>
+            ${MODE==='admin'?`<button class="btn ${state.editMode?'teal':'primary'}" id="btnEditToggle">${icon(state.editMode?'doc':'lock')} ${state.editMode?'التحرير مفعّل — إيقاف مؤقت':'تفعيل التحرير'}</button>`:''}
             ${MODE==='admin'?`<button class="btn ghost" id="btnLogout">${icon('logout')} تسجيل خروج</button>`:''}
           </div>
           <div class="orgbar-brand"><span>الإدارة العامة للتعليم بمحافظة جدة</span><img src="${MINISTRY_LOGO}" alt="شعار وزارة التعليم"></div>
@@ -565,7 +584,7 @@ function render(){
         <div class="topbar">
           <div>
             <div class="title-row">
-              <span class="mode-pill ${MODE==='admin'?'admin':'dash'}">${icon('lock')} ${MODE==='admin'?'وضع الإدارة':'عرض فقط'}</span>
+              <span class="mode-pill ${MODE==='admin'?'admin':'dash'}">${icon(canEdit()?'doc':'lock')} ${MODE==='admin'?(state.editMode?'وضع الإدارة — التعديل متاح':'وضع الإدارة — متوقف مؤقتًا'):'عرض فقط'}</span>
               <h1>${sections.find(s=>s.id===state.activeSection)?.label || ''}</h1>
             </div>
             <div class="sub">${esc(state.meta?.schoolName||'')} — خطة التحسين للعام ${esc(state.meta?.year||'')}</div>
@@ -593,10 +612,30 @@ function render(){
   document.getElementById('btnExcel').addEventListener('click', exportExcel);
   document.getElementById('btnPrint').addEventListener('click', ()=>window.print());
   const logoutBtn = document.getElementById('btnLogout');
-  if (logoutBtn) logoutBtn.addEventListener('click', async ()=>{ await sb.auth.signOut(); state.authed=false; state.loaded=false; render(); });
+  if (logoutBtn) logoutBtn.addEventListener('click', async ()=>{ await sb.auth.signOut(); state.authed=false; state.loaded=false; state.editMode=true; render(); });
+  const editToggleBtn = document.getElementById('btnEditToggle');
+  if (editToggleBtn) editToggleBtn.addEventListener('click', ()=>{
+    state.editMode = !state.editMode;
+    if (!canEdit() && ['settings','trash'].includes(state.activeSection)) state.activeSection = 'overview';
+    render();
+  });
+  updateClock();
 
   renderContent();
 }
+
+function updateClock(){
+  const saEl = document.getElementById('clockSA');
+  const utcEl = document.getElementById('clockUTC');
+  if (!saEl || !utcEl) return;
+  const now = new Date();
+  const saTime = new Intl.DateTimeFormat('ar-SA', {timeZone:'Asia/Riyadh', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false, numberingSystem:'latn'}).format(now);
+  const saDate = new Intl.DateTimeFormat('ar-SA', {timeZone:'Asia/Riyadh', weekday:'long', day:'numeric', month:'long', numberingSystem:'latn', calendar:'gregory'}).format(now);
+  const utcTime = new Intl.DateTimeFormat('ar-SA', {timeZone:'UTC', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false, numberingSystem:'latn'}).format(now);
+  saEl.textContent = `${saTime} — ${saDate}`;
+  utcEl.textContent = utcTime;
+}
+setInterval(updateClock, 1000);
 
 function renderContent(){
   const c = document.getElementById('content');
@@ -708,7 +747,7 @@ function renderOverview(c){
     document.querySelectorAll('#ovListEl .pri-item').forEach(el=>el.addEventListener('click',()=>{state.selectedPriority=el.dataset.id;renderOverview(c);}));
   });
   wireDomainPills(c, ()=>{ state.selectedPriority=null; renderOverview(c); });
-  renderDetail(document.getElementById('detailPane'), selected, {showAdminForm:false});
+  renderDetail(document.getElementById('detailPane'), selected, {showAdminForm:true});
 }
 
 function priListItem(p, i){
@@ -735,7 +774,7 @@ function overviewSchoolInfoCard(){
   ].filter(([,v])=>v);
   return `
     <div class="card" style="margin-top:18px">
-      <div class="card-hd"><h3>بيانات المدرسة ونتائج التقويم</h3>${MODE==='admin'?`<button class="btn sm" data-goto="settings">تعديل من الإعدادات</button>`:''}</div>
+      <div class="card-hd"><h3>بيانات المدرسة ونتائج التقويم</h3>${canEdit()?`<button class="btn sm" data-goto="settings">تعديل من الإعدادات</button>`:''}</div>
       <div class="card-bd">
         ${badges.length ? `<div class="domain-row" style="margin-bottom:14px">${badges.map(([l,v])=>`<span class="chip low" style="font-weight:700">${esc(l)}: ${esc(v)}</span>`).join('')}</div>` : ''}
         ${Object.keys(staff).length ? `<div class="metric-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px">
@@ -774,7 +813,7 @@ function renderPriorities(c){
       <div id="detailPane"></div>
       <div class="card">
         <div class="card-hd"><h3>${state.showArchived?'المؤشرات المؤرشفة':'المؤشرات'} (${list.length})</h3>
-          ${MODE==='admin' && archivedCount>0 ? `<button class="btn sm ${state.showArchived?'primary':''}" id="toggleArchivedBtn">${icon('archive')} ${state.showArchived?'عرض النشط':'عرض الأرشيف ('+archivedCount+')'}</button>` : ''}
+          ${canEdit() && archivedCount>0 ? `<button class="btn sm ${state.showArchived?'primary':''}" id="toggleArchivedBtn">${icon('archive')} ${state.showArchived?'عرض النشط':'عرض الأرشيف ('+archivedCount+')'}</button>` : ''}
         </div>
         <div class="card-bd">
           <div class="search">${icon('search')}<input id="priSearch" placeholder="البحث في المؤشرات…"></div>
@@ -836,20 +875,20 @@ function renderDetail(el, p, opts){
             ${acts.map(a=>`<li class="action-row" data-action-id="${a.id}">
               <div class="m">${esc(a.method)}</div>
               <div class="meta"><span>📅 ${esc(a.dueDate)}</span><span>👤 ${esc(a.responsible)}</span></div>
-              ${MODE==='admin'?`<div class="actions" style="margin-top:6px"><button type="button" class="btn sm ghost" data-edit-action="${a.id}">تعديل</button><button type="button" class="btn sm ghost" data-delete-action="${a.id}" style="color:#a33">${icon('trash')} حذف</button></div>`:''}
+              ${canEdit()?`<div class="actions" style="margin-top:6px"><button type="button" class="btn sm ghost" data-edit-action="${a.id}">تعديل</button><button type="button" class="btn sm ghost" data-delete-action="${a.id}" style="color:#a33">${icon('trash')} حذف</button></div>`:''}
             </li>`).join('') || '<li class="empty">لا توجد إجراءات مرتبطة موثقة</li>'}
           </ul>
-          ${MODE==='admin'?`<button type="button" class="btn sm teal" id="addActionBtn" style="margin-top:10px">${icon('plus')} إضافة إجراء جديد</button>`:''}
+          ${canEdit()?`<button type="button" class="btn sm teal" id="addActionBtn" style="margin-top:10px">${icon('plus')} إضافة إجراء جديد</button>`:''}
           <div id="actionModal"></div>
         </div>
 
-        ${opts.showAdminForm && MODE==='admin' ? adminPriorityForm(p) : ''}
+        ${opts.showAdminForm && canEdit() ? adminPriorityForm(p) : ''}
       </div>
     </div>
   `;
   const toggleBtn = document.getElementById('toggleActionsBtn');
   if (toggleBtn) toggleBtn.addEventListener('click', ()=>{ document.getElementById('actionsWrap').classList.toggle('hidden'); });
-  if (MODE==='admin'){
+  if (canEdit()){
     document.querySelectorAll('[data-edit-action]').forEach(b=>b.addEventListener('click', ()=>{
       openActionEditor(state.actions.find(a=>a.id===b.dataset.editAction), p, el);
     }));
@@ -866,7 +905,7 @@ function renderDetail(el, p, opts){
     const addActionBtn = document.getElementById('addActionBtn');
     if (addActionBtn) addActionBtn.addEventListener('click', ()=>{ openActionEditor(null, p, el); });
   }
-  if (opts.showAdminForm && MODE==='admin') wireAdminPriorityForm(p);
+  if (opts.showAdminForm && canEdit()) wireAdminPriorityForm(p);
 }
 
 function openActionEditor(a, p, el){
@@ -1000,13 +1039,13 @@ function renderPrograms(c){
   c.innerHTML = `
     <div class="card">
       <div class="card-hd"><h3>${state.showArchived?'البرامج المؤرشفة':'البرامج'} (${list.length})</h3>
-        ${MODE==='admin' && archivedCount>0 ? `<button class="btn sm ${state.showArchived?'primary':''}" id="toggleArchivedBtn">${icon('archive')} ${state.showArchived?'عرض النشط':'عرض الأرشيف ('+archivedCount+')'}</button>` : ''}
+        ${canEdit() && archivedCount>0 ? `<button class="btn sm ${state.showArchived?'primary':''}" id="toggleArchivedBtn">${icon('archive')} ${state.showArchived?'عرض النشط':'عرض الأرشيف ('+archivedCount+')'}</button>` : ''}
       </div>
       <div class="card-bd table-wrap">
         <table>
           <thead><tr>
             <th>اسم البرنامج / المشروع</th><th>المجال</th><th>تاريخ التنفيذ</th><th>التنفيذ</th><th>مستوى الإنجاز</th><th>أداة التقويم</th>
-            ${MODE==='admin'?'<th>تعديل</th>':''}
+            ${canEdit()?'<th>تعديل</th>':''}
           </tr></thead>
           <tbody>
             ${list.map(p=>`<tr data-id="${p.id}">
@@ -1016,7 +1055,7 @@ function renderPrograms(c){
               <td>${executedChip(p.executed)}</td>
               <td>${achievementChip(p.achievementLevel)}</td>
               <td>${esc(p.evaluationTool||'—')}</td>
-              ${MODE==='admin'?`<td><button class="btn sm" data-edit="${p.id}">تعديل</button></td>`:''}
+              ${canEdit()?`<td><button class="btn sm" data-edit="${p.id}">تعديل</button></td>`:''}
             </tr>`).join('') || `<tr><td colspan="7" class="empty">لا توجد برامج ضمن هذا المجال</td></tr>`}
           </tbody>
         </table>
@@ -1024,7 +1063,7 @@ function renderPrograms(c){
     </div>
     <div id="programModal"></div>
   `;
-  if (MODE==='admin'){
+  if (canEdit()){
     c.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>openProgramEditor(list.find(p=>p.id===b.dataset.edit))));
     const toggleArchivedBtn = document.getElementById('toggleArchivedBtn');
     if (toggleArchivedBtn) toggleArchivedBtn.addEventListener('click', ()=>{ state.showArchived=!state.showArchived; renderPrograms(c); });
@@ -1194,7 +1233,7 @@ function evidenceCard(p){
       `<div class="qr-box" id="qr-${p.id}" title="اضغطي لفتح رابط الشاهد"></div>`}
     <div class="evidence-actions">
       ${p.evidenceType!=='text' ? `<a href="${esc(p.evidenceUrl)}" target="_blank" rel="noopener" class="btn sm">${icon('doc')} فتح الرابط</a>` : ''}
-      ${MODE==='admin' ? `<button type="button" class="btn sm ghost" data-remove-ev="${p.id}" title="حذف الشاهد">${icon('trash')} حذف الشاهد</button>` : ''}
+      ${canEdit() ? `<button type="button" class="btn sm ghost" data-remove-ev="${p.id}" title="حذف الشاهد">${icon('trash')} حذف الشاهد</button>` : ''}
     </div>
   </div>`;
 }
@@ -1205,14 +1244,14 @@ function renderEvidence(c){
     <div class="card">
       <div class="card-hd"><h3>الشواهد الموثّقة (${withEvidence.length})</h3></div>
       <div class="card-bd">
-        ${MODE==='admin' ? evidenceAddForm() : ''}
+        ${canEdit() ? evidenceAddForm() : ''}
         <div class="evidence-grid">
           ${withEvidence.map(p=>evidenceCard(p)).join('') || '<div class="empty">لا توجد شواهد موثّقة بعد لأي مؤشر</div>'}
         </div>
       </div>
     </div>
   `;
-  if (MODE==='admin'){
+  if (canEdit()){
     wireEvidenceAddForm();
     c.querySelectorAll('[data-remove-ev]').forEach(b=>b.addEventListener('click', async ()=>{
       const id = b.dataset.removeEv;
@@ -1242,7 +1281,7 @@ function renderQRCodes(list){
 function renderTeam(c){
   c.innerHTML = `
     <div class="card"><div class="card-bd">
-      ${MODE==='admin' ? `
+      ${canEdit() ? `
       <form id="teamAddForm" style="margin-bottom:20px;padding-bottom:18px;border-bottom:1px dashed var(--border)">
         <h3 style="margin:0 0 12px;font-size:14.5px">إضافة عضو جديد لفريق العمل</h3>
         <div class="form-grid">
@@ -1253,7 +1292,7 @@ function renderTeam(c){
         <div class="save-bar"><button type="submit" class="btn teal">${icon('plus')} إضافة العضو</button><span class="save-msg" id="teamSaveMsg"></span></div>
       </form>` : ''}
       <div class="team-grid">
-        ${state.team.map(t=>MODE==='admin' ? `<div class="team-card" data-id="${t.id}">
+        ${state.team.map(t=>canEdit() ? `<div class="team-card" data-id="${t.id}">
           <div class="f-field"><label>الاسم</label><input data-team-field="name" data-id="${t.id}" value="${esc(t.name)}"></div>
           <div class="f-field"><label>الوصف الوظيفي</label><input data-team-field="role" data-id="${t.id}" value="${esc(t.role)}"></div>
           <div class="f-field"><label>المهمة</label><input data-team-field="task" data-id="${t.id}" value="${esc(t.task)}"></div>
@@ -1267,7 +1306,7 @@ function renderTeam(c){
       </div>
     </div></div>
   `;
-  if (MODE==='admin'){
+  if (canEdit()){
     const form = document.getElementById('teamAddForm');
     form.addEventListener('submit', async e=>{
       e.preventDefault();
@@ -1436,7 +1475,7 @@ function renderAnalysis(c){
   c.innerHTML = `
     <div class="card">
       <div class="card-hd"><h3>تحليل واقع مجالات الممارسات الإشرافية (${list.length})</h3>
-        ${MODE==='admin' ? `<button class="btn sm teal" id="addAnalysisBtn">${icon('plus')} إضافة عنصر</button>` : ''}
+        ${canEdit() ? `<button class="btn sm teal" id="addAnalysisBtn">${icon('plus')} إضافة عنصر</button>` : ''}
       </div>
       <div class="card-bd">
         ${Object.keys(byDomain).length ? Object.keys(byDomain).map(dom=>{
@@ -1445,7 +1484,7 @@ function renderAnalysis(c){
           <div style="margin-bottom:22px">
             <h4 style="margin:0 0 10px;font-size:14px;color:var(--blue)">${esc(dom)}</h4>
             <div class="table-wrap"><table>
-              <thead><tr><th>الرمز</th><th>المؤشر</th><th>الإطار الموجه</th><th>نقطة قوة</th><th>نقطة ضعف</th>${MODE==='admin'?'<th>تعديل</th>':''}</tr></thead>
+              <thead><tr><th>الرمز</th><th>المؤشر</th><th>الإطار الموجه</th><th>نقطة قوة</th><th>نقطة ضعف</th>${canEdit()?'<th>تعديل</th>':''}</tr></thead>
               <tbody>
                 ${byDomain[dom].map(a=>`<tr data-id="${a.id}">
                   <td class="tabular">${esc(a.code)}</td>
@@ -1453,12 +1492,12 @@ function renderAnalysis(c){
                   <td>${esc(a.framework||'—')}</td>
                   <td class="tabular" style="color:#1a8a5f">${esc(a.strengthPct||'—')}</td>
                   <td class="tabular" style="color:#b23">${esc(a.weaknessPct||'—')}</td>
-                  ${MODE==='admin'?`<td><button class="btn sm" data-edit-analysis="${a.id}">تعديل</button></td>`:''}
+                  ${canEdit()?`<td><button class="btn sm" data-edit-analysis="${a.id}">تعديل</button></td>`:''}
                 </tr>`).join('')}
               </tbody>
             </table></div>
             ${note && note.notesText ? `<div class="field" style="margin-top:10px"><label>الملاحظات والمقترحات</label><div class="val">${esc(note.notesText)}</div></div>` : ''}
-            ${MODE==='admin' ? `<button type="button" class="btn sm ghost" data-edit-note="${dom}" style="margin-top:8px">${icon('doc')} تعديل الملاحظات</button>` : ''}
+            ${canEdit() ? `<button type="button" class="btn sm ghost" data-edit-note="${dom}" style="margin-top:8px">${icon('doc')} تعديل الملاحظات</button>` : ''}
           </div>`;
         }).join('') : '<div class="empty">لا توجد بيانات تحليل ضمن هذا المجال</div>'}
       </div>
@@ -1467,7 +1506,7 @@ function renderAnalysis(c){
     <div id="analysisModal"></div>
   `;
   wireDomainPills(c, ()=>renderAnalysis(c));
-  if (MODE==='admin'){
+  if (canEdit()){
     c.querySelectorAll('[data-edit-analysis]').forEach(b=>b.addEventListener('click', ()=>{
       openAnalysisEditor(state.domainAnalysis.find(a=>a.id===b.dataset.editAnalysis), c);
     }));
@@ -1589,11 +1628,11 @@ function renderImprovement(c){
   c.innerHTML = `
     <div class="card">
       <div class="card-hd"><h3>ثامنًا: تحسين الخطة وتطويرها (${list.length})</h3>
-        ${MODE==='admin' ? `<button class="btn sm teal" id="addImprovementBtn">${icon('plus')} إضافة عنصر</button>` : ''}
+        ${canEdit() ? `<button class="btn sm teal" id="addImprovementBtn">${icon('plus')} إضافة عنصر</button>` : ''}
       </div>
       <div class="card-bd table-wrap">
         <table>
-          <thead><tr><th>اسم البرنامج</th><th>مستوى التنفيذ</th><th>أسباب تدني التنفيذ</th><th>إجراءات تحسين الخطة</th><th>المسؤول البديل</th><th>مسؤول المتابعة</th>${MODE==='admin'?'<th>تعديل</th>':''}</tr></thead>
+          <thead><tr><th>اسم البرنامج</th><th>مستوى التنفيذ</th><th>أسباب تدني التنفيذ</th><th>إجراءات تحسين الخطة</th><th>المسؤول البديل</th><th>مسؤول المتابعة</th>${canEdit()?'<th>تعديل</th>':''}</tr></thead>
           <tbody>
             ${list.map(p=>`<tr data-id="${p.id}">
               <td>${esc(p.programName||'—')}</td>
@@ -1602,7 +1641,7 @@ function renderImprovement(c){
               <td>${esc(p.improvementActions||'—')}</td>
               <td>${esc(p.alternateResponsible||'—')}</td>
               <td>${esc(p.followupResponsible||'—')}</td>
-              ${MODE==='admin'?`<td><button class="btn sm" data-edit-imp="${p.id}">تعديل</button></td>`:''}
+              ${canEdit()?`<td><button class="btn sm" data-edit-imp="${p.id}">تعديل</button></td>`:''}
             </tr>`).join('') || `<tr><td colspan="7" class="empty">لا توجد عناصر بعد — أضيفي أول عنصر من زر "إضافة عنصر"</td></tr>`}
           </tbody>
         </table>
@@ -1610,7 +1649,7 @@ function renderImprovement(c){
     </div>
     <div id="improvementModal"></div>
   `;
-  if (MODE==='admin'){
+  if (canEdit()){
     c.querySelectorAll('[data-edit-imp]').forEach(b=>b.addEventListener('click', ()=>{
       openImprovementEditor(state.planImprovements.find(p=>p.id===b.dataset.editImp), c);
     }));
