@@ -16,6 +16,14 @@
   --brand: #ec5c8d;
   --font-display: "Baloo Bhaijaan 2", "Tajawal", sans-serif;
   --font-body: "Tajawal", sans-serif;
+
+  /* لوحة "عالم فضائي طفولي" - خلفية الصفحة فقط، الألوان الوظيفية
+     (أيقونات الأقسام، الأزرار) تبقى كما هي أعلاه بدون تغيير. */
+  --space-sky: #eaf3ff;
+  --space-lilac: #f1ebfb;
+  --space-pink: #fdeef6;
+  --card-glass: rgba(255, 255, 255, 0.72);
+  --card-glass-border: rgba(255, 255, 255, 0.55);
 }
 
 * {
@@ -31,7 +39,7 @@ body,
 body {
   margin: 0;
   font-family: var(--font-body);
-  background: var(--paper);
+  background: linear-gradient(160deg, var(--space-sky) 0%, var(--space-lilac) 45%, var(--space-pink) 100%);
   color: var(--ink);
   direction: rtl;
 }
@@ -57,7 +65,7 @@ textarea {
   padding: 10px 14px;
   font-size: 15px;
   width: 100%;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.88);
 }
 
 input:focus-visible,
@@ -77,19 +85,24 @@ a:focus-visible {
 
 /* ---------- Shell ---------- */
 .shell {
+  position: relative;
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  background: radial-gradient(1200px 400px at 15% -10%, var(--cloud), transparent), var(--paper);
+  overflow-x: clip;
 }
 
 .shell__header {
+  position: relative;
+  z-index: 5;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 14px 24px;
-  background: #fff;
-  border-bottom: 1px solid #f6e7ee;
+  background: var(--card-glass);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--card-glass-border);
 }
 
 .shell__brand {
@@ -129,6 +142,8 @@ a:focus-visible {
 }
 
 .shell__main {
+  position: relative;
+  z-index: 5;
   flex: 1;
   width: 100%;
   max-width: 1040px;
@@ -144,10 +159,96 @@ a:focus-visible {
   height: 48px;
   border-radius: 50%;
   border: none;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.88);
   box-shadow: 0 4px 14px rgba(60, 20, 40, 0.18);
   font-size: 20px;
   z-index: 20;
+}
+
+/* ---------- خلفية النجوم المتلألئة ---------- */
+.star-field {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.star-field__dot {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 0 4px 1px rgba(255, 255, 255, 0.8);
+  animation: star-twinkle 4s ease-in-out infinite;
+}
+
+@keyframes star-twinkle {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+/* ---------- الصاروخ الزخرفي العائم ---------- */
+.rocket-decoration {
+  position: absolute;
+  top: 90px;
+  left: -10px;
+  width: 64px;
+  height: auto;
+  z-index: 1;
+  opacity: 0.5;
+  pointer-events: none;
+  animation: rocket-float 6s ease-in-out infinite;
+}
+
+@media (min-width: 640px) {
+  .rocket-decoration {
+    top: 70px;
+    left: 24px;
+    width: 84px;
+    opacity: 0.65;
+  }
+}
+
+@keyframes rocket-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-4deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(2deg);
+  }
+}
+
+.rocket-decoration__flame {
+  animation: rocket-flame 0.7s ease-in-out infinite alternate;
+  transform-origin: 50px 108px;
+}
+
+@keyframes rocket-flame {
+  from {
+    transform: scaleY(0.85);
+  }
+  to {
+    transform: scaleY(1.1);
+  }
+}
+
+/* حركة مستمرة خفيفة فقط للعناصر الخلفية الزخرفية (النجوم/الصاروخ) -
+   تُلغى بالكامل لمن تفعّل "تقليل الحركة"، بلا أي أثر على تفاعل الصفحة. */
+@media (prefers-reduced-motion: reduce) {
+  .star-field__dot,
+  .rocket-decoration,
+  .rocket-decoration__flame {
+    animation: none !important;
+  }
+  .star-field__dot {
+    opacity: 0.5;
+  }
 }
 
 /* ---------- Login ---------- */
@@ -159,7 +260,10 @@ a:focus-visible {
 }
 
 .login-card {
-  background: #fff;
+  background: var(--card-glass);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--card-glass-border);
   border-radius: var(--card-radius);
   padding: 38px 32px;
   width: 100%;
@@ -245,7 +349,7 @@ a:focus-visible {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.88);
   border: 1.5px solid #f5e3ea;
   border-radius: 16px;
   padding: 10px 12px;
@@ -306,7 +410,9 @@ a:focus-visible {
   display: flex;
   gap: 18px;
   align-items: center;
-  background: #fff;
+  background: var(--card-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-radius: var(--card-radius);
   padding: 20px;
   box-shadow: 0 10px 30px rgba(60, 20, 40, 0.06);
@@ -342,7 +448,7 @@ a:focus-visible {
 
 .profile-card__photo-btn {
   font-size: 10px;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.88);
   border: 1px solid #eee;
   border-radius: 999px;
   padding: 3px 9px;
@@ -397,7 +503,7 @@ a:focus-visible {
 .stat-chip {
   flex: 1;
   min-width: 90px;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.88);
   border-radius: 16px;
   padding: 12px 10px;
   text-align: center;
@@ -440,7 +546,7 @@ a:focus-visible {
 
 .portfolio__about-fields {
   margin-top: 16px;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.88);
   border-radius: var(--card-radius);
   padding: 18px;
   display: flex;
@@ -496,7 +602,7 @@ a:focus-visible {
 }
 
 .add-item-form {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.88);
   border-radius: 18px;
   padding: 14px;
   display: flex;
@@ -513,7 +619,7 @@ a:focus-visible {
 .add-item-form__mode button {
   flex: 1;
   border: 1.5px solid #f0dde6;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.88);
   border-radius: 12px;
   padding: 8px;
   font-weight: 600;
@@ -548,7 +654,7 @@ a:focus-visible {
 .section-panel__empty {
   color: var(--muted);
   grid-column: 1 / -1;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.88);
   border-radius: 16px;
   padding: 18px;
   text-align: center;
@@ -556,7 +662,7 @@ a:focus-visible {
 }
 
 .item-card {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.88);
   border-radius: 18px;
   padding: 14px;
   box-shadow: 0 6px 18px rgba(60, 20, 40, 0.06);
@@ -643,6 +749,29 @@ a:focus-visible {
   cursor: default;
 }
 
+.star-rating__star--pop {
+  animation: star-pop 0.35s ease-out;
+}
+
+@keyframes star-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.45);
+    filter: drop-shadow(0 0 6px rgba(242, 166, 60, 0.8));
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .star-rating__star--pop {
+    animation: none;
+  }
+}
+
 /* ---------- Heart QR ---------- */
 .heart-qr {
   position: relative;
@@ -660,7 +789,7 @@ a:focus-visible {
 
 .heart-qr__panel {
   position: relative;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.88);
   border-radius: 10px;
   padding: 6px;
   width: 55%;
@@ -686,7 +815,9 @@ a:focus-visible {
   display: flex;
   align-items: center;
   gap: 12px;
-  background: #fff;
+  background: var(--card-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-radius: var(--card-radius);
   padding: 18px 20px;
   box-shadow: 0 10px 30px rgba(60, 20, 40, 0.06);
@@ -719,7 +850,7 @@ a:focus-visible {
 }
 
 .student-tile {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.88);
   border-radius: 18px;
   padding: 16px;
   display: flex;
@@ -756,7 +887,9 @@ a:focus-visible {
   display: flex;
   gap: 16px;
   align-items: center;
-  background: #fff;
+  background: var(--card-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-radius: var(--card-radius);
   padding: 20px;
   box-shadow: 0 10px 30px rgba(60, 20, 40, 0.06);
