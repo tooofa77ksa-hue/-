@@ -20,7 +20,13 @@ import { useState } from "react";
 import { Sparkles, Check } from "lucide-react";
 import { ClayButton } from "@/injazi/components/ClayButton";
 import { Notice } from "@/injazi/ui/primitives";
-import { createStudent, createSubject, createTeacher, logActivity } from "@/injazi/services/repo";
+import {
+  createStudent,
+  createStudentLink,
+  createSubject,
+  createTeacher,
+  logActivity,
+} from "@/injazi/services/repo";
 import { showToast } from "@/injazi/lib/toast";
 import type { Student, Subject, Teacher, UserDoc } from "@/injazi/types/models";
 
@@ -72,14 +78,17 @@ export function FirstRunImport({ students, teachers, subjects, profile }: Props)
     setBusy(true);
     setError(null);
     try {
+      // الطالبة ورابطها معًا: الرابط بلا طالبة لا معنى له، وطالبة بلا
+      // رابط تعني ثماني ضغطات إضافية على المشرفة بلا سبب.
       for (const [index, student] of STUDENTS.entries()) {
-        await createStudent({
+        const studentId = await createStudent({
           name: student.name,
           grade: GRADE,
           themeId: student.themeId,
           decorIcon: student.decorIcon,
           order: index,
         });
+        await createStudentLink({ studentId, studentName: student.name });
       }
 
       // المعلمة قبل مادتها: المادة تحمل معرّف معلمتها لا اسمها.
@@ -100,13 +109,13 @@ export function FirstRunImport({ students, teachers, subjects, profile }: Props)
 
       await logActivity(
         "data.import",
-        `أدخلت ${profile?.name ?? "المشرفة"} البيانات الأولى: ${STUDENTS.length} طالبات و${SUBJECTS.length} مواد`,
+        `أدخلت ${profile?.name ?? "المشرفة"} البيانات الأولى: ${STUDENTS.length} طالبات بروابطهنّ و${SUBJECTS.length} مواد`,
         profile?.name ?? "المشرفة",
         profile?.role ?? "admin",
       );
 
       setDone(true);
-      showToast("تمّ إدخال البيانات الأولى");
+      showToast("تمّ إدخال البيانات وإنشاء روابط الطالبات");
     } catch (err) {
       setError(
         err instanceof Error
@@ -128,11 +137,12 @@ export function FirstRunImport({ students, teachers, subjects, profile }: Props)
         <h2 className="iz-firstrun__title">ابدئي بضغطة واحدة</h2>
         <p className="iz-firstrun__body">
           المنصة فارغة. اضغطي الزر لتُدخَل الطالبات الثماني والمواد الخمس ومعلماتهنّ
-          دفعة واحدة — ثم عدّلي ما شئت.
+          دفعة واحدة، ويُنشأ لكل طالبة رابطها الخاص — ثم عدّلي ما شئت.
         </p>
 
         <ul className="iz-firstrun__list">
           <li><Check size={15} strokeWidth={2.6} /> ٨ طالبات بأسمائهنّ وثيماتهنّ</li>
+          <li><Check size={15} strokeWidth={2.6} /> رابط جاهز لكل طالبة — تفتحه هي وولي أمرها</li>
           <li><Check size={15} strokeWidth={2.6} /> ٥ مواد، كل واحدة مرتبطة بمعلمتها</li>
           <li><Check size={15} strokeWidth={2.6} /> ٥ معلمات (حسابات الدخول تُنشأ لاحقًا ببريد كل معلمة)</li>
         </ul>
