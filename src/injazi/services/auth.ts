@@ -37,8 +37,19 @@ function humanize(code: string): string {
       return "كلمة المرور قصيرة — استخدمي ٦ أحرف على الأقل.";
     case "auth/network-request-failed":
       return "تعذّر الاتصال بالشبكة. تحققي من الإنترنت.";
+    case "auth/unauthorized-domain":
+      return "هذا العنوان غير مسموح به في إعدادات المنصة. أضيفيه في Authorized domains.";
+    case "auth/operation-not-allowed":
+      return "طريقة الدخول هذه غير مفعّلة في إعدادات المنصة.";
+    case "auth/api-key-not-valid":
+    case "auth/invalid-api-key":
+      return "مفتاح الاتصال غير صالح. راجعي قيم الإعدادات في لوحة النشر.";
     default:
-      return "تعذّر إتمام العملية. حاولي مرة أخرى.";
+      // الرمز يظهر عمدًا: خطأ لا يعرفه الكود ولا يحمل رمزًا لا يمكن
+      // تشخيصه إطلاقًا — وقد كلّفنا ذلك جلسة كاملة من التخمين.
+      return code
+        ? `تعذّر إتمام العملية. أرسلي هذا الرمز لمن يساعدك: ${code}`
+        : "تعذّر إتمام العملية. حاولي مرة أخرى.";
   }
 }
 
