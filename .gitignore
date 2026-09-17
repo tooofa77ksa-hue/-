@@ -16,7 +16,9 @@ serviceAccountKey.json
 
 # بيانات اعتماد لا تُرفع إطلاقًا (STEP 3)
 .env.local
-.env.production
+# .env.production مستثنى عمدًا (انظر رأس الملف): إعدادات Firebase
+# للويب معلَنة بحكم تصميمها وتشحن في حزمة المتصفّح على أي حال.
+!.env.production
 .env.production.local
 .env.development.local
 service-account*.json
