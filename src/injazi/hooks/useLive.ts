@@ -17,6 +17,7 @@ import {
   liveProjectsBySubjects,
   liveSettings,
   liveStudent,
+  liveStudentLinks,
   liveStudents,
   liveSubjects,
   liveTeachers,
@@ -30,6 +31,7 @@ import type {
   Project,
   Settings,
   Student,
+  StudentLink,
   Subject,
   Teacher,
   TeacherInvite,
@@ -130,6 +132,8 @@ export const useSubjects = () => useLiveList<Subject>(liveSubjects);
 export const useUsers = () => useLiveList<UserDoc>(liveUsers);
 /** للمشرفة وحدها: القواعد ترفض تعداد الروابط لأي دور آخر. */
 export const useInvites = () => useLiveList<TeacherInvite>(liveInvites);
+/** للمشرفة وحدها كذلك: لا تعداد لروابط الطالبات لأي دور آخر. */
+export const useStudentLinks = () => useLiveList<StudentLink>(liveStudentLinks);
 export const useActivity = () => useLiveList<ActivityLog>(liveActivity);
 
 export const useStudentProjects = (studentId: string) =>

@@ -225,6 +225,16 @@ await page.getByRole("button", { name: /حفظ الإعدادات/ }).first().cl
 await page.waitForTimeout(2200);
 const toastSaved = await page.locator(".iz-toast").count();
 ok("حفظ إعدادات المنصة", toastSaved > 0);
+
+// الحفظ الحقيقي لا الظاهري: القيمة تبقى بعد إعادة تحميل الصفحة.
+await page.reload({ waitUntil: "domcontentloaded" });
+await page.waitForTimeout(3000);
+const savedTagline = await page.locator(".iz-settings-block input").nth(1).inputValue();
+ok(
+  "تعديل الإدارة يبقى بعد تحديث الصفحة",
+  savedTagline.includes("✦"),
+  savedTagline.slice(0, 40),
+);
 await page.screenshot({ path: `${OUT}/e2e-05-settings.png` });
 
 // --- سجل النشاط
@@ -437,8 +447,38 @@ if (reviewRows > 0) {
   await page.locator(".iz-modal__foot button").last().click();
   await page.waitForTimeout(3200);
   ok("حفظ التقييم مع شارة التميّز", true);
+
+  // الحفظ الحقيقي: التقييم يبقى بعد تحديث الصفحة وبعد خروج ودخول جديدين.
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForTimeout(3000);
+  const afterReload = await page.locator(".iz-review-row").filter({ hasText: /تم تقييمه|مقيَّم/ }).count();
+  const starsAfterReload = await page.locator(".iz-review-row .iz-stars").count();
+  ok(
+    "التقييم يبقى بعد تحديث الصفحة",
+    afterReload > 0 || starsAfterReload > 0,
+    `صفوف مقيَّمة: ${afterReload} · نجوم: ${starsAfterReload}`,
+  );
+
+  await logout(page);
+  await login(page, "teacher1@injazi.local", "Teacher#2026");
+  await page.goto(`${BASE}/teacher`, { waitUntil: "domcontentloaded" });
+  await page.waitForTimeout(3000);
+  const afterRelogin = await page.locator(".iz-review-row .iz-stars").count();
+  ok(
+    "التقييم يبقى بعد تسجيل خروج ودخول جديدين",
+    afterRelogin > 0,
+    `نجوم ظاهرة: ${afterRelogin}`,
+  );
+
+  // ولا تستطيع المعلمة الوصول إلى لوحة الإدارة بالرابط المباشر.
+  await page.goto(`${BASE}/admin/students`, { waitUntil: "domcontentloaded" });
+  await page.waitForTimeout(2800);
+  ok("المعلمة لا تصل إلى لوحة الإدارة بالرابط المباشر", (await page.locator(".iz-tabs").count()) === 0);
 } else {
   ok("حفظ التقييم مع شارة التميّز", false, "لا توجد مشاريع في مادة هذه المعلمة");
+  ok("التقييم يبقى بعد تحديث الصفحة", false, "لا تقييم");
+  ok("التقييم يبقى بعد تسجيل خروج ودخول جديدين", false, "لا تقييم");
+  ok("المعلمة لا تصل إلى لوحة الإدارة بالرابط المباشر", false, "لم يُختبَر");
 }
 
 // ============= 4ب) دخول المعلمة بالرابط (بلا بريد ولا كلمة مرور) =============

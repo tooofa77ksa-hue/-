@@ -13,7 +13,7 @@ import {
   type User,
 } from "firebase/auth";
 import { auth, isFirebaseUsable } from "@/injazi/firebase/client";
-import { getInvite, getUserDoc, saveUserDoc } from "@/injazi/services/repo";
+import { getInvite, getStudentLink, getUserDoc, saveUserDoc } from "@/injazi/services/repo";
 import type { Role, UserDoc } from "@/injazi/types/models";
 
 export class AuthError extends Error {}
@@ -156,6 +156,83 @@ async function writeInviteProfile(
     await saveUserDoc(uid, profile);
   } catch {
     throw new AuthError("تعذّر تفعيل الرابط. تأكّدي من الاتصال وأعيدي فتح الرابط.");
+  }
+  return { id: uid, ...profile };
+}
+
+/**
+ * دخول الطالبة (وولي أمرها) برابط ملفها.
+ * ------------------------------------------------------------------
+ * رابط واحد يفتحه الاثنان — لا رابط منفصل لكل منهما. الرمز في الرابط هو
+ * الإثبات، والقواعد الأمنية هي التي تتحقّق منه على الخادم.
+ *
+ * ما يمنحه: تعديل ملف تلك الطالبة وحدها. لا لوحة إدارة، ولا أدوات تقييم،
+ * ولا مساس بملف أي طالبة أخرى — ولو غُيّر معرّف الطالبة في الرابط يدويًا.
+ */
+export async function signInWithStudentLink(code: string): Promise<UserDoc> {
+  if (!isFirebaseUsable) throw new AuthError("لم تُضبَط إعدادات Firebase بعد.");
+
+  const current = auth.currentUser;
+  if (current && !current.isAnonymous) await signOut(auth);
+
+  let credential;
+  try {
+    credential = auth.currentUser?.isAnonymous
+      ? { user: auth.currentUser }
+      : await signInAnonymously(auth);
+  } catch (error) {
+    if ((error as { code?: string })?.code === "auth/admin-restricted-operation") {
+      throw new AuthError("الدخول بالرابط غير مفعّل في إعدادات المنصة. راجعي مشرفة المنصة.");
+    }
+    throw wrap(error);
+  }
+
+  const uid = credential.user.uid;
+
+  const link = await getStudentLink(code).catch(() => null);
+  if (!link || link.active !== true) {
+    await signOut(auth).catch(() => {});
+    throw new AuthError("هذا الرابط لم يعد صالحًا. اطلبي رابطًا جديدًا من مشرفة المنصة.");
+  }
+
+  const existing = await getUserDoc(uid).catch(() => null);
+  const stale =
+    existing &&
+    (existing.linkCode !== code ||
+      existing.role !== "parent" ||
+      !(existing.studentIds ?? []).includes(link.studentId));
+
+  if (stale) {
+    await signOut(auth);
+    const fresh = await signInAnonymously(auth);
+    return writeLinkProfile(fresh.user.uid, code, link.studentId, link.studentName);
+  }
+
+  if (existing) return existing;
+
+  return writeLinkProfile(uid, code, link.studentId, link.studentName);
+}
+
+async function writeLinkProfile(
+  uid: string,
+  code: string,
+  studentId: string,
+  studentName: string,
+): Promise<UserDoc> {
+  const profile: Omit<UserDoc, "id"> = {
+    role: "parent",
+    name: studentName,
+    email: "",
+    active: true,
+    // طالبة واحدة بعينها — وهذا ما تتحقّق منه القواعد حرفيًا.
+    studentIds: [studentId],
+    linkCode: code,
+    createdAt: new Date().toISOString(),
+  };
+  try {
+    await saveUserDoc(uid, profile);
+  } catch {
+    throw new AuthError("تعذّر فتح الرابط. تأكّدي من الاتصال وأعيدي المحاولة.");
   }
   return { id: uid, ...profile };
 }

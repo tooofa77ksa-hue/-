@@ -33,6 +33,7 @@ import type {
   Settings,
   Student,
   Subject,
+  StudentLink,
   Teacher,
   TeacherInvite,
   UserDoc,
@@ -59,6 +60,7 @@ export const COL = {
   activity: `${ROOT}/activityLogs`,
   media: `${ROOT}/media`,
   invites: `${ROOT}/invites`,
+  studentLinks: `${ROOT}/studentLinks`,
 } as const;
 
 export const SETTINGS_DOC_ID = "app";
@@ -453,6 +455,43 @@ export const updateInvite = (code: string, data: Partial<TeacherInvite>) =>
 
 /** الإلغاء حذف لا تعطيل: مستند غير موجود يقطع الصلاحية بلا التباس. */
 export const revokeInvite = (code: string) => remove(COL.invites, code);
+
+// ------------------------------------------------------- روابط الطالبات
+
+export function liveStudentLinks(
+  onData: (rows: StudentLink[]) => void,
+  onError?: (e: Error) => void,
+) {
+  return liveCollection<StudentLink>(COL.studentLinks, [], onData, onError);
+}
+
+export async function getStudentLink(code: string): Promise<StudentLink | null> {
+  if (!isFirebaseUsable) return null;
+  const snapshot = await getDoc(doc(db, COL.studentLinks, code));
+  return snapshot.exists() ? ({ id: snapshot.id, ...snapshot.data() } as StudentLink) : null;
+}
+
+/** رابط واحد لكل طالبة: تفتحه هي وولي أمرها معًا. */
+export async function createStudentLink(input: {
+  studentId: string;
+  studentName: string;
+}): Promise<string> {
+  assertReady();
+  const code = newInviteCode();
+  await setDoc(doc(db, COL.studentLinks, code), {
+    studentId: input.studentId,
+    studentName: input.studentName,
+    active: true,
+    createdAt: now(),
+    updatedAt: now(),
+  });
+  return code;
+}
+
+export const updateStudentLink = (code: string, data: Partial<StudentLink>) =>
+  patch(COL.studentLinks, code, data);
+
+export const revokeStudentLink = (code: string) => remove(COL.studentLinks, code);
 
 // ------------------------------------------------------------ سجل النشاط
 

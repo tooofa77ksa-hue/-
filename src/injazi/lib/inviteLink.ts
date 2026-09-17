@@ -45,3 +45,8 @@ export async function copyText(text: string): Promise<boolean> {
     return false;
   }
 }
+
+/** رابط ملف الطالبة — تفتحه هي وولي أمرها معًا. */
+export function studentUrl(code: string): string {
+  return `${window.location.origin}${window.location.pathname}#/s/${code}`;
+}

@@ -7,7 +7,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Media } from "@/injazi/ui/Media";
 import { motion } from "motion/react";
-import { Eye, Link2, Pencil, Plus, Search, Trash2, UserPlus } from "lucide-react";
+import { Copy, Eye, Link2, Pencil, Plus, Search, Trash2, UserPlus } from "lucide-react";
 import { ClayButton } from "@/injazi/components/ClayButton";
 import { EmptyState } from "@/injazi/components/EmptyState";
 import { ConfirmDialog, Modal } from "@/injazi/ui/Modal";
@@ -17,28 +17,34 @@ import { Icon } from "@/injazi/ui/IconPicker";
 import {
   COL,
   createStudent,
+  createStudentLink,
   deleteStudent,
+  deleteUserDoc,
   logActivity,
   reorder,
+  revokeStudentLink,
   saveUserDoc,
   updateStudent,
 } from "@/injazi/services/repo";
 import { createAccount } from "@/injazi/services/auth";
-import { useSession, useStudents, useUsers } from "@/injazi/hooks/useLive";
+import { useSession, useStudentLinks, useStudents, useUsers } from "@/injazi/hooks/useLive";
 import { showToast } from "@/injazi/lib/toast";
 import { VISIBILITY_LABEL } from "@/injazi/lib/permissions";
 import { THEMES } from "@/injazi/themes/themes";
 import { pageVariants, riseItem, staggerContainer } from "@/injazi/motion/motion";
-import type { Student, Visibility } from "@/injazi/types/models";
+import { copyText, studentUrl } from "@/injazi/lib/inviteLink";
+import type { Student, StudentLink, UserDoc, Visibility } from "@/injazi/types/models";
 
 export function AdminStudents() {
   const { profile } = useSession();
   const { data: students, loading } = useStudents();
   const { data: users } = useUsers();
+  const { data: studentLinks } = useStudentLinks();
 
   const [query, setQuery] = useState("");
   const [editor, setEditor] = useState<{ open: boolean; row: Student | null }>({ open: false, row: null });
   const [parentFor, setParentFor] = useState<Student | null>(null);
+  const [linkFor, setLinkFor] = useState<Student | null>(null);
   const [confirm, setConfirm] = useState<Student | null>(null);
 
   const rows = useMemo(() => {
@@ -139,6 +145,9 @@ export function AdminStudents() {
                   <ClayButton size="sm" variant="ghost" to={`/student/${student.id}`} icon={<Eye size={15} strokeWidth={2.4} />} ariaLabel={`عرض ملف ${student.name}`}>
                     الملف
                   </ClayButton>
+                  <ClayButton size="sm" variant="ghost" icon={<Link2 size={15} strokeWidth={2.4} />} onClick={() => setLinkFor(student)}>
+                    رابطها
+                  </ClayButton>
                   <ClayButton size="sm" variant="ghost" icon={<UserPlus size={15} strokeWidth={2.4} />} onClick={() => setParentFor(student)}>
                     ولي الأمر
                   </ClayButton>
@@ -154,6 +163,14 @@ export function AdminStudents() {
           />
         </motion.div>
       )}
+
+      <StudentLinkDialog
+        student={linkFor}
+        link={linkFor ? (studentLinks.find((row) => row.studentId === linkFor.id) ?? null) : null}
+        users={users}
+        actorName={profile?.name ?? "مشرفة"}
+        onClose={() => setLinkFor(null)}
+      />
 
       <StudentEditor
         open={editor.open}
@@ -184,6 +201,154 @@ export function AdminStudents() {
 }
 
 // ------------------------------------------------------------- النموذج
+
+/*
+  رابط الطالبة.
+  رابط واحد تفتحه الطالبة وولي أمرها معًا — لا رابطان. من يفتحه يعدّل
+  ملف هذه الطالبة وحدها، ولا يصل إلى لوحة الإدارة ولا إلى تقييم المعلمة
+  ولا إلى ملف أي زميلة، مهما عُبث بالعنوان.
+*/
+function StudentLinkDialog({
+  student,
+  link,
+  users,
+  actorName,
+  onClose,
+}: {
+  student: Student | null;
+  link: StudentLink | null;
+  users: UserDoc[];
+  actorName: string;
+  onClose: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [confirmRevoke, setConfirmRevoke] = useState(false);
+
+  useEffect(() => {
+    if (student) {
+      setError(null);
+      setConfirmRevoke(false);
+    }
+  }, [student]);
+
+  const url = link ? studentUrl(link.id) : "";
+
+  async function generate() {
+    if (!student || busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const code = await createStudentLink({ studentId: student.id, studentName: student.name });
+      await copyText(studentUrl(code));
+      await logActivity("student.link", `أُنشئ رابط ملف الطالبة ${student.name}`, actorName, "admin");
+      showToast("أُنشئ الرابط ونُسخ");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "تعذّر إنشاء الرابط.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function copy() {
+    const okay = await copyText(url);
+    showToast(okay ? "نُسخ الرابط" : "تعذّر النسخ — انسخيه من المربّع", okay ? "success" : "info");
+  }
+
+  async function revoke() {
+    if (!student || !link || busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await revokeStudentLink(link.id);
+      // ملفات الصلاحيات التي وُلدت من هذا الرابط لا معنى لها بعده.
+      for (const user of users.filter((row) => row.linkCode === link.id)) {
+        await deleteUserDoc(user.id);
+      }
+      await logActivity("student.link.revoke", `أُلغي رابط ملف الطالبة ${student.name}`, actorName, "admin");
+      showToast("أُلغي الرابط", "info");
+      setConfirmRevoke(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "تعذّر إلغاء الرابط.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Modal
+      open={student !== null}
+      title={student ? `رابط ملف ${student.name}` : "رابط الطالبة"}
+      onClose={onClose}
+      footer={
+        <>
+          <ClayButton variant="soft" onClick={onClose} disabled={busy}>
+            إغلاق
+          </ClayButton>
+          {link ? (
+            <ClayButton onClick={copy} icon={<Copy size={17} strokeWidth={2.4} />}>
+              نسخ الرابط
+            </ClayButton>
+          ) : (
+            <ClayButton onClick={generate} loading={busy} icon={<Link2 size={17} strokeWidth={2.4} />}>
+              إنشاء الرابط
+            </ClayButton>
+          )}
+        </>
+      }
+    >
+      {link ? (
+        <>
+          <Field
+            label={`أرسلي هذا الرابط لـ ${student?.name} ولولي أمرها`}
+            hint="رابط واحد يفتحه الاثنان — بلا بريد ولا كلمة مرور."
+          >
+            <TextInput value={url} readOnly onFocus={(event) => event.target.select()} />
+          </Field>
+
+          <Notice tone="warn">
+            من يفتح هذا الرابط يستطيع إضافة إنجازات ومشاريع إلى ملف {student?.name} وتعديله.
+            أرسليه لها ولولي أمرها وحدهما.
+          </Notice>
+
+          <p className="iz-field__meter">
+            ولا يصل صاحبه إلى شيء آخر: لا ملف زميلة، ولا لوحة الإدارة، ولا تقييمات المعلمات
+            — ولو غُيّر العنوان يدويًا.
+          </p>
+
+          {confirmRevoke ? (
+            <Notice tone="danger">
+              <span>
+                الإلغاء يوقف الرابط فورًا على كل جهاز فُتح به، ولا يُحذف شيء من ملف الطالبة.
+              </span>
+              <span className="iz-chip-row" style={{ marginTop: 10 }}>
+                <ClayButton variant="danger" onClick={revoke} loading={busy}>
+                  نعم، ألغي الرابط
+                </ClayButton>
+                <ClayButton variant="soft" onClick={() => setConfirmRevoke(false)} disabled={busy}>
+                  تراجع
+                </ClayButton>
+              </span>
+            </Notice>
+          ) : (
+            <p style={{ margin: "14px 0 0" }}>
+              <button type="button" className="iz-linkish" onClick={() => setConfirmRevoke(true)}>
+                إلغاء هذا الرابط
+              </button>
+            </p>
+          )}
+        </>
+      ) : (
+        <p className="iz-field__meter">
+          لم يُنشأ رابط بعد. الرابط هو طريقة دخول الطالبة وولي أمرها: يفتحانه من الجوال أو
+          الحاسب فيصلان إلى ملفها ويضيفان إنجازاتها.
+        </p>
+      )}
+
+      {error && <Notice tone="danger">{error}</Notice>}
+    </Modal>
+  );
+}
 
 function StudentEditor({
   open,

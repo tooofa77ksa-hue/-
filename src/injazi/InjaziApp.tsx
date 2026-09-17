@@ -20,6 +20,7 @@ import { LoginPage } from "@/injazi/pages/LoginPage";
 import { PublicHome } from "@/injazi/pages/PublicHome";
 import { StudentPortfolio } from "@/injazi/pages/StudentPortfolio";
 import { TeacherInvite } from "@/injazi/pages/TeacherInvite";
+import { StudentLinkEntry } from "@/injazi/pages/StudentLinkEntry";
 import { ensureDisplayFont } from "@/injazi/lib/displayFont";
 import { startAppCheck } from "@/injazi/firebase/appCheck";
 import { useSettings } from "@/injazi/hooks/useLive";
@@ -103,6 +104,8 @@ export default function InjaziApp() {
 
               {/* رابط المعلمة — قصير عمدًا ليُرسَل في رسالة ويُفتح بضغطة. */}
               <Route path="t/:code" element={<TeacherInvite />} />
+              {/* رابط الطالبة — تفتحه هي وولي أمرها معًا. */}
+              <Route path="s/:code" element={<StudentLinkEntry />} />
 
               <Route
                 path="teacher"

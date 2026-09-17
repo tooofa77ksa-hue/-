@@ -33,6 +33,11 @@ export type UserDoc = {
    * تتحقّق من ذلك عند كل كتابة، فإلغاء الرابط يقطع الصلاحية فورًا.
    */
   inviteCode?: string;
+  /**
+   * للطالبة/ولي أمرها الداخلَين برابط الطالبة: رمز الرابط الذي منحهما
+   * الصلاحية. وجوده يجعل الصلاحية مشروطة ببقاء الرابط صالحًا.
+   */
+  linkCode?: string;
   createdAt: string;
 };
 
@@ -46,6 +51,20 @@ export type TeacherInvite = {
   teacherId: string;
   teacherName: string;
   subjectIds: string[];
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+/**
+ * studentLinks/{code} — رابط ملف الطالبة.
+ * تفتحه الطالبة وولي أمرها معًا (رابط واحد لا رابطان)، فيمنح تعديل ملف
+ * تلك الطالبة وحدها. المعرّف نفسه هو السر، ولا تعداد له إلا للمشرفة.
+ */
+export type StudentLink = {
+  id: string;
+  studentId: string;
+  studentName: string;
   active: boolean;
   createdAt: string;
   updatedAt: string;

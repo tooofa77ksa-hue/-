@@ -71,12 +71,46 @@ service cloud.firestore {
       return code is string && exists(izInviteRef(code)) && izInvite(code).active == true;
     }
 
+    // ------------------------------------------------------------------
+    // روابط الطالبات.
+    // رابط واحد لكل طالبة تفتحه هي وولي أمرها معًا — لا رابط منفصل لكل
+    // منهما. يمنح تعديل ملف تلك الطالبة وحدها: لا لوحة إدارة، ولا أدوات
+    // تقييم، ولا مساس بملف أي طالبة أخرى مهما عُبث بالرابط.
+    // ------------------------------------------------------------------
+    function izLinkRef(code) {
+      return /databases/$(database)/documents/apps/injazi/studentLinks/$(code);
+    }
+
+    function izLink(code) {
+      return get(izLinkRef(code)).data;
+    }
+
+    function izLinkLive(code) {
+      return code is string && exists(izLinkRef(code)) && izLink(code).active == true;
+    }
+
     /**
      * ملف صلاحيات لم يأتِ من رابط يبقى كما هو؛ وما جاء من رابط يسقط
-     * لحظة إلغاء الرابط. هذا ما يجعل زر «إلغاء الرابط» إلغاءً حقيقيًا.
+     * لحظة إلغاء الرابط. هذا ما يجعل زر «إلغاء الرابط» إلغاءً حقيقيًا،
+     * للمعلمة ولرابط الطالبة على السواء.
      */
     function izGrantLive() {
-      return !('inviteCode' in izUser()) || izInviteLive(izUser().inviteCode);
+      return (!('inviteCode' in izUser()) || izInviteLive(izUser().inviteCode))
+        && (!('linkCode' in izUser()) || izLinkLive(izUser().linkCode));
+    }
+
+    /**
+     * المطالبة برابط الطالبة: دور ولي أمر، ولطالبة واحدة بعينها هي التي
+     * في الرابط لا غير — فلا يضيف حاملُ رابطٍ طالبةً أخرى إلى قائمته.
+     */
+    function izClaimsLink(uid) {
+      let d = request.resource.data;
+      return isSignedIn() && request.auth.uid == uid &&
+        d.keys().hasAll(['role', 'active', 'linkCode', 'studentIds']) &&
+        d.role == 'parent' &&
+        d.active == true &&
+        izLinkLive(d.linkCode) &&
+        d.studentIds == [izLink(d.linkCode).studentId];
     }
 
     function izIsTeacher() {
@@ -101,9 +135,11 @@ service cloud.firestore {
         d.subjectIds == izInvite(d.inviteCode).subjectIds;
     }
 
-    // ولي أمر هذه الطالبة بالذات — لا أي طالبة أخرى.
+    // ولي أمر هذه الطالبة بالذات — لا أي طالبة أخرى. والصلاحية مشروطة
+    // ببقاء رابطها صالحًا إن كان الدخول جاء من رابط.
     function izIsParentOf(studentId) {
-      return izRole() == 'parent' && studentId in izUser().get('studentIds', []);
+      return izRole() == 'parent' && izGrantLive()
+        && studentId in izUser().get('studentIds', []);
     }
 
     function izCanEditStudent(studentId) {
@@ -131,8 +167,9 @@ service cloud.firestore {
       // اسم من قيّم يأتي من التقييم نفسه ومن مجموعة المعلمات المعلنة.
       allow read: if isSignedIn() && (request.auth.uid == uid || izIsAdmin());
 
-      // الإنشاء: للمشرفة، أو لمعلمة تفتح رابطها لأول مرة على جهازها.
-      allow create: if izIsAdmin() || izClaimsInvite(uid);
+      // الإنشاء: للمشرفة، أو لمن تفتح رابطها لأول مرة على جهازها —
+      // معلمةً كانت أو طالبةً/ولي أمر.
+      allow create: if izIsAdmin() || izClaimsInvite(uid) || izClaimsLink(uid);
       // التعديل والحذف للمشرفة وحدها — فلا يرقّي أحد نفسه بعد الإنشاء.
       allow update, delete: if izIsAdmin();
     }
@@ -140,6 +177,14 @@ service cloud.firestore {
     match /apps/injazi/invites/{code} {
       // القراءة الفردية بالمعرّف فقط: المعرّف هو السر، ومن يعرفه يملك
       // الرابط أصلًا. لا list إلا للمشرفة، فلا يُكتشف رمز بالتعداد.
+      allow get: if isSignedIn();
+      allow list: if izIsAdmin();
+      allow create, update, delete: if izIsAdmin();
+    }
+
+    match /apps/injazi/studentLinks/{code} {
+      // نفس المبدأ: قراءة بالمعرّف وحده، ولا تعداد إلا للمشرفة — فلا
+      // تستطيع طالبة اكتشاف رابط زميلتها بأي استعلام.
       allow get: if isSignedIn();
       allow list: if izIsAdmin();
       allow create, update, delete: if izIsAdmin();
