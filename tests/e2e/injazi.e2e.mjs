@@ -72,9 +72,11 @@ ok("الصفحة العامة تعرض بطاقات الطالبات الثما�
 const canvas3d = await page.locator(".iz-hero-object canvas").count();
 ok("المشهد ثلاثي الأبعاد يعمل على سطح المكتب", canvas3d === 1);
 
-await page.waitForTimeout(5500);
+// أطول رحلة = آخر تأخير (0.9) + مدّة الطيران (4.2) = 5.1 ثانية،
+// والهامش هنا يغطّي زمن التركيب قبل الإقلاع.
+await page.waitForTimeout(6500);
 const butterflies = await page.locator(".iz-butterflies__flight").count();
-ok("الفراشات تختفي بعد ~5 ثوانٍ", butterflies === 0);
+ok("الفراشات تختفي ولا تبقى معلّقة", butterflies === 0);
 await page.screenshot({ path: `${OUT}/e2e-01-home.png` });
 
 // بحث

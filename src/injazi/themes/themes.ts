@@ -19,59 +19,65 @@ export type PortfolioTheme = {
   tone: ClayTone;
 };
 
+/*
+  أسماء الثيمات عربية: الموقع لطالبات صف رابع في مدرسة سعودية، وسطر
+  إنجليزي تحت اسم عربي نشاز لا وظيفة له.
+  الألوان مضبوطة على الأرضية الليلية: accent ساطع (النص فوقه داكن)،
+  وcover يتلاشى إلى الليل لا إلى الورق الكريمي.
+*/
 export const THEMES: PortfolioTheme[] = [
   {
     id: "lavender",
-    name: "Lavender Dream",
-    accent: "#7a5fc7",
-    accentDeep: "#5f47a3",
-    wash: "rgba(195, 174, 245, 0.22)",
-    cover: "linear-gradient(135deg, #c3aef5, #8fcbff 60%, #fff8f0)",
+    name: "حلم بنفسجي",
+    accent: "#a98bff",
+    accentDeep: "#7d5bf0",
+    wash: "rgba(169, 139, 255, 0.18)",
+    cover: "linear-gradient(135deg, #a98bff, #5fe3ff 58%, rgba(11, 8, 36, 0))",
     tone: "lilac",
   },
   {
     id: "pink",
-    name: "Pink Pop",
-    accent: "#d5537a",
-    accentDeep: "#ab3f5f",
-    wash: "rgba(255, 157, 176, 0.2)",
-    cover: "linear-gradient(135deg, #ff9db0, #ffd97d 70%, #fff8f0)",
+    name: "وردة ضوء",
+    accent: "#ff8fc0",
+    accentDeep: "#e0578f",
+    wash: "rgba(255, 143, 192, 0.18)",
+    cover: "linear-gradient(135deg, #ff8fc0, #ffc96b 66%, rgba(11, 8, 36, 0))",
     tone: "rose",
   },
   {
     id: "sky",
-    name: "Sky Adventure",
-    accent: "#2f7fc4",
-    accentDeep: "#22618f",
-    wash: "rgba(143, 203, 255, 0.22)",
-    cover: "linear-gradient(135deg, #8fcbff, #c3aef5 65%, #fff8f0)",
+    name: "مغامرة السماء",
+    accent: "#5fe3ff",
+    accentDeep: "#2fb6e0",
+    wash: "rgba(95, 227, 255, 0.18)",
+    cover: "linear-gradient(135deg, #5fe3ff, #a98bff 62%, rgba(11, 8, 36, 0))",
     tone: "sky",
   },
   {
     id: "mint",
-    name: "Mint Joy",
-    accent: "#2e9d76",
-    accentDeep: "#227a5b",
-    wash: "rgba(143, 224, 192, 0.22)",
-    cover: "linear-gradient(135deg, #8fe0c0, #8fcbff 65%, #fff8f0)",
+    name: "نعناع هادئ",
+    accent: "#6ee7c7",
+    accentDeep: "#34c9a0",
+    wash: "rgba(110, 231, 199, 0.18)",
+    cover: "linear-gradient(135deg, #6ee7c7, #5fe3ff 62%, rgba(11, 8, 36, 0))",
     tone: "mint",
   },
   {
     id: "peach",
-    name: "Peach Glow",
-    accent: "#c96f2c",
-    accentDeep: "#9f5620",
-    wash: "rgba(255, 184, 119, 0.22)",
-    cover: "linear-gradient(135deg, #ffb877, #ff9db0 65%, #fff8f0)",
+    name: "شفق دافئ",
+    accent: "#ffb27a",
+    accentDeep: "#e8863f",
+    wash: "rgba(255, 178, 122, 0.18)",
+    cover: "linear-gradient(135deg, #ffb27a, #ff8fc0 62%, rgba(11, 8, 36, 0))",
     tone: "apricot",
   },
   {
     id: "sunny",
-    name: "Sunny Yellow",
-    accent: "#b8860b",
-    accentDeep: "#8f6708",
-    wash: "rgba(255, 217, 125, 0.26)",
-    cover: "linear-gradient(135deg, #ffd97d, #8fe0c0 70%, #fff8f0)",
+    name: "شمس ذهبية",
+    accent: "#ffc96b",
+    accentDeep: "#e09a26",
+    wash: "rgba(255, 201, 107, 0.2)",
+    cover: "linear-gradient(135deg, #ffc96b, #6ee7c7 68%, rgba(11, 8, 36, 0))",
     tone: "lemon",
   },
 ];
@@ -94,17 +100,22 @@ export const CARD_STYLES = [
  * قائمة مغلقة عمدًا: منتقي ألوان مفتوح يسمح بلون نصّه غير مقروء، وهذه
  * كلها مختبَرة بتباين كافٍ مع الأبيض.
  */
+/*
+  ألوان ساطعة لا داكنة: على الأرضية الليلية يحمل الزرُّ نصًّا داكنًا
+  (--iz-on-accent)، فالساطع هو ما يقرأ. اللون الداكن هنا كان يصنع زرًّا
+  يذوب في الخلفية.
+*/
 export const ACCENT_PRESETS = [
-  "#7a5fc7",
-  "#5f47a3",
-  "#d5537a",
-  "#b8860b",
-  "#2f7fc4",
-  "#2e9d76",
-  "#c96f2c",
-  "#8f4f8f",
-  "#3f6fa8",
-  "#2f7a6b",
+  "#7fdcff",
+  "#a98bff",
+  "#ff8fc0",
+  "#ffc96b",
+  "#6ee7c7",
+  "#ffb27a",
+  "#c3adff",
+  "#7ef0cd",
+  "#ff9fc4",
+  "#ffdc8d",
 ];
 
 const FALLBACK = THEMES[0];

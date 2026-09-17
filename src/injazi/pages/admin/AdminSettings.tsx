@@ -27,9 +27,9 @@ const RADII = [
 ];
 
 const BACKGROUNDS = [
-  { id: "cream", name: "كريمي" },
-  { id: "white", name: "أبيض" },
-  { id: "blush", name: "وردي فاتح" },
+  { id: "midnight", name: "ليل بنفسجي" },
+  { id: "deep", name: "ليل أعمق" },
+  { id: "teal", name: "ليل أزرق" },
 ];
 
 export function AdminSettings() {
@@ -188,7 +188,7 @@ export function AdminSettings() {
 
         <Field label="اللون الثانوي">
           <div className="iz-swatches" role="radiogroup" aria-label="اللون الثانوي">
-            {["#f6b93b", "#ff9db0", "#8fcbff", "#8fe0c0", "#ffb877"].map((color) => (
+            {["#ffc96b", "#ff8fc0", "#7fdcff", "#6ee7c7", "#ffb27a"].map((color) => (
               <button
                 key={color}
                 type="button"

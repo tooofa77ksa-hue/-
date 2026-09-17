@@ -2,7 +2,11 @@
   دخول الفراشات — لحظة ترحيب واحدة، لا زخرفة دائمة
   ------------------------------------------------------------------
   القواعد التي يفرضها هذا المكوّن على نفسه:
-    • أربع فراشات مُنمنمة بألوان باستيل (رسم SVG، بلا صور واقعية).
+    • خمس فراشات مضيئة (رسم SVG، بلا صور واقعية).
+    • الأجنحة ثلاثية الأبعاد فعلًا: كل جناح يدور حول محوره (rotateY)
+      داخل مشهد له perspective، فيُرى مرة عريضًا ومرة من حرفه — لا
+      صورة تهتزّ. بلا three.js: المكتبة ٨١٣ كيلوبايت تُحمَّل قبل أول
+      إطار، فتصير اللحظة انتظارًا بدل ترحيب.
     • تدخل من حواف الشاشة بمسارات منحنية هادئة ثم تتلاشى خلال ~5 ثوانٍ.
     • لا تحجب شيئًا: طبقة ثابتة بـ pointer-events: none و aria-hidden.
     • لا تتكرر: تُعرض في أول زيارة فقط ثم تُسجَّل العلامة في المتصفح.
@@ -16,23 +20,36 @@ import { AnimatePresence, motion } from "motion/react";
 import { useCapability } from "@/injazi/lib/useCapability";
 
 const SEEN_KEY = "injazi:butterflies-seen:v1";
-const FLIGHT_SECONDS = 4.6;
+// خمس فراشات لا أربع، فضُغط التتابع كي تبقى اللحظة كلها دون ٥٫٥ ثانية:
+// الترحيب الذي يطول يصير انتظارًا.
+const FLIGHT_SECONDS = 4.2;
 
 type Flight = {
-  tone: string;
+  /** وجه الجناح المضيء وقاعدته — التدرّج بينهما هو ما يعطي الحجم. */
+  c1: string;
+  c2: string;
+  glow: string;
+  /** زمن الرفرفة: القريبة أسرع، والبعيدة أبطأ. */
+  flap: number;
   /** نقاط الطريق كنِسَب من عرض/ارتفاع الشاشة: [x%, y%] */
   waypoints: [number, number][];
   scale: number;
   delay: number;
   /** ميل ثابت يعطي كل فراشة شخصية مختلفة قليلًا */
   tilt: number;
+  /** ضباب خفيف على البعيدة — هذا ما يصنع العمق، لا عدد الفراشات. */
+  blur: number;
+  opacity: number;
 };
 
 // المسارات تعبر الشاشة من الحواف نحو الداخل ثم تخرج من الجهة المقابلة،
 // فلا تستقر أي فراشة فوق نص أو زر.
 const FLIGHTS: Flight[] = [
   {
-    tone: "var(--iz-rose)",
+    c1: "#8BEBFF",
+    c2: "#3FB8FF",
+    glow: "rgba(95, 227, 255, .75)",
+    flap: 0.26,
     waypoints: [
       [-14, 78],
       [16, 58],
@@ -40,12 +57,17 @@ const FLIGHTS: Flight[] = [
       [72, 42],
       [112, 26],
     ],
-    scale: 1,
+    scale: 1.15,
     delay: 0.1,
     tilt: -8,
+    blur: 0,
+    opacity: 1,
   },
   {
-    tone: "var(--iz-sky)",
+    c1: "#D9C6FF",
+    c2: "#9B78FF",
+    glow: "rgba(169, 139, 255, .7)",
+    flap: 0.32,
     waypoints: [
       [112, 18],
       [78, 34],
@@ -54,11 +76,16 @@ const FLIGHTS: Flight[] = [
       [-14, 30],
     ],
     scale: 0.78,
-    delay: 0.45,
+    delay: 0.3,
     tilt: 10,
+    blur: 0.4,
+    opacity: 0.85,
   },
   {
-    tone: "var(--iz-lemon)",
+    c1: "#FFE3A8",
+    c2: "#FFB03A",
+    glow: "rgba(255, 201, 107, .6)",
+    flap: 0.38,
     waypoints: [
       [24, 114],
       [34, 76],
@@ -66,12 +93,17 @@ const FLIGHTS: Flight[] = [
       [48, 30],
       [58, -16],
     ],
-    scale: 0.66,
-    delay: 0.8,
+    scale: 0.6,
+    delay: 0.5,
     tilt: 4,
+    blur: 1.1,
+    opacity: 0.62,
   },
   {
-    tone: "var(--iz-lilac)",
+    c1: "#FFC9E0",
+    c2: "#FF6FAE",
+    glow: "rgba(255, 143, 192, .7)",
+    flap: 0.23,
     waypoints: [
       [-12, 24],
       [22, 30],
@@ -79,9 +111,29 @@ const FLIGHTS: Flight[] = [
       [80, 58],
       [114, 74],
     ],
-    scale: 0.88,
-    delay: 1.05,
+    scale: 1.32,
+    delay: 0.7,
     tilt: -4,
+    blur: 0,
+    opacity: 1,
+  },
+  {
+    c1: "#AFF6E2",
+    c2: "#38D3AC",
+    glow: "rgba(110, 231, 199, .65)",
+    flap: 0.29,
+    waypoints: [
+      [114, 62],
+      [82, 74],
+      [50, 84],
+      [20, 72],
+      [-14, 88],
+    ],
+    scale: 0.92,
+    delay: 0.9,
+    tilt: 14,
+    blur: 0.2,
+    opacity: 0.92,
   },
 ];
 
@@ -172,9 +224,13 @@ export function ButterflyEntrance() {
               <motion.div
                 animate={{ rotate: [flight.tilt - 6, flight.tilt + 6, flight.tilt - 6] }}
                 transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-                style={{ scale: flight.scale }}
+                style={{
+                  scale: flight.scale,
+                  opacity: flight.opacity,
+                  filter: `drop-shadow(0 0 14px ${flight.glow})${flight.blur ? ` blur(${flight.blur}px)` : ""}`,
+                }}
               >
-                <Butterfly tone={flight.tone} />
+                <Butterfly flight={flight} index={index} />
               </motion.div>
             </motion.div>
           ))}
@@ -186,44 +242,47 @@ export function ButterflyEntrance() {
   );
 }
 
-function Butterfly({ tone }: { tone: string }) {
+/*
+  الجناحان عنصران منفصلان، كل واحد يدور حول حافته الملاصقة للجسم.
+  المشهد الأب يحمل perspective، فيقصر الجناح بصريًا كلما التفّ — وهذا
+  هو الفرق بين جناح يرفرف وصورة تتمدّد أفقيًا.
+  معرّفات التدرّج مُفهرسة (index) لأن أكثر من فراشة في الصفحة، ومعرّف
+  مكرّر في SVG يجعلهنّ كلهنّ يأخذن لون الأولى.
+*/
+function Butterfly({ flight, index }: { flight: Flight; index: number }) {
+  const style = { ["--iz-flap" as string]: `${flight.flap}s` };
   return (
-    <svg className="iz-butterfly" width="60" height="48" viewBox="0 0 60 48" focusable="false">
-      <g className="iz-butterfly__wing">
-        <path
-          d="M29 15 C19 3 3 6 5 18 C7 29 20 27 29 24 Z"
-          fill={tone}
-          opacity="0.92"
-        />
-        <path
-          d="M29 26 C21 28 9 32 13 40 C17 47 27 38 29 32 Z"
-          fill={tone}
-          opacity="0.68"
-        />
-      </g>
-      <g transform="translate(60,0) scale(-1,1)">
-        <g className="iz-butterfly__wing">
-          <path
-            d="M29 15 C19 3 3 6 5 18 C7 29 20 27 29 24 Z"
-            fill={tone}
-            opacity="0.92"
-          />
-          <path
-            d="M29 26 C21 28 9 32 13 40 C17 47 27 38 29 32 Z"
-            fill={tone}
-            opacity="0.68"
-          />
-        </g>
-      </g>
-      <rect x="28.4" y="12" width="3.2" height="25" rx="1.6" fill="var(--iz-ink)" opacity="0.55" />
+    <span className="iz-butterfly" style={style}>
+      <span className="iz-butterfly__wing iz-butterfly__wing--l">
+        <Wing id={`izwl${index}`} c1={flight.c1} c2={flight.c2} />
+      </span>
+      <span className="iz-butterfly__wing iz-butterfly__wing--r">
+        <Wing id={`izwr${index}`} c1={flight.c1} c2={flight.c2} />
+      </span>
+      <span className="iz-butterfly__body" style={{ background: flight.c1 }} />
+    </span>
+  );
+}
+
+function Wing({ id, c1, c2 }: { id: string; c1: string; c2: string }) {
+  return (
+    <svg viewBox="0 0 42 68" fill="none" focusable="false">
+      <defs>
+        <radialGradient id={id} cx="82%" cy="42%" r="95%">
+          <stop offset="0%" stopColor={c1} />
+          <stop offset="58%" stopColor={c2} />
+          <stop offset="100%" stopColor={c2} stopOpacity="0.55" />
+        </radialGradient>
+      </defs>
+      <path d="M42 33 C41 14 34 2 20 0 C7 -2 -2 10 3 22 C8 32 24 37 42 33 Z" fill={`url(#${id})`} />
       <path
-        d="M30 13 C27 8 24 6 21 5 M30 13 C33 8 36 6 39 5"
-        stroke="var(--iz-ink)"
-        strokeOpacity="0.4"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-        fill="none"
+        d="M42 37 C32 37 19 41 13 50 C7 60 15 69 25 64 C34 59 40 47 42 41 Z"
+        fill={`url(#${id})`}
+        opacity="0.9"
       />
+      <circle cx="17" cy="17" r="3.4" fill="#fff" opacity="0.55" />
+      <circle cx="9" cy="25" r="1.8" fill="#fff" opacity="0.4" />
+      <circle cx="24" cy="53" r="2.4" fill="#fff" opacity="0.42" />
     </svg>
   );
 }

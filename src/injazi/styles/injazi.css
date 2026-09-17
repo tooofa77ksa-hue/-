@@ -19,29 +19,123 @@
   overflow-x: clip;
 }
 
-.injazi--bg-white {
-  --iz-paper: #ffffff;
-  --iz-paper-deep: #f7f4fb;
+/* درجات الليل الثلاث التي تختار بينها المشرفة من الإعدادات. */
+.injazi--bg-midnight {
+  --iz-paper: #0b0824;
+  --iz-paper-deep: #06041a;
 }
-.injazi--bg-blush {
-  --iz-paper: #fff6f6;
-  --iz-paper-deep: #ffe9ec;
+.injazi--bg-deep {
+  --iz-paper: #070518;
+  --iz-paper-deep: #030210;
+}
+.injazi--bg-teal {
+  --iz-paper: #061a26;
+  --iz-paper-deep: #031017;
 }
 
-.iz-sky-wash {
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline: 0;
-  height: 460px;
-  z-index: var(--iz-z-decor);
+/* ==================== السماء الحيّة ====================
+   خلفية ثابتة خلف كل الصفحات: سُحُب تتنفّس ونجوم بأعماق ثلاثة.
+   كل الحركة transform فقط. المنطق في components/NightSky.tsx.
+*/
+.iz-nightsky {
+  position: fixed;
+  inset: 0;
+  z-index: var(--iz-z-sky);
+  overflow: hidden;
   pointer-events: none;
+  --iz-sky-px: 0;
+  --iz-sky-py: 0;
   background:
-    radial-gradient(58% 70% at 82% 0%, rgba(195, 174, 245, 0.34), transparent 70%),
-    radial-gradient(52% 62% at 14% 4%, rgba(143, 203, 255, 0.3), transparent 72%),
-    linear-gradient(180deg, var(--iz-paper-deep), var(--iz-paper) 90%);
+    radial-gradient(1200px 700px at 78% -8%, rgba(169, 139, 255, 0.2), transparent 62%),
+    radial-gradient(900px 600px at 12% 6%, rgba(95, 227, 255, 0.13), transparent 60%),
+    linear-gradient(180deg, #100c2c 0%, var(--iz-paper) 55%, var(--iz-paper-deep) 100%);
 }
 
-.injazi > *:not(.iz-sky-wash) {
+.iz-neb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  will-change: transform;
+}
+.iz-neb--1 {
+  width: 62vw;
+  height: 62vw;
+  inset-block-start: -22vw;
+  inset-inline-end: -12vw;
+  background: radial-gradient(circle, rgba(169, 139, 255, 0.4), transparent 66%);
+  animation: iz-drift-1 46s ease-in-out infinite alternate;
+}
+.iz-neb--2 {
+  width: 54vw;
+  height: 54vw;
+  inset-block-end: -20vw;
+  inset-inline-start: -14vw;
+  background: radial-gradient(circle, rgba(95, 227, 255, 0.28), transparent 66%);
+  animation: iz-drift-2 58s ease-in-out infinite alternate;
+}
+.iz-neb--3 {
+  width: 40vw;
+  height: 40vw;
+  inset-block-start: 34%;
+  inset-inline-start: 30%;
+  background: radial-gradient(circle, rgba(255, 143, 192, 0.18), transparent 68%);
+  animation: iz-drift-3 72s ease-in-out infinite alternate;
+}
+
+@keyframes iz-drift-1 {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(-7vw, 6vh, 0) scale(1.22); }
+}
+@keyframes iz-drift-2 {
+  from { transform: translate3d(0, 0, 0) scale(1.14); }
+  to { transform: translate3d(9vw, -7vh, 0) scale(1); }
+}
+@keyframes iz-drift-3 {
+  from { transform: translate3d(0, 0, 0) scale(0.9); }
+  to { transform: translate3d(-11vw, -9vh, 0) scale(1.3); }
+}
+
+.iz-starlayer {
+  position: absolute;
+  inset: -12%;
+  will-change: transform;
+  transform: translate3d(
+    calc(var(--iz-sky-px) * var(--iz-depth) * 1px),
+    calc(var(--iz-sky-py) * var(--iz-depth) * 1px),
+    0
+  );
+  transition: transform 900ms var(--iz-ease-clay);
+}
+
+.iz-starlayer__sail {
+  position: absolute;
+  inset: 0;
+  animation: iz-sail var(--iz-sail) linear infinite alternate;
+}
+
+@keyframes iz-sail {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-4vw, 3vh, 0); }
+}
+
+.iz-star {
+  position: absolute;
+  border-radius: 50%;
+  background: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iz-neb,
+  .iz-starlayer__sail {
+    animation: none;
+  }
+  .iz-starlayer {
+    transform: none;
+    transition: none;
+  }
+}
+
+.injazi > *:not(.iz-nightsky) {
   position: relative;
   z-index: 2;
 }
@@ -69,7 +163,7 @@
   align-items: center;
   gap: var(--iz-s-4);
   padding: var(--iz-s-3) var(--iz-s-5);
-  background: rgba(255, 255, 255, 0.82);
+  background: rgba(12, 9, 34, 0.72);
   border-block-end: 1px solid var(--iz-line);
   backdrop-filter: blur(10px);
   position: sticky;
@@ -141,7 +235,7 @@
 
 .iz-header__link.active {
   background: var(--iz-accent);
-  color: #fff;
+  color: var(--iz-on-accent);
 }
 
 .iz-header__side {
@@ -244,7 +338,7 @@
 
 .iz-music__btn.is-playing {
   background: var(--iz-accent);
-  color: #fff;
+  color: var(--iz-on-accent);
 }
 
 .iz-music__more {
@@ -423,7 +517,7 @@
   margin: 0 0 var(--iz-s-3);
   padding: 5px 14px;
   border-radius: var(--iz-r-pill);
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--iz-line);
   font-size: 13px;
   font-weight: 700;
@@ -524,7 +618,7 @@
 }
 
 .iz-student-card--glass {
-  background: rgba(255, 255, 255, 0.62);
+  background: rgba(255, 255, 255, 0.055);
   backdrop-filter: blur(12px);
 }
 
@@ -564,18 +658,44 @@
     var(--iz-cover, linear-gradient(135deg, var(--iz-lilac), var(--iz-sky)));
 }
 
+/*
+  الصورة الرمزية على الليل تحتاج حلقة ضوء لا حافة بيضاء: الحافة الفاتحة
+  تختفي في الداكن، والهالة الملوّنة (من لون ثيم الطالبة) تفصل الدائرة
+  عن الغلاف وتُبقي الحرف الأول مقروءًا.
+  الهالة على عنصر زائف خلف الصورة (لا box-shadow) لأنها ضبابية عريضة،
+  وblur على ظل الصندوق يُحسب في كل إطار أثناء الرفع.
+*/
 .iz-student-card__avatar {
   position: relative;
   margin-block-start: 44px;
   width: 104px;
   height: 104px;
   border-radius: var(--iz-r-pill);
-  overflow: hidden;
-  background: var(--iz-surface-sunk);
-  border: 4px solid var(--iz-surface);
-  box-shadow: var(--iz-sh-2);
+  background: rgba(8, 6, 26, 0.82);
+  border: 2px solid rgba(255, 255, 255, 0.14);
   display: grid;
   place-items: center;
+}
+
+.iz-student-card__avatar::before {
+  content: "";
+  position: absolute;
+  inset: -9px;
+  z-index: -1;
+  border-radius: inherit;
+  /* الثيم يكتب --iz-accent على البطاقة نفسها، فتأخذ كل طالبة هالتها. */
+  background: conic-gradient(
+    from 210deg,
+    var(--iz-accent),
+    var(--iz-accent-deep),
+    var(--iz-accent)
+  );
+  filter: blur(10px);
+  opacity: 0.8;
+}
+
+.iz-student-card__avatar > img {
+  border-radius: inherit;
 }
 
 .iz-student-card__avatar img,
@@ -604,7 +724,7 @@
   width: 34px;
   height: 34px;
   border-radius: var(--iz-r-pill);
-  background: rgba(255, 255, 255, 0.82);
+  background: rgba(12, 9, 34, 0.72);
   color: var(--iz-accent-deep);
 }
 
@@ -641,7 +761,7 @@
   width: 100%;
   border-radius: var(--iz-r-pill);
   background: var(--iz-accent);
-  color: #fff;
+  color: var(--iz-on-accent);
   font-weight: 800;
   font-family: var(--iz-font-display);
   font-size: 15px;
@@ -1053,7 +1173,7 @@
 }
 
 .iz-panel--glass {
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(12px);
 }
 
@@ -1362,7 +1482,7 @@
 .iz-btn--primary {
   --iz-btn-mass: var(--iz-accent-deep);
   background: var(--iz-accent);
-  color: #fff;
+  color: var(--iz-on-accent);
 }
 
 .iz-btn--gold {
@@ -1389,9 +1509,9 @@
 }
 
 .iz-btn--danger {
-  --iz-btn-mass: #a8322d;
-  background: #d4514b;
-  color: #fff;
+  --iz-btn-mass: #c2463f;
+  background: var(--iz-danger);
+  color: var(--iz-on-accent);
 }
 
 /* الحذف فعل لا رجعة فيه: هادئ حتى تقترب اليد، ثم يعلن نفسه */
@@ -1720,7 +1840,7 @@
   height: 26px;
   border: 0;
   border-radius: var(--iz-r-pill);
-  background: rgba(46, 36, 56, 0.72);
+  background: rgba(6, 4, 26, 0.78);
   color: #fff;
   cursor: pointer;
 }
@@ -2060,7 +2180,7 @@
 .iz-pill.is-active {
   background: var(--iz-accent);
   border-color: var(--iz-accent);
-  color: #fff;
+  color: var(--iz-on-accent);
 }
 
 .iz-preview {
@@ -2105,7 +2225,7 @@
   width: 30px;
   height: 30px;
   border-radius: var(--iz-r-pill);
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.06);
   color: var(--iz-accent-deep);
 }
 
@@ -2214,7 +2334,7 @@
 }
 
 .iz-tab.active {
-  color: #fff;
+  color: var(--iz-on-accent);
 }
 
 .iz-tab__pill {
@@ -2543,7 +2663,7 @@
   font-size: 15px;
   padding: 12px 20px;
   border-radius: var(--iz-r-pill);
-  color: #fff;
+  color: var(--iz-on-accent);
   background: var(--iz-ink);
   box-shadow: var(--iz-sh-3);
 }
@@ -2580,19 +2700,75 @@
   will-change: transform, opacity;
 }
 
-.iz-butterfly__wing {
-  transform-box: view-box;
-  transform-origin: 30px 24px;
-  animation: iz-flap 340ms var(--iz-ease-soft) infinite;
+/*
+  الجناح يدور حول محوره الرأسي داخل مشهد له عمق (perspective على الأب).
+  الفرق عن scaleX: الدوران يقصّر الجناح بمنظور حقيقي ويُظهر حرفه عند
+  الذروة، بينما scaleX يسحق الصورة أفقيًا فتبدو كورقة تُطوى.
+*/
+.iz-butterfly {
+  position: relative;
+  display: block;
+  width: 0;
+  height: 0;
+  perspective: 340px;
 }
 
-@keyframes iz-flap {
+.iz-butterfly__wing {
+  position: absolute;
+  inset-block-start: -34px;
+  right: 0; /* نقطة تلاقي الجناحين = الجسم، وهي فيزيائية لا اتجاهية */
+  width: 42px;
+  height: 68px;
+  transform-origin: right center;
+  transform-style: preserve-3d;
+}
+
+.iz-butterfly__wing svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.iz-butterfly__wing--r {
+  animation: iz-flap-r var(--iz-flap, 0.28s) var(--iz-ease-soft) infinite;
+}
+
+.iz-butterfly__wing--l {
+  animation: iz-flap-l var(--iz-flap, 0.28s) var(--iz-ease-soft) infinite;
+}
+
+.iz-butterfly__wing--l svg {
+  transform: scaleX(-1);
+  transform-origin: right center;
+}
+
+.iz-butterfly__body {
+  position: absolute;
+  right: -1px;
+  inset-block-start: -13px;
+  width: 3px;
+  height: 26px;
+  border-radius: 3px;
+  opacity: 0.85;
+}
+
+@keyframes iz-flap-r {
   0%,
   100% {
-    transform: scaleX(1);
+    transform: rotateY(14deg);
   }
   50% {
-    transform: scaleX(0.4);
+    transform: rotateY(74deg);
+  }
+}
+
+@keyframes iz-flap-l {
+  0%,
+  100% {
+    transform: rotateY(-14deg);
+  }
+  50% {
+    transform: rotateY(-74deg);
   }
 }
 

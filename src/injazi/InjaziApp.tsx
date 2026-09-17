@@ -12,6 +12,7 @@ import { Route, Routes, useLocation } from "react-router-dom";
 import { AnimatePresence } from "motion/react";
 import { ClayObject } from "@/injazi/components/ClayObject";
 import { ToastHost } from "@/injazi/components/ToastHost";
+import { NightSky } from "@/injazi/components/NightSky";
 import { SiteHeader } from "@/injazi/app/SiteHeader";
 import { ConfigGate } from "@/injazi/app/ConfigGate";
 import { RequireRole } from "@/injazi/app/RequireRole";
@@ -84,7 +85,7 @@ export default function InjaziApp() {
 
   return (
     <div className={`injazi injazi--bg-${settings.background}`} dir="rtl" style={rootStyle}>
-      <div className="iz-sky-wash" aria-hidden="true" />
+      <NightSky />
       <SiteHeader />
 
       <main className="iz-main">
