@@ -1,20 +1,24 @@
 /*
-  زر الموسيقى.
+  زر الإنشودة.
   قواعد صارمة: لا تشغيل تلقائي بصوت قبل تفاعل المستخدمة (المتصفحات
   تمنعه أصلًا، ونحن لا نحاول الالتفاف عليه)، والتفضيل يُحفظ محليًا
   فتعود الطالبة لاحقًا إلى نفس الحالة.
+
+  حين يرفض المتصفح التشغيل، لا نُسقط التفضيل: ننتظر أول تفاعل حقيقي
+  (نقرة أو لمسة أو مفتاح) ثم نشغّل عندها. هذا التزام بالسياسة لا
+  التفاف عليها — التشغيل يحدث داخل إيماءة المستخدمة نفسها.
   العنصر الوحيد المتحرك باستمرار في المنصة هو أعمدة الصوت — وذلك فقط
   أثناء التشغيل الفعلي، لأنها تخبر بحالة حقيقية.
 */
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Music, Pause, Play, Volume2 } from "lucide-react";
+import { Music, Pause, Play, Volume2, VolumeX } from "lucide-react";
 import { DUR, EASE_CLAY } from "@/injazi/motion/motion";
 import type { Settings } from "@/injazi/types/models";
 
 const PREF_KEY = "injazi:music:v1";
 
-type Pref = { playing: boolean; volume: number };
+type Pref = { playing: boolean; volume: number; muted: boolean };
 
 function readPref(fallbackVolume: number): Pref {
   try {
@@ -23,7 +27,7 @@ function readPref(fallbackVolume: number): Pref {
   } catch {
     /* تخزين محجوب: نبدأ بالقيم الافتراضية */
   }
-  return { playing: false, volume: fallbackVolume };
+  return { playing: false, volume: fallbackVolume, muted: false };
 }
 
 function writePref(pref: Pref) {
@@ -46,21 +50,44 @@ export function MusicPlayer({ settings }: { settings: Settings }) {
     const element = audio.current;
     if (!element) return;
     element.volume = pref.volume;
+    element.muted = pref.muted;
     element.loop = settings.audioLoop;
-  }, [pref.volume, settings.audioLoop]);
+  }, [pref.volume, pref.muted, settings.audioLoop]);
 
   useEffect(() => {
     const element = audio.current;
     if (!element || !enabled) return;
-    if (pref.playing) {
-      element.play().catch(() => {
-        // المتصفح رفض التشغيل قبل التفاعل: نعرض الزر ولا نعِد بصوت لم يبدأ.
-        setBlocked(true);
-        setPref((current) => ({ ...current, playing: false }));
-      });
-    } else {
+
+    if (!pref.playing) {
       element.pause();
+      return;
     }
+
+    let armed = false;
+    const resume = () => {
+      armed = false;
+      window.removeEventListener("pointerdown", resume);
+      window.removeEventListener("keydown", resume);
+      element.play().catch(() => setBlocked(true));
+    };
+
+    element.play().then(
+      () => setBlocked(false),
+      () => {
+        // مرفوض قبل التفاعل: نُبقي التفضيل ونعلّق التشغيل على أول
+        // إيماءة حقيقية بدل إسقاطه وإجبارها على الضغط من جديد.
+        setBlocked(true);
+        armed = true;
+        window.addEventListener("pointerdown", resume, { once: true });
+        window.addEventListener("keydown", resume, { once: true });
+      },
+    );
+
+    return () => {
+      if (!armed) return;
+      window.removeEventListener("pointerdown", resume);
+      window.removeEventListener("keydown", resume);
+    };
   }, [pref.playing, enabled]);
 
   if (!enabled) return null;
@@ -69,6 +96,14 @@ export function MusicPlayer({ settings }: { settings: Settings }) {
     setBlocked(false);
     setPref((current) => {
       const next = { ...current, playing: !current.playing };
+      writePref(next);
+      return next;
+    });
+  }
+
+  function toggleMute() {
+    setPref((current) => {
+      const next = { ...current, muted: !current.muted };
       writePref(next);
       return next;
     });
@@ -111,13 +146,19 @@ export function MusicPlayer({ settings }: { settings: Settings }) {
 
       <motion.button
         type="button"
-        className="iz-music__more"
-        onClick={() => setOpen((value) => !value)}
-        aria-label="إعدادات الصوت"
-        aria-expanded={open}
+        className={`iz-music__more ${pref.muted ? "is-muted" : ""}`}
+        onClick={toggleMute}
+        onDoubleClick={() => setOpen((value) => !value)}
+        aria-label={pref.muted ? "إلغاء كتم الصوت" : "كتم الصوت"}
+        aria-pressed={pref.muted}
+        title={pref.muted ? "إلغاء الكتم" : "كتم"}
         whileTap={{ scale: 0.94 }}
       >
-        <Volume2 size={16} strokeWidth={2.4} aria-hidden="true" />
+        {pref.muted ? (
+          <VolumeX size={16} strokeWidth={2.4} aria-hidden="true" />
+        ) : (
+          <Volume2 size={16} strokeWidth={2.4} aria-hidden="true" />
+        )}
       </motion.button>
 
       <AnimatePresence>
@@ -145,7 +186,7 @@ export function MusicPlayer({ settings }: { settings: Settings }) {
                 aria-label="مستوى الصوت"
               />
             </div>
-            {blocked && <p className="iz-field__meter">اضغطي زر التشغيل مرة أخرى لبدء الصوت.</p>}
+            {blocked && <p className="iz-field__meter">ستبدأ الإنشودة عند أول نقرة على الصفحة.</p>}
           </motion.div>
         )}
       </AnimatePresence>

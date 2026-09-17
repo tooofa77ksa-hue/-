@@ -3051,3 +3051,9 @@
     gap: var(--iz-s-4);
   }
 }
+
+/* حالة الكتم: اللون وحده لا يكفي — الأيقونة نفسها تتغيّر أيضًا. */
+.iz-music__more.is-muted {
+  color: var(--iz-danger);
+  border-color: color-mix(in srgb, var(--iz-danger) 45%, transparent);
+}
