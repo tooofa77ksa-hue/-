@@ -1321,25 +1321,30 @@
   color: var(--iz-ink-soft);
 }
 
+/* نبرات الشارات.
+   الألوان الداكنة هنا كانت بقيّة من التصميم الفاتح: على أرضية «ليل
+   المجرّة» قيست فعليًا عند 2.04 و1.56 و1.46 مقابل خلفياتها، والحدّ
+   الأدنى 4.5 — أي أن اسم المادة و«معطَّلة» كانا يكادان لا يُقرآن.
+   النص الآن فاتح من عائلة اللون نفسه، فيبقى المعنى ويعود الوضوح. */
 .iz-chip--success {
   background: rgba(87, 201, 154, 0.16);
   border-color: rgba(87, 201, 154, 0.4);
-  color: #216b4e;
+  color: #8ff0c4;
 }
 .iz-chip--warn {
   background: rgba(255, 184, 119, 0.22);
   border-color: rgba(232, 146, 81, 0.45);
-  color: #8a4a12;
+  color: #ffd79a;
 }
 .iz-chip--info {
   background: rgba(143, 203, 255, 0.22);
   border-color: rgba(91, 163, 224, 0.42);
-  color: #1f5a8a;
+  color: #bfe2ff;
 }
 .iz-chip--gold {
   background: rgba(246, 185, 59, 0.2);
   border-color: rgba(217, 149, 18, 0.45);
-  color: #8a6008;
+  color: #ffd98a;
 }
 
 .iz-chip-row {
