@@ -10,13 +10,26 @@ export function AudioControls() {
 
   return (
     <div className="audio-controls">
-      <button
-        className="audio-controls__toggle"
-        onClick={() => setOpen((o) => !o)}
-        aria-label="إعدادات الصوت"
-      >
-        {prefs.muted ? "🔇" : "🔊"}
-      </button>
+      <div className="audio-controls__row">
+        <button
+          className="audio-controls__toggle"
+          onClick={() => setOpen((o) => !o)}
+          aria-label="إعدادات الصوت"
+        >
+          {prefs.muted ? "🔇" : "🔊"}
+        </button>
+        {/* زر مباشر وواضح دائمًا (بلا حاجة لفتح اللوحة) لأن كتم أغنية
+           "نافس" تحديدًا طُلب بإلحاح، فوضعه خلف قائمة منسدلة مخفية جعله
+           غير مكتشَف عمليًا رغم وجوده فعلًا في الكود. */}
+        <button
+          className={`audio-controls__music-toggle ${prefs.musicMuted ? "is-muted" : ""}`}
+          onClick={() => manager.setPrefs({ musicMuted: !prefs.musicMuted })}
+          aria-label={prefs.musicMuted ? "تشغيل أغنية نافس" : "كتم أغنية نافس"}
+          title={prefs.musicMuted ? "أغنية نافس مكتومة - اضغطي للتشغيل" : "اضغطي لكتم أغنية نافس فقط"}
+        >
+          {prefs.musicMuted ? "🔕" : "🎵"}
+        </button>
+      </div>
       {open && (
         <div className="audio-controls__panel">
           <label>

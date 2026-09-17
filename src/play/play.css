@@ -489,6 +489,11 @@
   z-index: 10;
 }
 
+.audio-controls__row {
+  display: flex;
+  gap: 8px;
+}
+
 .audio-controls__toggle {
   background: var(--game-panel);
   border: none;
@@ -502,6 +507,29 @@
 }
 
 .audio-controls__toggle:active {
+  transform: scale(0.9);
+}
+
+/* زر كتم أغنية "نافس" - مستقل وظاهر دائمًا (ليس داخل اللوحة المنسدلة)
+   حتى تُكتشف الميزة فورًا. لون ذهبي مميز عند التفعيل العادي، ورمادي
+   خافت واضح عند الكتم حتى تُقرأ الحالة الحالية بنظرة واحدة. */
+.audio-controls__music-toggle {
+  background: var(--game-gold);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 16px;
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.15s ease;
+}
+
+.audio-controls__music-toggle.is-muted {
+  background: #d8d3e0;
+}
+
+.audio-controls__music-toggle:active {
   transform: scale(0.9);
 }
 
