@@ -7,10 +7,12 @@ import { useEffect, useMemo, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, isFirebaseUsable } from "@/injazi/firebase/client";
 import {
-  getUserDoc,
+  COL,
   liveAchievements,
   liveActivity,
+  liveDoc,
   liveEvaluationsByStudent,
+  liveInvites,
   liveProjectsByStudent,
   liveProjectsBySubjects,
   liveSettings,
@@ -30,6 +32,7 @@ import type {
   Student,
   Subject,
   Teacher,
+  TeacherInvite,
   UserDoc,
 } from "@/injazi/types/models";
 
@@ -84,16 +87,36 @@ export function useSession(): SessionState {
       setState({ uid: null, profile: null, loading: false });
       return;
     }
-    return onAuthStateChanged(auth, async (user) => {
+
+    let stopProfile: (() => void) | undefined;
+
+    const stopAuth = onAuthStateChanged(auth, (user) => {
+      stopProfile?.();
+      stopProfile = undefined;
+
       if (!user) {
         setState({ uid: null, profile: null, loading: false });
         return;
       }
-      // الدور لا يُقرأ من الرمز المميّز بل من المستند، حتى يسري تعطيل
-      // الحساب أو تغيير الدور فورًا دون انتظار تجديد الجلسة.
-      const profile = await getUserDoc(user.uid).catch(() => null);
-      setState({ uid: user.uid, profile, loading: false });
+
+      /*
+        الدور لا يُقرأ من الرمز المميّز بل من المستند، حتى يسري تعطيل
+        الحساب أو تغيير الدور فورًا دون انتظار تجديد الجلسة.
+
+        والاشتراك حيّ لا قراءة واحدة: ملف الصلاحيات قد يُكتب بعد تسجيل
+        الدخول بلحظة (المعلمة الداخلة برابطها تُنشئ ملفها بنفسها)، وقد
+        تعطّله المشرفة أثناء الجلسة. قراءة واحدة عند الدخول كانت تترك
+        الترويسة تعرض «دخول» لمعلمة داخلة فعلًا.
+      */
+      stopProfile = liveDoc<UserDoc>(COL.users, user.uid, (profile) =>
+        setState({ uid: user.uid, profile, loading: false }),
+      );
     });
+
+    return () => {
+      stopProfile?.();
+      stopAuth();
+    };
   }, []);
 
   return state;
@@ -105,6 +128,8 @@ export const useStudents = () => useLiveList<Student>(liveStudents);
 export const useTeachers = () => useLiveList<Teacher>(liveTeachers);
 export const useSubjects = () => useLiveList<Subject>(liveSubjects);
 export const useUsers = () => useLiveList<UserDoc>(liveUsers);
+/** للمشرفة وحدها: القواعد ترفض تعداد الروابط لأي دور آخر. */
+export const useInvites = () => useLiveList<TeacherInvite>(liveInvites);
 export const useActivity = () => useLiveList<ActivityLog>(liveActivity);
 
 export const useStudentProjects = (studentId: string) =>

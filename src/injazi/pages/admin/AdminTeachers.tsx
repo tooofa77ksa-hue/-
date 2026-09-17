@@ -1,15 +1,20 @@
 /*
   إدارة المعلمات.
-  إضافة معلمة تنشئ شيئين معًا: مستند المعلمة (للعرض والإسناد) وحساب
-  دخول بدور teacher مربوط بموادها. هذا هو معنى «لا أرجع للكود كلما
-  جاءت معلمة جديدة».
-  تغيير مواد المعلمة يحدّث مستند المعلمة وملف صلاحياتها في آنٍ واحد،
-  لأن القواعد الأمنية تقرأ subjectIds من ملف الصلاحيات لا من المعلمة.
+  ------------------------------------------------------------------
+  الطريق الأساسي للدخول رابط لا حساب: تُضاف المعلمة باسمها ومادتها، ثم
+  يُنسخ رابطها ويُرسَل لها، فتفتحه وتبدأ التصحيح — بلا بريد ولا كلمة
+  مرور ولا «نسيت كلمة المرور».
+
+  البريد وكلمة المرور ما زالا متاحين لمن تفضّلهما، لكنهما اختياريان.
+
+  تغيير مواد المعلمة يحدّث ثلاثة مواضع معًا: مستند المعلمة، ورابطها،
+  وملفات صلاحيات الأجهزة التي فتحته — لأن القواعد الأمنية تقرأ
+  subjectIds من ملف الصلاحيات وتقارنه بالرابط، لا بمستند المعلمة.
 */
 import { useEffect, useMemo, useState } from "react";
 import { Media } from "@/injazi/ui/Media";
 import { motion } from "motion/react";
-import { Mail, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { Copy, Link2, Mail, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { ClayButton } from "@/injazi/components/ClayButton";
 import { EmptyState } from "@/injazi/components/EmptyState";
 import { ConfirmDialog, Modal } from "@/injazi/ui/Modal";
@@ -19,29 +24,36 @@ import { Uploader } from "@/injazi/ui/Uploader";
 import { Icon } from "@/injazi/ui/IconPicker";
 import {
   COL,
+  createInvite,
   createTeacher,
   deleteTeacher,
+  deleteUserDoc,
   logActivity,
   reorder,
+  revokeInvite,
   saveUserDoc,
+  updateInvite,
   updateSubject,
   updateTeacher,
 } from "@/injazi/services/repo";
 import { createAccount } from "@/injazi/services/auth";
 import { PLATFORM_SCOPE, deleteFile } from "@/injazi/services/storage";
-import { useSession, useSubjects, useTeachers, useUsers } from "@/injazi/hooks/useLive";
+import { useInvites, useSession, useSubjects, useTeachers, useUsers } from "@/injazi/hooks/useLive";
 import { showToast } from "@/injazi/lib/toast";
 import { pageVariants, riseItem, staggerContainer } from "@/injazi/motion/motion";
-import type { Subject, Teacher, UserDoc } from "@/injazi/types/models";
+import { copyText, inviteUrl } from "@/injazi/lib/inviteLink";
+import type { Subject, Teacher, TeacherInvite, UserDoc } from "@/injazi/types/models";
 
 export function AdminTeachers() {
   const { profile } = useSession();
   const { data: teachers, loading } = useTeachers();
   const { data: subjects } = useSubjects();
   const { data: users } = useUsers();
+  const { data: invites } = useInvites();
 
   const [query, setQuery] = useState("");
   const [editor, setEditor] = useState<{ open: boolean; row: Teacher | null }>({ open: false, row: null });
+  const [linkFor, setLinkFor] = useState<Teacher | null>(null);
   const [confirm, setConfirm] = useState<Teacher | null>(null);
 
   const rows = useMemo(() => {
@@ -54,7 +66,7 @@ export function AdminTeachers() {
   return (
     <motion.div className="iz-page" variants={pageVariants} initial="initial" animate="enter" exit="exit">
       <SectionTitle
-        hint="إضافة معلمة تنشئ حساب دخولها وتسند إليها موادها مباشرة"
+        hint="أضيفي المعلمة ومادتها، ثم أرسلي لها رابطها — بلا بريد ولا كلمة مرور"
         action={
           <ClayButton icon={<Plus size={18} strokeWidth={2.6} />} onClick={() => setEditor({ open: true, row: null })}>
             إضافة معلمة
@@ -102,7 +114,8 @@ export function AdminTeachers() {
               showToast("تم حفظ الترتيب");
             }}
             renderItem={(teacher) => {
-              const account = users.find((user) => user.teacherId === teacher.id);
+              const account = users.find((user) => user.teacherId === teacher.id && !user.inviteCode);
+              const invite = invites.find((row) => row.teacherId === teacher.id);
               const owned = subjects.filter((subject) => teacher.subjectIds.includes(subject.id));
               return (
                 <motion.div className="iz-admin-row" variants={riseItem}>
@@ -116,12 +129,22 @@ export function AdminTeachers() {
 
                   <span className="iz-admin-row__text">
                     <strong>{teacher.name}</strong>
-                    <span className="iz-admin-row__meta">
-                      <Mail size={13} strokeWidth={2.4} aria-hidden="true" /> {teacher.email}
-                    </span>
+                    {teacher.email && (
+                      <span className="iz-admin-row__meta">
+                        <Mail size={13} strokeWidth={2.4} aria-hidden="true" /> {teacher.email}
+                      </span>
+                    )}
                     <span className="iz-chip-row">
                       {!teacher.active && <Chip tone="warn">معطَّلة</Chip>}
-                      {!account && <Chip tone="warn">بلا حساب دخول</Chip>}
+                      {invite ? (
+                        <Chip tone="success" icon={<Link2 size={13} strokeWidth={2.6} />}>
+                          رابطها جاهز
+                        </Chip>
+                      ) : account ? (
+                        <Chip tone="info">تدخل ببريدها</Chip>
+                      ) : (
+                        <Chip tone="warn">بلا رابط دخول</Chip>
+                      )}
                       {owned.length === 0 ? (
                         <Chip tone="info">بلا مادة</Chip>
                       ) : (
@@ -135,6 +158,15 @@ export function AdminTeachers() {
                   </span>
 
                   <span className="iz-admin-row__actions">
+                    <button
+                      type="button"
+                      className="iz-icon-btn"
+                      aria-label={`رابط دخول ${teacher.name}`}
+                      title="رابط الدخول"
+                      onClick={() => setLinkFor(teacher)}
+                    >
+                      <Link2 size={16} strokeWidth={2.5} />
+                    </button>
                     <button
                       type="button"
                       className="iz-icon-btn"
@@ -159,11 +191,20 @@ export function AdminTeachers() {
         </motion.div>
       )}
 
+      <InviteDialog
+        teacher={linkFor}
+        invite={linkFor ? (invites.find((row) => row.teacherId === linkFor.id) ?? null) : null}
+        users={users}
+        actorName={profile?.name ?? "مشرفة"}
+        onClose={() => setLinkFor(null)}
+      />
+
       <TeacherEditor
         open={editor.open}
         row={editor.row}
         subjects={subjects}
         users={users}
+        invites={invites}
         actorName={profile?.name ?? "مشرفة"}
         onClose={() => setEditor({ open: false, row: null })}
       />
@@ -171,11 +212,18 @@ export function AdminTeachers() {
       <ConfirmDialog
         open={confirm !== null}
         title="حذف المعلمة"
-        message={`سيُحذف ملف «${confirm?.name}» وتُفكّ موادها. حساب الدخول يبقى معطَّلًا في Firebase Authentication ويُحذف من هناك. هل أنتِ متأكدة؟`}
+        message={`سيُحذف ملف «${confirm?.name}» وتُفكّ موادها، ويتوقّف رابط دخولها في الحال. هل أنتِ متأكدة؟`}
         onConfirm={async () => {
           if (!confirm) return;
-          const account = users.find((user) => user.teacherId === confirm.id);
-          if (account) await saveUserDoc(account.id, { active: false, subjectIds: [] });
+          // الرابط أولًا: ما دام قائمًا فالصلاحية قائمة على كل جهاز فُتح به.
+          const link = invites.find((row) => row.teacherId === confirm.id);
+          if (link) await revokeInvite(link.id);
+          for (const user of users.filter((row) => row.teacherId === confirm.id)) {
+            // ملفات الرابط تُحذف (لا معنى لها بعده)، وحسابات البريد
+            // تُعطَّل فقط لأن حساب Auth نفسه يبقى وتحذفه المشرفة من هناك.
+            if (user.inviteCode) await deleteUserDoc(user.id);
+            else await saveUserDoc(user.id, { active: false, subjectIds: [] });
+          }
           await deleteTeacher(confirm.id);
           await logActivity("teacher.delete", `تم حذف المعلمة ${confirm.name}`, profile?.name ?? "مشرفة", "admin");
           showToast("تم حذف المعلمة", "info");
@@ -187,11 +235,174 @@ export function AdminTeachers() {
   );
 }
 
+/*
+  رابط الدخول.
+  الرابط قدرة: من يفتحه يقيّم مواد هذه المعلمة. ولذلك نقول ذلك صراحةً
+  في الواجهة بدل أن نتركه مفهومًا ضمنًا، ونجعل الإلغاء بضغطة واحدة.
+*/
+function InviteDialog({
+  teacher,
+  invite,
+  users,
+  actorName,
+  onClose,
+}: {
+  teacher: Teacher | null;
+  invite: TeacherInvite | null;
+  users: UserDoc[];
+  actorName: string;
+  onClose: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [confirmRevoke, setConfirmRevoke] = useState(false);
+
+  useEffect(() => {
+    if (teacher) {
+      setError(null);
+      setConfirmRevoke(false);
+    }
+  }, [teacher]);
+
+  const url = invite ? inviteUrl(invite.id) : "";
+
+  async function generate() {
+    if (!teacher || busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const code = await createInvite({
+        teacherId: teacher.id,
+        teacherName: teacher.name,
+        subjectIds: teacher.subjectIds,
+      });
+      // النسخ داخل نفس إيماءة الضغط: بعض المتصفّحات ترفض الحافظة إن
+      // تأخّرت كثيرًا، لكن إن رفضت فالرابط معروض أمامها على أي حال.
+      await copyText(inviteUrl(code));
+      await logActivity("teacher.invite", `أُنشئ رابط دخول للمعلمة ${teacher.name}`, actorName, "admin");
+      showToast("أُنشئ الرابط ونُسخ");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "تعذّر إنشاء الرابط.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function copy() {
+    const okay = await copyText(url);
+    showToast(okay ? "نُسخ الرابط" : "تعذّر النسخ — انسخيه من المربّع", okay ? "success" : "info");
+  }
+
+  async function revoke() {
+    if (!teacher || !invite || busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await revokeInvite(invite.id);
+      // حذف الدعوة يكفي وحده (القواعد تفحصها حيّة عند كل كتابة)، لكن
+      // ملفات الصلاحيات التي وُلدت منها تبقى بلا معنى — فتُحذف، فلا يبقى
+      // في القاعدة دور teacher لا يسنده شيء.
+      for (const user of users.filter((row) => row.inviteCode === invite.id)) {
+        await deleteUserDoc(user.id);
+      }
+      await logActivity("teacher.invite.revoke", `أُلغي رابط دخول المعلمة ${teacher.name}`, actorName, "admin");
+      showToast("أُلغي الرابط", "info");
+      setConfirmRevoke(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "تعذّر إلغاء الرابط.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Modal
+      open={teacher !== null}
+      title={teacher ? `رابط دخول ${teacher.name}` : "رابط الدخول"}
+      onClose={onClose}
+      footer={
+        <>
+          <ClayButton variant="soft" onClick={onClose} disabled={busy}>
+            إغلاق
+          </ClayButton>
+          {invite ? (
+            <ClayButton onClick={copy} icon={<Copy size={17} strokeWidth={2.4} />}>
+              نسخ الرابط
+            </ClayButton>
+          ) : (
+            <ClayButton onClick={generate} loading={busy} icon={<Link2 size={17} strokeWidth={2.4} />}>
+              إنشاء الرابط
+            </ClayButton>
+          )}
+        </>
+      }
+    >
+      {invite ? (
+        <>
+          <Field label="أرسلي هذا الرابط للمعلمة" hint="تفتحه فتدخل مباشرة — بلا بريد ولا كلمة مرور.">
+            <TextInput value={url} readOnly onFocus={(event) => event.target.select()} />
+          </Field>
+
+          <Notice tone="warn">
+            من يفتح هذا الرابط يستطيع تقييم مشاريع مواد {teacher?.name} والكتابة عليها. أرسليه
+            لها وحدها، ولا تنشريه في مجموعة.
+          </Notice>
+
+          <p className="iz-field__meter">
+            ولا ترى صاحبته شيئًا آخر: لا ملفات أولياء الأمور، ولا مواد زميلاتها، ولا لوحة
+            الإدارة.
+          </p>
+
+          {confirmRevoke ? (
+            <Notice tone="danger">
+              <span>
+                الإلغاء يوقف الرابط فورًا على كل جهاز فُتح به، ولا يمكن التراجع — يلزم رابط
+                جديد.
+              </span>
+              <span className="iz-chip-row" style={{ marginTop: 10 }}>
+                <ClayButton variant="danger" onClick={revoke} loading={busy}>
+                  نعم، ألغي الرابط
+                </ClayButton>
+                <ClayButton variant="soft" onClick={() => setConfirmRevoke(false)} disabled={busy}>
+                  تراجع
+                </ClayButton>
+              </span>
+            </Notice>
+          ) : (
+            // فعل هادم لا يصحّ أن يُقرأ كجزء من الجملة قبله.
+            <p style={{ margin: "14px 0 0" }}>
+              <button type="button" className="iz-linkish" onClick={() => setConfirmRevoke(true)}>
+                إلغاء هذا الرابط
+              </button>
+            </p>
+          )}
+        </>
+      ) : (
+        <>
+          <p className="iz-field__meter">
+            لم يُنشأ رابط بعد. الرابط هو طريقة دخول المعلمة: تفتحه من الجوال أو الحاسب فتصل
+            إلى مشاريع موادها وتبدأ التصحيح.
+          </p>
+          {teacher && teacher.subjectIds.length === 0 && (
+            <Notice tone="warn">
+              لم تُسنَد إلى {teacher.name} أي مادة بعد. الرابط سيعمل، لكنها لن ترى مشاريع حتى
+              تُسنَد إليها مادة.
+            </Notice>
+          )}
+        </>
+      )}
+
+      {error && <Notice tone="danger">{error}</Notice>}
+    </Modal>
+  );
+}
+
 function TeacherEditor({
   open,
   row,
   subjects,
   users,
+  invites,
   actorName,
   onClose,
 }: {
@@ -199,6 +410,7 @@ function TeacherEditor({
   row: Teacher | null;
   subjects: Subject[];
   users: UserDoc[];
+  invites: TeacherInvite[];
   actorName: string;
   onClose: () => void;
 }) {
@@ -222,8 +434,10 @@ function TeacherEditor({
     setError(null);
   }, [open, row]);
 
-  const account = row ? users.find((user) => user.teacherId === row.id) : undefined;
-  const needsAccount = !row || !account;
+  const account = row ? users.find((user) => user.teacherId === row.id && !user.inviteCode) : undefined;
+  // كلمة المرور تُطلب فقط إن اختارت المشرفة طريق البريد؛ الطريق الافتراضي
+  // رابط، ولا كلمة مرور فيه أصلًا.
+  const wantsEmailLogin = email.trim().length > 0 && !account;
 
   function toggleSubject(id: string) {
     setSubjectIds((current) =>
@@ -232,7 +446,7 @@ function TeacherEditor({
   }
 
   async function save() {
-    if (name.trim().length < 2 || !email.trim() || busy) return;
+    if (name.trim().length < 2 || busy) return;
     setBusy(true);
     setError(null);
     try {
@@ -258,9 +472,18 @@ function TeacherEditor({
         }),
       );
 
-      if (account) {
-        await saveUserDoc(account.id, { name: payload.name, subjectIds, active, teacherId });
-      } else if (password.length >= 6) {
+      // ملفات صلاحيات هذه المعلمة كلها — لا الأول فقط: قد تكون فتحت
+      // رابطها على الجوال والحاسب، ولكل جهاز ملفه.
+      for (const user of users.filter((entry) => entry.teacherId === teacherId)) {
+        await saveUserDoc(user.id, { name: payload.name, subjectIds, active, teacherId });
+      }
+
+      // ورابطها كذلك: القواعد تقارن ملف الصلاحيات بالرابط عند أول فتح،
+      // فرابط بمواد قديمة يمنع جهازًا جديدًا من الدخول بمواد صحيحة.
+      const link = invites.find((entry) => entry.teacherId === teacherId);
+      if (link) await updateInvite(link.id, { teacherName: payload.name, subjectIds });
+
+      if (!account && password.length >= 6 && payload.email) {
         await createAccount(payload.email, password, payload.name, "teacher", { teacherId, subjectIds });
       }
 
@@ -293,7 +516,7 @@ function TeacherEditor({
           <ClayButton
             onClick={save}
             loading={busy}
-            disabled={name.trim().length < 2 || !email.trim() || (needsAccount && password.length < 6)}
+            disabled={name.trim().length < 2 || (wantsEmailLogin && password.length > 0 && password.length < 6)}
           >
             حفظ
           </ClayButton>
@@ -304,7 +527,7 @@ function TeacherEditor({
         <Field label="اسم المعلمة">
           <TextInput value={name} onChange={(event) => setName(event.target.value)} maxLength={60} />
         </Field>
-        <Field label="البريد الإلكتروني">
+        <Field label="البريد الإلكتروني (اختياري)" hint="اتركيه فارغًا — المعلمة تدخل برابطها.">
           <TextInput
             type="email"
             value={email}
@@ -315,10 +538,10 @@ function TeacherEditor({
         </Field>
       </div>
 
-      {needsAccount && (
+      {wantsEmailLogin && (
         <Field
-          label="كلمة مرور الدخول"
-          hint="٦ أحرف على الأقل. تستطيع المعلمة تغييرها لاحقًا عبر «نسيت كلمة المرور»."
+          label="كلمة مرور الدخول (اختياري)"
+          hint="اتركيها فارغة إن كانت ستدخل بالرابط. وإن ملأتِها فـ ٦ أحرف على الأقل."
         >
           <TextInput
             type="password"

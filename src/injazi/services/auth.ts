@@ -6,13 +6,14 @@
 import {
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
+  signInAnonymously,
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
   type User,
 } from "firebase/auth";
 import { auth, isFirebaseUsable } from "@/injazi/firebase/client";
-import { getUserDoc, saveUserDoc } from "@/injazi/services/repo";
+import { getInvite, getUserDoc, saveUserDoc } from "@/injazi/services/repo";
 import type { Role, UserDoc } from "@/injazi/types/models";
 
 export class AuthError extends Error {}
@@ -65,6 +66,98 @@ export async function signIn(email: string, password: string): Promise<UserDoc |
 export async function signOutUser(): Promise<void> {
   if (!isFirebaseUsable) return;
   await signOut(auth);
+}
+
+/**
+ * دخول المعلمة برابطها.
+ * ------------------------------------------------------------------
+ * لا بريد ولا كلمة مرور: الرمز في الرابط هو الإثبات. نسجّل دخولًا
+ * مجهولًا لنحصل على هوية تقبلها قواعد الأمان، ثم نكتب ملف صلاحيات
+ * مطابقًا للدعوة حرفيًا — والقواعد هي التي تتحقّق من المطابقة، لا هذا
+ * الكود. لو عُدِّل هذا الملف في المتصفح لما تغيّر شيء: الخادم يرفض.
+ *
+ * الصلاحية تبقى مشروطة ببقاء الدعوة: حذفها من اللوحة يقطع الوصول عن
+ * كل جهاز فُتح به الرابط في الحال.
+ */
+export async function signInWithInvite(code: string): Promise<UserDoc> {
+  if (!isFirebaseUsable) throw new AuthError("لم تُضبَط إعدادات Firebase بعد.");
+
+  // حساب آخر مفتوح على الجهاز (ولي أمر مثلًا) لا يصلح لالتقاط الدعوة:
+  // الملف يُكتب على الهوية الحالية، فنبدأ من هوية نظيفة.
+  const current = auth.currentUser;
+  if (current && !current.isAnonymous) await signOut(auth);
+
+  let credential;
+  try {
+    credential = auth.currentUser?.isAnonymous
+      ? { user: auth.currentUser }
+      : await signInAnonymously(auth);
+  } catch (error) {
+    // أشيع سبب: مزوّد «مجهول» غير مفعّل في Firebase Authentication.
+    if ((error as { code?: string })?.code === "auth/admin-restricted-operation") {
+      throw new AuthError(
+        "الدخول بالرابط غير مفعّل في إعدادات المنصة. راجعي مشرفة المنصة.",
+      );
+    }
+    throw wrap(error);
+  }
+
+  const uid = credential.user.uid;
+
+  // تُقرأ الدعوة بعد الدخول لا قبله: القواعد تشترط هوية للقراءة.
+  const invite = await getInvite(code).catch(() => null);
+  if (!invite || invite.active !== true) {
+    // ملف الصلاحيات القديم على هذا الجهاز لا قيمة له بعد إلغاء الرابط —
+    // القواعد ترفض كل كتابة منه. نُسقط الجلسة حتى لا تبقى الواجهة تُظهر
+    // بوابة تعمل ظاهريًا وكل زر فيها يفشل.
+    await signOut(auth).catch(() => {});
+    throw new AuthError("هذا الرابط لم يعد صالحًا. اطلبي رابطًا جديدًا من مشرفة المنصة.");
+  }
+
+  const existing = await getUserDoc(uid).catch(() => null);
+  const staleGrant =
+    existing &&
+    (existing.inviteCode !== code ||
+      existing.teacherId !== invite.teacherId ||
+      existing.role !== "teacher");
+
+  // ملف قديم لهوية هذا الجهاز لا يمكن تصحيحه من هنا (التعديل للمشرفة
+  // وحدها بحكم القواعد)، فنبدأ بهوية جديدة بدل أن نفشل بلا تفسير.
+  if (staleGrant) {
+    await signOut(auth);
+    const fresh = await signInAnonymously(auth);
+    return writeInviteProfile(fresh.user.uid, code, invite.teacherId, invite.teacherName, invite.subjectIds);
+  }
+
+  if (existing) return existing;
+
+  return writeInviteProfile(uid, code, invite.teacherId, invite.teacherName, invite.subjectIds);
+}
+
+async function writeInviteProfile(
+  uid: string,
+  code: string,
+  teacherId: string,
+  teacherName: string,
+  subjectIds: string[],
+): Promise<UserDoc> {
+  const profile: Omit<UserDoc, "id"> = {
+    role: "teacher",
+    name: teacherName,
+    // لا بريد: هذا هو بيت القصيد — المعلمة لا تُسأل عن بريدها أصلًا.
+    email: "",
+    active: true,
+    teacherId,
+    subjectIds,
+    inviteCode: code,
+    createdAt: new Date().toISOString(),
+  };
+  try {
+    await saveUserDoc(uid, profile);
+  } catch {
+    throw new AuthError("تعذّر تفعيل الرابط. تأكّدي من الاتصال وأعيدي فتح الرابط.");
+  }
+  return { id: uid, ...profile };
 }
 
 export async function resetPassword(email: string): Promise<void> {

@@ -34,6 +34,7 @@ import type {
   Student,
   Subject,
   Teacher,
+  TeacherInvite,
   UserDoc,
 } from "@/injazi/types/models";
 
@@ -57,6 +58,7 @@ export const COL = {
   settings: `${ROOT}/settings`,
   activity: `${ROOT}/activityLogs`,
   media: `${ROOT}/media`,
+  invites: `${ROOT}/invites`,
 } as const;
 
 export const SETTINGS_DOC_ID = "app";
@@ -397,6 +399,60 @@ export async function saveUserDoc(uid: string, data: Partial<UserDoc>): Promise<
 }
 
 export const deleteUserDoc = (uid: string) => remove(COL.users, uid);
+
+// ------------------------------------------------------- روابط المعلمات
+
+/**
+ * رمز الدعوة: ١٦ بايت من مولّد التشفير في المتصفح (١٢٨ بت) بصيغة
+ * base64url. هو معرّف المستند وهو السر في آن واحد — ولذلك لا يُشتق من
+ * الاسم ولا من الوقت ولا من Math.random: كلها قابلة للتخمين.
+ */
+export function newInviteCode(): string {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+export function liveInvites(onData: (rows: TeacherInvite[]) => void, onError?: (e: Error) => void) {
+  return liveCollection<TeacherInvite>(COL.invites, [], onData, onError);
+}
+
+export async function getInvite(code: string): Promise<TeacherInvite | null> {
+  if (!isFirebaseUsable) return null;
+  const snapshot = await getDoc(doc(db, COL.invites, code));
+  return snapshot.exists() ? ({ id: snapshot.id, ...snapshot.data() } as TeacherInvite) : null;
+}
+
+/**
+ * ينشئ رابطًا جديدًا لمعلمة. إن كان لها رابط سابق فالمتوقّع أن تحذفه
+ * المشرفة أولًا — رابطان صالحان في آن واحد يجعلان الإلغاء وهمًا.
+ */
+export async function createInvite(input: {
+  teacherId: string;
+  teacherName: string;
+  subjectIds: string[];
+}): Promise<string> {
+  assertReady();
+  const code = newInviteCode();
+  await setDoc(doc(db, COL.invites, code), {
+    teacherId: input.teacherId,
+    teacherName: input.teacherName,
+    subjectIds: input.subjectIds,
+    active: true,
+    createdAt: now(),
+    updatedAt: now(),
+  });
+  return code;
+}
+
+/** تحديث مواد الرابط حين تتغيّر مواد المعلمة — القواعد تقارن الاثنين. */
+export const updateInvite = (code: string, data: Partial<TeacherInvite>) =>
+  patch(COL.invites, code, data);
+
+/** الإلغاء حذف لا تعطيل: مستند غير موجود يقطع الصلاحية بلا التباس. */
+export const revokeInvite = (code: string) => remove(COL.invites, code);
 
 // ------------------------------------------------------------ سجل النشاط
 

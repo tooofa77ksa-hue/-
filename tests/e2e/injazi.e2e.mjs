@@ -441,6 +441,84 @@ if (reviewRows > 0) {
   ok("حفظ التقييم مع شارة التميّز", false, "لا توجد مشاريع في مادة هذه المعلمة");
 }
 
+// ============= 4ب) دخول المعلمة بالرابط (بلا بريد ولا كلمة مرور) =============
+// المسار الذي طُلب فعلًا: المشرفة تنسخ رابطًا، والمعلمة تفتحه فتصحّح.
+// يُختبر في سياق متصفّح نظيف تمامًا — لا جلسة سابقة ولا تخزين مشترك —
+// لأن «يعمل عندي وأنا مسجّلة دخول» ليس اختبارًا لشيء.
+await logout(page);
+await login(page, "admin@injazi.local", "Injazi#2026");
+await page.goto(`${BASE}/admin/teachers`, { waitUntil: "domcontentloaded" });
+await page.waitForTimeout(1800);
+
+const mathRow = page.locator(".iz-admin-row").filter({ hasText: "سميرة" }).first();
+await mathRow.locator('button[aria-label^="رابط دخول"]').click();
+await page.waitForTimeout(800);
+await page.getByRole("button", { name: /إنشاء الرابط/ }).click();
+await page.waitForTimeout(2500);
+
+const inviteUrl = await page.locator(".iz-modal input").first().inputValue();
+ok("إنشاء رابط دخول للمعلمة", /#\/t\/[A-Za-z0-9_-]{20,}$/.test(inviteUrl), inviteUrl.replace(/\/t\/.*/, "/t/…"));
+await page.screenshot({ path: `${OUT}/e2e-10-invite.png` });
+await page.locator(".iz-modal__foot button").first().click();
+await page.waitForTimeout(600);
+
+// --- سياق نظيف: هذه هي المعلمة على جهازها
+const tctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+const tpage = await tctx.newPage();
+await tpage.goto(inviteUrl, { waitUntil: "domcontentloaded" });
+await tpage.waitForTimeout(4000);
+
+const landedOnPortal = tpage.url().includes("/teacher");
+const portalSubjects = await tpage.locator(".iz-chip-row .iz-chip").allTextContents();
+ok(
+  "المعلمة تدخل بالرابط وحده وترى مادتها",
+  landedOnPortal && portalSubjects.join("").includes("الرياضيات"),
+  `${tpage.url().split("#")[1] ?? ""} — ${portalSubjects.join("، ")}`,
+);
+await tpage.screenshot({ path: `${OUT}/e2e-11-invite-portal.png` });
+
+// الترويسة تعرفها فعلًا: ملف الصلاحيات يُكتب بعد تسجيل الدخول بلحظة،
+// وقراءة واحدة عنده كانت تترك الترويسة تعرض «دخول» لمعلمة داخلة.
+const knowsHer =
+  (await tpage.getByRole("button", { name: /^خروج$/ }).count()) === 1 &&
+  (await tpage.getByRole("link", { name: /بوابة المعلمات/ }).count()) === 1;
+ok("الترويسة تعرف المعلمة الداخلة بالرابط", knowsHer);
+
+// --- الرابط لا يفتح لوحة الإدارة
+await tpage.goto(`${BASE}/admin`, { waitUntil: "domcontentloaded" });
+await tpage.waitForTimeout(2500);
+const adminReached = (await tpage.locator(".iz-tabs").count()) > 0;
+ok("رابط المعلمة لا يفتح لوحة الإدارة", !adminReached);
+
+// --- الإلغاء يقطع الصلاحية فورًا
+await page.goto(`${BASE}/admin/teachers`, { waitUntil: "domcontentloaded" });
+await page.waitForTimeout(1800);
+await page
+  .locator(".iz-admin-row")
+  .filter({ hasText: "سميرة" })
+  .first()
+  .locator('button[aria-label^="رابط دخول"]')
+  .click();
+await page.waitForTimeout(800);
+await page.getByRole("button", { name: /^إلغاء هذا الرابط$/ }).click();
+await page.waitForTimeout(500);
+await page.getByRole("button", { name: /نعم، ألغي الرابط/ }).click();
+await page.waitForTimeout(2500);
+const revoked = (await page.getByRole("button", { name: /إنشاء الرابط/ }).count()) === 1;
+ok("إلغاء الرابط من اللوحة", revoked);
+await page.locator(".iz-modal__foot button").first().click();
+
+// نفس الرابط بعد الإلغاء: لا يفتح، ويقول السبب.
+await tpage.goto(inviteUrl, { waitUntil: "domcontentloaded" });
+await tpage.waitForTimeout(4000);
+const refusedText = await tpage.locator(".iz-empty").innerText().catch(() => "");
+ok(
+  "الرابط الملغى لا يفتح ويشرح السبب",
+  !tpage.url().includes("/teacher") && refusedText.includes("لم يعد صالحًا"),
+  refusedText.split("\n").slice(0, 2).join(" ").slice(0, 60),
+);
+await tctx.close();
+
 // ==================== 5) الجوال + RTL ====================
 const mobile = await browser.newContext({ ...devices["iPhone 13"] });
 const mpage = await mobile.newPage();

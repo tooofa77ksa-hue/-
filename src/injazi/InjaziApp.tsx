@@ -19,6 +19,7 @@ import { RequireRole } from "@/injazi/app/RequireRole";
 import { LoginPage } from "@/injazi/pages/LoginPage";
 import { PublicHome } from "@/injazi/pages/PublicHome";
 import { StudentPortfolio } from "@/injazi/pages/StudentPortfolio";
+import { TeacherInvite } from "@/injazi/pages/TeacherInvite";
 import { ensureDisplayFont } from "@/injazi/lib/displayFont";
 import { startAppCheck } from "@/injazi/firebase/appCheck";
 import { useSettings } from "@/injazi/hooks/useLive";
@@ -99,6 +100,9 @@ export default function InjaziApp() {
               <Route path="login" element={<LoginPage intent="parent" />} />
               <Route path="teacher/login" element={<LoginPage intent="teacher" />} />
               <Route path="admin/login" element={<LoginPage intent="admin" />} />
+
+              {/* رابط المعلمة — قصير عمدًا ليُرسَل في رسالة ويُفتح بضغطة. */}
+              <Route path="t/:code" element={<TeacherInvite />} />
 
               <Route
                 path="teacher"

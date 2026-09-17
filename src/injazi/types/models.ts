@@ -27,7 +27,28 @@ export type UserDoc = {
   subjectIds?: string[];
   /** لولي الأمر: الطالبات المرتبطات به. */
   studentIds?: string[];
+  /**
+   * للمعلمة الداخلة برابط: رمز الدعوة الذي منحها الصلاحية.
+   * وجوده يعني أن صلاحيتها مشروطة ببقاء الرابط صالحًا — القواعد الأمنية
+   * تتحقّق من ذلك عند كل كتابة، فإلغاء الرابط يقطع الصلاحية فورًا.
+   */
+  inviteCode?: string;
   createdAt: string;
+};
+
+/**
+ * invites/{code} — رابط دخول معلمة.
+ * معرّف المستند نفسه هو السر (١٢٨ بت عشوائية)، ولذلك لا توجد قراءة
+ * بالقائمة إلا للمشرفة: من لا يملك الرابط لا يستطيع تعداد الروابط.
+ */
+export type TeacherInvite = {
+  id: string;
+  teacherId: string;
+  teacherName: string;
+  subjectIds: string[];
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type Hobby = {

@@ -22,6 +22,20 @@ const STUDENT_A = "student-a";
 const STUDENT_B = "student-b";
 const SUBJECT_MATH = "subject-math";
 const SUBJECT_ARABIC = "subject-arabic";
+const INVITE_MATH = "code-math-0123456789ab";
+const INVITE_ARABIC = "code-arab-0123456789ab";
+
+/** ملف الصلاحيات الذي يكتبه التطبيق حين تفتح المعلمة رابطها. */
+const claim = (code: string, teacherId: string, subjectIds: string[]) => ({
+  role: "teacher",
+  name: "معلمة",
+  email: "",
+  active: true,
+  teacherId,
+  subjectIds,
+  inviteCode: code,
+  createdAt: "2026-09-17T00:00:00.000Z",
+});
 
 beforeAll(async () => {
   env = await initializeTestEnvironment({
@@ -75,6 +89,14 @@ beforeEach(async () => {
       studentId: STUDENT_A, subjectId: SUBJECT_MATH, title: "خاص", visibility: "private", media: [], links: [], order: 1,
     });
     await setDoc(doc(db, `${ROOT}/settings/app`), { platformName: "إنجازي يحكي" });
+
+    // رابط دعوة صالح لمعلمة الرياضيات، وآخر لمعلمة اللغة.
+    await setDoc(doc(db, `${ROOT}/invites/${INVITE_MATH}`), {
+      teacherId: "t-math", teacherName: "سميرة", subjectIds: [SUBJECT_MATH], active: true,
+    });
+    await setDoc(doc(db, `${ROOT}/invites/${INVITE_ARABIC}`), {
+      teacherId: "t-ar", teacherName: "دلال", subjectIds: [SUBJECT_ARABIC], active: true,
+    });
   });
 });
 
@@ -444,6 +466,146 @@ describe("مخزن الصور (media)", () => {
     await assertFails(deleteDoc(doc(as("mathTeacher"), `${ROOT}/media/m9`)));
     await assertSucceeds(deleteDoc(doc(as("parentA"), `${ROOT}/media/m9`)));
     await assertSucceeds(deleteDoc(doc(as("admin1"), `${ROOT}/media/m10`)));
+  });
+});
+
+describe("روابط المعلمات", () => {
+  it("فتح الرابط يمنح صلاحية المعلمة المذكورة فيه", async () => {
+    const db = as("device1");
+    await assertSucceeds(getDoc(doc(db, `${ROOT}/invites/${INVITE_MATH}`)));
+    await assertSucceeds(
+      setDoc(doc(db, `${ROOT}/users/device1`), claim(INVITE_MATH, "t-math", [SUBJECT_MATH])),
+    );
+    // وتستطيع فعلًا ما جاءت من أجله: تقييم مشروع مادتها.
+    await assertSucceeds(
+      setDoc(doc(db, `${ROOT}/evaluations/e-link`), {
+        projectId: "p-a-math", studentId: STUDENT_A, subjectId: SUBJECT_MATH,
+        teacherId: "t-math", teacherName: "سميرة", stars: 4, badge: false,
+        comment: "أحسنتِ", status: "complete",
+      }),
+    );
+  });
+
+  it("لا تُعدّ الروابط ولا تُنشأ إلا من المشرفة", async () => {
+    // التعداد هو ما يحوّل «رمز سرّي» إلى «قائمة مفاتيح».
+    await assertFails(getDocs(collection(as("device1"), `${ROOT}/invites`)));
+    await assertFails(getDocs(collection(guest(), `${ROOT}/invites`)));
+    await assertFails(getDocs(collection(as("mathTeacher"), `${ROOT}/invites`)));
+    await assertSucceeds(getDocs(collection(as("admin1"), `${ROOT}/invites`)));
+
+    await assertFails(
+      setDoc(doc(as("device1"), `${ROOT}/invites/forged`), {
+        teacherId: "t-math", teacherName: "س", subjectIds: [SUBJECT_MATH], active: true,
+      }),
+    );
+    await assertSucceeds(
+      setDoc(doc(as("admin1"), `${ROOT}/invites/fresh`), {
+        teacherId: "t-math", teacherName: "س", subjectIds: [SUBJECT_MATH], active: true,
+      }),
+    );
+  });
+
+  it("الرابط لا يمنح أكثر ممّا فيه: لا مواد زميلاتها ولا دور آخر", async () => {
+    const db = as("device2");
+    // مواد أوسع ممّا في الدعوة
+    await assertFails(
+      setDoc(doc(db, `${ROOT}/users/device2`), claim(INVITE_MATH, "t-math", [SUBJECT_MATH, SUBJECT_ARABIC])),
+    );
+    // معلمة أخرى
+    await assertFails(
+      setDoc(doc(db, `${ROOT}/users/device2`), claim(INVITE_MATH, "t-ar", [SUBJECT_ARABIC])),
+    );
+    // دور المشرفة
+    await assertFails(
+      setDoc(doc(db, `${ROOT}/users/device2`), {
+        ...claim(INVITE_MATH, "t-math", [SUBJECT_MATH]), role: "admin",
+      }),
+    );
+    // رمز غير موجود
+    await assertFails(
+      setDoc(doc(db, `${ROOT}/users/device2`), claim("no-such-code", "t-math", [SUBJECT_MATH])),
+    );
+    // ولا ملف صلاحيات بلا رمز أصلًا
+    await assertFails(
+      setDoc(doc(db, `${ROOT}/users/device2`), {
+        role: "teacher", name: "دخيلة", email: "", active: true,
+        teacherId: "t-math", subjectIds: [SUBJECT_MATH], createdAt: "2026-09-17T00:00:00.000Z",
+      }),
+    );
+  });
+
+  it("لا تكتب ملف صلاحيات لهوية أخرى", async () => {
+    await assertFails(
+      setDoc(doc(as("device3"), `${ROOT}/users/device4`), claim(INVITE_MATH, "t-math", [SUBJECT_MATH])),
+    );
+  });
+
+  it("إلغاء الرابط يقطع الصلاحية فورًا عن كل جهاز فتحه", async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.firestore();
+      await setDoc(doc(db, `${ROOT}/users/deviceA`), claim(INVITE_MATH, "t-math", [SUBJECT_MATH]));
+      await setDoc(doc(db, `${ROOT}/users/deviceB`), claim(INVITE_MATH, "t-math", [SUBJECT_MATH]));
+    });
+
+    const evaluation = (id: string) => ({
+      projectId: "p-a-math", studentId: STUDENT_A, subjectId: SUBJECT_MATH,
+      teacherId: "t-math", teacherName: "سميرة", stars: 5, badge: true,
+      comment: id, status: "excellent",
+    });
+
+    await assertSucceeds(
+      setDoc(doc(as("deviceA"), `${ROOT}/evaluations/e-before`), evaluation("قبل")),
+    );
+
+    // المشرفة تلغي الرابط.
+    await assertSucceeds(deleteDoc(doc(as("admin1"), `${ROOT}/invites/${INVITE_MATH}`)));
+
+    // الجهازان يفقدان الصلاحية في الحال — بلا تسجيل خروج ولا انتظار.
+    await assertFails(
+      setDoc(doc(as("deviceA"), `${ROOT}/evaluations/e-after-a`), evaluation("بعد أ")),
+    );
+    await assertFails(
+      setDoc(doc(as("deviceB"), `${ROOT}/evaluations/e-after-b`), evaluation("بعد ب")),
+    );
+    // ولا يقرآن المشاريع الخاصة بعدها.
+    await assertFails(getDoc(doc(as("deviceA"), `${ROOT}/projects/p-a-private`)));
+  });
+
+  it("الدخول بالرابط لا يكشف بيانات أولياء الأمور ولا زميلاتها", async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(
+        doc(ctx.firestore(), `${ROOT}/users/deviceC`),
+        claim(INVITE_MATH, "t-math", [SUBJECT_MATH]),
+      );
+    });
+    const db = as("deviceC");
+    await assertSucceeds(getDoc(doc(db, `${ROOT}/users/deviceC`)));
+    await assertFails(getDoc(doc(db, `${ROOT}/users/parentA`)));
+    await assertFails(getDoc(doc(db, `${ROOT}/users/arabicTeacher`)));
+    await assertFails(getDocs(collection(db, `${ROOT}/users`)));
+    await assertFails(getDocs(collection(db, `${ROOT}/activityLogs`)));
+  });
+
+  it("صاحبة الرابط لا ترقّي نفسها بعد الدخول", async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(
+        doc(ctx.firestore(), `${ROOT}/users/deviceD`),
+        claim(INVITE_MATH, "t-math", [SUBJECT_MATH]),
+      );
+    });
+    const db = as("deviceD");
+    await assertFails(updateDoc(doc(db, `${ROOT}/users/deviceD`), { role: "admin" }));
+    await assertFails(updateDoc(doc(db, `${ROOT}/users/deviceD`), { subjectIds: [SUBJECT_MATH, SUBJECT_ARABIC] }));
+    // ولا تُوسّع دعوتها لتشمل مادة أخرى.
+    await assertFails(updateDoc(doc(db, `${ROOT}/invites/${INVITE_MATH}`), { subjectIds: [SUBJECT_ARABIC] }));
+    // ولا تقيّم مادة ليست لها.
+    await assertFails(
+      setDoc(doc(db, `${ROOT}/evaluations/e-wrong`), {
+        projectId: "p-a-math", studentId: STUDENT_A, subjectId: SUBJECT_ARABIC,
+        teacherId: "t-math", teacherName: "سميرة", stars: 5, badge: true,
+        comment: "خارج مادتي", status: "excellent",
+      }),
+    );
   });
 });
 

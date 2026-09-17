@@ -229,8 +229,60 @@ service cloud.firestore {
       return izRole() == 'admin';
     }
 
+    // ------------------------------------------------------------------
+    // روابط المعلمات.
+    // المعلمة لا تملك بريدًا ولا كلمة مرور: تفتح رابطًا فيه رمز عشوائي
+    // (١٢٨ بت) هو معرّف مستند الدعوة نفسه، فيسجّلها النظام دخولًا مجهولًا
+    // ثم تُنشئ ملف صلاحيات مطابقًا لما في الدعوة حرفيًا.
+    //
+    // الرابط قدرة (capability): من يملكه يقيّم مواد تلك المعلمة — وهذا هو
+    // المطلوب بالضبط. ولذلك:
+    //   • لا تعداد للروابط إطلاقًا (list للمشرفة وحدها)، فلا يُخمَّن رمز.
+    //   • الصلاحية تُفحص حيّة عند كل كتابة: حذف الدعوة يقطعها فورًا في كل
+    //     جهاز فُتح به الرابط، لا عند انتهاء جلسة ولا بعد تسجيل خروج.
+    //   • ما يمنحه الرابط محدود سلفًا: تقييم مواد تلك المعلمة لا غير.
+    // ------------------------------------------------------------------
+    function izInviteRef(code) {
+      return /databases/$(database)/documents/apps/injazi/invites/$(code);
+    }
+
+    function izInvite(code) {
+      return get(izInviteRef(code)).data;
+    }
+
+    /** دعوة قائمة وفعّالة. */
+    function izInviteLive(code) {
+      return code is string && exists(izInviteRef(code)) && izInvite(code).active == true;
+    }
+
+    /**
+     * ملف صلاحيات لم يأتِ من رابط يبقى كما هو؛ وما جاء من رابط يسقط
+     * لحظة إلغاء الرابط. هذا ما يجعل زر «إلغاء الرابط» إلغاءً حقيقيًا.
+     */
+    function izGrantLive() {
+      return !('inviteCode' in izUser()) || izInviteLive(izUser().inviteCode);
+    }
+
     function izIsTeacher() {
-      return izRole() == 'teacher';
+      return izRole() == 'teacher' && izGrantLive();
+    }
+
+    /**
+     * المطالبة بالدعوة: تُقبل كتابة ملف الصلاحيات من الحساب نفسه فقط،
+     * وبدور teacher فقط، وبمعلمة ومواد مطابقة لما في الدعوة تمامًا — فلا
+     * يستطيع حامل رابط مادة واحدة أن يمنح نفسه مواد زميلاتها.
+     */
+    function izClaimsInvite(uid) {
+      let d = request.resource.data;
+      return isSignedIn() && request.auth.uid == uid &&
+        // الحقول المطلوبة أولًا: قراءة حقل غائب خطأ تنفيذ لا رفضًا نظيفًا،
+        // والرفض النظيف هو ما نريد قراءته في السجلّ لاحقًا.
+        d.keys().hasAll(['role', 'active', 'inviteCode', 'teacherId', 'subjectIds']) &&
+        d.role == 'teacher' &&
+        d.active == true &&
+        izInviteLive(d.inviteCode) &&
+        d.teacherId == izInvite(d.inviteCode).teacherId &&
+        d.subjectIds == izInvite(d.inviteCode).subjectIds;
     }
 
     // ولي أمر هذه الطالبة بالذات — لا أي طالبة أخرى.
@@ -258,12 +310,23 @@ service cloud.firestore {
     }
 
     match /apps/injazi/users/{uid} {
-      // كل مستخدمة تقرأ ملفها؛ الإدارة تقرأ الجميع؛ المعلمة تقرأ لتعرف
-      // من قيّم ماذا.
-      allow read: if isSignedIn() && (request.auth.uid == uid || izIsAdmin() || izIsTeacher());
-      // الكتابة للمشرفات فقط. لا bootstrap من العميل: أول مشرفة تُنشَأ
-      // بسكربت Admin SDK (npm run injazi:seed).
-      allow write: if izIsAdmin();
+      // كل مستخدمة تقرأ ملفها، والإدارة تقرأ الجميع. المعلمة لا تقرأ
+      // ملفات غيرها: مستندات أولياء الأمور تحمل بريدهم، ولا حاجة لها به —
+      // اسم من قيّم يأتي من التقييم نفسه ومن مجموعة المعلمات المعلنة.
+      allow read: if isSignedIn() && (request.auth.uid == uid || izIsAdmin());
+
+      // الإنشاء: للمشرفة، أو لمعلمة تفتح رابطها لأول مرة على جهازها.
+      allow create: if izIsAdmin() || izClaimsInvite(uid);
+      // التعديل والحذف للمشرفة وحدها — فلا يرقّي أحد نفسه بعد الإنشاء.
+      allow update, delete: if izIsAdmin();
+    }
+
+    match /apps/injazi/invites/{code} {
+      // القراءة الفردية بالمعرّف فقط: المعرّف هو السر، ومن يعرفه يملك
+      // الرابط أصلًا. لا list إلا للمشرفة، فلا يُكتشف رمز بالتعداد.
+      allow get: if isSignedIn();
+      allow list: if izIsAdmin();
+      allow create, update, delete: if izIsAdmin();
     }
 
     match /apps/injazi/students/{studentId} {

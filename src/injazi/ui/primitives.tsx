@@ -175,7 +175,13 @@ export function SkeletonCards({ count = 6 }: { count?: number }) {
 
 // ------------------------------------------------------------- تنبيه
 
-export function Notice({ tone = "info", children }: { tone?: "info" | "danger"; children: ReactNode }) {
+export function Notice({
+  tone = "info",
+  children,
+}: {
+  tone?: "info" | "warn" | "danger";
+  children: ReactNode;
+}) {
   return (
     <div className={`iz-notice iz-notice--${tone}`} role={tone === "danger" ? "alert" : undefined}>
       {children}
