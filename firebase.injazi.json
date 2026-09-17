@@ -1,0 +1,7 @@
+{
+  "//": "إعداد نشر خاص بمشروع «إنجازي يحكي» — يستخدم قواعده المولَّدة وحدها، فلا تُنشر معه قواعد «شُعلة لغتي». وُلّد الملف بـ npm run injazi:rules:build.",
+  "firestore": {
+    "rules": "firestore.injazi.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}

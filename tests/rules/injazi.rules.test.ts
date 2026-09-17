@@ -16,6 +16,13 @@ import { readFileSync } from "node:fs";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 const ROOT = "apps/injazi";
+
+/*
+  نفس الاختبارات تُشغَّل على ملفين: القواعد المشتركة، والملف المولَّد
+  الخاص بإنجازي (npm run injazi:rules:check:rules). لو افترق المولَّد عن
+  مصدره في أي سلوك فعلي لظهر هنا، لا في مراجعة بصرية للنص.
+*/
+const RULES_FILE = process.env.IZ_RULES_FILE || "firestore.rules";
 let env: RulesTestEnvironment;
 
 const STUDENT_A = "student-a";
@@ -41,7 +48,7 @@ beforeAll(async () => {
   env = await initializeTestEnvironment({
     projectId: "demo-injazi-rules",
     firestore: {
-      rules: readFileSync("firestore.rules", "utf8"),
+      rules: readFileSync(RULES_FILE, "utf8"),
       host: "127.0.0.1",
       port: 8080,
     },
