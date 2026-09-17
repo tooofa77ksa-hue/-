@@ -6,7 +6,7 @@
 */
 import { motion } from "motion/react";
 import { Media } from "@/injazi/ui/Media";
-import { CalendarDays, ExternalLink, Eye, FileText, Film, Pencil, Trash2 } from "lucide-react";
+import { ArchiveRestore, Archive, CalendarDays, ExternalLink, Eye, FileText, Film, Pencil, Trash2 } from "lucide-react";
 import { ClayCard } from "@/injazi/components/ClayCard";
 import { ClayObject } from "@/injazi/components/ClayObject";
 import { Chip } from "@/injazi/ui/primitives";
@@ -29,10 +29,11 @@ type Props = {
   canEdit: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
+  onArchive?: () => void;
   onOpen?: () => void;
 };
 
-export function ProjectCard({ project, subject, evaluations, canEdit, onEdit, onDelete, onOpen }: Props) {
+export function ProjectCard({ project, subject, evaluations, canEdit, onEdit, onDelete, onArchive, onOpen }: Props) {
   const best = evaluations.find((entry) => entry.projectId === project.id);
   const attachments = project.media.length + project.links.length;
 
@@ -83,6 +84,7 @@ export function ProjectCard({ project, subject, evaluations, canEdit, onEdit, on
                     {attachments} مرفق
                   </Chip>
                 )}
+                {project.archived && <Chip tone="warn">مؤرشف</Chip>}
                 {project.visibility !== "public" && (
                   <Chip tone="info">
                     <Eye size={14} strokeWidth={2.4} aria-hidden="true" />
@@ -114,6 +116,19 @@ export function ProjectCard({ project, subject, evaluations, canEdit, onEdit, on
             <div className="iz-project__actions">
               <button type="button" className="iz-icon-btn" onClick={onEdit} aria-label={`تعديل ${project.title}`}>
                 <Pencil size={16} strokeWidth={2.5} />
+              </button>
+              <button
+                type="button"
+                className="iz-icon-btn"
+                onClick={onArchive}
+                aria-label={`${project.archived ? "استعادة" : "أرشفة"} ${project.title}`}
+                title={project.archived ? "استعادة" : "أرشفة"}
+              >
+                {project.archived ? (
+                  <ArchiveRestore size={16} strokeWidth={2.5} />
+                ) : (
+                  <Archive size={16} strokeWidth={2.5} />
+                )}
               </button>
               <button
                 type="button"

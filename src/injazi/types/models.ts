@@ -119,6 +119,8 @@ export type Project = {
   media: MediaItem[];
   links: LinkItem[];
   visibility: Visibility;
+  /** مؤرشف: يختفي من الملف والبوابة لكنه لا يُحذف — يُستعاد بضغطة. */
+  archived: boolean;
   order: number;
   createdAt: string;
   updatedAt: string;
@@ -153,6 +155,8 @@ export type Achievement = {
   imageUrl: string | null;
   imagePath: string | null;
   visibility: Visibility;
+  /** مؤرشف: يختفي من الملف لكنه لا يُحذف — يُستعاد بضغطة. */
+  archived: boolean;
   order: number;
   createdAt: string;
   updatedAt: string;

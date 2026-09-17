@@ -74,9 +74,9 @@ const STUDENTS = [
 const SUBJECTS = [
   { name: "الرياضيات", icon: "Calculator", tone: "sky", teacher: "سميرة الشريف" },
   { name: "لغتي", icon: "PenLine", tone: "lilac", teacher: "دلال السناني" },
-  { name: "العلوم", icon: "Microscope", tone: "mint", teacher: "حنان" },
+  { name: "العلوم", icon: "Microscope", tone: "mint", teacher: "حنان العمري" },
   { name: "الدراسات الإسلامية", icon: "BookOpen", tone: "apricot", teacher: "بدرية السفري" },
-  { name: "English", icon: "Languages", tone: "rose", teacher: "عائشة" },
+  { name: "English", icon: "Languages", tone: "rose", teacher: "عائشة البلادي" },
 ];
 
 /** بريد داخلي مشتق من اسم المعلمة — تُغيّره المشرفة لاحقًا من اللوحة. */

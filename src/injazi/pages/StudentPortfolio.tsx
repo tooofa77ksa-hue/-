@@ -14,6 +14,8 @@ import {
   Award,
   BookOpen,
   MessageSquareQuote,
+  Archive,
+  ArchiveRestore,
   Palette,
   Pencil,
   Plus,
@@ -43,7 +45,13 @@ import {
   useSubjects,
   useTeachers,
 } from "@/injazi/hooks/useLive";
-import { deleteAchievement, deleteProject, logActivity } from "@/injazi/services/repo";
+import {
+  archiveAchievement,
+  archiveProject,
+  deleteAchievement,
+  deleteProject,
+  logActivity,
+} from "@/injazi/services/repo";
 import { showToast } from "@/injazi/lib/toast";
 import { canEditStudent, canViewContent } from "@/injazi/lib/permissions";
 import { themeVars } from "@/injazi/themes/themes";
@@ -79,15 +87,35 @@ export function StudentPortfolio() {
   const [crownFor, setCrownFor] = useState<string | null>(null);
 
   const canEdit = canEditStudent(profile, studentId);
+  // الأرشيف مخفي افتراضيًا: المؤرشف ليس محذوفًا لكنه ليس معروضًا.
+  const [showArchive, setShowArchive] = useState(false);
   const activeSubjects = useMemo(() => subjects.filter((subject) => !subject.archived), [subjects]);
 
   const visibleProjects = useMemo(
-    () => projects.filter((project) => canViewContent(profile, project.visibility, studentId)),
-    [projects, profile, studentId],
+    () =>
+      projects.filter(
+        (project) =>
+          canViewContent(profile, project.visibility, studentId) &&
+          // المؤرشف لا يُعرض لأحد إلا لمالكة الملف وحين تطلبه صراحةً.
+          (project.archived === true ? canEdit && showArchive : !showArchive),
+      ),
+    [projects, profile, studentId, canEdit, showArchive],
   );
   const visibleAchievements = useMemo(
-    () => achievements.filter((row) => canViewContent(profile, row.visibility, studentId)),
-    [achievements, profile, studentId],
+    () =>
+      achievements.filter(
+        (row) =>
+          canViewContent(profile, row.visibility, studentId) &&
+          (row.archived === true ? canEdit && showArchive : !showArchive),
+      ),
+    [achievements, profile, studentId, canEdit, showArchive],
+  );
+
+  const archivedCount = useMemo(
+    () =>
+      projects.filter((row) => row.archived === true).length +
+      achievements.filter((row) => row.archived === true).length,
+    [projects, achievements],
   );
 
   const certificates = visibleAchievements.filter((row) => row.kind === "certificate");
@@ -187,6 +215,16 @@ export function StudentPortfolio() {
             >
               هواياتي
             </ClayButton>
+            {(archivedCount > 0 || showArchive) && (
+              <ClayButton
+                variant={showArchive ? "primary" : "soft"}
+                size="sm"
+                icon={<Archive size={16} strokeWidth={2.4} />}
+                onClick={() => setShowArchive((value) => !value)}
+              >
+                {showArchive ? "رجوع للملف" : `الأرشيف (${archivedCount})`}
+              </ClayButton>
+            )}
           </motion.div>
         )}
       </motion.header>
@@ -302,6 +340,10 @@ export function StudentPortfolio() {
                         canEdit={canEdit}
                         onOpen={() => setProjectEditor({ open: true, project })}
                         onEdit={() => setProjectEditor({ open: true, project })}
+                        onArchive={async () => {
+                          await archiveProject(project.id, !project.archived);
+                          showToast(project.archived ? "تمت الاستعادة" : "تمت الأرشفة");
+                        }}
                         onDelete={() =>
                           askDelete(`هل أنتِ متأكدة من حذف مشروع «${project.title}»؟`, async () => {
                             await deleteProject(project.id);
@@ -376,6 +418,22 @@ export function StudentPortfolio() {
                             onClick={() => setAchievementEditor({ open: true, kind: row.kind, row })}
                           >
                             <Pencil size={16} strokeWidth={2.5} />
+                          </button>
+                          <button
+                            type="button"
+                            className="iz-icon-btn"
+                            aria-label={`${row.archived ? "استعادة" : "أرشفة"} ${row.title}`}
+                            title={row.archived ? "استعادة" : "أرشفة"}
+                            onClick={async () => {
+                              await archiveAchievement(row.id, !row.archived);
+                              showToast(row.archived ? "تمت الاستعادة" : "تمت الأرشفة");
+                            }}
+                          >
+                            {row.archived ? (
+                              <ArchiveRestore size={16} strokeWidth={2.5} />
+                            ) : (
+                              <Archive size={16} strokeWidth={2.5} />
+                            )}
                           </button>
                           <button
                             type="button"

@@ -151,6 +151,37 @@ describe("عزل ولي الأمر", () => {
     await assertSucceeds(getDoc(doc(as("parentA"), `${ROOT}/projects/p-a-private`)));
     await assertFails(getDoc(doc(as("parentB"), `${ROOT}/projects/p-a-private`)));
   });
+
+  it("يؤرشف مشروع ابنته فقط", async () => {
+    await assertSucceeds(
+      updateDoc(doc(as("parentA"), `${ROOT}/projects/p-a-math`), { archived: true }),
+    );
+    await assertFails(
+      updateDoc(doc(as("parentB"), `${ROOT}/projects/p-a-math`), { archived: true }),
+    );
+  });
+
+  it("لا يحذف مشروع طالبة أخرى", async () => {
+    await assertFails(deleteDoc(doc(as("parentB"), `${ROOT}/projects/p-a-math`)));
+  });
+
+  /*
+    الحارس الأهم: فتح رابط طالبة أخرى مباشرة. الواجهة تخفي الأزرار،
+    لكن المنع الحقيقي هنا — لا كتابة ولا حذف مهما كان المسار الذي
+    وصل منه الطلب (الرابط، أو REST API، أو طرفية).
+  */
+  it("فتح ملف طالبة أخرى بالرابط لا يمنح أي صلاحية كتابة", async () => {
+    const db = as("parentA");
+    await assertFails(updateDoc(doc(db, `${ROOT}/students/${STUDENT_B}`), { name: "اسم مزيّف" }));
+    await assertFails(updateDoc(doc(db, `${ROOT}/students/${STUDENT_B}`), { photoUrl: "x" }));
+    await assertFails(updateDoc(doc(db, `${ROOT}/students/${STUDENT_B}`), { themeId: "pink" }));
+    await assertFails(deleteDoc(doc(db, `${ROOT}/students/${STUDENT_B}`)));
+    await assertFails(
+      setDoc(doc(db, `${ROOT}/achievements/sneak`), {
+        studentId: STUDENT_B, kind: "achievement", title: "تسلل", visibility: "public", order: 0,
+      }),
+    );
+  });
 });
 
 describe("عزل المعلمات", () => {

@@ -54,10 +54,16 @@ export function TeacherPortal() {
   }, [mySubjectIds.length]);
 
   const [query, setQuery] = useState("");
+  // المعلمة ذات المادة الواحدة تفتح على مادتها مباشرة — لا قائمة من عنصر.
   const [subjectFilter, setSubjectFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [sort, setSort] = useState<"newest" | "oldest" | "student">("newest");
   const [editing, setEditing] = useState<Project | null>(null);
+
+  // مادة واحدة ⇒ اختيارها تلقائيًا: القائمة من عنصر واحد خطوة بلا معنى.
+  useEffect(() => {
+    if (mySubjectIds.length === 1) setSubjectFilter(mySubjectIds[0]);
+  }, [mySubjectIds]);
 
   const studentIndex = useIndex(students);
   const subjectIndex = useIndex(subjects);
@@ -70,7 +76,10 @@ export function TeacherPortal() {
     );
 
   const rows = useMemo(() => {
-    let list = projects.filter((project) => mySubjectIds.includes(project.subjectId));
+    // المؤرشف أخفته الطالبة عن ملفها، فلا يُعرض للتقييم.
+    let list = projects.filter(
+      (project) => mySubjectIds.includes(project.subjectId) && project.archived !== true,
+    );
 
     if (subjectFilter !== "all") list = list.filter((project) => project.subjectId === subjectFilter);
 
@@ -100,12 +109,16 @@ export function TeacherPortal() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projects, mySubjectIds, subjectFilter, statusFilter, query, sort, studentIndex, evaluations]);
 
-  const pending = projects.filter((project) => !myEvaluationFor(project.id)).length;
-  const reviewed = projects.length - pending;
-  const revisions = projects.filter(
+  const liveProjects = useMemo(
+    () => projects.filter((project) => project.archived !== true),
+    [projects],
+  );
+  const pending = liveProjects.filter((project) => !myEvaluationFor(project.id)).length;
+  const reviewed = liveProjects.length - pending;
+  const revisions = liveProjects.filter(
     (project) => myEvaluationFor(project.id)?.status === "needs-revision",
   ).length;
-  const studentsWithWork = new Set(projects.map((project) => project.studentId)).size;
+  const studentsWithWork = new Set(liveProjects.map((project) => project.studentId)).size;
 
   if (mySubjectIds.length === 0) {
     return (
@@ -138,7 +151,7 @@ export function TeacherPortal() {
 
       <section className="iz-summary iz-summary--4" aria-label="مؤشرات">
         <MetricCard icon={<Users size={20} strokeWidth={2.4} />} value={studentsWithWork} label="طالبة لديها أعمال" tone="lilac" />
-        <MetricCard icon={<ClipboardList size={20} strokeWidth={2.4} />} value={projects.length} label="مشروع" tone="sky" />
+        <MetricCard icon={<ClipboardList size={20} strokeWidth={2.4} />} value={liveProjects.length} label="مشروع" tone="sky" />
         <MetricCard icon={<Inbox size={20} strokeWidth={2.4} />} value={pending} label="بانتظار التقييم" tone="apricot" />
         <MetricCard icon={<CheckCircle2 size={20} strokeWidth={2.4} />} value={reviewed} label="تم تقييمه" tone="mint" />
       </section>

@@ -280,11 +280,19 @@ export async function createProject(input: Partial<Project> & { studentId: strin
     media: input.media ?? [],
     links: input.links ?? [],
     visibility: input.visibility ?? "public",
+    archived: input.archived ?? false,
     order: input.order ?? (await nextOrder(COL.projects, [where("studentId", "==", input.studentId)])),
   });
 }
 
 export const updateProject = (id: string, data: Partial<Project>) => patch(COL.projects, id, data);
+
+/*
+  الأرشفة تفضَّل على الحذف: العمل المدرسي يُخفى أحيانًا ثم يُطلب مرة
+  أخرى، والحذف لا رجعة فيه. الحذف يبقى متاحًا لمن يريده صراحةً.
+*/
+export const archiveProject = (id: string, archived: boolean) =>
+  patch(COL.projects, id, { archived });
 
 export async function deleteProject(id: string): Promise<void> {
   assertReady();
@@ -346,12 +354,16 @@ export async function createAchievement(
     imageUrl: input.imageUrl ?? null,
     imagePath: input.imagePath ?? null,
     visibility: input.visibility ?? "public",
+    archived: input.archived ?? false,
     order: input.order ?? (await nextOrder(COL.achievements, [where("studentId", "==", input.studentId)])),
   });
 }
 
 export const updateAchievement = (id: string, data: Partial<Achievement>) =>
   patch(COL.achievements, id, data);
+
+export const archiveAchievement = (id: string, archived: boolean) =>
+  patch(COL.achievements, id, { archived });
 export const deleteAchievement = (id: string) => remove(COL.achievements, id);
 
 // ------------------------------------------------------------ الإعدادات

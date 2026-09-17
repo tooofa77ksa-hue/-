@@ -279,6 +279,26 @@ await page.waitForTimeout(2200);
 const achievements = await page.locator(".iz-achievement").count();
 ok("إضافة إنجاز", achievements >= 1, `العدد: ${achievements}`);
 
+// --- الأرشفة والاستعادة: الإخفاء بلا فقد
+await page.locator('.iz-achievement button[aria-label^="أرشفة"]').first().click();
+await page.waitForTimeout(2200);
+const afterArchive = await page.locator(".iz-achievement").count();
+ok("أرشفة الإنجاز تُخفيه من الملف", afterArchive === 0, `المعروض: ${afterArchive}`);
+
+const archiveBtn = page.getByRole("button", { name: /^الأرشيف/ });
+ok("زر الأرشيف يظهر بعد أول أرشفة", (await archiveBtn.count()) === 1);
+await archiveBtn.click();
+await page.waitForTimeout(1600);
+const inArchive = await page.locator(".iz-achievement").count();
+ok("الأرشيف يعرض العنصر المؤرشف", inArchive === 1, `العدد: ${inArchive}`);
+
+await page.locator('.iz-achievement button[aria-label^="استعادة"]').first().click();
+await page.waitForTimeout(2200);
+await page.getByRole("button", { name: /رجوع للملف/ }).click();
+await page.waitForTimeout(1600);
+const restored = await page.locator(".iz-achievement").count();
+ok("الاستعادة تُرجعه للملف", restored === 1, `العدد: ${restored}`);
+
 // --- رفع صورة الطالبة فعليًا (قصّ + ضغط + Storage)
 const pngPath = `${OUT}/e2e-upload.png`;
 writeFileSync(pngPath, TEST_PNG);
