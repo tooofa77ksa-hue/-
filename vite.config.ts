@@ -10,6 +10,19 @@ import tailwindcss from "@tailwindcss/vite";
 // (https://<owner>.github.io/<repo>/) وليس من جذر النطاق، لذا يُضبَط عبر
 // VITE_BASE_PATH وقت البناء فقط (workflow النشر يضبطها)؛ التطوير المحلي
 // يبقى دائمًا على الجذر "/" بلا أي تأثير.
+/*
+  متغيّر بيئة فارغ يحجب قيمة الملف.
+  Vite يقدّم process.env على ملفات .env، فمتغيّر تُمرّره منصّة النشر
+  فارغًا (كما تفعل Vercel مع قيمة ذات بادئة عامة محفوظة كـ Secret:
+  تمنع تمريرها للمتصفّح) يُلغي القيمة الصحيحة في .env.production ويصل
+  التطبيق بلا إعدادات. الفراغ ليس قيمة، فنحذفه ليقرأ Vite الملف.
+*/
+for (const key of Object.keys(process.env)) {
+  if (key.startsWith("VITE_") && process.env[key]?.trim() === "") {
+    delete process.env[key];
+  }
+}
+
 export default defineConfig({
   base: process.env.VITE_BASE_PATH || "/",
   plugins: [react(), tailwindcss()],
