@@ -22,7 +22,8 @@
     "injazi:deploy:rules": "npm run injazi:rules:build && firebase deploy --config firebase.injazi.json --project injazi --only firestore:rules,firestore:indexes",
     "injazi:rules:build": "node scripts/buildInjaziRules.mjs",
     "injazi:rules:check": "node scripts/buildInjaziRules.mjs --check",
-    "pretest:rules": "npm run injazi:rules:check"
+    "pretest:rules": "npm run injazi:rules:check",
+    "check:css": "node scripts/checkCssCompat.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

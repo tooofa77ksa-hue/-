@@ -69,7 +69,18 @@ await page.waitForTimeout(2500);
 const cards = await page.locator(".iz-student-card").count();
 ok("الصفحة العامة تعرض بطاقات الطالبات الثماني", cards === 8, `العدد: ${cards}`);
 
-const canvas3d = await page.locator(".iz-hero-object canvas").count();
+/*
+  المشهد ثلاثي الأبعاد حزمة كسولة (three.js) + سياق WebGL على برنامج
+  رسم برمجي. رقم ثابت يجعل الاختبار يرسب على بطء الجهاز لا على العطل —
+  فننتظر ظهور اللوحة نفسها بمهلة سخية. المطلوب إثباته أنها تظهر.
+*/
+let canvas3d = 0;
+try {
+  await page.locator(".iz-hero-object canvas").first().waitFor({ state: "attached", timeout: 20000 });
+  canvas3d = await page.locator(".iz-hero-object canvas").count();
+} catch {
+  canvas3d = 0;
+}
 ok("المشهد ثلاثي الأبعاد يعمل على سطح المكتب", canvas3d === 1);
 
 /*
