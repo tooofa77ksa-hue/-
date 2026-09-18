@@ -2,9 +2,8 @@ import { Composition } from "remotion";
 import { Grade3Nafs, grade3TotalDuration } from "./Grade3Nafs";
 import { Grade6Nafs, grade6TotalDuration } from "./Grade6Nafs";
 import { SchoolStats, schoolStatsTotalDuration } from "./SchoolStats";
-import { SchoolAchievements, achievementsTotalDuration } from "./SchoolAchievements";
+import { SchoolAchievementsFull, achievementsFullTotalDuration } from "./SchoolAchievementsFull";
 import { SchoolKroki, krokiTotalDuration } from "./SchoolKroki";
-import { SchoolEnvironment, environmentTotalDuration } from "./SchoolEnvironment";
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -34,9 +33,9 @@ export const RemotionRoot: React.FC = () => {
         height={1080}
       />
       <Composition
-        id="SchoolAchievements"
-        component={SchoolAchievements}
-        durationInFrames={achievementsTotalDuration}
+        id="SchoolAchievementsFull"
+        component={SchoolAchievementsFull}
+        durationInFrames={achievementsFullTotalDuration}
         fps={30}
         width={1920}
         height={1080}
@@ -45,14 +44,6 @@ export const RemotionRoot: React.FC = () => {
         id="SchoolKroki"
         component={SchoolKroki}
         durationInFrames={krokiTotalDuration}
-        fps={30}
-        width={1920}
-        height={1080}
-      />
-      <Composition
-        id="SchoolEnvironment"
-        component={SchoolEnvironment}
-        durationInFrames={environmentTotalDuration}
         fps={30}
         width={1920}
         height={1080}
