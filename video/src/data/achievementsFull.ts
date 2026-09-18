@@ -102,8 +102,8 @@ export const initiatives: Initiative[] = [
     icon: "device",
   },
   {
-    title: "منصة الرياضيات التفاعلية",
-    owner: "لجميع المراحل",
+    title: "منصة سماح التفاعلية",
+    owner: "مبادرة المعلمة سماح باسعد - لجميع المراحل",
     description: "ألعاب ودروس رياضية تفاعلية تدعم التعلم بأسلوب ممتع ومحفّز",
     image: "initiatives/math-platform.jpg",
     icon: "device",
