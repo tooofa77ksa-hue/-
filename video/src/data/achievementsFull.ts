@@ -48,7 +48,7 @@ export const schoolAchievements: SchoolAchievement[] = [
   },
   {
     image: "achievements/director-workshop-attendance.jpg",
-    caption: "شهادة حضور مديرة المدرسة ورشة التفكير التصميمي، مقدَّمة من الأستاذة هيفاء برقاوي",
+    caption: "شهادة حضور مديرة المدرسة الأستاذة جازية عباس السميري ورشة التفكير التصميمي، مقدَّمة من الأستاذة هيفاء برقاوي",
     icon: "bulb",
   },
 ];
