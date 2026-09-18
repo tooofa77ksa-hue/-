@@ -38,8 +38,12 @@ for (const { name, css } of bundles()) {
   // الملف المصغَّر سطر واحد، فنعدّ الظهور لا الأسطر.
   const count = (re) => (css.match(re) ?? []).length;
 
-  const standard = count(/(^|[^-])backdrop-filter/g);
-  const prefixed = count(/-webkit-backdrop-filter/g);
+  // يُعدّ التصريح وحده: الاسم متبوعًا بنقطتين. بدون هذا القيد يُحسَب
+  // محدّد الصنف ‎.backdrop-filter‎ الذي يولّده Tailwind، وكذلك ورود الاسم
+  // داخل قائمة transition-property، على أنهما تصريحان بلا بادئة — فيبلّغ
+  // الحارس عن عطل غير موجود، وإنذار كاذب يُدرَّب عليه الناس أسوأ من لا حارس.
+  const standard = count(/(^|[^-])backdrop-filter\s*:/g);
+  const prefixed = count(/-webkit-backdrop-filter\s*:/g);
   if (standard > prefixed) {
     problems.push(
       `${name}: ${standard - prefixed} استخدام لـ backdrop-filter بلا -webkit- ` +
