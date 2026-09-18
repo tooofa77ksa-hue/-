@@ -55,13 +55,25 @@ export function AdminStudents() {
     return needle ? students.filter((student) => textMatches(student.name, needle)) : students;
   }, [students, query]);
 
+  /*
+    حسابات أولياء الأمور لكل طالبة.
+    ------------------------------------------------------------------
+    تُفهرَس بمعرّف الحساب لا ببريده: الداخلة من رابط الطالبة ليس لها
+    بريد أصلًا (حقل فارغ)، وكل فتح جديد للرابط يُنشئ حسابًا آخر بالفراغ
+    نفسه — فكان الفراغ مفتاحًا مكرّرًا في React، وهو ما يجعلها تخلط بين
+    عنصرين وتُحذّر في الطرفية. والحسابات بلا بريد تُعرض بوصفها لا
+    بفراغ، فصفّ فارغ لا يخبر المشرفة بشيء.
+  */
   const parentsByStudent = useMemo(() => {
-    const map: Record<string, string[]> = {};
+    const map: Record<string, { id: string; label: string }[]> = {};
     users
       .filter((user) => user.role === "parent")
       .forEach((user) => {
         (user.studentIds ?? []).forEach((id) => {
-          map[id] = [...(map[id] ?? []), user.email];
+          map[id] = [
+            ...(map[id] ?? []),
+            { id: user.id, label: user.email?.trim() || "داخلة بالرابط" },
+          ];
         });
       });
     return map;
@@ -146,9 +158,9 @@ export function AdminStudents() {
                   <span className="iz-chip-row">
                     {!student.active && <Chip tone="warn">مخفيّة</Chip>}
                     {student.visibility !== "public" && <Chip tone="info">{VISIBILITY_LABEL[student.visibility]}</Chip>}
-                    {(parentsByStudent[student.id] ?? []).map((email) => (
-                      <Chip key={email} tone="success" icon={<Link2 size={13} strokeWidth={2.6} />}>
-                        {email}
+                    {(parentsByStudent[student.id] ?? []).map((account) => (
+                      <Chip key={account.id} tone="success" icon={<Link2 size={13} strokeWidth={2.6} />}>
+                        {account.label}
                       </Chip>
                     ))}
                     <Chip icon={<Icon name={student.decorIcon} size={13} />}>{student.decorIcon}</Chip>

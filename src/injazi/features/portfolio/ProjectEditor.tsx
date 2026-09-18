@@ -4,7 +4,7 @@
   متعددة (صور/PDF/فيديو)، حذف مرفق من Storage ومن المستند معًا، إضافة
   روابط مع توليد QR فوري لكل رابط، وضبط الخصوصية.
 */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Media } from "@/injazi/ui/Media";
 import { AnimatePresence, motion } from "motion/react";
 import { FileText, Film, Link2, Plus, Trash2 } from "lucide-react";
@@ -54,11 +54,23 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
   const [saving, setSaving] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /* فشل رفع صورة يبقى معلَّقًا حتى يُعالَج: بدونه يُحفظ المشروع بلا
+     صورته وتظنّ صاحبته أنها حُفظت معه. */
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  /*
+    قفل متزامن للحفظ.
+    حالة React لا تتحدّث فورًا: ضغطتان متتاليتان تقرآن معًا saving=false
+    قبل إعادة الرسم، فيمضيان معًا ويُنشأ المشروع مرتين — وهذا ما حدث
+    فعلًا في الفحص. المرجع يتغيّر في اللحظة نفسها، فيُوقف الثانية.
+  */
+  const busy = useRef(false);
 
   // إعادة التعبئة عند كل فتح: بدونها يحمل النموذج بقايا المشروع السابق.
   useEffect(() => {
     if (!open) return;
+    busy.current = false;
     setError(null);
+    setUploadError(null);
     setCelebrate(false);
     setLinkDraft("");
     setLinkLabel("");
@@ -84,18 +96,33 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
   const scope = studentScope(student.id);
   const ready = form.title.trim().length >= 2 && form.subjectId !== "";
 
-  function addLink() {
+  /**
+   * يبني عنصر رابط من المكتوب، أو null إن كان فارغًا/غير صالح.
+   * مفصول عن addLink لأن الحفظ يحتاجه أيضًا: من تكتب الرابط ثم تضغط
+   * «حفظ المشروع» مباشرةً كانت تفقده بلا أي إشعار — الزرّ الصغير
+   * «إضافة» بجانب الخانة ليس بديهيًا، وفقدان ما كُتب ليس عقوبة عادلة
+   * على عدم ملاحظته.
+   */
+  function buildLink(): LinkItem | null {
     const url = normalizeUrl(linkDraft);
-    if (!url) {
+    if (!url) return null;
+    return {
+      id: uid(),
+      url,
+      label: linkLabel.trim() || new URL(url).hostname.replace("www.", ""),
+      kind: detectLinkKind(url),
+    };
+  }
+
+  function addLink() {
+    if (!linkDraft.trim()) return;
+    const item = buildLink();
+    if (!item) {
       setError("الرابط غير صالح. استخدمي رابطًا يبدأ بـ https://");
       return;
     }
     setError(null);
-    const kind = detectLinkKind(url);
-    setLinks((current) => [
-      ...current,
-      { id: uid(), url, label: linkLabel.trim() || new URL(url).hostname.replace("www.", ""), kind },
-    ]);
+    setLinks((current) => [...current, item]);
     setLinkDraft("");
     setLinkLabel("");
   }
@@ -108,7 +135,29 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
   }
 
   async function save() {
-    if (!ready || saving) return;
+    if (!ready || busy.current) return;
+
+    if (uploadError) {
+      setError("لم يكتمل رفع الصورة. عالجي المشكلة أعلاه أو احذفيها قبل الحفظ.");
+      return;
+    }
+
+    // رابط كُتب ولم يُضَف بعد: يُضَم الآن بدل أن يضيع، أو يُوقف الحفظ
+    // إن كان غير صالح — فلا يُحفظ مشروع ناقص بصمت.
+    let pendingLinks = links;
+    if (linkDraft.trim()) {
+      const item = buildLink();
+      if (!item) {
+        setError("الرابط غير صالح. صحّحيه أو امسحي الخانة ثم احفظي.");
+        return;
+      }
+      pendingLinks = [...links, item];
+      setLinks(pendingLinks);
+      setLinkDraft("");
+      setLinkLabel("");
+    }
+
+    busy.current = true;
     setSaving(true);
     setError(null);
     try {
@@ -121,7 +170,7 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
         coverUrl: cover?.url ?? null,
         coverPath: cover?.path ?? null,
         media,
-        links,
+        links: pendingLinks,
         visibility: form.visibility,
       };
 
@@ -144,9 +193,15 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
         setCelebrate(false);
         onClose();
       }, 1400);
+      // القفل يبقى مغلقًا بعد النجاح حتى تُغلق النافذة: لحظة الاحتفال
+      // تدوم ١٫٤ ثانية والزر تحتها ما زال قابلًا للضغط، فكانت الضغطة
+      // الثانية فيها تُنشئ مشروعًا ثانيًا — وهو ما رصده الفحص فعلًا.
+      // يُفتح عند إعادة فتح النموذج لا هنا.
+      setSaving(false);
+      return;
     } catch (err) {
       setError(err instanceof Error ? err.message : "تعذّر الحفظ.");
-    } finally {
+      busy.current = false;
       setSaving(false);
     }
   }
@@ -162,12 +217,39 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
           <ClayButton variant="soft" onClick={onClose} disabled={saving}>
             إلغاء
           </ClayButton>
+          {/* اسم واحد للحفظ في الحالتين: كان «إضافة المشروع» بينما زرّ
+              فتح النموذج في الصفحة خلفه اسمه «إضافة مشروع» — اسمان
+              يكادان يتطابقان يظهران معًا على شاشة الجوّال، فيبدوان
+              زرًّا مكرّرًا ولا تعرف المستخدمة أيّهما يحفظ. */}
           <ClayButton onClick={save} disabled={!ready} loading={saving}>
-            {project ? "حفظ التعديلات" : "إضافة المشروع"}
+            حفظ المشروع
           </ClayButton>
         </>
       }
     >
+      {/* الخطأ في أعلى النموذج لا في ذيله: النموذج طويل، وعلى الجوّال
+          كانت الرسالة تقع تحت شاشتين من المحتوى — فتظنّ المستخدمة أن
+          الضغط لم يفعل شيئًا، ولا تعرف أن هناك سببًا مكتوبًا. */}
+      {error && <Notice tone="danger">{error}</Notice>}
+
+      {uploadError && (
+        <Notice tone="danger">
+          <span>{uploadError}</span>
+          <span className="iz-chip-row" style={{ marginTop: 10 }}>
+            <ClayButton
+              variant="soft"
+              size="sm"
+              onClick={() => {
+                setUploadError(null);
+                setError(null);
+              }}
+            >
+              تجاهل ومتابعة بلا صورة
+            </ClayButton>
+          </span>
+        </Notice>
+      )}
+
       <AnimatePresence>
         {celebrate && (
           <motion.div
@@ -262,6 +344,7 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
             <p className="iz-field__meter">لم تُضَف صورة غلاف بعد.</p>
           )}
           <Uploader
+            onError={setUploadError}
             scope={scope}
             kind="projects/covers"
             accept="image"
@@ -304,6 +387,7 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
           </div>
         )}
         <Uploader
+          onError={setUploadError}
           scope={scope}
           kind="projects/media"
           accept={MEDIA_BACKEND === "firestore" ? "image" : "media"}
@@ -396,7 +480,6 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
         )}
       </section>
 
-      {error && <Notice tone="danger">{error}</Notice>}
     </Modal>
   );
 }

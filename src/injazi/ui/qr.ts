@@ -31,6 +31,20 @@ export function detectLinkKind(url: string): LinkKind {
 }
 
 /** رابط صالح وآمن فقط: http/https. يمنع javascript: و data:. */
+/*
+  المضيف وحده هو الفيصل.
+  ------------------------------------------------------------------
+  new URL لا يرفض ما ليس رابطًا: المتصفّح يحوّل أي نصّ مكتوب إلى مضيف
+  «صالح» شكلًا — «ليس رابطًا» تصير https://xn--%20-qzeaf5dm6b5hwcua/ —
+  فكان أي كلام تكتبه الطالبة في خانة الرابط يُقبَل ويُحفَظ في ملفها
+  رابطًا ميتًا، ويُولَّد له رمز QR لا يفتح شيئًا.
+
+  فنشترط على المضيف ما يشترطه أي اسم نطاق حقيقي: حروف وأرقام وشرطات
+  ونقاط فقط، ونقطة واحدة على الأقل، وامتداد من حرفين فأكثر. النطاقات
+  العربية تمرّ لأن المتصفّح يحوّلها إلى punycode قبل الفحص.
+*/
+const HOSTNAME = /^[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$/i;
+
 export function normalizeUrl(input: string): string | null {
   const trimmed = input.trim();
   if (!trimmed) return null;
@@ -38,6 +52,7 @@ export function normalizeUrl(input: string): string | null {
   try {
     const parsed = new URL(candidate);
     if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
+    if (!HOSTNAME.test(parsed.hostname)) return null;
     return parsed.toString();
   } catch {
     return null;
