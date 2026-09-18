@@ -17,7 +17,9 @@ import {
   Users,
 } from "lucide-react";
 import { ClayCard } from "@/injazi/components/ClayCard";
+import { StudentCard } from "@/injazi/features/students/StudentCard";
 import { EmptyState } from "@/injazi/components/EmptyState";
+import { textMatches } from "@/injazi/lib/arabicSearch";
 import { EvaluationEditor } from "@/injazi/features/teacher/EvaluationEditor";
 import { Chip, MetricCard, SectionTitle, SelectInput, SkeletonCards } from "@/injazi/ui/primitives";
 import { Icon } from "@/injazi/ui/IconPicker";
@@ -54,6 +56,9 @@ export function TeacherPortal() {
   }, [mySubjectIds.length]);
 
   const [query, setQuery] = useState("");
+  /* بحث الطالبات منفصل عن بحث المشاريع عمدًا: خلطهما في مربّع واحد
+     يجعل كتابة اسم طالبة تُفرغ قائمة المشاريع بلا سبب ظاهر. */
+  const [studentQuery, setStudentQuery] = useState("");
   // المعلمة ذات المادة الواحدة تفتح على مادتها مباشرة — لا قائمة من عنصر.
   const [subjectFilter, setSubjectFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -96,7 +101,8 @@ export function TeacherPortal() {
     if (needle) {
       list = list.filter(
         (project) =>
-          project.title.includes(needle) || (studentIndex[project.studentId]?.name ?? "").includes(needle),
+          textMatches(project.title, needle) ||
+          textMatches(studentIndex[project.studentId]?.name ?? "", needle),
       );
     }
 
@@ -108,6 +114,25 @@ export function TeacherPortal() {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projects, mySubjectIds, subjectFilter, statusFilter, query, sort, studentIndex, evaluations]);
+
+  /* هل في موادها أعمال أصلًا؟ «لا شيء بعد» و«التصفية أخفت كل شيء»
+     حالتان مختلفتان تمامًا: الأولى تنتظر الطالبات ولا تملك المعلمة لها
+     حيلة، والثانية تُحلّ بضغطة. رسالة واحدة للحالتين تدفع المعلمة إلى
+     تجربة تصفيات لن تُظهر شيئًا، فتظنّ أن البيانات ضاعت. */
+  const hasAnyWork = useMemo(
+    () =>
+      projects.some(
+        (project) => mySubjectIds.includes(project.subjectId) && project.archived !== true,
+      ),
+    [projects, mySubjectIds],
+  );
+
+  const activeStudents = useMemo(() => students.filter((student) => student.active), [students]);
+
+  const studentRows = useMemo(
+    () => activeStudents.filter((student) => textMatches(student.name, studentQuery)),
+    [activeStudents, studentQuery],
+  );
 
   const liveProjects = useMemo(
     () => projects.filter((project) => project.archived !== true),
@@ -154,6 +179,48 @@ export function TeacherPortal() {
         <MetricCard icon={<ClipboardList size={20} strokeWidth={2.4} />} value={liveProjects.length} label="مشروع" tone="sky" />
         <MetricCard icon={<Inbox size={20} strokeWidth={2.4} />} value={pending} label="بانتظار التقييم" tone="apricot" />
         <MetricCard icon={<CheckCircle2 size={20} strokeWidth={2.4} />} value={reviewed} label="تم تقييمه" tone="mint" />
+      </section>
+
+      {/* ملفات الطالبات قبل قائمة المشاريع: المعلمة تعرف طالباتها
+          بأسمائهنّ لا بعناوين مشاريعهنّ، وأول ما تبحث عنه اسم. وكانت
+          البوابة تبحث في المشاريع وحدها، فمن كتبت اسم طالبة لم تجد
+          شيئًا وظنّت أن البيانات ضاعت. القراءة هنا لا تمنح تعديلًا:
+          صلاحيات التعديل تُحسَم في القواعد لا في هذه الصفحة. */}
+      <section className="iz-block" aria-label="ملفات الطالبات">
+        <SectionTitle hint={`${studentRows.length} من ${activeStudents.length} طالبة`}>
+          ملفات الطالبات
+        </SectionTitle>
+
+        <div className="iz-search" style={{ marginBottom: 14 }}>
+          <Search size={18} strokeWidth={2.4} aria-hidden="true" />
+          <input
+            className="iz-search__input"
+            value={studentQuery}
+            onChange={(event) => setStudentQuery(event.target.value)}
+            placeholder="اكتبي اسم الطالبة لفتح ملفها"
+            aria-label="ابحثي عن طالبة"
+            type="search"
+          />
+        </div>
+
+        {studentRows.length === 0 ? (
+          <EmptyState
+            object="bag"
+            tone="lilac"
+            title={activeStudents.length === 0 ? "لم تُضَف أي طالبة بعد" : "لا توجد طالبة بهذا الاسم"}
+            body={
+              activeStudents.length === 0
+                ? "تُضاف الطالبات من لوحة الإدارة، ثم تظهر ملفاتهن هنا مباشرة."
+                : "جرّبي كتابة جزء من الاسم فقط — الاسم الأول يكفي."
+            }
+          />
+        ) : (
+          <div className="iz-gallery__grid">
+            {studentRows.map((student) => (
+              <StudentCard key={student.id} student={student} />
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="iz-block">
@@ -212,12 +279,21 @@ export function TeacherPortal() {
         {loading ? (
           <SkeletonCards count={4} />
         ) : rows.length === 0 ? (
-          <EmptyState
-            object="pencil"
-            tone="mint"
-            title="لا توجد مشاريع مطابقة"
-            body="جرّبي تغيير التصفية، أو انتظري أعمال الطالبات الجديدة."
-          />
+          hasAnyWork ? (
+            <EmptyState
+              object="pencil"
+              tone="mint"
+              title="لا توجد مشاريع مطابقة"
+              body="جرّبي مسح كلمة البحث أو إعادة التصفية إلى «كل الحالات»."
+            />
+          ) : (
+            <EmptyState
+              object="pencil"
+              tone="mint"
+              title="لم ترفع أي طالبة عملًا بعد"
+              body="حين ترفع طالبة مشروعًا في مادتك سيظهر هنا وحده لتقييمه. البحث لن يجد شيئًا الآن لأنه لا يوجد شيء بعد — ولا ينقصك أي إعداد."
+            />
+          )
         ) : (
           <motion.div className="iz-cards-grid" variants={staggerContainer} initial="initial" animate="enter">
             {rows.map((project) => {

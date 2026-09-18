@@ -33,7 +33,9 @@ import { VISIBILITY_LABEL } from "@/injazi/lib/permissions";
 import { THEMES } from "@/injazi/themes/themes";
 import { pageVariants, riseItem, staggerContainer } from "@/injazi/motion/motion";
 import { copyText, studentUrl } from "@/injazi/lib/inviteLink";
+import { AllLinksDialog } from "@/injazi/features/admin/AllLinksDialog";
 import type { Student, StudentLink, UserDoc, Visibility } from "@/injazi/types/models";
+import { textMatches } from "@/injazi/lib/arabicSearch";
 
 export function AdminStudents() {
   const { profile } = useSession();
@@ -46,10 +48,11 @@ export function AdminStudents() {
   const [parentFor, setParentFor] = useState<Student | null>(null);
   const [linkFor, setLinkFor] = useState<Student | null>(null);
   const [confirm, setConfirm] = useState<Student | null>(null);
+  const [allLinks, setAllLinks] = useState(false);
 
   const rows = useMemo(() => {
     const needle = query.trim();
-    return needle ? students.filter((student) => student.name.includes(needle)) : students;
+    return needle ? students.filter((student) => textMatches(student.name, needle)) : students;
   }, [students, query]);
 
   const parentsByStudent = useMemo(() => {
@@ -69,9 +72,20 @@ export function AdminStudents() {
       <SectionTitle
         hint="اسحبي الصفوف لإعادة ترتيب ظهورهن في الصفحة الرئيسية"
         action={
-          <ClayButton icon={<Plus size={18} strokeWidth={2.6} />} onClick={() => setEditor({ open: true, row: null })}>
-            إضافة طالبة
-          </ClayButton>
+          <>
+            {/* استخراج الروابط عمل يُفعل مرة ويُرسل لثماني أسر: زر واحد
+                هنا أقصر من ثماني جولات داخل صفوف الطالبات. */}
+            <ClayButton
+              variant="soft"
+              icon={<Link2 size={18} strokeWidth={2.6} />}
+              onClick={() => setAllLinks(true)}
+            >
+              كل الروابط
+            </ClayButton>
+            <ClayButton icon={<Plus size={18} strokeWidth={2.6} />} onClick={() => setEditor({ open: true, row: null })}>
+              إضافة طالبة
+            </ClayButton>
+          </>
         }
       >
         الطالبات ({students.length})
@@ -163,6 +177,13 @@ export function AdminStudents() {
           />
         </motion.div>
       )}
+
+      <AllLinksDialog
+        open={allLinks}
+        students={rows}
+        links={studentLinks}
+        onClose={() => setAllLinks(false)}
+      />
 
       <StudentLinkDialog
         student={linkFor}

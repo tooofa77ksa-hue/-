@@ -357,6 +357,13 @@ export async function createAchievement(
     date: input.date ?? new Date().toISOString().slice(0, 10),
     imageUrl: input.imageUrl ?? null,
     imagePath: input.imagePath ?? null,
+    // الحقول الاختيارية تُكتب بقيمة فارغة لا تُترك غائبة: الدالة تبني
+    // قائمة حقول صريحة، فكل حقل جديد لا يُذكر هنا يسقط صامتًا عند
+    // الإنشاء ويظهر فقط عند أول تعديل — عطل يصعب تفسيره للمستخدمة.
+    issuer: input.issuer ?? "",
+    category: input.category ?? "",
+    fileUrl: input.fileUrl ?? null,
+    fileName: input.fileName ?? "",
     visibility: input.visibility ?? "public",
     archived: input.archived ?? false,
     order: input.order ?? (await nextOrder(COL.achievements, [where("studentId", "==", input.studentId)])),

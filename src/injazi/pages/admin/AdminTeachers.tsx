@@ -43,6 +43,7 @@ import { showToast } from "@/injazi/lib/toast";
 import { pageVariants, riseItem, staggerContainer } from "@/injazi/motion/motion";
 import { copyText, inviteUrl } from "@/injazi/lib/inviteLink";
 import type { Subject, Teacher, TeacherInvite, UserDoc } from "@/injazi/types/models";
+import { textMatches } from "@/injazi/lib/arabicSearch";
 
 export function AdminTeachers() {
   const { profile } = useSession();
@@ -59,7 +60,9 @@ export function AdminTeachers() {
   const rows = useMemo(() => {
     const needle = query.trim();
     return needle
-      ? teachers.filter((teacher) => teacher.name.includes(needle) || teacher.email.includes(needle))
+      ? teachers.filter(
+          (teacher) => textMatches(teacher.name, needle) || textMatches(teacher.email, needle),
+        )
       : teachers;
   }, [teachers, query]);
 

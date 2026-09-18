@@ -30,6 +30,10 @@ export function AchievementEditor({ open, student, kind, achievement, actor, onC
   const [description, setDescription] = useState("");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [visibility, setVisibility] = useState<Visibility>("public");
+  const [issuer, setIssuer] = useState("");
+  const [category, setCategory] = useState("");
+  const [fileUrl, setFileUrl] = useState("");
+  const [fileName, setFileName] = useState("");
   const [image, setImage] = useState<{ url: string; path: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,6 +47,10 @@ export function AchievementEditor({ open, student, kind, achievement, actor, onC
     setDescription(achievement?.description ?? "");
     setDate(achievement?.date ?? new Date().toISOString().slice(0, 10));
     setVisibility(achievement?.visibility ?? "public");
+    setIssuer(achievement?.issuer ?? "");
+    setCategory(achievement?.category ?? "");
+    setFileUrl(achievement?.fileUrl ?? "");
+    setFileName(achievement?.fileName ?? "");
     setImage(
       achievement?.imageUrl ? { url: achievement.imageUrl, path: achievement.imagePath ?? "" } : null,
     );
@@ -61,6 +69,10 @@ export function AchievementEditor({ open, student, kind, achievement, actor, onC
         date,
         imageUrl: image?.url ?? null,
         imagePath: image?.path ?? null,
+        issuer: issuer.trim(),
+        category: category.trim(),
+        fileUrl: fileUrl.trim() || null,
+        fileName: fileName.trim(),
         visibility,
       };
       if (achievement) {
@@ -136,6 +148,27 @@ export function AchievementEditor({ open, student, kind, achievement, actor, onC
         </Field>
       </div>
 
+      {/* الجهة والتصنيف اختياريان: إنجاز بلا شهادة لا جهة له، وإجبار
+          الطالبة على ملء خانة لا تعنيها يعلّمها أن تكتب أي شيء. */}
+      <div className="iz-form-grid">
+        <Field label="الجهة المانحة (اختياري)">
+          <TextInput
+            value={issuer}
+            onChange={(event) => setIssuer(event.target.value)}
+            placeholder="مثال: المدرسة الابتدائية ١٦٥"
+            maxLength={80}
+          />
+        </Field>
+        <Field label="التصنيف (اختياري)">
+          <TextInput
+            value={category}
+            onChange={(event) => setCategory(event.target.value)}
+            placeholder="مثال: مسابقة · دورة · مشاركة"
+            maxLength={40}
+          />
+        </Field>
+      </div>
+
       <section className="iz-editor-block">
         <h3 className="iz-editor-block__title">صورة {noun}</h3>
         <div className="iz-cover-row">
@@ -171,6 +204,32 @@ export function AchievementEditor({ open, student, kind, achievement, actor, onC
           />
         </div>
       </section>
+
+      {/* الملفات (PDF) رابطًا لا رفعًا: التخزين هنا داخل مستندات
+          Firestore وحدّها ~١ ميجابايت، فالـ PDF يتجاوزه غالبًا ويفشل
+          الرفع بعد انتظار. الرابط يعمل اليوم وبلا ترقية اشتراك. */}
+      <Field
+        label="رابط الشهادة الأصلية (اختياري)"
+        hint="إن كانت الشهادة ملف PDF، ارفعيه على Google Drive وألصقي رابطه هنا."
+      >
+        <TextInput
+          value={fileUrl}
+          onChange={(event) => setFileUrl(event.target.value)}
+          placeholder="https://drive.google.com/..."
+          inputMode="url"
+        />
+      </Field>
+
+      {fileUrl.trim() && (
+        <Field label="اسم الرابط (اختياري)">
+          <TextInput
+            value={fileName}
+            onChange={(event) => setFileName(event.target.value)}
+            placeholder="مثال: الشهادة الأصلية"
+            maxLength={60}
+          />
+        </Field>
+      )}
 
       {error && <Notice tone="danger">{error}</Notice>}
     </Modal>

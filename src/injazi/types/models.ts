@@ -70,6 +70,20 @@ export type StudentLink = {
   updatedAt: string;
 };
 
+/**
+ * قسم حرّ في سيرة الطالبة: عنوان تكتبه هي ونصّ تحته.
+ * حرّ عمدًا لا حقولًا ثابتة (نبذة/مهارات/طموحات…): الطالبة في الرابع
+ * الابتدائي تعرف ما تريد أن تقوله عن نفسها أكثر ممّا نعرف، والحقول
+ * الثابتة تحبس ما لم نتوقّعه وتترك الفارغ منها ندبةً في الصفحة.
+ */
+export type AboutEntry = {
+  id: string;
+  title: string;
+  body: string;
+  /** اسم أيقونة Lucide. */
+  icon: string;
+};
+
 export type Hobby = {
   id: string;
   label: string;
@@ -93,6 +107,8 @@ export type Student = {
   /** أيقونة زخرفية صغيرة تميّز البطاقة. */
   decorIcon: string;
   hobbies: Hobby[];
+  /** أقسام «عني» — اختيارية لأن ملفات أُنشئت قبل هذه الميزة لا تحملها. */
+  about?: AboutEntry[];
   visibility: Visibility;
   order: number;
   active: boolean;
@@ -194,6 +210,18 @@ export type Achievement = {
   date: string;
   imageUrl: string | null;
   imagePath: string | null;
+  /** الجهة التي منحت الشهادة — اختياري، ويبقى غائبًا في الإنجاز بلا شهادة. */
+  issuer?: string;
+  /** تصنيف حرّ تكتبه الطالبة: مسابقة، دورة، مشاركة… لا قائمة مغلقة. */
+  category?: string;
+  /**
+   * رابط الشهادة الأصلية إن كانت ملفًا (PDF مثلًا) على Drive أو غيره.
+   * رابط لا ملفًا مرفوعًا: المنصّة تخزّن الوسائط داخل مستندات Firestore
+   * (الخطة المجانية بلا Cloud Storage)، وحدّ المستند ~١ ميجابايت،
+   * فالـ PDF يتجاوزه غالبًا. صورة الشهادة تُرفع كما هي أعلاه.
+   */
+  fileUrl?: string | null;
+  fileName?: string;
   visibility: Visibility;
   /** مؤرشف: يختفي من الملف لكنه لا يُحذف — يُستعاد بضغطة. */
   archived: boolean;

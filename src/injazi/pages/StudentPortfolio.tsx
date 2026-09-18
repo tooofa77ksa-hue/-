@@ -19,8 +19,10 @@ import {
   Palette,
   Pencil,
   Plus,
+  ExternalLink,
   Sparkles,
   Trash2,
+  UserRound,
 } from "lucide-react";
 import { ClayButton } from "@/injazi/components/ClayButton";
 import { ClayCard } from "@/injazi/components/ClayCard";
@@ -29,6 +31,8 @@ import { CrownCelebration } from "@/injazi/components/CrownCelebration";
 import { EmptyState } from "@/injazi/components/EmptyState";
 import { AchievementEditor } from "@/injazi/features/portfolio/AchievementEditor";
 import { HobbiesEditor } from "@/injazi/features/portfolio/HobbiesEditor";
+import { AboutEditor } from "@/injazi/features/portfolio/AboutEditor";
+import { ButterflyEntrance } from "@/injazi/components/ButterflyEntrance";
 import { PersonalizePanel } from "@/injazi/features/portfolio/PersonalizePanel";
 import { ProjectCard } from "@/injazi/features/portfolio/ProjectCard";
 import { ProjectEditor } from "@/injazi/features/portfolio/ProjectEditor";
@@ -79,6 +83,7 @@ export function StudentPortfolio() {
   }>({ open: false, kind: "achievement", row: null });
   const [personalize, setPersonalize] = useState(false);
   const [hobbies, setHobbies] = useState(false);
+  const [about, setAbout] = useState(false);
   const [confirm, setConfirm] = useState<{ open: boolean; run: () => Promise<void>; message: string }>({
     open: false,
     run: async () => {},
@@ -169,6 +174,12 @@ export function StudentPortfolio() {
       animate="enter"
       exit="exit"
     >
+      {/* الفراشات هنا أيضًا: الطالبة تفتح رابطها مباشرةً ولا تمرّ
+          بالصفحة الرئيسة أبدًا، فكانت لحظة الترحيب تفوتها هي وحدها —
+          وهي صاحبة الملف. الطبقة لا تلتقط النقر ولا تُقرأ للقارئ
+          الصوتي، فلا تحجب رفعًا ولا تمريرًا ولا زرًّا. */}
+      <ButterflyEntrance />
+
       <Link to="/" className="iz-back">
         <ArrowRight size={18} strokeWidth={2.6} aria-hidden="true" />
         كل الطالبات
@@ -210,6 +221,14 @@ export function StudentPortfolio() {
             <ClayButton
               variant="soft"
               size="sm"
+              icon={<UserRound size={16} strokeWidth={2.4} />}
+              onClick={() => setAbout(true)}
+            >
+              عني
+            </ClayButton>
+            <ClayButton
+              variant="soft"
+              size="sm"
               icon={<Sparkles size={16} strokeWidth={2.4} />}
               onClick={() => setHobbies(true)}
             >
@@ -235,6 +254,24 @@ export function StudentPortfolio() {
         <MetricCard icon={<Sparkles size={20} strokeWidth={2.4} />} value={averageStars || "—"} label="متوسط النجوم" tone="lemon" />
         <MetricCard icon={<Award size={20} strokeWidth={2.4} />} value={badges} label="شارة تميّز" tone="gold" />
       </section>
+
+      {/* ---------------- عني ---------------- */}
+      {(student.about?.length ?? 0) > 0 && (
+        <section className="iz-block" aria-label="عني">
+          <SectionTitle>عني</SectionTitle>
+          <div className="iz-about-grid">
+            {student.about?.map((entry) => (
+              <Panel key={entry.id} className="iz-about-card">
+                <h3 className="iz-about-card__title">
+                  <Icon name={entry.icon} size={18} />
+                  {entry.title}
+                </h3>
+                <p className="iz-about-card__body">{entry.body}</p>
+              </Panel>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ---------------- الهوايات ---------------- */}
       {student.hobbies?.length > 0 && (
@@ -407,7 +444,24 @@ export function StudentPortfolio() {
                       <div className="iz-achievement__body">
                         <h4>{row.title}</h4>
                         <p className="iz-achievement__date">{row.date}</p>
+                        {(row.issuer || row.category) && (
+                          <div className="iz-chip-row">
+                            {row.category && <Chip tone="info">{row.category}</Chip>}
+                            {row.issuer && <Chip>{row.issuer}</Chip>}
+                          </div>
+                        )}
                         {row.description && <p className="iz-achievement__desc">{row.description}</p>}
+                        {row.fileUrl && (
+                          <a
+                            className="iz-project__link"
+                            href={row.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <ExternalLink size={14} strokeWidth={2.4} aria-hidden="true" />
+                            {row.fileName || "الشهادة الأصلية"}
+                          </a>
+                        )}
                       </div>
                       {canEdit && (
                         <div className="iz-project__actions">
@@ -545,6 +599,7 @@ export function StudentPortfolio() {
       />
 
       <HobbiesEditor open={hobbies} student={student} actor={profile} onClose={() => setHobbies(false)} />
+      <AboutEditor open={about} student={student} actor={profile} onClose={() => setAbout(false)} />
 
       <ConfirmDialog
         open={confirm.open}

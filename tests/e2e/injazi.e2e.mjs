@@ -7,6 +7,21 @@ import { chromium, devices } from "playwright";
 import { writeFileSync } from "node:fs";
 
 const BASE = "http://127.0.0.1:5173/#";
+/*
+  المعلمة التجريبية باسم وبريد فريدين لكل تشغيل.
+  ------------------------------------------------------------------
+  كانا ثابتين، فكان الحساب يبقى في Auth بعد أول دورة ولا يُحذف مع
+  الصف، فترفض الدورة التالية إنشاءه («البريد مستخدم») وتبقى النافذة
+  مفتوحة، فيحجب حجابها كل ضغطة تالية — وتسقط الدورة لسبب لا علاقة له
+  بما تفحصه. الاختبار الذي لا يصلح إلا مرة واحدة لا يحرس شيئًا.
+*/
+const STAMP = Date.now().toString().slice(-6);
+const TEST_TEACHER = `نورة التجريبية ${STAMP}`;
+const TEST_TEACHER_EMAIL = `teacher.test.${STAMP}@injazi.local`;
+const TEST_STUDENT = `سارة التجريبية ${STAMP}`;
+const TEST_STUDENT_RENAMED = `سارة المعدّلة ${STAMP}`;
+const TEST_SUBJECT = `المهارات الرقمية ${STAMP}`;
+
 const OUT = process.env.IZ_SHOTS || "./.e2e-shots";
 import { mkdirSync } from "node:fs";
 
@@ -110,14 +125,18 @@ ok(
   `${anthem.status} · ${anthem.type}`,
 );
 
-await page.locator(".iz-music__btn").click();
+// الأنشودة تبدأ وحدها. هذا المتصفّح يُشغَّل بسياسة التشغيل التلقائي
+// الافتراضية، فيمنع الصوت قبل أول إيماءة — تمامًا كجهاز حقيقي. لمسة
+// محايدة على الصفحة (لا على زر الموسيقى) هي ما يفعله أي زائر، وهي
+// التي يعلّق عليها المشغّل بدايته.
+await page.mouse.click(12, 12);
 await page.waitForTimeout(2500);
 const playing = await page.locator(".iz-music audio").evaluate((el) => ({
   paused: el.paused,
   t: el.currentTime,
 }));
 ok(
-  "الإنشودة تبدأ فعلًا بعد الضغط",
+  "الإنشودة تبدأ وحدها عند الدخول",
   playing.paused === false && playing.t > 0.3,
   `الثانية: ${playing.t.toFixed(1)}`,
 );
@@ -135,6 +154,14 @@ await page.waitForTimeout(700);
 ok(
   "زر الإيقاف يوقف الإنشودة",
   (await page.locator(".iz-music audio").evaluate((el) => el.paused)) === true,
+);
+
+// والإيقاف ليس نهائيًا: الضغطة التالية تعيدها.
+await page.locator(".iz-music__btn").click();
+await page.waitForTimeout(900);
+ok(
+  "الضغطة التالية تعيد الإنشودة",
+  (await page.locator(".iz-music audio").evaluate((el) => el.paused)) === false,
 );
 
 // بحث
@@ -164,22 +191,22 @@ await page.goto(`${BASE}/admin/students`, { waitUntil: "domcontentloaded" });
 await page.waitForTimeout(1600);
 await page.getByRole("button", { name: /إضافة طالبة/ }).first().click();
 await page.waitForTimeout(700);
-await page.locator(".iz-modal input").first().fill("سارة التجريبية");
+await page.locator(".iz-modal input").first().fill(TEST_STUDENT);
 await page.locator(".iz-modal__foot button").last().click();
 await page.waitForTimeout(2000);
 const afterCreate = await page.locator(".iz-admin-row").count();
 ok("إنشاء طالبة جديدة", afterCreate === 9, `العدد: ${afterCreate}`);
 
 // --- تعديل طالبة
-const newRow = page.locator(".iz-admin-row").filter({ hasText: "سارة التجريبية" });
+const newRow = page.locator(".iz-admin-row").filter({ hasText: TEST_STUDENT });
 await newRow.locator('button[aria-label^="تعديل"]').click();
 await page.waitForTimeout(700);
-await page.locator(".iz-modal input").first().fill("سارة المعدّلة");
+await page.locator(".iz-modal input").first().fill(TEST_STUDENT_RENAMED);
 await page.locator(".iz-modal__foot button").last().click();
 await page.waitForTimeout(1800);
 ok(
   "تعديل بيانات الطالبة",
-  (await page.locator(".iz-admin-row").filter({ hasText: "سارة المعدّلة" }).count()) === 1,
+  (await page.locator(".iz-admin-row").filter({ hasText: TEST_STUDENT_RENAMED }).count()) === 1,
 );
 
 // --- إنشاء مادة + إسناد معلمة
@@ -188,7 +215,7 @@ await page.waitForTimeout(1600);
 const subjectsBefore = await page.locator(".iz-admin-row").count();
 await page.getByRole("button", { name: /إضافة مادة/ }).first().click();
 await page.waitForTimeout(700);
-await page.locator(".iz-modal input").first().fill("المهارات الرقمية");
+await page.locator(".iz-modal input").first().fill(TEST_SUBJECT);
 await page.locator(".iz-modal select").first().selectOption({ index: 1 });
 await page.locator(".iz-modal__foot button").last().click();
 await page.waitForTimeout(2000);
@@ -196,7 +223,7 @@ const subjectsAfter = await page.locator(".iz-admin-row").count();
 ok("إنشاء مادة وإسناد معلمة", subjectsAfter === subjectsBefore + 1, `${subjectsBefore} → ${subjectsAfter}`);
 
 // --- أرشفة المادة الجديدة ثم استعادتها
-const newSubject = page.locator(".iz-admin-row").filter({ hasText: "المهارات الرقمية" });
+const newSubject = page.locator(".iz-admin-row").filter({ hasText: TEST_SUBJECT });
 await newSubject.locator('button[aria-label^="أرشفة"]').first().click();
 await page.waitForTimeout(1200);
 ok("أرشفة المادة", (await newSubject.locator('button[aria-label^="استعادة"]').count()) === 1);
@@ -209,8 +236,8 @@ await page.waitForTimeout(1600);
 const teachersBefore = await page.locator(".iz-admin-row").count();
 await page.getByRole("button", { name: /إضافة معلمة/ }).first().click();
 await page.waitForTimeout(700);
-await page.locator(".iz-modal input").nth(0).fill("نورة التجريبية");
-await page.locator(".iz-modal input").nth(1).fill("teacher.test@injazi.local");
+await page.locator(".iz-modal input").nth(0).fill(TEST_TEACHER);
+await page.locator(".iz-modal input").nth(1).fill(TEST_TEACHER_EMAIL);
 await page.locator('.iz-modal input[type="password"]').fill("Teacher#2026");
 await page.locator(".iz-modal .iz-pill").first().click();
 await page.locator(".iz-modal__foot button").last().click();
@@ -220,7 +247,7 @@ ok("إضافة معلمة + إنشاء حساب دخولها", teachersAfter ===
 await page.screenshot({ path: `${OUT}/e2e-04-teachers.png` });
 
 // --- تعطيل المعلمة
-const newTeacher = page.locator(".iz-admin-row").filter({ hasText: "نورة التجريبية" });
+const newTeacher = page.locator(".iz-admin-row").filter({ hasText: TEST_TEACHER });
 await newTeacher.locator('button[aria-label^="تعديل"]').click();
 await page.waitForTimeout(700);
 await page.locator(".iz-modal select").last().selectOption("0");
@@ -259,7 +286,7 @@ await page.goto(`${BASE}/admin/students`, { waitUntil: "domcontentloaded" });
 await page.waitForTimeout(1600);
 await page
   .locator(".iz-admin-row")
-  .filter({ hasText: "سارة المعدّلة" })
+  .filter({ hasText: TEST_STUDENT_RENAMED })
   .locator('button[aria-label^="حذف"]')
   .click();
 await page.waitForTimeout(700);

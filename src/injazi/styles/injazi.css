@@ -3092,3 +3092,92 @@
      فلا ينفع تكرار الخاصية. القيمة المباشرة أوضح وتعمل في كل مكان. */
   border-color: rgba(255, 138, 134, 0.45);
 }
+
+/* ------------------------------------------------------------------
+   «عني» — سيرة الطالبة بكلماتها.
+   بطاقات لا فقرة واحدة طويلة: كل قسم وحدة قائمة بذاتها تُقرأ وحدها،
+   والنصّ يحفظ أسطر الطالبة كما كتبتها (pre-line) لأن ترتيب كلامها عن
+   نفسها جزء ممّا تقوله. auto-fit يجعلها عمودًا واحدًا على الجوّال بلا
+   استعلام وسائط.
+   ------------------------------------------------------------------ */
+.iz-about-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 14px;
+}
+
+.iz-about-card__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: var(--iz-ink);
+}
+
+.iz-about-card__body {
+  margin: 0;
+  color: var(--iz-ink-soft);
+  line-height: 1.85;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+/* صفّ التحرير: الأيقونة، ثم العنوان والنصّ، ثم الحذف. */
+.iz-about-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.iz-about-row__fields {
+  display: grid;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.iz-about-row__body {
+  resize: vertical;
+  min-height: 72px;
+  line-height: 1.7;
+}
+
+/* ------------------------------------------------------------------
+   قائمة كل الروابط.
+   الرابط يُعرض كاملًا ويلتفّ: قصّه يُخفي اختلاف رمزين بين طالبتين،
+   والمشرفة تتحقّق بعينها ممّا سترسله. min-width:0 ضروري كي ينكسر
+   النصّ الطويل داخل flex بدل أن يمدّ النافذة فيظهر تمرير أفقي.
+   ------------------------------------------------------------------ */
+.iz-links-list {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.iz-links-list__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--iz-line);
+  border-radius: var(--iz-r-md);
+  background: var(--iz-surface);
+}
+
+.iz-links-list__text {
+  display: grid;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.iz-links-list__url {
+  font-size: 0.74rem;
+  color: var(--iz-ink-soft);
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}

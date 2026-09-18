@@ -13,6 +13,7 @@ import { StudentCard } from "@/injazi/features/students/StudentCard";
 import { SkeletonCards } from "@/injazi/ui/primitives";
 import { useSettings, useStudents } from "@/injazi/hooks/useLive";
 import { pageVariants, riseItem, staggerContainer } from "@/injazi/motion/motion";
+import { textMatches } from "@/injazi/lib/arabicSearch";
 
 export function PublicHome() {
   const settings = useSettings();
@@ -22,7 +23,7 @@ export function PublicHome() {
   const visible = useMemo(() => {
     const active = students.filter((student) => student.active);
     const needle = query.trim();
-    return needle ? active.filter((student) => student.name.includes(needle)) : active;
+    return needle ? active.filter((student) => textMatches(student.name, needle)) : active;
   }, [students, query]);
 
   return (

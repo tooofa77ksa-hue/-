@@ -16,7 +16,10 @@ import { Music, Pause, Play, Volume2, VolumeX } from "lucide-react";
 import { DUR, EASE_CLAY } from "@/injazi/motion/motion";
 import type { Settings } from "@/injazi/types/models";
 
-const PREF_KEY = "injazi:music:v1";
+// v2: تغيّر الافتراضي من «متوقّفة» إلى «تعمل»، ورفع رقم المفتاح هو ما
+// يجعل التغيير يصل إلى من جرّبت المنصة قبل اليوم — وإلا بقيت صامتة
+// لديها إلى الأبد بتفضيل قديم لم تختره عمدًا.
+const PREF_KEY = "injazi:music:v2";
 
 type Pref = { playing: boolean; volume: number; muted: boolean };
 
@@ -27,7 +30,9 @@ function readPref(fallbackVolume: number): Pref {
   } catch {
     /* تخزين محجوب: نبدأ بالقيم الافتراضية */
   }
-  return { playing: false, volume: fallbackVolume, muted: false };
+  // الأنشودة هوية المنصة لا زينة اختيارية: تبدأ وحدها ويُسكتها زر واحد.
+  // المتصفّح قد يؤجّلها إلى أول لمسة — وهذا مُدار أدناه، لا مُتحايَل عليه.
+  return { playing: true, volume: fallbackVolume, muted: false };
 }
 
 function writePref(pref: Pref) {
@@ -126,9 +131,12 @@ export function MusicPlayer({ settings }: { settings: Settings }) {
         className={`iz-music__btn ${pref.playing ? "is-playing" : ""}`}
         onClick={toggle}
         onDoubleClick={() => setOpen((value) => !value)}
-        aria-label={pref.playing ? "إيقاف الموسيقى" : "تشغيل الموسيقى"}
+        aria-label={pref.playing ? "إيقاف الأنشودة" : "تشغيل الأنشودة"}
         aria-pressed={pref.playing}
-        title={settings.audioTitle}
+        /* حين يؤجّل المتصفّح التشغيل، الزر هو المكان الوحيد الذي تنظر
+           إليه المستخدمة بحثًا عن الصوت — فالسبب يُقال هنا، لا داخل
+           لوحة تُفتح بنقرة مزدوجة لن تخطر لأحد. */
+        title={blocked ? `${settings.audioTitle} — المسي الشاشة لتبدأ` : settings.audioTitle}
         whileHover={{ y: -3 }}
         whileTap={{ scale: 0.94 }}
         transition={{ duration: DUR.tap, ease: EASE_CLAY }}

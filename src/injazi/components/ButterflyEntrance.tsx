@@ -137,29 +137,29 @@ const FLIGHTS: Flight[] = [
   },
 ];
 
+/*
+  العلامة في sessionStorage لا في localStorage: «مرة واحدة إلى الأبد»
+  تعني أن الطالبة ترى ترحيبها مرة في عمر المتصفّح ثم لا تراه أبدًا،
+  وهي تفتح ملفها كل يوم. الحدّ المقصود هو ألّا تتكرّر عند كل تنقّل
+  داخل الزيارة الواحدة — وهذا ما تضبطه الجلسة بالضبط: تطير عند فتح
+  الموقع، وتصمت وأنتِ تتنقّلين، وتعود في الزيارة التالية.
+*/
 function hasSeen(): boolean {
   try {
-    return window.localStorage.getItem(SEEN_KEY) === "1";
+    return window.sessionStorage.getItem(SEEN_KEY) === "1";
   } catch {
-    // وضع التصفح الخاص أو تخزين محجوب: نعرض اللحظة مرة واحدة في الجلسة
-    // بدل تعطيلها نهائيًا أو تكرارها عند كل تنقّل.
-    try {
-      return window.sessionStorage.getItem(SEEN_KEY) === "1";
-    } catch {
-      return true;
-    }
+    // تخزين محجوب تمامًا: لا وسيلة لمعرفة ما إذا رأتها، ولا وسيلة
+    // لمنع التكرار عند كل تنقّل. نعرضها — الترحيب المتكرّر أهون من
+    // ترحيب لا يحدث أبدًا.
+    return false;
   }
 }
 
 function markSeen() {
   try {
-    window.localStorage.setItem(SEEN_KEY, "1");
+    window.sessionStorage.setItem(SEEN_KEY, "1");
   } catch {
-    try {
-      window.sessionStorage.setItem(SEEN_KEY, "1");
-    } catch {
-      /* لا شيء نفعله — تبقى اللحظة مرة واحدة لكل تحميل صفحة */
-    }
+    /* بلا تخزين: تبقى اللحظة مرة واحدة لكل تحميل صفحة */
   }
 }
 
