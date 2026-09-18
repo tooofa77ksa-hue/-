@@ -11,6 +11,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{color-scheme:light;box-sizing:border-box}
 *{box-sizing:border-box}
@@ -297,6 +299,41 @@ tbody tr:hover{background:var(--surface-2)}
   .print-footer .pf-row img{height:22px;width:auto}
   .print-footer .pf-school{width:100%;text-align:center;font-size:12px;font-weight:800;color:#15445A;margin-top:4px;padding-top:4px;border-top:1px dashed #d9e3de}
   .content{padding-bottom:90px!important}
+}
+@page{ size: A4 landscape; margin: 10mm; }
+
+/* Mirrors the @media print rules above so html2canvas (which renders in
+   screen context, not print context) captures the same official look for
+   the real downloadable PDF. */
+.pdf-capture-mode{ background:#fff; direction:rtl; -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+.pdf-capture-mode *{ -webkit-text-size-adjust:100%!important; text-size-adjust:100%!important; }
+.pdf-capture-mode .card{ box-shadow:none; border:1px solid #ccc; }
+.pdf-capture-mode .print-header{
+  display:flex!important; align-items:center; gap:18px; padding:0 0 16px; margin-bottom:20px;
+  border-bottom:3px solid #15445A;
+}
+.pdf-capture-mode .print-header img{height:64px;width:auto}
+.pdf-capture-mode .print-header .ph-kingdom{font-size:12px;color:#5b6b73;font-weight:700}
+.pdf-capture-mode .print-header .ph-school{font-size:19px;font-weight:800;color:#15445A;margin-top:2px}
+.pdf-capture-mode .print-header .ph-title{font-size:13px;color:#0DA9A6;font-weight:700;margin-top:3px}
+.pdf-capture-mode .print-footer{
+  display:flex!important; flex-direction:column; align-items:flex-end; gap:4px;
+  position:static; padding:8px 0 2px; border-top:2px solid #d9e3de; background:#fff;
+}
+.pdf-capture-mode .print-footer .pf-row{display:flex;align-items:center;gap:8px;font-size:11px;color:#3d5a68;font-weight:700}
+.pdf-capture-mode .print-footer .pf-row img{height:22px;width:auto}
+.pdf-capture-mode .print-footer .pf-school{width:100%;text-align:center;font-size:12px;font-weight:800;color:#15445A;margin-top:4px;padding-top:4px;border-top:1px dashed #d9e3de}
+.pdf-capture-mode .grid-2{display:block!important}
+/* Any internally-scrollable box (like the priorities list, which is capped
+   to a fixed height with overflow-y:auto on screen) must expand fully here —
+   otherwise html2canvas only ever sees the clipped, currently-scrolled-to
+   portion and the rest of the data silently never makes it into the PDF. */
+.pdf-capture-mode .content, .pdf-capture-mode .content *{max-height:none!important;overflow:visible!important}
+.pdf-capture-mode .search,.pdf-capture-mode button{display:none!important}
+.pdf-capture-mode .save-bar{display:none!important}
+.pdf-capture-mode .pdf-field-value{
+  display:inline-block; min-height:1em; padding:6px 2px; font:inherit; color:inherit;
+  border:none; border-bottom:1px solid #d9e3de; background:transparent; width:100%;
 }
 .print-footer{display:none}
 </style>
@@ -610,7 +647,7 @@ function render(){
 
   document.querySelectorAll('#nav button').forEach(b=>b.addEventListener('click', ()=>{ state.activeSection=b.dataset.section; state.selectedPriority=null; render(); }));
   document.getElementById('btnExcel').addEventListener('click', exportExcel);
-  document.getElementById('btnPrint').addEventListener('click', ()=>window.print());
+  document.getElementById('btnPrint').addEventListener('click', exportPdfReal);
   const logoutBtn = document.getElementById('btnLogout');
   if (logoutBtn) logoutBtn.addEventListener('click', async ()=>{ await sb.auth.signOut(); state.authed=false; state.loaded=false; state.editMode=true; render(); });
   const editToggleBtn = document.getElementById('btnEditToggle');
@@ -1771,6 +1808,12 @@ function renderTrash(c){
 
 /* ---------------- Excel export (styled workbook via ExcelJS, real browser download) ---------------- */
 const XL_NAVY='FF15445A', XL_WHITE='FFFFFFFF', XL_BORDER='FFD9E3DE', XL_STRIPE='FFF4F6F6';
+const XL_PAGE_MARGINS = {left:0.35, right:0.35, top:0.5, bottom:0.5, header:0.2, footer:0.2};
+function xlPageSetup(withTitlesRow){
+  const setup = {paperSize:9, orientation:'landscape', fitToPage:true, fitToWidth:1, fitToHeight:0, margins:XL_PAGE_MARGINS, horizontalCentered:true};
+  if (withTitlesRow) setup.printTitlesRow = '1:1';
+  return setup;
+}
 
 function xlStyleHeader(row){
   row.eachCell(cell=>{
@@ -1805,6 +1848,7 @@ async function exportExcel(){
     }catch(e){ /* logo is decorative; export continues without it */ }
 
     const cover = wb.addWorksheet('نظرة عامة', {views:[{rightToLeft:true}]});
+    cover.pageSetup = xlPageSetup(false);
     cover.columns = [{width:4},{width:36},{width:18}];
     if (logoId !== null) cover.addImage(logoId, {tl:{col:0.15,row:0.25}, ext:{width:88,height:68}});
     cover.mergeCells('B2:C2');
@@ -1896,6 +1940,7 @@ async function exportExcel(){
     }
 
     const analysisSheet = wb.addWorksheet('تحليل الواقع', {views:[{rightToLeft:true, state:'frozen', ySplit:1}]});
+    analysisSheet.pageSetup = xlPageSetup(true);
     analysisSheet.columns = [
       {header:'#', key:'n', width:4}, {header:'المجال', key:'domain', width:16},
       {header:'الرمز', key:'code', width:12}, {header:'المؤشر', key:'indicator', width:52},
@@ -1910,6 +1955,7 @@ async function exportExcel(){
     });
 
     const actSheet = wb.addWorksheet('إجراءات التحسين', {views:[{rightToLeft:true, state:'frozen', ySplit:1}]});
+    actSheet.pageSetup = xlPageSetup(true);
     actSheet.columns = [
       {header:'#', key:'n', width:4}, {header:'المجال', key:'domain', width:16},
       {header:'المؤشر', key:'indicator', width:44}, {header:'وصف الاحتياج', key:'need', width:44},
@@ -1924,6 +1970,7 @@ async function exportExcel(){
     });
 
     const priSheet = wb.addWorksheet('أولويات التحسين', {views:[{rightToLeft:true, state:'frozen', ySplit:1}]});
+    priSheet.pageSetup = xlPageSetup(true);
     priSheet.columns = [
       {header:'#', key:'n', width:4}, {header:'المجال', key:'domain', width:16},
       {header:'الإطار', key:'framework', width:24}, {header:'المستوى', key:'level', width:10},
@@ -1940,6 +1987,7 @@ async function exportExcel(){
     });
 
     const progSheet = wb.addWorksheet('البرامج والمتابعة', {views:[{rightToLeft:true, state:'frozen', ySplit:1}]});
+    progSheet.pageSetup = xlPageSetup(true);
     progSheet.columns = [
       {header:'#', key:'n', width:4}, {header:'اسم البرنامج', key:'name', width:52},
       {header:'المجال', key:'domain', width:18}, {header:'تاريخ التنفيذ', key:'date', width:20},
@@ -1954,6 +2002,7 @@ async function exportExcel(){
     });
 
     const teamSheet = wb.addWorksheet('فريق العمل', {views:[{rightToLeft:true, state:'frozen', ySplit:1}]});
+    teamSheet.pageSetup = xlPageSetup(true);
     teamSheet.columns = [
       {header:'#', key:'n', width:4}, {header:'الاسم', key:'name', width:28},
       {header:'الوصف الوظيفي', key:'role', width:24}, {header:'المهمة', key:'task', width:16},
@@ -1966,6 +2015,7 @@ async function exportExcel(){
 
     if (state.planImprovements.length){
       const impSheet = wb.addWorksheet('تحسين الخطة', {views:[{rightToLeft:true, state:'frozen', ySplit:1}]});
+      impSheet.pageSetup = xlPageSetup(true);
       impSheet.columns = [
         {header:'#', key:'n', width:4}, {header:'اسم البرنامج', key:'name', width:36},
         {header:'مستوى التنفيذ', key:'level', width:14}, {header:'أسباب التدني', key:'reason', width:32},
@@ -1992,6 +2042,282 @@ async function exportExcel(){
   }catch(err){
     alert('تعذّر إنشاء ملف Excel: ' + (err?.message || 'حدث خطأ غير متوقع'));
   }finally{
+    btn.disabled = false; btn.innerHTML = origHtml;
+  }
+}
+
+/* ---------------- real PDF export (html2canvas + jsPDF, row-safe pagination) ---------------- */
+const PDF_MARGIN_MM = 10;
+const PDF_PAGE_W_MM = 297, PDF_PAGE_H_MM = 210;
+const PDF_CONTENT_W_MM = PDF_PAGE_W_MM - PDF_MARGIN_MM*2;
+const PDF_CONTENT_H_MM = PDF_PAGE_H_MM - PDF_MARGIN_MM*2;
+const PDF_CAPTURE_WIDTH_PX = 1400;
+const PDF_MM_PER_PX = PDF_CONTENT_W_MM / PDF_CAPTURE_WIDTH_PX;
+const PDF_RENDER_SCALE = 2;
+
+async function waitForPendingSaves(){
+  for (let i=0;i<40;i++){
+    const busy = Array.from(document.querySelectorAll('[id$="SaveMsg"]')).some(el => (el.textContent||'').includes('جارِ الحفظ'));
+    if (!busy) return;
+    await new Promise(r=>setTimeout(r,150));
+  }
+}
+
+function inlinePdfFormValues(root){
+  root.querySelectorAll('select').forEach(el=>{
+    const opt = el.options[el.selectedIndex];
+    const div = document.createElement('div');
+    div.className = 'pdf-field-value';
+    div.textContent = opt ? opt.textContent : '';
+    el.replaceWith(div);
+  });
+  root.querySelectorAll('input, textarea').forEach(el=>{
+    const div = document.createElement('div');
+    div.className = 'pdf-field-value';
+    div.textContent = el.value || '';
+    el.replaceWith(div);
+  });
+}
+
+function flattenGridsForCapture(root){
+  root.querySelectorAll('.grid-2').forEach(grid=>{
+    const parent = grid.parentNode;
+    Array.from(grid.children).forEach((child,i)=>{
+      if (i>0) child.style.marginTop = '14px';
+      parent.insertBefore(child, grid);
+    });
+    grid.remove();
+  });
+}
+
+function decomposeForPdf(el, maxHeightPx, depth){
+  const h = el.getBoundingClientRect().height;
+  if (h <= maxHeightPx || depth >= 8) return [el];
+  const children = Array.from(el.children).filter(c => c.getBoundingClientRect().height > 0);
+  if (children.length < 1) return [el];
+  // Only safe to split a container into its children when they're stacked
+  // top-to-bottom with no vertical overlap (e.g. a 2-column grid row, or a
+  // row of side-by-side KPI cards, would otherwise get the same page-slice
+  // sliced twice — once per sibling — producing duplicated content).
+  const rects = children.map(c => c.getBoundingClientRect());
+  let prevBottom = -Infinity, stacked = true;
+  for (const r of rects){
+    if (r.top < prevBottom - 1){ stacked = false; break; }
+    prevBottom = Math.max(prevBottom, r.bottom);
+  }
+  if (!stacked) return [el];
+  let out = [];
+  children.forEach(ch => { out.push(...decomposeForPdf(ch, maxHeightPx, depth+1)); });
+  return out;
+}
+
+function buildPdfSegments(contentEl, maxHeightPx){
+  const containerTop = contentEl.getBoundingClientRect().top;
+  const leaves = [];
+  Array.from(contentEl.children).forEach(child=>{
+    leaves.push(...decomposeForPdf(child, maxHeightPx, 0));
+  });
+  const theadsNeeded = new Set();
+  const segments = leaves.map(el=>{
+    const r = el.getBoundingClientRect();
+    let repeatEl = null;
+    if (el.tagName === 'TR'){
+      const table = el.closest('table');
+      const thead = table ? table.querySelector('thead') : null;
+      if (thead){ repeatEl = thead; theadsNeeded.add(thead); }
+    }
+    return {top: r.top - containerTop, bottom: r.bottom - containerTop, repeatEl};
+  });
+  return {segments, theadsNeeded};
+}
+
+function paginatePdfSegments(segments, budgetFirstPx, budgetRestPx, headerHeightsPx){
+  const pages = [];
+  let page = [], used = 0, budget = budgetFirstPx;
+  function startNewPage(){ if (page.length) pages.push(page); page = []; used = 0; budget = budgetRestPx; }
+  segments.forEach(seg=>{
+    const h = seg.bottom - seg.top;
+    if (page.length === 0){
+      const extra = seg.repeatEl ? (headerHeightsPx.get(seg.repeatEl) || 0) : 0;
+      page.push({top:seg.top, bottom:seg.bottom, headerImgEl: seg.repeatEl || null});
+      used = h + extra;
+      return;
+    }
+    if (used + h > budget){
+      startNewPage();
+      const extra = seg.repeatEl ? (headerHeightsPx.get(seg.repeatEl) || 0) : 0;
+      page.push({top:seg.top, bottom:seg.bottom, headerImgEl: seg.repeatEl || null});
+      used = h + extra;
+    } else {
+      page.push({top:seg.top, bottom:seg.bottom, headerImgEl: null});
+      used += h;
+    }
+  });
+  if (page.length) pages.push(page);
+  return pages;
+}
+
+function sliceCanvasVertical(canvas, yStart, yEnd){
+  yStart = Math.max(0, Math.round(yStart));
+  yEnd = Math.min(canvas.height, Math.round(yEnd));
+  const h = Math.max(1, yEnd - yStart);
+  const out = document.createElement('canvas');
+  out.width = canvas.width; out.height = h;
+  const ctx = out.getContext('2d');
+  ctx.drawImage(canvas, 0, yStart, canvas.width, h, 0, 0, canvas.width, h);
+  return out;
+}
+
+function downloadPdfBlob(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
+}
+
+function buildPdfFilename(){
+  const school = (state.meta?.schoolName || 'مدرسة-النهروان-الثانوية').replace(/\s+/g,'-');
+  const sectionEl = document.querySelector('.topbar h1');
+  const section = (sectionEl?.textContent || 'تقرير').trim().replace(/\s+/g,'-');
+  const now = new Date();
+  const y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0'), d = String(now.getDate()).padStart(2,'0');
+  return `${school}-${section}-${y}-${m}-${d}.pdf`.replace(/[\\/:*?"<>|]/g,'-');
+}
+
+async function exportPdfReal(){
+  const btn = document.getElementById('btnPrint');
+  if (!window.html2canvas || !window.jspdf){
+    alert('تعذّر تحميل أدوات إنشاء PDF (تحقّقي من الاتصال بالإنترنت). سيتم فتح نافذة الطباعة العادية بدلاً من ذلك.');
+    window.print();
+    return;
+  }
+  const origHtml = btn.innerHTML;
+  btn.disabled = true;
+  let capture = null;
+  try{
+    btn.innerHTML = `${icon('print')} جارِ تحديث البيانات…`;
+    await waitForPendingSaves();
+    await loadAll();
+    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+
+    btn.innerHTML = `${icon('print')} جارِ إنشاء PDF…`;
+
+    const sourceHeader = document.querySelector('.print-header');
+    const sourceContent = document.getElementById('content');
+    const sourceFooter = document.querySelector('.print-footer');
+    if (!sourceHeader || !sourceContent || !sourceFooter) throw new Error('تعذّر العثور على محتوى الصفحة للتصدير');
+
+    capture = document.createElement('div');
+    capture.className = 'pdf-capture-mode';
+    capture.style.cssText = `position:fixed;top:0;left:-99999px;width:${PDF_CAPTURE_WIDTH_PX}px;background:#fff;`;
+    const headerClone = sourceHeader.cloneNode(true);
+    const contentClone = document.createElement('div');
+    contentClone.className = 'content';
+    contentClone.innerHTML = sourceContent.innerHTML;
+    const footerClone = sourceFooter.cloneNode(true);
+    capture.appendChild(headerClone);
+    capture.appendChild(contentClone);
+    capture.appendChild(footerClone);
+    document.body.appendChild(capture);
+
+    inlinePdfFormValues(contentClone);
+    flattenGridsForCapture(contentClone);
+    contentClone.querySelectorAll('[id$="Modal"]').forEach(m=>{ if(!m.textContent.trim()) m.remove(); });
+
+    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+
+    if (!contentClone.children.length) throw new Error('لا يوجد محتوى ظاهر لتصديره في هذه الصفحة');
+
+    const headerHeightPx = headerClone.getBoundingClientRect().height;
+    const footerHeightPx = footerClone.getBoundingClientRect().height;
+    const fullBudgetPx = (PDF_CONTENT_H_MM / PDF_MM_PER_PX) - footerHeightPx - 10;
+    const firstBudgetPx = fullBudgetPx - headerHeightPx;
+
+    const {segments, theadsNeeded} = buildPdfSegments(contentClone, fullBudgetPx);
+    const headerHeightsPx = new Map();
+    const headerCanvases = new Map();
+    for (const thead of theadsNeeded){
+      const rect = thead.getBoundingClientRect();
+      headerHeightsPx.set(thead, rect.height);
+      const wrapTable = thead.closest('table');
+      const miniTable = document.createElement('table');
+      miniTable.className = wrapTable ? wrapTable.className : '';
+      miniTable.style.cssText = 'width:100%;border-collapse:collapse;';
+      miniTable.appendChild(thead.cloneNode(true));
+      const miniWrap = document.createElement('div');
+      miniWrap.className = 'pdf-capture-mode table-wrap';
+      miniWrap.style.cssText = `position:fixed;top:0;left:-99999px;width:${PDF_CAPTURE_WIDTH_PX}px;background:#fff;`;
+      miniWrap.appendChild(miniTable);
+      document.body.appendChild(miniWrap);
+      const c = await html2canvas(miniWrap, {scale: PDF_RENDER_SCALE, backgroundColor:'#ffffff', useCORS:true});
+      headerCanvases.set(thead, c);
+      document.body.removeChild(miniWrap);
+    }
+
+    const headerCanvas = await html2canvas(headerClone, {scale: PDF_RENDER_SCALE, backgroundColor:'#ffffff', useCORS:true});
+    const footerCanvas = await html2canvas(footerClone, {scale: PDF_RENDER_SCALE, backgroundColor:'#ffffff', useCORS:true});
+    const contentCanvas = await html2canvas(contentClone, {scale: PDF_RENDER_SCALE, backgroundColor:'#ffffff', useCORS:true});
+
+    const pages = paginatePdfSegments(segments, firstBudgetPx, fullBudgetPx, headerHeightsPx);
+    if (!pages.length) throw new Error('تعذّر تقسيم المحتوى إلى صفحات');
+
+    const {jsPDF} = window.jspdf;
+    const pdf = new jsPDF({orientation:'landscape', unit:'mm', format:'a4'});
+
+    pages.forEach((segs, pageIdx)=>{
+      if (pageIdx > 0) pdf.addPage();
+      let cursorMm = PDF_MARGIN_MM;
+      if (pageIdx === 0){
+        const hHmm = headerHeightPx * PDF_MM_PER_PX;
+        pdf.addImage(headerCanvas.toDataURL('image/jpeg', 0.95), 'JPEG', PDF_MARGIN_MM, cursorMm, PDF_CONTENT_W_MM, hHmm);
+        cursorMm += hHmm;
+      }
+      segs.forEach(seg=>{
+        if (seg.headerImgEl){
+          const hc = headerCanvases.get(seg.headerImgEl);
+          const hHmm = (headerHeightsPx.get(seg.headerImgEl) || 0) * PDF_MM_PER_PX;
+          if (hc && hHmm > 0){
+            pdf.addImage(hc.toDataURL('image/jpeg', 0.95), 'JPEG', PDF_MARGIN_MM, cursorMm, PDF_CONTENT_W_MM, hHmm);
+            cursorMm += hHmm;
+          }
+        }
+        const segHpx = seg.bottom - seg.top;
+        if (segHpx <= 0) return;
+        const segHmm = segHpx * PDF_MM_PER_PX;
+        const slice = sliceCanvasVertical(contentCanvas, seg.top*PDF_RENDER_SCALE, seg.bottom*PDF_RENDER_SCALE);
+        pdf.addImage(slice.toDataURL('image/jpeg', 0.95), 'JPEG', PDF_MARGIN_MM, cursorMm, PDF_CONTENT_W_MM, segHmm);
+        cursorMm += segHmm;
+      });
+      const footerHmm = footerHeightPx * PDF_MM_PER_PX;
+      const footerY = PDF_PAGE_H_MM - PDF_MARGIN_MM - footerHmm;
+      pdf.addImage(footerCanvas.toDataURL('image/jpeg', 0.95), 'JPEG', PDF_MARGIN_MM, footerY, PDF_CONTENT_W_MM, footerHmm);
+      pdf.setFontSize(8);
+      pdf.setTextColor(120,120,120);
+      pdf.text(`${pageIdx+1} / ${pages.length}`, PDF_PAGE_W_MM/2, PDF_PAGE_H_MM - 4, {align:'center'});
+    });
+
+    const filename = buildPdfFilename();
+    const blob = pdf.output('blob');
+    let shared = false;
+    if (navigator.canShare && navigator.share){
+      try{
+        const file = new File([blob], filename, {type:'application/pdf'});
+        if (navigator.canShare({files:[file]})){
+          await navigator.share({files:[file], title: filename});
+          shared = true;
+        }
+      }catch(shareErr){
+        if (shareErr && shareErr.name === 'AbortError') shared = true; // user cancelled share sheet on purpose
+      }
+    }
+    if (!shared) downloadPdfBlob(blob, filename);
+
+  }catch(err){
+    alert('تعذّر إنشاء ملف PDF: ' + (err?.message || 'حدث خطأ غير متوقع') + '\nجرّبي مرة أخرى.');
+  }finally{
+    if (capture && capture.parentNode) capture.parentNode.removeChild(capture);
     btn.disabled = false; btn.innerHTML = origHtml;
   }
 }
