@@ -13,8 +13,6 @@ import {
   studentAchievements,
   honoredStudents,
   environmentItems,
-  type TeacherAchievement,
-  type CompetitionRank,
 } from "./data/achievementsFull";
 
 /**
@@ -25,81 +23,60 @@ import {
  * المعلمات، المبادرات الداخلية، إنجازات الطالبات، الموهبة، ثم - بعد
  * انتقال احترافي - منجزات المدرسة قبل وبعد.
  *
- * التوقيت مبني على التسجيل الصوتي الحقيقي (audio/achievements-full-narration.mp3،
- * 278.18 ثانية، صوت Layla - ElevenLabs). المنهجية: قُسِّم نص التعليق الفعلي
- * إلى مقاطع مطابقة لكل بطاقة/عنصر مرئي، حُسب عدد كلمات كل مقطع، ثم استُخدمت
- * نسبة الكلمات التراكمية لتقدير زمن بداية كل مقطع، وأخيرًا طابقنا كل تقدير مع
- * أقرب سكتة صمت حقيقية من `ffmpeg -af silencedetect=noise=-30dB:d=0.35`
- * (نفس أسلوب SchoolAchievements.tsx الأصلي). كل رقم إطار أدناه مشتق من هذه
- * المطابقة الفعلية - لا تخمين. حيث كانت جملتان تُنطقان معًا (مثل حنان آل عوض
- * وفوزية الحربي، أو شهادة المركز الأول + الدرع)، عُرضتا كبطاقة واحدة مشتركة
- * بدل تقسيمهما إلى مشاهد منفصلة قصيرة جدًا لا تكفي لعرض احترافي.
+ * ⚠️ توقيت مؤقت (Placeholder) بانتظار التسجيل الصوتي الجديد الأبطأ قليلًا:
+ * كل معلمة، وكل عنصر، أصبح له مشهده الكامل المنفصل الخاص (لا دمج بين
+ * عنصرين في مشهد واحد إطلاقًا)، بناءً على طلب صريح. الأرقام أدناه مبنية
+ * على عدد كلمات نص التعليق الفعلي لكل مشهد + وقت بصري إضافي ثابت لفحص
+ * الشهادة (100 إطار للبطاقة المفردة، 130 لمشاهد قبل/بعد ذات الصورتين)،
+ * بمعدل قراءة أبطأ قليلًا من المعتاد (2.1 كلمة/ثانية للمحتوى، 2.3
+ * للعناوين). بمجرد استلام التسجيل الحقيقي الجديد: قيسي طوله بـ ffprobe،
+ * حدّدي السكتات الحقيقية بـ `ffmpeg -af silencedetect`، ثم استبدلي كل
+ * *_DUR هنا بالسكتات الفعلية - بنفس الأسلوب المتبع في كامل المشروع.
  */
-
-// ===== مقدمة (تظهر فوق أول 5 ثوانٍ من التعليق دون تأخير الصوت) =====
-const INTRO_FROM = 0;
-const INTRO_DUR = 90; // "منجزات المدرسة" - العنوان الرئيسي
-const S1_TITLE_FROM = 90;
-const S1_TITLE_DUR = 60; // "أولًا: منجزات المدرسة"
-
-// ===== أولًا: منجزات المدرسة (7 شهادات) =====
-const S1_CARD_FROM = [150, 629, 960, 1165, 1727, 2009, 2571];
-const S1_CARD_DUR = [479, 331, 205, 562, 282, 562, 170];
-
-// ===== مسابقة قادمون =====
-const RANK_TITLE_FROM = 2741;
-const RANK_TITLE_DUR = 164;
-const RANK1_FROM = 2905;
-const RANK1_DUR = 241;
-const RANK1_TROPHY_LOCAL = 222; // نقطة ظهور الدرع داخل بطاقة المركز الأول (لحظة نطق "ودرعًا")
-const RANK2_FROM = 3146;
-const RANK2_DUR = 115;
-const RANK3_FROM = 3261;
-const RANK3_DUR = 116;
-
-// ===== ثانيًا: إنجازات المعلمات =====
-const S2_TITLE_FROM = 3377;
-const S2_TITLE_DUR = 172;
-const TEACHER_PAIR_FROM = 3549; // حنان آل عوض + فوزية الحربي معًا (نُطقتا في جملة واحدة)
-const TEACHER_PAIR_DUR = 294;
-const TEACHER_SINGLE_FROM = [3843, 4219]; // حنان العمري، عبير المطيري
-const TEACHER_SINGLE_DUR = [376, 234];
-
-// ===== ثالثًا: المبادرات الداخلية =====
-const S3_TITLE_FROM = 4453;
-const S3_TITLE_DUR = 150;
-const INIT1_FROM = 4603;
-const INIT1_DUR = 570;
-const INIT_REST_FROM = [5173, 5265]; // منصة الرياضيات، تطبيق أثر
-const INIT_REST_DUR = [92, 510];
-
-// ===== رابعًا: إنجازات الطالبات =====
-const S4_TITLE_FROM = 5775;
-const S4_TITLE_DUR = 90;
-const STUDENT1_FROM = 5865;
-const STUDENT1_DUR = 184;
-
-// ===== خامسًا: الموهبة =====
-const S5_TITLE_FROM = 6049;
-const S5_TITLE_DUR = 256;
-const GIFTED_FROM = [6305, 6451];
-const GIFTED_DUR = [146, 113];
-
-// ===== انتقال احترافي (يظهر فوق آخر ثانيتين من قسم الموهبة، دون تأخير الصوت) =====
-const TRANSITION_FROM = 6544;
+const INTRO_DUR = 100;
+const S1_TITLE_DUR = 60;
+// مدة كل شهادة محسوبة من كلمات وصفها الفعلي (٢.١ كلمة/ث) + ١٠٠ إطار فحص بصري
+const S1_CARD_DUR = [643, 257, 286, 500, 371, 457, 314]; // مطابقة لترتيب schoolAchievements (1-7)
+const RANK_TITLE_DUR = 170;
+const RANK1_CERT_DUR = 286; // شهادة المركز الأول - مشهدها الخاص الكامل
+const RANK1_TROPHY_DUR = 200; // الدرع - مشهد منفصل كامل، له حقه الخاص
+const RANK2_DUR = 186;
+const RANK3_DUR = 186;
+const S2_TITLE_DUR = 210;
+// كل معلمة مشهدها المنفصل الكامل - لا دمج بين معلمتين إطلاقًا
+const TEACHER_DUR = [357, 343, 314, 357]; // مطابقة لترتيب teacherAchievements (1-4)
+const S3_TITLE_DUR = 170;
+const INIT_DUR = [457, 200, 443]; // مطابقة لترتيب initiatives (1-3)
+const S4_TITLE_DUR = 131;
+const STUDENT_DUR = 314;
+const S5_TITLE_DUR = 131;
+const GIFTED_DUR = [200, 186]; // مطابقة لترتيب honoredStudents (1-2)
 const TRANSITION_DUR = 20;
+const S6_TITLE_DUR = 223;
+const ENV_DUR = [344, 301, 316, 316]; // مطابقة لترتيب environmentItems (1-4) - وقت أطول لمقارنة صورتين
+const OUTRO_DUR = 564;
 
-// ===== سادسًا: منجزات المدرسة قبل وبعد =====
-const S6_TITLE_FROM = 6564;
-const S6_TITLE_DUR = 127;
-const ENV_FROM = [6691, 7060, 7360, 7594];
-const ENV_DUR = [369, 300, 234, 195];
-
-// ===== خاتمة (تمتد بعد نهاية التعليق الصوتي بثانيتين ونصف لإعطاء وقت هدوء قبل الإغلاق) =====
-const OUTRO_FROM = 7789;
-const OUTRO_DUR = 631;
-
-export const achievementsFullTotalDuration = OUTRO_FROM + OUTRO_DUR;
+export const achievementsFullTotalDuration =
+  INTRO_DUR +
+  S1_TITLE_DUR +
+  S1_CARD_DUR.reduce((a, b) => a + b, 0) +
+  RANK_TITLE_DUR +
+  RANK1_CERT_DUR +
+  RANK1_TROPHY_DUR +
+  RANK2_DUR +
+  RANK3_DUR +
+  S2_TITLE_DUR +
+  TEACHER_DUR.reduce((a, b) => a + b, 0) +
+  S3_TITLE_DUR +
+  INIT_DUR.reduce((a, b) => a + b, 0) +
+  S4_TITLE_DUR +
+  STUDENT_DUR +
+  S5_TITLE_DUR +
+  GIFTED_DUR.reduce((a, b) => a + b, 0) +
+  TRANSITION_DUR +
+  S6_TITLE_DUR +
+  ENV_DUR.reduce((a, b) => a + b, 0) +
+  OUTRO_DUR;
 
 const fadeUp = (frame: number, from = 0, dur = 16, dist = 14) => ({
   opacity: interpolate(frame, [from, from + dur], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }),
@@ -147,41 +124,6 @@ const IconBadge: React.FC<{ kind: Parameters<typeof CategoryIcon>[0]["kind"]; co
       }}
     >
       <CategoryIcon kind={kind} color={color} size={30} />
-    </div>
-  );
-};
-
-/** إدراج صورة الدرع الحقيقية داخل بطاقة المركز الأول، تظهر بالضبط عند نطق "ودرعًا". */
-const TrophyInset: React.FC<{ image: string; startFrame: number }> = ({ image, startFrame }) => {
-  const frame = useCurrentFrame();
-  const stamp = interpolate(frame, [startFrame, startFrame + 18], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: Easing.out(Easing.back(1.15)),
-  });
-  const rotate = interpolate(frame, [startFrame, startFrame + 18], [10, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: Easing.out(Easing.cubic),
-  });
-  return (
-    <div
-      style={{
-        position: "absolute",
-        bottom: -26,
-        left: -26,
-        width: 176,
-        height: 132,
-        borderRadius: 14,
-        overflow: "hidden",
-        background: brand.paper,
-        border: `3px solid ${brand.gold}`,
-        boxShadow: "0 12px 26px rgba(21,68,90,0.24)",
-        opacity: stamp,
-        transform: `scale(${stamp}) rotate(${rotate}deg)`,
-      }}
-    >
-      <Img src={staticFile(image)} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
     </div>
   );
 };
@@ -295,66 +237,34 @@ const SchoolAchievementCard: React.FC<{ image: string; caption: string; icon: Pa
   </AbsoluteFill>
 );
 
-/** بطاقة المركز الأول - شهادة + إدراج صورة الدرع الحقيقية عند نطق "ودرعًا". */
-const RankOneCard: React.FC<{ rank: CompetitionRank; trophyImage: string; trophyStartFrame: number; holdFrames: number }> = ({
-  rank,
-  trophyImage,
-  trophyStartFrame,
-  holdFrames,
-}) => {
-  const frame = useCurrentFrame();
-  const t = fadeUp(frame, 0, 16, 12);
-  return (
-    <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
-      <Sfx kind="whoosh" at={0} volume={0.32} />
-      <Sfx kind="impact" at={10} volume={0.5} />
-      <Sfx kind="impact" at={trophyStartFrame} volume={0.4} />
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
-        <div style={{ opacity: t.opacity, translate: `0 ${t.y}px`, display: "flex", alignItems: "center", gap: 14 }}>
-          <CategoryIcon kind="trophy" color={brand.gold} size={40} />
-          <div style={{ fontFamily, fontWeight: 900, fontSize: 44, color: brand.primaryDark }}>المركز {rank.rank}</div>
-        </div>
-        <div style={{ position: "relative" }}>
-          <RevealCard width={500} height={640} holdFrames={holdFrames}>
-            <Img src={staticFile(rank.image)} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
-          </RevealCard>
-          <TrophyInset image={trophyImage} startFrame={trophyStartFrame} />
-        </div>
-        <div style={{ display: "flex", gap: 14, opacity: t.opacity }}>
-          <div style={{ fontFamily, fontWeight: 700, fontSize: 22, color: brand.muted }}>{rank.grade}</div>
-          <div style={{ fontFamily, fontWeight: 800, fontSize: 16, color: brand.paper, background: brand.gold, borderRadius: 999, padding: "4px 16px" }}>
-            {rank.year}
-          </div>
-        </div>
-      </div>
-    </AbsoluteFill>
-  );
-};
-
-const RankCard: React.FC<{ rank: string; grade: string; year: string; image: string; holdFrames: number }> = ({
+const RankCard: React.FC<{ rank: string; grade: string; year: string; image: string; standout?: boolean; holdFrames: number }> = ({
   rank,
   grade,
   year,
   image,
+  standout,
   holdFrames,
 }) => {
   const frame = useCurrentFrame();
   const t = fadeUp(frame, 0, 16, 12);
+  const color = standout ? brand.gold : brand.primary;
   return (
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
       <Sfx kind="whoosh" at={0} volume={0.32} />
-      <Sfx kind="impact" at={10} volume={0.35} />
+      <Sfx kind="impact" at={10} volume={standout ? 0.5 : 0.35} />
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
         <div style={{ opacity: t.opacity, translate: `0 ${t.y}px`, display: "flex", alignItems: "center", gap: 14 }}>
-          <CategoryIcon kind="trophy" color={brand.primary} size={36} />
-          <div style={{ fontFamily, fontWeight: 900, fontSize: 36, color: brand.primaryDark }}>المركز {rank}</div>
+          <CategoryIcon kind="trophy" color={color} size={40} />
+          <div style={{ fontFamily, fontWeight: 900, fontSize: standout ? 44 : 36, color: brand.primaryDark }}>
+            المركز {rank}
+          </div>
         </div>
-        <RevealCard width={460} height={580} holdFrames={holdFrames}>
+        <RevealCard width={500} height={640} holdFrames={holdFrames}>
           <Img src={staticFile(image)} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
         </RevealCard>
         <div style={{ display: "flex", gap: 14, opacity: t.opacity }}>
           <div style={{ fontFamily, fontWeight: 700, fontSize: 22, color: brand.muted }}>{grade}</div>
-          <div style={{ fontFamily, fontWeight: 800, fontSize: 16, color: brand.paper, background: brand.primary, borderRadius: 999, padding: "4px 16px" }}>
+          <div style={{ fontFamily, fontWeight: 800, fontSize: 16, color: brand.paper, background: color, borderRadius: 999, padding: "4px 16px" }}>
             {year}
           </div>
         </div>
@@ -363,49 +273,27 @@ const RankCard: React.FC<{ rank: string; grade: string; year: string; image: str
   );
 };
 
-/** ============== القسم الثاني: إنجازات المعلمات ============== */
-/** حنان آل عوض وفوزية الحربي كُرِّمتا معًا في جملة واحدة - بطاقة مشتركة واحدة بدل مقطعين قصيرين جدًا. */
-const TeacherPairCard: React.FC<{ a: TeacherAchievement; b: TeacherAchievement; holdFrames: number }> = ({ a, b, holdFrames }) => {
+const TrophyCard: React.FC<{ holdFrames: number }> = ({ holdFrames }) => {
   const frame = useCurrentFrame();
-  const textT = fadeUp(frame, 30, 16, 10);
+  const t = fadeUp(frame, 0, 16, 12);
   return (
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
       <Sfx kind="whoosh" at={0} volume={0.32} />
-      <Sfx kind="tick" at={4} volume={0.18} />
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20 }}>
-        <div style={{ display: "flex", flexDirection: "row-reverse", gap: 30 }}>
-          <RevealCard width={440} height={400} icon="medal" holdFrames={holdFrames}>
-            <Img src={staticFile(a.image)} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-          </RevealCard>
-          <RevealCard width={440} height={400} icon="medal" holdFrames={holdFrames}>
-            <Img src={staticFile(b.image)} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-          </RevealCard>
+      <Sfx kind="impact" at={10} volume={0.4} />
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 18 }}>
+        <div style={{ fontFamily, fontWeight: 900, fontSize: 36, color: brand.primaryDark, opacity: t.opacity, translate: `0 ${t.y}px` }}>
+          درع المركز الأول
         </div>
-        <div style={{ opacity: textT.opacity, translate: `0 ${textT.y}px`, display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-          <div style={{ fontFamily, fontWeight: 900, fontSize: 30, color: brand.primaryDark }}>
-            {a.name} · {b.name}
-          </div>
-          <div
-            style={{
-              fontFamily,
-              fontWeight: 700,
-              fontSize: 20,
-              color: brand.paper,
-              background: brand.teal,
-              borderRadius: 999,
-              padding: "6px 22px",
-              textAlign: "center",
-              maxWidth: 840,
-            }}
-          >
-            {a.achievement}
-          </div>
-        </div>
+        <RevealCard width={620} height={560} holdFrames={holdFrames}>
+          <Img src={staticFile("achievements/qadimoon-rank1-trophy.jpg")} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        </RevealCard>
       </div>
     </AbsoluteFill>
   );
 };
 
+/** ============== القسم الثاني: إنجازات المعلمات ============== */
+/** كل معلمة لها بطاقتها ومشهدها المنفصل الكامل - لا دمج بين معلمتين. */
 const TeacherCard: React.FC<{ image: string; name: string; achievement: string; holdFrames: number }> = ({ image, name, achievement, holdFrames }) => {
   const frame = useCurrentFrame();
   const textT = fadeUp(frame, 28, 16, 10);
@@ -630,19 +518,77 @@ const OutroCard: React.FC = () => {
 };
 
 export const SchoolAchievementsFull: React.FC = () => {
-  const teacherPairA = teacherAchievements[0];
-  const teacherPairB = teacherAchievements[1];
-  const teacherRest = teacherAchievements.slice(2);
+  let cursor = 0;
+  const introFrom = cursor;
+  cursor += INTRO_DUR;
 
-  const initFirst = initiatives[0];
-  const initRest = initiatives.slice(1);
+  const s1TitleFrom = cursor;
+  cursor += S1_TITLE_DUR;
+  const schoolFroms = schoolAchievements.map((_, i) => {
+    const start = cursor;
+    cursor += S1_CARD_DUR[i];
+    return start;
+  });
+
+  const rankTitleFrom = cursor;
+  cursor += RANK_TITLE_DUR;
+  const rank1From = cursor;
+  cursor += RANK1_CERT_DUR;
+  const trophyFrom = cursor;
+  cursor += RANK1_TROPHY_DUR;
+  const rank2From = cursor;
+  cursor += RANK2_DUR;
+  const rank3From = cursor;
+  cursor += RANK3_DUR;
+
+  const s2TitleFrom = cursor;
+  cursor += S2_TITLE_DUR;
+  const teacherFroms = teacherAchievements.map((_, i) => {
+    const start = cursor;
+    cursor += TEACHER_DUR[i];
+    return start;
+  });
+
+  const s3TitleFrom = cursor;
+  cursor += S3_TITLE_DUR;
+  const initiativeFroms = initiatives.map((_, i) => {
+    const start = cursor;
+    cursor += INIT_DUR[i];
+    return start;
+  });
+
+  const s4TitleFrom = cursor;
+  cursor += S4_TITLE_DUR;
+  const studentFrom = cursor;
+  cursor += STUDENT_DUR;
+
+  const s5TitleFrom = cursor;
+  cursor += S5_TITLE_DUR;
+  const giftedFroms = honoredStudents.map((_, i) => {
+    const start = cursor;
+    cursor += GIFTED_DUR[i];
+    return start;
+  });
+
+  const transitionFrom = cursor;
+  cursor += TRANSITION_DUR;
+
+  const s6TitleFrom = cursor;
+  cursor += S6_TITLE_DUR;
+  const envFroms = environmentItems.map((_, i) => {
+    const start = cursor;
+    cursor += ENV_DUR[i];
+    return start;
+  });
+
+  const outroFrom = cursor;
 
   const chromeTitleAt = (frame: number): string => {
-    if (frame < S2_TITLE_FROM) return "منجزات المدرسة";
-    if (frame < S3_TITLE_FROM) return "إنجازات المعلمات والموظفات";
-    if (frame < S4_TITLE_FROM) return "المبادرات الداخلية النوعية";
-    if (frame < S5_TITLE_FROM) return "إنجازات الطالبات";
-    if (frame < S6_TITLE_FROM) return "الموهبة";
+    if (frame < s2TitleFrom) return "منجزات المدرسة";
+    if (frame < s3TitleFrom) return "إنجازات المعلمات والموظفات";
+    if (frame < s4TitleFrom) return "المبادرات الداخلية النوعية";
+    if (frame < s5TitleFrom) return "إنجازات الطالبات";
+    if (frame < transitionFrom) return "الموهبة";
     return "منجزات المدرسة - قبل وبعد";
   };
 
@@ -650,8 +596,8 @@ export const SchoolAchievementsFull: React.FC = () => {
     <AbsoluteFill style={{ background: brand.paper, fontFamily, direction: "rtl" }}>
       <Audio src={staticFile("audio/achievements-full-narration.mp3")} />
 
-      {[S2_TITLE_FROM, S3_TITLE_FROM, S4_TITLE_FROM, S5_TITLE_FROM, S6_TITLE_FROM, achievementsFullTotalDuration].map((boundary, i, arr) => {
-        const start = i === 0 ? INTRO_FROM : arr[i - 1];
+      {[s2TitleFrom, s3TitleFrom, s4TitleFrom, s5TitleFrom, transitionFrom, achievementsFullTotalDuration].map((boundary, i, arr) => {
+        const start = i === 0 ? introFrom : arr[i - 1];
         return (
           <Sequence key={i} from={start} durationInFrames={boundary - start} layout="absolute-fill">
             <StatsSceneChrome sectionTitle={chromeTitleAt(start)} />
@@ -659,98 +605,97 @@ export const SchoolAchievementsFull: React.FC = () => {
         );
       })}
 
-      <Sequence from={INTRO_FROM} durationInFrames={INTRO_DUR} layout="absolute-fill">
+      <Sequence from={introFrom} durationInFrames={INTRO_DUR} layout="absolute-fill">
         <SectionTitle text="منجزات المدرسة" sub="توثيق لأبرز المنجزات والشهادات والمبادرات وأعمال التطوير" />
       </Sequence>
 
-      <Sequence from={S1_TITLE_FROM} durationInFrames={S1_TITLE_DUR} layout="absolute-fill">
+      <Sequence from={s1TitleFrom} durationInFrames={S1_TITLE_DUR} layout="absolute-fill">
         <SectionTitle text="أولًا: منجزات المدرسة" />
       </Sequence>
       {schoolAchievements.map((a, i) => (
-        <Sequence key={a.image} from={S1_CARD_FROM[i]} durationInFrames={S1_CARD_DUR[i]} layout="absolute-fill">
+        <Sequence key={a.image} from={schoolFroms[i]} durationInFrames={S1_CARD_DUR[i]} layout="absolute-fill">
           <SchoolAchievementCard image={a.image} caption={a.caption} icon={a.icon} holdFrames={S1_CARD_DUR[i]} />
         </Sequence>
       ))}
 
-      <Sequence from={RANK_TITLE_FROM} durationInFrames={RANK_TITLE_DUR} layout="absolute-fill">
+      <Sequence from={rankTitleFrom} durationInFrames={RANK_TITLE_DUR} layout="absolute-fill">
         <SectionTitle text={competitionName} sub="1447هـ" />
       </Sequence>
-      <Sequence from={RANK1_FROM} durationInFrames={RANK1_DUR} layout="absolute-fill">
-        <RankOneCard
-          rank={competitionRanks[0]}
-          trophyImage="achievements/qadimoon-rank1-trophy.jpg"
-          trophyStartFrame={RANK1_TROPHY_LOCAL}
-          holdFrames={RANK1_DUR}
+      <Sequence from={rank1From} durationInFrames={RANK1_CERT_DUR} layout="absolute-fill">
+        <RankCard
+          rank={competitionRanks[0].rank}
+          grade={competitionRanks[0].grade}
+          year={competitionRanks[0].year}
+          image={competitionRanks[0].image}
+          standout={competitionRanks[0].standout}
+          holdFrames={RANK1_CERT_DUR}
         />
       </Sequence>
-      <Sequence from={RANK2_FROM} durationInFrames={RANK2_DUR} layout="absolute-fill">
+      <Sequence from={trophyFrom} durationInFrames={RANK1_TROPHY_DUR} layout="absolute-fill">
+        <TrophyCard holdFrames={RANK1_TROPHY_DUR} />
+      </Sequence>
+      <Sequence from={rank2From} durationInFrames={RANK2_DUR} layout="absolute-fill">
         <RankCard rank={competitionRanks[1].rank} grade={competitionRanks[1].grade} year={competitionRanks[1].year} image={competitionRanks[1].image} holdFrames={RANK2_DUR} />
       </Sequence>
-      <Sequence from={RANK3_FROM} durationInFrames={RANK3_DUR} layout="absolute-fill">
+      <Sequence from={rank3From} durationInFrames={RANK3_DUR} layout="absolute-fill">
         <RankCard rank={competitionRanks[2].rank} grade={competitionRanks[2].grade} year={competitionRanks[2].year} image={competitionRanks[2].image} holdFrames={RANK3_DUR} />
       </Sequence>
 
-      <Sequence from={S2_TITLE_FROM} durationInFrames={S2_TITLE_DUR} layout="absolute-fill">
+      <Sequence from={s2TitleFrom} durationInFrames={S2_TITLE_DUR} layout="absolute-fill">
         <SectionTitle text="ثانيًا: إنجازات المعلمات والموظفات" />
       </Sequence>
-      <Sequence from={TEACHER_PAIR_FROM} durationInFrames={TEACHER_PAIR_DUR} layout="absolute-fill">
-        <TeacherPairCard a={teacherPairA} b={teacherPairB} holdFrames={TEACHER_PAIR_DUR} />
-      </Sequence>
-      {teacherRest.map((t, i) => (
-        <Sequence key={t.name} from={TEACHER_SINGLE_FROM[i]} durationInFrames={TEACHER_SINGLE_DUR[i]} layout="absolute-fill">
-          <TeacherCard image={t.image} name={t.name} achievement={t.achievement} holdFrames={TEACHER_SINGLE_DUR[i]} />
+      {teacherAchievements.map((t, i) => (
+        <Sequence key={t.name} from={teacherFroms[i]} durationInFrames={TEACHER_DUR[i]} layout="absolute-fill">
+          <TeacherCard image={t.image} name={t.name} achievement={t.achievement} holdFrames={TEACHER_DUR[i]} />
         </Sequence>
       ))}
 
-      <Sequence from={S3_TITLE_FROM} durationInFrames={S3_TITLE_DUR} layout="absolute-fill">
+      <Sequence from={s3TitleFrom} durationInFrames={S3_TITLE_DUR} layout="absolute-fill">
         <SectionTitle text="ثالثًا: المبادرات الداخلية" />
       </Sequence>
-      <Sequence from={INIT1_FROM} durationInFrames={INIT1_DUR} layout="absolute-fill">
-        <InitiativeCard title={initFirst.title} owner={initFirst.owner} description={initFirst.description} image={initFirst.image} icon={initFirst.icon} holdFrames={INIT1_DUR} />
-      </Sequence>
-      {initRest.map((it, i) => (
-        <Sequence key={it.title} from={INIT_REST_FROM[i]} durationInFrames={INIT_REST_DUR[i]} layout="absolute-fill">
-          <InitiativeCard title={it.title} owner={it.owner} description={it.description} image={it.image} icon={it.icon} holdFrames={INIT_REST_DUR[i]} />
+      {initiatives.map((it, i) => (
+        <Sequence key={it.title} from={initiativeFroms[i]} durationInFrames={INIT_DUR[i]} layout="absolute-fill">
+          <InitiativeCard title={it.title} owner={it.owner} description={it.description} image={it.image} icon={it.icon} holdFrames={INIT_DUR[i]} />
         </Sequence>
       ))}
 
-      <Sequence from={S4_TITLE_FROM} durationInFrames={S4_TITLE_DUR} layout="absolute-fill">
+      <Sequence from={s4TitleFrom} durationInFrames={S4_TITLE_DUR} layout="absolute-fill">
         <SectionTitle text="رابعًا: إنجازات الطالبات" />
       </Sequence>
-      <Sequence from={STUDENT1_FROM} durationInFrames={STUDENT1_DUR} layout="absolute-fill">
+      <Sequence from={studentFrom} durationInFrames={STUDENT_DUR} layout="absolute-fill">
         <StudentAchievementCard
           name={studentAchievements[0].name}
           competition={studentAchievements[0].competition}
           result={studentAchievements[0].result}
           year={studentAchievements[0].year}
           image={studentAchievements[0].image}
-          holdFrames={STUDENT1_DUR}
+          holdFrames={STUDENT_DUR}
         />
       </Sequence>
 
-      <Sequence from={S5_TITLE_FROM} durationInFrames={S5_TITLE_DUR} layout="absolute-fill">
+      <Sequence from={s5TitleFrom} durationInFrames={S5_TITLE_DUR} layout="absolute-fill">
         <SectionTitle text="خامسًا: الموهبة" />
       </Sequence>
       {honoredStudents.map((s, i) => (
-        <Sequence key={s.shortName} from={GIFTED_FROM[i]} durationInFrames={GIFTED_DUR[i]} layout="absolute-fill">
+        <Sequence key={s.shortName} from={giftedFroms[i]} durationInFrames={GIFTED_DUR[i]} layout="absolute-fill">
           <GiftedCard shortName={s.shortName} achievement={s.achievement} standout={s.standout} certificate={s.certificate} holdFrames={GIFTED_DUR[i]} />
         </Sequence>
       ))}
 
-      <Sequence from={TRANSITION_FROM} durationInFrames={TRANSITION_DUR} layout="absolute-fill">
+      <Sequence from={transitionFrom} durationInFrames={TRANSITION_DUR} layout="absolute-fill">
         <SectionTransition />
       </Sequence>
 
-      <Sequence from={S6_TITLE_FROM} durationInFrames={S6_TITLE_DUR} layout="absolute-fill">
+      <Sequence from={s6TitleFrom} durationInFrames={S6_TITLE_DUR} layout="absolute-fill">
         <SectionTitle text="سادسًا: منجزات المدرسة - قبل وبعد" />
       </Sequence>
       {environmentItems.map((item, i) => (
-        <Sequence key={item.title} from={ENV_FROM[i]} durationInFrames={ENV_DUR[i]} layout="absolute-fill">
+        <Sequence key={item.title} from={envFroms[i]} durationInFrames={ENV_DUR[i]} layout="absolute-fill">
           <BeforeAfterSplit title={item.title} before={item.before} after={item.after} holdFrames={ENV_DUR[i]} />
         </Sequence>
       ))}
 
-      <Sequence from={OUTRO_FROM} durationInFrames={OUTRO_DUR} layout="absolute-fill">
+      <Sequence from={outroFrom} durationInFrames={OUTRO_DUR} layout="absolute-fill">
         <OutroCard />
       </Sequence>
     </AbsoluteFill>

@@ -39,7 +39,7 @@ export const StatsSceneChrome: React.FC<{
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          <Img src={staticFile("ministry-logo.webp")} style={{ height: 64, width: "auto", margin: "0 10px" }} />
+          <Img src={staticFile("ministry-logo.webp")} style={{ height: 82, width: "auto", margin: "0 10px" }} />
         </div>
         <div style={{ fontFamily, fontWeight: 800, fontSize: 34, color: brand.primaryDark }}>{sectionTitle}</div>
       </div>
