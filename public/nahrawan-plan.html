@@ -95,6 +95,39 @@ a{color:inherit}
   .clock-bar{padding:8px 14px;gap:10px 20px;font-size:11.5px}
   .clock-time{font-size:12.5px}
 }
+
+/* ============ Royal Anthem player (independent of app state/render) ============ */
+.anthem-gate{
+  position:fixed;inset:0;z-index:400;background:rgba(15,27,32,.55);
+  display:flex;align-items:center;justify-content:center;padding:16px;
+}
+.anthem-gate-card{
+  background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-lg);
+  padding:26px 24px;max-width:380px;width:100%;text-align:center;
+}
+.anthem-gate-title{font-size:17px;font-weight:800;color:var(--navy)}
+.anthem-gate-sub{font-size:13px;color:var(--muted);margin-top:4px}
+.anthem-gate-actions{display:flex;flex-direction:column;gap:10px;margin-top:20px}
+.anthem-gate-actions .btn{width:100%;justify-content:center}
+.anthem-bar{
+  position:fixed;left:16px;bottom:16px;z-index:90;
+  display:flex;align-items:center;gap:6px;
+  background:var(--surface);border:1px solid var(--border);border-radius:999px;
+  box-shadow:var(--shadow);padding:6px 10px;
+}
+.anthem-bar .ic{width:18px;height:18px}
+.anthem-bar button{
+  display:flex;align-items:center;justify-content:center;
+  width:32px;height:32px;border-radius:999px;border:none;background:transparent;color:var(--navy);
+}
+.anthem-bar button:hover{background:var(--surface-2)}
+.anthem-bar input[type=range]{width:70px;accent-color:var(--teal)}
+.anthem-bar .anthem-label{font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;padding-inline-start:2px}
+@media (max-width:640px){
+  .anthem-bar{left:8px;bottom:8px;padding:5px 8px;gap:4px}
+  .anthem-bar input[type=range]{width:52px}
+  .anthem-bar .anthem-label{display:none}
+}
 .orgbar{
   background:var(--surface);border-bottom:1px solid var(--border);padding:12px 26px;
   display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
@@ -277,7 +310,7 @@ tbody tr:hover{background:var(--surface-2)}
 
 .print-header{display:none}
 @media print{
-  .sidebar,.orgbar,.gate,.topbar,.clock-bar{display:none!important}
+  .sidebar,.orgbar,.gate,.topbar,.clock-bar,.anthem-gate,.anthem-bar{display:none!important}
   .shell{display:block}
   .main{width:100%}
   .content{padding:0;max-width:none}
@@ -340,6 +373,28 @@ tbody tr:hover{background:var(--surface-2)}
 </head>
 <body>
 <div id="root"></div>
+
+<!-- Royal Anthem player: lives outside #root so it is never touched by the app's
+     state-driven re-renders (render() only ever rewrites root.innerHTML), and stays
+     fully independent of data/PDF/Excel/print. -->
+<audio id="anthemAudio" src="royal-anthem.mp3" preload="none"></audio>
+<div class="anthem-gate" id="anthemGate" hidden>
+  <div class="anthem-gate-card">
+    <div class="anthem-gate-title">السلام الملكي</div>
+    <div class="anthem-gate-sub">مدرسة النهروان الثانوية — خطة التحسين 1448هـ</div>
+    <div class="anthem-gate-actions">
+      <button type="button" class="btn primary" id="anthemGatePlay">الدخول وتشغيل السلام الملكي</button>
+      <button type="button" class="btn ghost" id="anthemGateSkip">الدخول بدون صوت</button>
+    </div>
+  </div>
+</div>
+<div class="anthem-bar" id="anthemBar" hidden>
+  <button type="button" id="anthemToggle" title="تشغيل / إيقاف مؤقت" aria-label="تشغيل أو إيقاف مؤقت للسلام الملكي"></button>
+  <button type="button" id="anthemStop" title="إيقاف كامل" aria-label="إيقاف السلام الملكي بالكامل"></button>
+  <button type="button" id="anthemMute" title="كتم / إلغاء الكتم" aria-label="كتم أو إلغاء كتم السلام الملكي"></button>
+  <input type="range" id="anthemVolume" min="0" max="100" value="70" title="مستوى الصوت" aria-label="مستوى صوت السلام الملكي">
+  <span class="anthem-label">السلام الملكي</span>
+</div>
 
 <script>
 /* ============================================================
@@ -426,6 +481,10 @@ function icon(name){
     youtube:'M22.54 6.42a2.78 2.78 0 00-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 00-1.94 2A29 29 0 001 11.75a29 29 0 00.46 5.33A2.78 2.78 0 003.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 001.94-2 29 29 0 00.46-5.25 29 29 0 00-.46-5.33zM9.75 15.02V8.48l5.75 3.27z',
     note:'M14 3v5h5M6 3h8l5 5v13H6zM9 13h6M9 17h6',
     undo:'M3 7v6h6M3 13a9 9 0 1 0 3-6.7L3 9',
+    pause:'M7 4h4v16H7zM13 4h4v16h-4z',
+    stop:'M5 5h14v14H5z',
+    volume:'M4 9v6h4l5 5V4L8 9H4zM16.5 8.5a5 5 0 010 7M19.5 5.5a9 9 0 010 13',
+    volumeMute:'M4 9v6h4l5 5V4L8 9H4zM17 9l6 6M23 9l-6 6',
   };
   return `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths[name]?`<path d="${paths[name]}"/>`:''}</svg>`;
 }
@@ -2322,6 +2381,66 @@ async function exportPdfReal(){
   }
 }
 
+/* ---------------- Royal Anthem player (independent: no state, no render(), no reload) ---------------- */
+let anthemInitStarted = false;
+function initAnthem(){
+  if (anthemInitStarted) return;
+  anthemInitStarted = true;
+  try{
+    const audio = document.getElementById('anthemAudio');
+    const gate = document.getElementById('anthemGate');
+    const bar = document.getElementById('anthemBar');
+    const gatePlayBtn = document.getElementById('anthemGatePlay');
+    const gateSkipBtn = document.getElementById('anthemGateSkip');
+    const toggleBtn = document.getElementById('anthemToggle');
+    const stopBtn = document.getElementById('anthemStop');
+    const muteBtn = document.getElementById('anthemMute');
+    const volumeInput = document.getElementById('anthemVolume');
+    if (!audio || !gate || !bar || !toggleBtn || !stopBtn || !muteBtn) return;
+
+    audio.volume = Number(volumeInput?.value || 70) / 100;
+
+    function renderToggleIcon(){ toggleBtn.innerHTML = icon(audio.paused ? 'play' : 'pause'); }
+    function renderMuteIcon(){ muteBtn.innerHTML = icon(audio.muted ? 'volumeMute' : 'volume'); }
+    renderToggleIcon();
+    renderMuteIcon();
+
+    audio.addEventListener('play', renderToggleIcon);
+    audio.addEventListener('pause', renderToggleIcon);
+    audio.addEventListener('volumechange', renderMuteIcon);
+    // Any playback failure (missing file, blocked codec, network hiccup) must never
+    // break the rest of the site: just retire the anthem UI quietly.
+    audio.addEventListener('error', ()=>{ gate.hidden = true; bar.hidden = true; });
+
+    function showBar(){ gate.hidden = true; bar.hidden = false; }
+
+    toggleBtn.addEventListener('click', ()=>{
+      if (audio.paused) audio.play().catch(()=>{});
+      else audio.pause();
+    });
+    stopBtn.addEventListener('click', ()=>{ audio.pause(); audio.currentTime = 0; });
+    muteBtn.addEventListener('click', ()=>{ audio.muted = !audio.muted; });
+    volumeInput?.addEventListener('input', ()=>{
+      audio.volume = Number(volumeInput.value) / 100;
+      if (audio.volume > 0 && audio.muted) audio.muted = false;
+    });
+    gatePlayBtn?.addEventListener('click', ()=>{ showBar(); audio.play().catch(()=>{}); });
+    gateSkipBtn?.addEventListener('click', showBar);
+
+    // One autoplay attempt right when the dashboard opens. Browsers that block
+    // unsolicited audio reject this promise (never throw synchronously) — the gate
+    // button is the guaranteed fallback: one direct user gesture is all it needs.
+    const playAttempt = audio.play();
+    if (playAttempt && typeof playAttempt.then === 'function'){
+      playAttempt.then(showBar).catch(()=>{ gate.hidden = false; });
+    } else {
+      showBar();
+    }
+  }catch(err){
+    console.error('anthem init failed (non-fatal, rest of the app is unaffected):', err);
+  }
+}
+
 /* ---------------- login gate (real Supabase Auth) ---------------- */
 function renderGate(){
   root.innerHTML = `
@@ -2361,6 +2480,7 @@ function renderGate(){
 /* ---------------- boot ---------------- */
 async function boot(){
   render();
+  initAnthem();
   const {data:{session}} = await sb.auth.getSession();
   state.session = session;
   if (MODE === 'admin') state.authed = !!session;
