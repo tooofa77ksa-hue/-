@@ -24,35 +24,39 @@ import {
  * انتقال احترافي - منجزات المدرسة قبل وبعد.
  *
  * ⚠️ توقيت مؤقت (Placeholder): لم يصل ملف الصوت الحقيقي بعد. كل *_BEAT
- * أدناه رقم تقديري ثابت لكل عنصر (وليس مبنيًا على سكتات صوت حقيقي كبقية
- * ملفات هذا المشروع). بمجرد استلام التسجيل الفعلي: قيسي طوله بـ ffprobe،
- * حدّدي السكتات الحقيقية بين الفقرات بـ `ffmpeg -af silencedetect`، ثم
- * حدّثي كل *_BEAT هنا لتطابق تلك السكتات بالضبط - بنفس الأسلوب المستخدم
- * في SchoolAchievements.tsx الأصلي. لا تغييرات أخرى مطلوبة على التصميم.
+ * أدناه رقم تقديري لكل عنصر (وليس مبنيًا على سكتات صوت حقيقي كبقية ملفات
+ * هذا المشروع)، محسوب من عدد كلمات كل نص فعلي + وقت إضافي لمعاينة الصورة/
+ * الشهادة الحقيقية بصريًا (وليس رقمًا عشوائيًا موحّدًا) - بحيث يكفي وقت
+ * المشاهد لقراءة النص وفحص الشهادة معًا دون استعجال، بناءً على طلب صريح
+ * بإعطاء كل مقطع "حقه" من الوقت. بمجرد استلام التسجيل الحقيقي: قيسي طوله
+ * بـ ffprobe، حدّدي السكتات الحقيقية بـ `ffmpeg -af silencedetect`، ثم
+ * استبدلي كل *_BEAT هنا بالسكتات الفعلية - بنفس أسلوب SchoolAchievements.tsx
+ * الأصلي. لا تغييرات أخرى مطلوبة على التصميم.
  */
-const INTRO_BEAT = 90;
-const S1_TITLE_BEAT = 40;
-const S1_CARD_BEAT = 128; // × 7 شهادات
-const S1_RANK_TITLE_BEAT = 36;
-const S1_RANK_BEAT = 110; // × 3 مراكز
-const S1_TROPHY_BEAT = 90; // درع المركز الأول فقط
-const S2_TITLE_BEAT = 36;
-const S2_CARD_BEAT = 140; // × 4 معلمات
-const S3_TITLE_BEAT = 36;
-const S3_CARD_BEAT = 170; // × 3 مبادرات
-const S4_TITLE_BEAT = 36;
-const S4_CARD_BEAT = 160; // × 1 طالبة
-const S5_TITLE_BEAT = 36;
-const S5_CARD_BEAT = 190; // × 2 موهوبة
+const INTRO_BEAT = 110;
+const S1_TITLE_BEAT = 50;
+// مدة كل شهادة محسوبة من عدد كلمات وصفها الفعلي (كلمات/2.4 + 3.2s فحص بصري)
+const S1_CARD_BEATS = [300, 320, 300, 390, 290, 390, 240]; // مطابقة لترتيب schoolAchievements (1-7)
+const S1_RANK_TITLE_BEAT = 44;
+const S1_RANK_BEAT = 170; // × 3 مراكز - وقت كافٍ لقراءة الشهادة الحقيقية كاملة
+const S1_TROPHY_BEAT = 130; // درع المركز الأول فقط
+const S2_TITLE_BEAT = 44;
+const S2_CARD_BEAT = 220; // × 4 معلمات
+const S3_TITLE_BEAT = 44;
+const S3_CARD_BEAT = 320; // × 3 مبادرات - نص وصف + فحص لقطة الشاشة
+const S4_TITLE_BEAT = 44;
+const S4_CARD_BEAT = 240; // × 1 طالبة
+const S5_TITLE_BEAT = 44;
+const S5_CARD_BEAT = 260; // × 2 موهوبة
 const TRANSITION_BEAT = 26;
-const S6_TITLE_BEAT = 50;
-const S6_ITEM_BEAT = 280; // × 4 قبل/بعد
-const OUTRO_BEAT = 150;
+const S6_TITLE_BEAT = 60;
+const S6_ITEM_BEAT = 340; // × 4 قبل/بعد - وقت مقارنة الصورتين
+const OUTRO_BEAT = 480;
 
 export const achievementsFullTotalDuration =
   INTRO_BEAT +
   S1_TITLE_BEAT +
-  schoolAchievements.length * S1_CARD_BEAT +
+  S1_CARD_BEATS.reduce((a, b) => a + b, 0) +
   S1_RANK_TITLE_BEAT +
   competitionRanks.length * S1_RANK_BEAT +
   S1_TROPHY_BEAT +
@@ -74,29 +78,50 @@ const fadeUp = (frame: number, from = 0, dur = 16, dist = 14) => ({
   y: interpolate(frame, [from, from + dur], [dist, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }),
 });
 
-const IconBadge: React.FC<{ kind: Parameters<typeof CategoryIcon>[0]["kind"]; color?: string }> = ({
+/**
+ * شارة الأيقونة - تظهر كـ"ختم اعتماد" بعد استقرار البطاقة تمامًا (لا قبلها
+ * ولا معها)، بدوران بسيط ينحل إلى الصفر ودفعة خفيفة (Overshoot صغير جدًا،
+ * وليس ارتدادًا مبالغًا فيه) - يوحي بختم رسمي يُطبَع على الوثيقة.
+ */
+const IconBadge: React.FC<{ kind: Parameters<typeof CategoryIcon>[0]["kind"]; color?: string; startFrame?: number }> = ({
   kind,
   color = brand.primary,
-}) => (
-  <div
-    style={{
-      position: "absolute",
-      top: -16,
-      right: -16,
-      width: 56,
-      height: 56,
-      borderRadius: "50%",
-      background: brand.paper,
-      border: `2px solid ${color}`,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      boxShadow: "0 8px 18px rgba(21,68,90,0.18)",
-    }}
-  >
-    <CategoryIcon kind={kind} color={color} size={30} />
-  </div>
-);
+  startFrame = 20,
+}) => {
+  const frame = useCurrentFrame();
+  const stamp = interpolate(frame, [startFrame, startFrame + 16], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: Easing.out(Easing.back(1.15)),
+  });
+  const rotate = interpolate(frame, [startFrame, startFrame + 16], [-10, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: Easing.out(Easing.cubic),
+  });
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: -16,
+        right: -16,
+        width: 56,
+        height: 56,
+        borderRadius: "50%",
+        background: brand.paper,
+        border: `2px solid ${color}`,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        boxShadow: "0 8px 18px rgba(21,68,90,0.18)",
+        opacity: stamp,
+        transform: `scale(${stamp}) rotate(${rotate}deg)`,
+      }}
+    >
+      <CategoryIcon kind={kind} color={color} size={30} />
+    </div>
+  );
+};
 
 const SectionTitle: React.FC<{ text: string; sub?: string }> = ({ text, sub }) => {
   const frame = useCurrentFrame();
@@ -112,16 +137,24 @@ const SectionTitle: React.FC<{ text: string; sub?: string }> = ({ text, sub }) =
   );
 };
 
-const RevealCard: React.FC<{ width: number; height: number; children: React.ReactNode; icon?: Parameters<typeof CategoryIcon>[0]["kind"]; iconColor?: string }> = ({
-  width,
-  height,
-  children,
-  icon,
-  iconColor,
-}) => {
+/**
+ * تتابع كشف "رسمي" هادئ بلا ارتداد: 1) الإطار يتلاشى ويتوسّع بنعومة
+ * (Fade+Scale، بلا Wipe حاد) 2) خط تمييز علوي رفيع "ينسدل" كشريط افتتاح
+ * وثيقة رسمية 3) تكبير بطيء مستمر طوال مدة العرض (Ken Burns) يمنح حياة
+ * بصرية هادئة دون إلهاء 4) الختم (IconBadge) يظهر بعد استقرار الإطار.
+ */
+const RevealCard: React.FC<{
+  width: number;
+  height: number;
+  children: React.ReactNode;
+  icon?: Parameters<typeof CategoryIcon>[0]["kind"];
+  iconColor?: string;
+  holdFrames?: number;
+}> = ({ width, height, children, icon, iconColor, holdFrames = 200 }) => {
   const frame = useCurrentFrame();
-  const reveal = interpolate(frame, [0, 22], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.out(Easing.cubic) });
-  const zoom = interpolate(frame, [0, 30], [1.05, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.out(Easing.cubic) });
+  const frameIn = interpolate(frame, [0, 22], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.out(Easing.cubic) });
+  const accentIn = interpolate(frame, [4, 24], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.out(Easing.cubic) });
+  const zoom = interpolate(frame, [0, holdFrames], [1, 1.045], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.out(Easing.ease) });
   return (
     <div style={{ position: "relative" }}>
       <div
@@ -133,18 +166,30 @@ const RevealCard: React.FC<{ width: number; height: number; children: React.Reac
           background: brand.paper,
           border: `2px solid ${brand.border}`,
           boxShadow: "0 22px 55px rgba(21,68,90,0.16)",
-          clipPath: `inset(0 0 0 ${100 - reveal * 100}%)`,
-          transform: `scale(${zoom})`,
+          opacity: frameIn,
+          transform: `scale(${0.94 + frameIn * 0.06})`,
         }}
       >
-        {children}
+        <div style={{ width: "100%", height: "100%", transform: `scale(${zoom})` }}>{children}</div>
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 5,
+            background: brand.primary,
+            transform: `scaleX(${accentIn})`,
+            transformOrigin: "right",
+          }}
+        />
       </div>
-      {icon && <IconBadge kind={icon} color={iconColor} />}
+      {icon && <IconBadge kind={icon} color={iconColor} startFrame={22} />}
     </div>
   );
 };
 
-const CaptionPill: React.FC<{ text: string; startFrame?: number; color?: string }> = ({ text, startFrame = 10, color = brand.primary }) => {
+const CaptionPill: React.FC<{ text: string; startFrame?: number; color?: string }> = ({ text, startFrame = 24, color = brand.primary }) => {
   const frame = useCurrentFrame();
   const t = fadeUp(frame, startFrame, 14, 10);
   return (
@@ -178,7 +223,7 @@ const SchoolAchievementCard: React.FC<{ image: string; caption: string; icon: Pa
     <Sfx kind="whoosh" at={0} volume={0.32} />
     <Sfx kind="tick" at={4} volume={0.18} />
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 22 }}>
-      <RevealCard width={840} height={560} icon={icon}>
+      <RevealCard width={840} height={560} icon={icon} holdFrames={320}>
         <Img src={staticFile(image)} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
       </RevealCard>
       <CaptionPill text={caption} />
@@ -207,7 +252,7 @@ const RankCard: React.FC<{ rank: string; grade: string; year: string; image: str
             المركز {rank}
           </div>
         </div>
-        <RevealCard width={500} height={640}>
+        <RevealCard width={500} height={640} holdFrames={170}>
           <Img src={staticFile(image)} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
         </RevealCard>
         <div style={{ display: "flex", gap: 14, opacity: t.opacity }}>
@@ -231,7 +276,7 @@ const TrophyCard: React.FC = () => {
         <div style={{ fontFamily, fontWeight: 900, fontSize: 36, color: brand.primaryDark, opacity: t.opacity, translate: `0 ${t.y}px` }}>
           درع المركز الأول
         </div>
-        <RevealCard width={620} height={560}>
+        <RevealCard width={620} height={560} holdFrames={130}>
           <Img src={staticFile("achievements/qadimoon-rank1-trophy.jpg")} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         </RevealCard>
       </div>
@@ -242,13 +287,13 @@ const TrophyCard: React.FC = () => {
 /** ============== القسم الثاني: إنجازات المعلمات ============== */
 const TeacherCard: React.FC<{ image: string; name: string; achievement: string }> = ({ image, name, achievement }) => {
   const frame = useCurrentFrame();
-  const textT = fadeUp(frame, 10, 14, 10);
+  const textT = fadeUp(frame, 28, 16, 10);
   return (
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
       <Sfx kind="whoosh" at={0} volume={0.32} />
       <Sfx kind="tick" at={4} volume={0.18} />
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 18 }}>
-        <RevealCard width={580} height={480} icon="medal">
+        <RevealCard width={580} height={480} icon="medal" holdFrames={220}>
           <Img src={staticFile(image)} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         </RevealCard>
         <div style={{ opacity: textT.opacity, translate: `0 ${textT.y}px`, display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
@@ -271,7 +316,7 @@ const InitiativeCard: React.FC<{ title: string; owner: string; description: stri
   icon,
 }) => {
   const frame = useCurrentFrame();
-  const textT = fadeUp(frame, 10, 14, 10);
+  const textT = fadeUp(frame, 28, 16, 10);
   return (
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
       <Sfx kind="whoosh" at={0} volume={0.32} />
@@ -281,7 +326,7 @@ const InitiativeCard: React.FC<{ title: string; owner: string; description: stri
           <div style={{ fontFamily, fontWeight: 700, fontSize: 20, color: brand.teal, textAlign: "right" }}>{owner}</div>
           <div style={{ fontFamily, fontWeight: 500, fontSize: 22, color: brand.muted, textAlign: "right", lineHeight: 1.6 }}>{description}</div>
         </div>
-        <RevealCard width={560} height={460} icon={icon}>
+        <RevealCard width={560} height={460} icon={icon} holdFrames={320}>
           <Img src={staticFile(image)} style={{ width: "100%", height: "100%", objectFit: "contain", background: "#f4f5f4" }} />
         </RevealCard>
       </div>
@@ -298,13 +343,13 @@ const StudentAchievementCard: React.FC<{ name: string; competition: string; resu
   image,
 }) => {
   const frame = useCurrentFrame();
-  const textT = fadeUp(frame, 10, 14, 10);
+  const textT = fadeUp(frame, 28, 16, 10);
   return (
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
       <Sfx kind="whoosh" at={0} volume={0.32} />
       <Sfx kind="impact" at={12} volume={0.4} />
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 18 }}>
-        <RevealCard width={420} height={560} icon="camera">
+        <RevealCard width={420} height={560} icon="camera" holdFrames={240}>
           <Img src={staticFile(image)} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         </RevealCard>
         <div style={{ opacity: textT.opacity, translate: `0 ${textT.y}px`, display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
@@ -341,7 +386,7 @@ const GiftedCard: React.FC<{ shortName: string; achievement: string; standout?: 
         <div style={{ fontFamily, fontWeight: 800, fontSize: 18, color: brand.paper, background: color, borderRadius: 999, padding: "5px 18px", opacity: t.opacity }}>
           {achievement}
         </div>
-        <RevealCard width={620} height={420}>
+        <RevealCard width={620} height={420} holdFrames={260}>
           <Img src={staticFile(certificate)} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
         </RevealCard>
       </div>
@@ -455,9 +500,9 @@ export const SchoolAchievementsFull: React.FC = () => {
 
   const s1TitleFrom = cursor;
   cursor += S1_TITLE_BEAT;
-  const schoolFroms = schoolAchievements.map(() => {
+  const schoolFroms = schoolAchievements.map((_, i) => {
     const start = cursor;
-    cursor += S1_CARD_BEAT;
+    cursor += S1_CARD_BEATS[i];
     return start;
   });
   const s1RankTitleFrom = cursor;
@@ -545,7 +590,7 @@ export const SchoolAchievementsFull: React.FC = () => {
         <SectionTitle text="أولًا: منجزات المدرسة" />
       </Sequence>
       {schoolAchievements.map((a, i) => (
-        <Sequence key={a.image} from={schoolFroms[i]} durationInFrames={S1_CARD_BEAT} layout="absolute-fill">
+        <Sequence key={a.image} from={schoolFroms[i]} durationInFrames={S1_CARD_BEATS[i]} layout="absolute-fill">
           <SchoolAchievementCard image={a.image} caption={a.caption} icon={a.icon} />
         </Sequence>
       ))}
