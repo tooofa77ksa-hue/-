@@ -23,38 +23,36 @@ import {
  * المعلمات، المبادرات الداخلية، إنجازات الطالبات، الموهبة، ثم - بعد
  * انتقال احترافي - منجزات المدرسة قبل وبعد.
  *
- * ⚠️ توقيت مؤقت (Placeholder) بانتظار التسجيل الصوتي الجديد الأبطأ قليلًا:
- * كل معلمة، وكل عنصر، أصبح له مشهده الكامل المنفصل الخاص (لا دمج بين
- * عنصرين في مشهد واحد إطلاقًا)، بناءً على طلب صريح. الأرقام أدناه مبنية
- * على عدد كلمات نص التعليق الفعلي لكل مشهد + وقت بصري إضافي ثابت لفحص
- * الشهادة (100 إطار للبطاقة المفردة، 130 لمشاهد قبل/بعد ذات الصورتين)،
- * بمعدل قراءة أبطأ قليلًا من المعتاد (2.1 كلمة/ثانية للمحتوى، 2.3
- * للعناوين). بمجرد استلام التسجيل الحقيقي الجديد: قيسي طوله بـ ffprobe،
- * حدّدي السكتات الحقيقية بـ `ffmpeg -af silencedetect`، ثم استبدلي كل
- * *_DUR هنا بالسكتات الفعلية - بنفس الأسلوب المتبع في كامل المشروع.
+ * التوقيت مبني على التسجيل الصوتي الحقيقي الثاني (audio/achievements-full-narration.mp3،
+ * 283.74 ثانية، صوت Layla - ElevenLabs، بالنص المفصول الكامل: كل معلمة
+ * وكل عنصر بجملته الخاصة). المنهجية: نص التعليق الفعلي قُسّم إلى مقاطع
+ * مطابقة لكل بطاقة، حُسب عدد كلمات كل مقطع، استُخدمت النسبة التراكمية
+ * لتقدير زمن البداية، ثم طوبق كل تقدير مع أقرب سكتة صمت حقيقية من
+ * `ffmpeg -af silencedetect=noise=-30dB:d=0.35`. فُرض حد أدنى لكل مشهد
+ * (110 إطارًا للبطاقات، 70 للعناوين النصية فقط) حتى لا يُقتَطع أي جزء
+ * قبل أن يأخذ حقه، مع انزياح تراكمي بسيط للمشاهد التالية عند الحاجة.
  */
-const INTRO_DUR = 100;
+const INTRO_DUR = 90;
 const S1_TITLE_DUR = 60;
-// مدة كل شهادة محسوبة من كلمات وصفها الفعلي (٢.١ كلمة/ث) + ١٠٠ إطار فحص بصري
-const S1_CARD_DUR = [643, 257, 286, 500, 371, 457, 314]; // مطابقة لترتيب schoolAchievements (1-7)
-const RANK_TITLE_DUR = 170;
-const RANK1_CERT_DUR = 286; // شهادة المركز الأول - مشهدها الخاص الكامل
-const RANK1_TROPHY_DUR = 200; // الدرع - مشهد منفصل كامل، له حقه الخاص
-const RANK2_DUR = 186;
-const RANK3_DUR = 186;
-const S2_TITLE_DUR = 210;
+const S1_CARD_DUR = [517, 237, 222, 546, 284, 446, 259]; // مطابقة لترتيب schoolAchievements (1-7)
+const RANK_TITLE_DUR = 193;
+const RANK1_CERT_DUR = 110; // شهادة المركز الأول - مشهدها الخاص الكامل
+const RANK1_TROPHY_DUR = 187; // الدرع - مشهد منفصل كامل، له حقه الخاص
+const RANK2_DUR = 110;
+const RANK3_DUR = 110;
+const S2_TITLE_DUR = 240;
 // كل معلمة مشهدها المنفصل الكامل - لا دمج بين معلمتين إطلاقًا
-const TEACHER_DUR = [357, 343, 314, 357]; // مطابقة لترتيب teacherAchievements (1-4)
-const S3_TITLE_DUR = 170;
-const INIT_DUR = [457, 200, 443]; // مطابقة لترتيب initiatives (1-3)
-const S4_TITLE_DUR = 131;
-const STUDENT_DUR = 314;
-const S5_TITLE_DUR = 131;
-const GIFTED_DUR = [200, 186]; // مطابقة لترتيب honoredStudents (1-2)
+const TEACHER_DUR = [260, 270, 216, 318]; // مطابقة لترتيب teacherAchievements (1-4)
+const S3_TITLE_DUR = 274;
+const INIT_DUR = [449, 205, 396]; // مطابقة لترتيب initiatives (1-3) - سماح باسعد للأولى والثانية
+const S4_TITLE_DUR = 214;
+const STUDENT_DUR = 170;
+const S5_TITLE_DUR = 272;
+const GIFTED_DUR = [120, 110]; // مطابقة لترتيب honoredStudents (1-2)
 const TRANSITION_DUR = 20;
-const S6_TITLE_DUR = 223;
-const ENV_DUR = [344, 301, 316, 316]; // مطابقة لترتيب environmentItems (1-4) - وقت أطول لمقارنة صورتين
-const OUTRO_DUR = 564;
+const S6_TITLE_DUR = 206;
+const ENV_DUR = [245, 186, 253, 211]; // مطابقة لترتيب environmentItems (1-4)
+const OUTRO_DUR = 601;
 
 export const achievementsFullTotalDuration =
   INTRO_DUR +
