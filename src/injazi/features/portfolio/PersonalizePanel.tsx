@@ -42,6 +42,10 @@ export function PersonalizePanel({ open, student, actor, onClose }: Props) {
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /* فشل رفع الصورة يبقى معلَّقًا حتى تُحلّ أو تُلغى: بدونه كان الحفظ
+     يمضي ويكتب «بلا صورة» بينما تظنّ صاحبة الشاشة أن صورتها حُفظت —
+     ولا تكتشف ذلك إلا بعد التحديث، بلا سبب ظاهر. */
+  const [photoError, setPhotoError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -60,6 +64,10 @@ export function PersonalizePanel({ open, student, actor, onClose }: Props) {
 
   async function save() {
     if (name.trim().length < 2 || saving) return;
+    if (photoError) {
+      setError("لم تُرفع الصورة بعد. عالجي المشكلة أعلاه أو احذفي الصورة قبل الحفظ.");
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
@@ -125,6 +133,26 @@ export function PersonalizePanel({ open, student, actor, onClose }: Props) {
       {/* الصورة */}
       <section className="iz-editor-block">
         <h3 className="iz-editor-block__title">صورة الطالبة</h3>
+
+        {photoError && (
+          <Notice tone="danger">
+            <span>{photoError}</span>
+            <span className="iz-chip-row" style={{ marginTop: 10 }}>
+              <ClayButton
+                variant="soft"
+                size="sm"
+                /* ورسالة المنع تذهب معها: تركها يُبقي على الشاشة سببًا
+                   لم يعد قائمًا، فتظنّ صاحبتها أن الحفظ ما زال ممنوعًا. */
+                onClick={() => {
+                  setPhotoError(null);
+                  setError(null);
+                }}
+              >
+                تجاهل ومتابعة بلا صورة
+              </ClayButton>
+            </span>
+          </Notice>
+        )}
         <div className="iz-cover-row">
           <Uploader
             scope={studentScope(student.id)}
@@ -133,9 +161,11 @@ export function PersonalizePanel({ open, student, actor, onClose }: Props) {
             crop
             cropAspect={1}
             label={photo ? "استبدال الصورة" : "اختيار صورة"}
+            onError={setPhotoError}
             onUploaded={async (files) => {
               if (photo) await deleteFile(photo.path);
               setPhoto({ url: files[0].url, path: files[0].path });
+              setPhotoError(null);
             }}
           />
           {photo && (

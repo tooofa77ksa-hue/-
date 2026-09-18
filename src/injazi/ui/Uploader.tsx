@@ -41,6 +41,13 @@ type Props = {
   cropAspect?: number;
   label?: string;
   onUploaded: (files: UploadedFile[]) => void | Promise<void>;
+  /**
+   * يُبلَّغ بفشل الرفع أو بزواله.
+   * موجود لأن الخطأ داخل هذا المكوّن وحده يبقى سطرًا صغيرًا قد يمرّ دون
+   * أن تراه صاحبة الشاشة، ثم تضغط «حفظ» فيُكتب «بلا صورة» وكأن شيئًا لم
+   * يكن. النموذج المحيط يحتاج أن يعرف ليمنع ذلك.
+   */
+  onError?: (message: string | null) => void;
 };
 
 export function Uploader({
@@ -52,10 +59,17 @@ export function Uploader({
   cropAspect = 1,
   label = "ارفعي ملفًا",
   onUploaded,
+  onError,
 }: Props) {
   const input = useRef<HTMLInputElement | null>(null);
   const [progress, setProgress] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  /** يضبط الخطأ محليًا ويُبلّغ النموذج المحيط في الوقت نفسه. */
+  function fail(message: string | null) {
+    setError(message);
+    onError?.(message);
+  }
   const [done, setDone] = useState(false);
   const [cropSource, setCropSource] = useState<{ url: string; file: File } | null>(null);
 
@@ -83,13 +97,13 @@ export function Uploader({
     event.target.value = "";
     if (files.length === 0) return;
 
-    setError(null);
+    fail(null);
     setDone(false);
 
     try {
       files.forEach((file) => validate(file, accept));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "ملف غير مقبول.");
+      fail(err instanceof Error ? err.message : "ملف غير مقبول.");
       return;
     }
 
@@ -109,7 +123,7 @@ export function Uploader({
       setDone(true);
       window.setTimeout(() => setDone(false), 1800);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "فشل الرفع.");
+      fail(err instanceof Error ? err.message : "فشل الرفع.");
     } finally {
       setProgress(null);
     }
@@ -121,14 +135,14 @@ export function Uploader({
     if (!source) return;
     URL.revokeObjectURL(source.url);
     setProgress(0);
-    setError(null);
+    fail(null);
     try {
       const uploaded = await push(blob, source.file.name.replace(/\.\w+$/, ".webp"));
       await onUploaded([uploaded]);
       setDone(true);
       window.setTimeout(() => setDone(false), 1800);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "فشل الرفع.");
+      fail(err instanceof Error ? err.message : "فشل الرفع.");
     } finally {
       setProgress(null);
     }

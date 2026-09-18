@@ -163,7 +163,7 @@ await page.screenshot({ path: `${OUT}/space-certificates.png`, fullPage: true })
 // --- مشروع بوصف
 const PROJECT = `مشروع دورة الماء ${STAMP}`;
 const PROJECT_DESC = `صنعت مجسّمًا وشرحته أمام الصف ${STAMP}`;
-await page.getByRole("button", { name: /إضافة مشروع/ }).click();
+await page.getByRole("button", { name: /إضافة مشروع/ }).first().click();
 await page.waitForTimeout(1000);
 await page.locator(".iz-modal input").first().fill(PROJECT);
 await page.locator(".iz-modal textarea").first().fill(PROJECT_DESC);

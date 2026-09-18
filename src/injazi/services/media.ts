@@ -97,6 +97,25 @@ export async function fitForFirestore(source: Blob): Promise<Blob> {
 
 export type SavedMedia = { ref: string; size: number; mime: string };
 
+/** يرفض الوعد بعد المهلة بدل انتظار لا ينتهي. */
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(Object.assign(new Error("انتهت المهلة"), { code: "iz/timeout" }));
+    }, ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (err) => {
+        clearTimeout(timer);
+        reject(err);
+      },
+    );
+  });
+}
+
 /**
  * يحفظ الصورة ويعيد مرجعها.
  * ownerUid و studentId يُخزَّنان لأن القواعد الأمنية تبني عليهما قرار
@@ -113,15 +132,54 @@ export async function saveMedia(
   const fitted = await fitForFirestore(blob);
   const dataUrl = await blobToDataUrl(fitted);
 
-  const created = await addDoc(collection(db, COL.media), {
-    ownerUid: uid,
-    studentId: meta.studentId ?? null,
-    name: meta.name.slice(-80),
-    mime: fitted.type,
-    size: fitted.size,
-    data: dataUrl,
-    createdAt: new Date().toISOString(),
-  });
+  /*
+    سبب الفشل يُقال لا يُبتلع.
+    الكتابة هنا قد ترفضها القواعد (جلسة بلا ملف صلاحيات، أو حجم يتجاوز
+    الحد)، وخطأ Firestore بنصّه الإنجليزي لا يعني المشرفة شيئًا — لكن
+    رمزه يحسم التشخيص في ثانية بدل ساعة تخمين. فنُترجم المعروف، ونُرفق
+    الرمز فيما عداه.
+  */
+  /*
+    مهلة صريحة على تأكيد الخادم.
+    addDoc لا يُحلّ إلا بعد أن يؤكّد الخادم الكتابة، لكنه حين ينقطع
+    الاتصال لا يرفض: يضع الكتابة في طابور محلّي وينتظر إلى ما لا نهاية.
+    فتبقى الصورة «قيد الرفع» بلا خطأ ولا نجاح، وتظنّ صاحبة الشاشة أن
+    شيئًا لم يحدث — ثم تحفظ، فيُكتب «بلا صورة». الصمت هنا أسوأ من
+    الخطأ، فنجعل للانتظار حدًّا ينطق.
+  */
+  const ACK_TIMEOUT_MS = 20000;
+  let created;
+  try {
+    created = await withTimeout(addDoc(collection(db, COL.media), {
+      ownerUid: uid,
+      studentId: meta.studentId ?? null,
+      name: meta.name.slice(-80),
+      mime: fitted.type,
+      size: fitted.size,
+      data: dataUrl,
+      createdAt: new Date().toISOString(),
+    }), ACK_TIMEOUT_MS);
+  } catch (err) {
+    const code = (err as { code?: string })?.code ?? "";
+    if (code === "iz/timeout") {
+      throw new MediaError(
+        "لم يؤكّد الخادم حفظ الصورة خلال ٢٠ ثانية — غالبًا ضعف في الاتصال. " +
+          "تحقّقي من الشبكة وأعيدي المحاولة؛ لم يُحفظ شيء.",
+      );
+    }
+    if (code === "permission-denied") {
+      throw new MediaError(
+        "رُفضت الصورة من قواعد الحماية. تأكّدي أنكِ داخلة بحسابكِ أو من رابط الطالبة، " +
+          "ثم أعيدي المحاولة.",
+      );
+    }
+    if (code === "unavailable" || code === "deadline-exceeded") {
+      throw new MediaError("تعذّر الوصول إلى الخادم — تحقّقي من الاتصال وأعيدي المحاولة.");
+    }
+    throw new MediaError(
+      `تعذّر حفظ الصورة${code ? ` (${code})` : ""}. حجم الصورة بعد الضغط: ${Math.round(fitted.size / 1024)} كيلوبايت.`,
+    );
+  }
 
   return { ref: `${MEDIA_PREFIX}${created.id}`, size: fitted.size, mime: fitted.type };
 }
