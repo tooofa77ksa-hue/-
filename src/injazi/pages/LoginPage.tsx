@@ -7,11 +7,11 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { KeyRound, LogIn, Mail } from "lucide-react";
+import { KeyRound, LogIn, LogOut, Mail } from "lucide-react";
 import { ClayButton } from "@/injazi/components/ClayButton";
 import { ClayObject } from "@/injazi/components/ClayObject";
 import { Field, Notice, TextInput } from "@/injazi/ui/primitives";
-import { resetPassword, signIn } from "@/injazi/services/auth";
+import { resetPassword, signIn, signOutUser } from "@/injazi/services/auth";
 import { useSession, useSettings } from "@/injazi/hooks/useLive";
 import { showToast } from "@/injazi/lib/toast";
 import { pageVariants, riseItem, staggerContainer } from "@/injazi/motion/motion";
@@ -38,10 +38,32 @@ export function LoginPage({ intent = "parent" }: { intent?: Role }) {
 
   const from = (location.state as { from?: string } | null)?.from;
 
-  // مسجّلة الدخول أصلًا؟ لا تُعرض عليها صفحة دخول من جديد.
+  /*
+    جلسة مفتوحة بدور آخر: لا تُحوَّل ولا تُترك حائرة.
+    ------------------------------------------------------------------
+    كان أي دخول سابق على الجهاز يحوّل صاحبته فورًا إلى وجهة ذلك الدور،
+    فمن تفتح «لوحة الإدارة» وفي متصفّحها جلسة معلمة تُقذف إلى بوابة
+    المعلمات ولا ترى خانة الدخول أبدًا — فتظنّ أن اللوحة اختفت. وهذا
+    يقع حتمًا هنا: الجهاز نفسه يُستعمل لفتح روابط المعلمات وللإدارة.
+
+    فالتحويل التلقائي يبقى لمن جاءت إلى بوابتها هي (الدور يطابق
+    الصفحة)، ومن جاءت بدور آخر تُعرض لها حالتها صريحةً مع زر خروج
+    يفتح لها الدخول بحسابها.
+  */
+  const sessionMatchesPage = profile?.role === intent;
+
   useEffect(() => {
-    if (!loading && profile) navigate(from ?? HOME_FOR[profile.role], { replace: true });
-  }, [loading, profile, from, navigate]);
+    if (!loading && profile && sessionMatchesPage) {
+      navigate(from ?? HOME_FOR[profile.role], { replace: true });
+    }
+  }, [loading, profile, sessionMatchesPage, from, navigate]);
+
+  const otherSession = !loading && profile && !sessionMatchesPage ? profile : null;
+
+  async function switchAccount() {
+    await signOutUser();
+    showToast("تم تسجيل الخروج — ادخلي بحسابكِ الآن", "info");
+  }
 
   const copy =
     intent === "teacher"
@@ -105,6 +127,32 @@ export function LoginPage({ intent = "parent" }: { intent?: Role }) {
         <motion.p className="iz-login__hint" variants={riseItem}>
           {copy.hint}
         </motion.p>
+
+        {otherSession && (
+          <motion.div variants={riseItem}>
+            <Notice tone="warn">
+              <span>
+                هذا الجهاز داخل الآن باسم <strong>{otherSession.name}</strong>
+                {otherSession.role === "teacher"
+                  ? " (معلمة)"
+                  : otherSession.role === "parent"
+                    ? " (ولي أمر)"
+                    : ""}
+                . سجّلي الخروج لتدخلي بحسابكِ.
+              </span>
+              <span className="iz-chip-row" style={{ marginTop: 10 }}>
+                <ClayButton
+                  variant="soft"
+                  size="sm"
+                  icon={<LogOut size={16} strokeWidth={2.4} />}
+                  onClick={switchAccount}
+                >
+                  تسجيل الخروج
+                </ClayButton>
+              </span>
+            </Notice>
+          </motion.div>
+        )}
 
         <motion.form
           className="iz-login__form"
