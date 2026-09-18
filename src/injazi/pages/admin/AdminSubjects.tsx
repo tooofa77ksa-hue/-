@@ -83,6 +83,10 @@ export function AdminSubjects() {
             }}
             renderItem={(subject) => {
               const teacher = teachers.find((entry) => entry.id === subject.teacherId);
+              const toggleArchive = async () => {
+                await updateSubject(subject.id, { archived: !subject.archived });
+                showToast(subject.archived ? "أُعيدت المادة" : "أُرشفت المادة", "info");
+              };
               return (
                 <motion.div className={`iz-admin-row iz-tone--${subject.tone}`} variants={riseItem}>
                   <span className="iz-admin-row__icon">
@@ -94,9 +98,15 @@ export function AdminSubjects() {
                     <span className="iz-admin-row__meta">
                       {teacher ? `المعلمة: ${teacher.name}` : "لم تُسنَد معلمة"}
                     </span>
+                    {/* الوسم يُخبر ولا يُنقَر، فمن يريد التراجع عن الأرشفة لا
+                        يجد أمامه إلا أيقونة بلا كلمة. الفعل يُكتب بجانب
+                        الوسم صراحةً — الأيقونة تبقى لمن اعتادها. */}
                     {subject.archived && (
                       <span className="iz-chip-row">
                         <Chip tone="warn">مؤرشفة</Chip>
+                        <button type="button" className="iz-linkish" onClick={toggleArchive}>
+                          استعادة
+                        </button>
                       </span>
                     )}
                   </span>
@@ -107,10 +117,7 @@ export function AdminSubjects() {
                       className="iz-icon-btn"
                       aria-label={subject.archived ? `استعادة ${subject.name}` : `أرشفة ${subject.name}`}
                       title={subject.archived ? "استعادة" : "أرشفة"}
-                      onClick={async () => {
-                        await updateSubject(subject.id, { archived: !subject.archived });
-                        showToast(subject.archived ? "أُعيدت المادة" : "أُرشفت المادة", "info");
-                      }}
+                      onClick={toggleArchive}
                     >
                       {subject.archived ? <ArchiveRestore size={16} strokeWidth={2.5} /> : <Archive size={16} strokeWidth={2.5} />}
                     </button>

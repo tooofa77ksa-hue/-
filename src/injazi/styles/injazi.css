@@ -1585,6 +1585,19 @@
   background: var(--iz-surface-sunk);
 }
 
+/* الزر نفسه حين يحمل كلمة إلى جانب رسمه: يتمدّد أفقيًا ويبقى ارتفاعه
+   ٣٦ بكسل، فيظلّ هدف اللمس على الجوال كما هو ولا يختلّ صفّ الأزرار. */
+.iz-icon-btn--wide {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
 .iz-icon-btn--danger:hover {
   background: rgba(240, 115, 110, 0.14);
   color: #b23b37;

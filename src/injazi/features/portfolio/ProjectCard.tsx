@@ -117,15 +117,21 @@ export function ProjectCard({ project, subject, evaluations, canEdit, onEdit, on
               <button type="button" className="iz-icon-btn" onClick={onEdit} aria-label={`تعديل ${project.title}`}>
                 <Pencil size={16} strokeWidth={2.5} />
               </button>
+              {/* المؤرشف يُستعاد بكلمة مكتوبة لا بأيقونة: من يبحث عن التراجع
+                  لا يعرف أي رسم يعنيه، و title لا يظهر على شاشة تُلمَس.
+                  الأرشفة نفسها تبقى أيقونة — فهي فعل يُبحث عنه لا يُتعثَّر به. */}
               <button
                 type="button"
-                className="iz-icon-btn"
+                className={project.archived ? "iz-icon-btn iz-icon-btn--wide" : "iz-icon-btn"}
                 onClick={onArchive}
                 aria-label={`${project.archived ? "استعادة" : "أرشفة"} ${project.title}`}
                 title={project.archived ? "استعادة" : "أرشفة"}
               >
                 {project.archived ? (
-                  <ArchiveRestore size={16} strokeWidth={2.5} />
+                  <>
+                    <ArchiveRestore size={16} strokeWidth={2.5} />
+                    استعادة
+                  </>
                 ) : (
                   <Archive size={16} strokeWidth={2.5} />
                 )}

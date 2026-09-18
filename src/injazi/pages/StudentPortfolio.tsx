@@ -421,7 +421,7 @@ export function StudentPortfolio() {
                           </button>
                           <button
                             type="button"
-                            className="iz-icon-btn"
+                            className={row.archived ? "iz-icon-btn iz-icon-btn--wide" : "iz-icon-btn"}
                             aria-label={`${row.archived ? "استعادة" : "أرشفة"} ${row.title}`}
                             title={row.archived ? "استعادة" : "أرشفة"}
                             onClick={async () => {
@@ -430,7 +430,10 @@ export function StudentPortfolio() {
                             }}
                           >
                             {row.archived ? (
-                              <ArchiveRestore size={16} strokeWidth={2.5} />
+                              <>
+                                <ArchiveRestore size={16} strokeWidth={2.5} />
+                                استعادة
+                              </>
                             ) : (
                               <Archive size={16} strokeWidth={2.5} />
                             )}
