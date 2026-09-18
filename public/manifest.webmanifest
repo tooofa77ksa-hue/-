@@ -1,0 +1,19 @@
+{
+  "name": "إنجازي يحكي",
+  "short_name": "إنجازي يحكي",
+  "description": "ملف إنجاز رقمي لطالبات الابتدائية الخامسة والستون بعد المائة",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#06041a",
+  "theme_color": "#0b0824",
+  "icons": [
+    {
+      "src": "/assets/injazi/og-cover.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
