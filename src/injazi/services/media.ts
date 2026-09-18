@@ -50,9 +50,33 @@ function blobToDataUrl(blob: Blob): Promise<string> {
 }
 
 /**
+ * يُرمّز اللوحة بالصيغة المطلوبة، ويعيد ما خرج فعلًا.
+ * ------------------------------------------------------------------
+ * canvas.toBlob حين لا يدعم المتصفّح الصيغة المطلوبة **لا يفشل**: يعود
+ * بـ PNG صامتًا، وPNG يتجاهل مُعامل الجودة ويبقى ضخمًا لصورة فوتوغرافية.
+ * فتفشل كل مراحل الضغط مهما صغّرنا الأبعاد، وتُقال للمستخدمة «الصورة
+ * كبيرة» وصورتها ليست كبيرة — المتصفّح فقط لا يعرف WebP.
+ * ولذلك نفحص نوع الناتج لا نفترضه.
+ */
+async function encode(
+  canvas: HTMLCanvasElement,
+  mime: string,
+  quality: number,
+): Promise<Blob | null> {
+  const blob = await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(resolve, mime, quality),
+  );
+  return blob;
+}
+
+/**
  * يضغط الصورة على مراحل حتى تنزل تحت الحد.
  * التنازل عن الأبعاد قبل الجودة مقصود: تصغير صورة ٤٠٠٠ بكسل إلى ١٤٠٠
  * لا يُلاحَظ في بطاقة أو ملف إنجاز، بينما خفض الجودة يظهر كتشويش.
+ *
+ * JPEG هو شبكة الأمان: مدعوم في كل متصفّح منذ عقدين، ويضغط الصور
+ * الفوتوغرافية جيدًا. WebP أفضل حجمًا فنبدأ به، فإن لم يدعمه المتصفّح
+ * انتقلنا إلى JPEG بدل أن نلوم صورة الطالبة.
  */
 export async function fitForFirestore(source: Blob): Promise<Blob> {
   if (source.size <= MAX_MEDIA_BYTES && IMAGE_MIMES.includes(source.type)) return source;
@@ -62,6 +86,8 @@ export async function fitForFirestore(source: Blob): Promise<Blob> {
     { edge: 1100, quality: 0.78 },
     { edge: 900, quality: 0.72 },
     { edge: 700, quality: 0.66 },
+    { edge: 560, quality: 0.6 },
+    { edge: 420, quality: 0.55 },
   ];
 
   let bitmap: ImageBitmap;
@@ -81,17 +107,25 @@ export async function fitForFirestore(source: Blob): Promise<Blob> {
       if (!context) throw new MediaError("تعذّر تجهيز الصورة.");
       context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
 
-      const blob = await new Promise<Blob | null>((resolve) =>
-        canvas.toBlob(resolve, "image/webp", step.quality),
-      );
-      if (blob && blob.size <= MAX_MEDIA_BYTES) return blob;
+      let blob = await encode(canvas, "image/webp", step.quality);
+
+      // خرج بغير ما طلبنا ⇒ المتصفّح لا يُرمّز WebP. ننتقل إلى JPEG
+      // لبقية المراحل بدل تكرار محاولة تعود بـ PNG ضخم في كل مرة.
+      if (!blob || blob.type !== "image/webp") {
+        blob = await encode(canvas, "image/jpeg", step.quality);
+      }
+
+      if (blob && blob.size <= MAX_MEDIA_BYTES && IMAGE_MIMES.includes(blob.type)) {
+        return blob;
+      }
     }
   } finally {
     bitmap.close?.();
   }
 
   throw new MediaError(
-    "الصورة كبيرة جدًا حتى بعد الضغط. جرّبي صورة أصغر أو قصّيها قبل الرفع.",
+    `تعذّر تصغير الصورة تحت ${Math.round(MAX_MEDIA_BYTES / 1024)} كيلوبايت. ` +
+      "جرّبي التقاط صورة بجودة أقل، أو أرسليها من تطبيق يضغطها (واتساب مثلًا) ثم ارفعيها.",
   );
 }
 
