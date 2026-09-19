@@ -4,6 +4,7 @@ import { ConfirmDialog } from './components/ConfirmDialog'
 import { EmptyState } from './components/EmptyState'
 import { EntryForm } from './components/EntryForm'
 import { EntryTable } from './components/EntryTable'
+import { Footer } from './components/Footer'
 import { Header } from './components/Header'
 import { StatCards } from './components/StatCards'
 import { ToastStack } from './components/ToastStack'
@@ -107,6 +108,10 @@ export default function App() {
         <StatCards stats={stats} />
 
         <section className="panel" aria-label="السجلات">
+          <div className="panel__head">
+            <h2 className="section-pill">السجــلات</h2>
+          </div>
+
           <Toolbar
             query={query}
             categories={categories}
@@ -170,6 +175,8 @@ export default function App() {
           onCancel={closeDialog}
         />
       )}
+
+      <Footer />
 
       <ToastStack toasts={toasts} onDismiss={dismiss} />
     </div>

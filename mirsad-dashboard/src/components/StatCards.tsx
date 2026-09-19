@@ -41,7 +41,7 @@ export function StatCards({ stats }: StatCardsProps) {
   return (
     <section className="stats" aria-label="ملخّص اللوحة">
       {cards.map((card) => (
-        <article key={card.key} className="stat-card">
+        <article key={card.key} className={`stat-card stat-card--${card.key}`}>
           <p className="stat-card__label">{card.label}</p>
           <p className="stat-card__value">{card.value}</p>
           <p className="stat-card__meta">{card.meta}</p>
