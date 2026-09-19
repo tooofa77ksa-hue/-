@@ -142,13 +142,27 @@ export async function reorder(name: string, orderedIds: string[]): Promise<void>
   await batch.commit();
 }
 
-/** أعلى ترتيب حالي + 1، حتى يُضاف الجديد في نهاية القائمة. */
+/*
+  أعلى ترتيب حالي + 1، حتى يُضاف الجديد في نهاية القائمة.
+  ------------------------------------------------------------------
+  الترتيب يُحسَب في المتصفّح لا في الاستعلام. السبب ليس تفضيلًا:
+  Firestore يشترط فهرسًا مركّبًا لأي استعلام يجمع where على حقل مع
+  orderBy على حقل آخر، وبدونه يفشل الاستعلام كله بـ FAILED_PRECONDITION
+  ويعرض رابط إنشاء الفهرس. وهذا الاستدعاء يقع داخل «إضافة مشروع»
+  و«إضافة شهادة» — ففشله يعني أن الحفظ لا يحدث إطلاقًا.
+
+  والأخطر أن محاكي Firestore ينشئ الفهارس تلقائيًا ولا يشترط شيئًا،
+  فهذا العطل لا يظهر في أي اختبار محلي مهما كثر — يظهر في الإنتاج وحده.
+  عدد مستندات الطالبة عشرات، فحساب الأقصى في المتصفّح بلا كلفة.
+*/
 async function nextOrder(name: string, constraints: QueryConstraint[] = []): Promise<number> {
-  const snapshot = await getDocs(
-    query(collection(db, name), ...constraints, orderBy("order", "desc"), fbLimit(1)),
-  );
+  const snapshot = await getDocs(query(collection(db, name), ...constraints));
   if (snapshot.empty) return 0;
-  return ((snapshot.docs[0].data().order as number) ?? 0) + 1;
+  const highest = snapshot.docs.reduce(
+    (max, row) => Math.max(max, (row.data().order as number) ?? 0),
+    0,
+  );
+  return highest + 1;
 }
 
 // ------------------------------------------------------------ الطالبات
@@ -250,10 +264,12 @@ export const deleteSubject = (id: string) => remove(COL.subjects, id);
 // ----------------------------------------------------------- المشاريع
 
 export function liveProjectsByStudent(studentId: string, onData: (rows: Project[]) => void) {
+  // where + orderBy على حقلين مختلفين يستلزم فهرسًا مركّبًا؛ الترتيب هنا
+  // في المتصفّح فلا يتوقّف عرض ملف الطالبة على فهرس لم يُنشأ.
   return liveCollection<Project>(
     COL.projects,
-    [where("studentId", "==", studentId), orderBy("order", "asc")],
-    onData,
+    [where("studentId", "==", studentId)],
+    (rows) => onData([...rows].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))),
   );
 }
 
@@ -340,8 +356,8 @@ export const deleteEvaluation = (id: string) => remove(COL.evaluations, id);
 export function liveAchievements(studentId: string, onData: (rows: Achievement[]) => void) {
   return liveCollection<Achievement>(
     COL.achievements,
-    [where("studentId", "==", studentId), orderBy("order", "asc")],
-    onData,
+    [where("studentId", "==", studentId)],
+    (rows) => onData([...rows].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))),
   );
 }
 

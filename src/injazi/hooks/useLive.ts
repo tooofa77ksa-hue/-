@@ -40,6 +40,35 @@ import type {
 
 export type Loadable<T> = { data: T; loading: boolean; error: string | null };
 
+/*
+  رسالة الخطأ كما تقرؤها طالبة في الرابع الابتدائي.
+  ------------------------------------------------------------------
+  رسائل Firestore إنجليزية وتحمل روابط لوحة تحكّم المطوّر (رابط إنشاء
+  فهرس مثلًا). ظهورها في ملف الطالبة ليس قبحًا فحسب: هو تسريب لتفاصيل
+  البنية التحتية إلى شاشة طفلة، ولا يفيدها بشيء. فتُترجَم هنا عند
+  الحدّ، مرة واحدة، فلا يمكن لأي شاشة أن تعرض النصّ الخام.
+  والنصّ الأصلي يبقى في طرفية المطوّر للتشخيص.
+*/
+function humanizeQueryError(err: Error): string {
+  const code = (err as { code?: string }).code ?? "";
+  // eslint-disable-next-line no-console
+  console.error("[Firestore]", code, err.message);
+
+  if (code === "permission-denied") {
+    return "لا تملكين صلاحية عرض هذا المحتوى.";
+  }
+  if (code === "unavailable" || code === "deadline-exceeded") {
+    return "تعذّر الوصول إلى الخادم. تحقّقي من الاتصال ثم حدّثي الصفحة.";
+  }
+  if (code === "failed-precondition") {
+    return "تعذّر تحميل هذا القسم بسبب إعداد ناقص في قاعدة البيانات. أبلغي المشرفة.";
+  }
+  if (code === "unauthenticated") {
+    return "انتهت الجلسة. افتحي رابطكِ من جديد.";
+  }
+  return "تعذّر تحميل البيانات. حدّثي الصفحة، وإن تكرّر أبلغي المشرفة.";
+}
+
 function useLiveList<T>(
   subscribe: (onData: (rows: T[]) => void, onError?: (e: Error) => void) => () => void,
   deps: unknown[] = [],
@@ -57,7 +86,7 @@ function useLiveList<T>(
         setLoading(false);
       },
       (err) => {
-        setError(err.message);
+        setError(humanizeQueryError(err));
         setLoading(false);
       },
     );

@@ -1707,13 +1707,46 @@
   min-height: 0;
 }
 
+/*
+  شريط الأزرار: ملتصق بأسفل النافذة، ولا يغطّيه شريط سفاري.
+  ------------------------------------------------------------------
+  النافذة عمود مرن وجسمها وحده يتمرّر، فالشريط ثابت في أسفلها أصلًا.
+  ما كان ناقصًا هو env(safe-area-inset-bottom): على آيفون يقع أسفل
+  الشاشة تحت مؤشّر الهوم وشريط سفاري، فيبدو زرّ الحفظ نصفه مقصوصًا أو
+  يُلمَس فلا يستجيب. الحشو الإضافي يرفعه فوق تلك المنطقة.
+  والخلفية معتمة صراحةً كي لا يبدو النصّ المتمرّر خلفه ملتصقًا به.
+*/
 .iz-modal__foot {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   justify-content: flex-end;
   gap: var(--iz-s-2);
   padding: var(--iz-s-3) var(--iz-s-5) var(--iz-s-4);
+  padding-block-end: calc(var(--iz-s-4) + env(safe-area-inset-bottom, 0px));
   border-block-start: 1px solid var(--iz-line);
+  background: var(--iz-paper);
+}
+
+/* حالة الحفظ داخل الشريط، إلى يمين الأزرار (بداية السطر في RTL). */
+.iz-save-state {
+  margin-inline-end: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.iz-save-state--dirty {
+  color: #ffd79a;
+}
+
+.iz-save-state--saved {
+  color: #8ff0c4;
 }
 
 .iz-confirm {

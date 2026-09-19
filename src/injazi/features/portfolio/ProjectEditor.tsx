@@ -7,7 +7,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Media } from "@/injazi/ui/Media";
 import { AnimatePresence, motion } from "motion/react";
-import { FileText, Film, Link2, Plus, Trash2 } from "lucide-react";
+import { Check, CircleAlert, FileText, Film, Link2, Plus, Trash2 } from "lucide-react";
 import { ClayButton } from "@/injazi/components/ClayButton";
 import { LottieMoment } from "@/injazi/components/LottieMoment";
 import { Modal } from "@/injazi/ui/Modal";
@@ -64,11 +64,17 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
     فعلًا في الفحص. المرجع يتغيّر في اللحظة نفسها، فيُوقف الثانية.
   */
   const busy = useRef(false);
+  /* حالة الحفظ في شريط الأزرار.
+     «تم الحفظ» لا تُعرض إلا بعد أن يؤكّد الخادم الكتابة فعلًا — لا عند
+     الضغط ولا عند انتهاء الرسم. الطالبة تملأ نموذجًا طويلًا، ولها أن
+     تعرف في كل لحظة إن كان ما كتبته محفوظًا أم لا. */
+  const [savedAt, setSavedAt] = useState<number | null>(null);
 
   // إعادة التعبئة عند كل فتح: بدونها يحمل النموذج بقايا المشروع السابق.
   useEffect(() => {
     if (!open) return;
     busy.current = false;
+    setSavedAt(null);
     setError(null);
     setUploadError(null);
     setCelebrate(false);
@@ -92,6 +98,11 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
       setLinks([]);
     }
   }, [open, project, subjects]);
+
+  // أي تعديل بعد الحفظ يُعيد الحالة إلى «غير محفوظ» فورًا.
+  useEffect(() => {
+    setSavedAt(null);
+  }, [form, cover, media, links, linkDraft]);
 
   const scope = studentScope(student.id);
   const ready = form.title.trim().length >= 2 && form.subjectId !== "";
@@ -188,6 +199,7 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
         actor?.role ?? "guest",
       );
 
+      setSavedAt(Date.now());
       setCelebrate(true);
       window.setTimeout(() => {
         setCelebrate(false);
@@ -214,6 +226,20 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
       size="lg"
       footer={
         <>
+          <span
+            className={`iz-save-state ${savedAt ? "iz-save-state--saved" : "iz-save-state--dirty"}`}
+            role="status"
+          >
+            {savedAt ? (
+              <>
+                <Check size={15} strokeWidth={3} aria-hidden="true" /> تم الحفظ
+              </>
+            ) : (
+              <>
+                <CircleAlert size={15} strokeWidth={2.6} aria-hidden="true" /> لم يُحفظ بعد
+              </>
+            )}
+          </span>
           <ClayButton variant="soft" onClick={onClose} disabled={saving}>
             إلغاء
           </ClayButton>
