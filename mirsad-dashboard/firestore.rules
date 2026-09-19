@@ -1,0 +1,52 @@
+rules_version = '2';
+
+// قواعد أمان خاصة بمشروع "مرصد" وحده.
+// لا تشترك هذه القواعد مع أي قاعدة بيانات أو مشروع آخر،
+// وتنطبق فقط على مشروع Firebase المعرّف في ملف .firebaserc داخل هذا المجلد.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(ownerUid) {
+      return isSignedIn() && request.auth.uid == ownerUid;
+    }
+
+    function isValidEntry(data) {
+      return data.keys().hasAll(['title', 'category', 'status', 'amount', 'ownerUid', 'createdAt', 'updatedAt'])
+        && data.title is string
+        && data.title.size() > 0
+        && data.title.size() <= 120
+        && data.category is string
+        && data.category.size() <= 60
+        && data.status in ['active', 'pending', 'archived']
+        && data.amount is number
+        && data.amount >= 0
+        && data.ownerUid is string
+        && data.notes is string
+        && data.notes.size() <= 1000;
+    }
+
+    // سجلات لوحة التحكم — كل مستخدم يرى ويعدّل سجلاته فقط.
+    match /entries/{entryId} {
+      allow read: if isOwner(resource.data.ownerUid);
+
+      allow create: if isSignedIn()
+        && isValidEntry(request.resource.data)
+        && isOwner(request.resource.data.ownerUid);
+
+      allow update: if isOwner(resource.data.ownerUid)
+        && isValidEntry(request.resource.data)
+        && request.resource.data.ownerUid == resource.data.ownerUid;
+
+      allow delete: if isOwner(resource.data.ownerUid);
+    }
+
+    // كل ما عدا ذلك مرفوض افتراضيًا.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
