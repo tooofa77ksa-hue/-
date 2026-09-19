@@ -93,6 +93,12 @@ async function typeAndWatch(label, input, text) {
 
 const modal = () => page.locator(".iz-modal");
 
+/* زرّ «إضافة مشروع» واحد لا اثنان.
+   حين لا يوجد مشروع بعد كان يظهر مرّتين — في عنوان القسم وفي رسالة
+   «لا توجد مشاريع بعد» — بنصّ واحد وفعل واحد، فيبدو خطأً في الصفحة. */
+const addButtons = await page.getByRole("button", { name: /^إضافة مشروع$/ }).count();
+ok("زرّ «إضافة مشروع» لا يتكرّر والقائمة فارغة", addButtons === 1, `العدد: ${addButtons}`);
+
 // ---------------- إضافة مشروع
 await page.getByRole("button", { name: /^إضافة مشروع$/ }).first().click();
 await page.waitForTimeout(1500);

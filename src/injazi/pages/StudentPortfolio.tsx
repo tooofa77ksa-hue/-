@@ -306,8 +306,16 @@ export function StudentPortfolio() {
       <section className="iz-block" aria-label="المواد والمشاريع">
         <SectionTitle
           hint="المشاريع وأوراق العمل مرتّبة حسب المادة"
+          /*
+            زرّ واحد لا اثنان.
+            حين لا يكون هناك مشروع بعد، تعرض رسالة «لا توجد مشاريع بعد»
+            زرّ إضافة كبيرًا في وسط الشاشة. وكان زرّ العنوان يظهر معه —
+            زرّان متطابقان نصًّا وفعلًا على شاشة جوّال واحدة، فيبدوان
+            خطأً ويُربكان من ينظر: أيّهما الصحيح؟ فيختفي زرّ العنوان ما
+            دامت الرسالة تحمل زرّها، ويعود حين تمتلئ القائمة.
+          */
           action={
-            canEdit && activeSubjects.length > 0 ? (
+            canEdit && activeSubjects.length > 0 && visibleProjects.length > 0 ? (
               <ClayButton
                 icon={<Plus size={18} strokeWidth={2.6} />}
                 onClick={() => setProjectEditor({ open: true, project: null })}
