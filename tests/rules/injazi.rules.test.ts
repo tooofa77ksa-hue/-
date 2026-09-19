@@ -474,6 +474,31 @@ describe("مخزن الصور (media)", () => {
     await assertSucceeds(deleteDoc(doc(as("parentA"), `${ROOT}/media/m9`)));
     await assertSucceeds(deleteDoc(doc(as("admin1"), `${ROOT}/media/m10`)));
   });
+
+  /*
+    جلسة الطالبة مجهولة، وuid المجهول يخصّ الجهاز لا الشخص: تفتح رابطها
+    من جوّال آخر فتصير uid مختلفًا. فلو كان ownerUid وحده شرط الحذف
+    لعجزت عن حذف صورتها هي — ولبقيت الصورة في قاعدة البيانات بلا مرجع
+    بعد إزالتها من الشاشة.
+  */
+  it("مالكة الملف تحذف صورة ملفها ولو رفعها جهاز آخر", async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), `${ROOT}/media/m11`), image("جهاز-قديم"));
+      await setDoc(doc(ctx.firestore(), `${ROOT}/media/m12`), image("جهاز-قديم"));
+      await setDoc(
+        doc(ctx.firestore(), `${ROOT}/media/m13`),
+        image("جهاز-قديم", { studentId: null }),
+      );
+    });
+    // ولي أمر طالبة أخرى لا يقترب منها.
+    await assertFails(deleteDoc(doc(as("parentB"), `${ROOT}/media/m11`)));
+    // ولا المعلمة: تقرأ وتقيّم ولا تحذف صور الطالبات.
+    await assertFails(deleteDoc(doc(as("mathTeacher"), `${ROOT}/media/m11`)));
+    // وصورة بلا طالبة تبقى لصاحبها وحده — لا تتّسع الصلاحية إلى كل شيء.
+    await assertFails(deleteDoc(doc(as("parentA"), `${ROOT}/media/m13`)));
+    await assertSucceeds(deleteDoc(doc(as("parentA"), `${ROOT}/media/m11`)));
+    await assertSucceeds(deleteDoc(doc(as("admin1"), `${ROOT}/media/m12`)));
+  });
 });
 
 describe("روابط المعلمات", () => {

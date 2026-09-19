@@ -15,7 +15,8 @@ import { Field, Notice, SelectInput, TextArea, TextInput } from "@/injazi/ui/pri
 import { QRCard } from "@/injazi/ui/QRCard";
 import { QR_FRAMES, detectLinkKind, normalizeUrl, type QrFrame } from "@/injazi/ui/qr";
 import { Uploader, type UploadedFile } from "@/injazi/ui/Uploader";
-import { MEDIA_BACKEND, deleteFile, studentScope } from "@/injazi/services/storage";
+import { useFileTrash } from "@/injazi/hooks/useFileTrash";
+import { MEDIA_BACKEND, studentScope } from "@/injazi/services/storage";
 import { createProject, logActivity, updateProject } from "@/injazi/services/repo";
 import { showToast } from "@/injazi/lib/toast";
 import { VISIBILITY_LABEL } from "@/injazi/lib/permissions";
@@ -69,10 +70,32 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
      الضغط ولا عند انتهاء الرسم. الطالبة تملأ نموذجًا طويلًا، ولها أن
      تعرف في كل لحظة إن كان ما كتبته محفوظًا أم لا. */
   const [savedAt, setSavedAt] = useState<number | null>(null);
+  /* الصور المحذوفة والمرفوعة تنتظر نتيجة الحفظ قبل أن تُمسّ. */
+  const trash = useFileTrash();
+  /*
+    ما الذي عُبِّئ في النموذج الآن.
+    ------------------------------------------------------------------
+    subjects قائمة حيّة: كل لقطة من Firestore تُنتج مصفوفة جديدة، وهي
+    في اعتماديات هذا الأثر. فكانت أي لقطة تصل أثناء الكتابة تُعيد
+    تعبئة النموذج من المشروع المحفوظ — يعود النص القديم فوق ما كُتب،
+    وتعود الصورة التي أُزيلت، وينقلب مؤشّر «تم الحفظ» إلى «لم يُحفظ
+    بعد»، ويُفتح قفل الحفظ في أثناء لحظة الاحتفال فتُقبَل ضغطة ثانية.
+    التعبئة مرّة واحدة لكل فتح: المفتاح هو هويّة السجل لا هوية الكائن.
+  */
+  const filledFor = useRef<string | null>(null);
+  const subjectsRef = useRef(subjects);
+  subjectsRef.current = subjects;
 
   // إعادة التعبئة عند كل فتح: بدونها يحمل النموذج بقايا المشروع السابق.
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      filledFor.current = null;
+      return;
+    }
+    const key = project?.id ?? "new";
+    if (filledFor.current === key) return;
+    filledFor.current = key;
+    trash.reset();
     busy.current = false;
     setSavedAt(null);
     setError(null);
@@ -92,11 +115,20 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
       setMedia(project.media ?? []);
       setLinks(project.links ?? []);
     } else {
-      setForm({ ...EMPTY, subjectId: subjects[0]?.id ?? "" });
+      setForm({ ...EMPTY, subjectId: subjectsRef.current[0]?.id ?? "" });
       setCover(null);
       setMedia([]);
       setLinks([]);
     }
+  }, [open, project, trash]);
+
+  /* المادة الافتراضية إن وصلت قائمة المواد بعد فتح النموذج. تملأ
+     الفارغ فقط ولا تلمس اختيارًا قائمًا — فلا تُبدّل ما اختارته. */
+  useEffect(() => {
+    if (!open || project) return;
+    setForm((current) =>
+      current.subjectId ? current : { ...current, subjectId: subjects[0]?.id ?? "" },
+    );
   }, [open, project, subjects]);
 
   // أي تعديل بعد الحفظ يُعيد الحالة إلى «غير محفوظ» فورًا.
@@ -138,11 +170,17 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
     setLinkLabel("");
   }
 
-  async function removeMedia(item: MediaItem) {
-    // الحذف من التخزين أولًا ثم من الحالة: العكس كان سيترك ملفًا يتيمًا
-    // يستهلك مساحة بلا أي مرجع إليه.
-    await deleteFile(item.path);
+  /* الإزالة من النموذج الآن، والمحو من قاعدة البيانات بعد نجاح الحفظ:
+     ما دام المستند ما زال يشير إلى الصورة فمحوها يترك صورة مكسورة. */
+  function removeMedia(item: MediaItem) {
+    trash.drop(item.path);
     setMedia((current) => current.filter((entry) => entry.id !== item.id));
+  }
+
+  /** الإغلاق بلا حفظ: لا يُمحى ما أُزيل، ويُمحى ما رُفع ولم يُحفظ. */
+  function cancel() {
+    void trash.rollback();
+    onClose();
   }
 
   async function save() {
@@ -199,6 +237,9 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
         actor?.role ?? "guest",
       );
 
+      // الكتابة تأكّدت: الآن وحدها تُمحى الصور التي أُزيلت من النموذج.
+      await trash.commit();
+
       setSavedAt(Date.now());
       setCelebrate(true);
       window.setTimeout(() => {
@@ -222,7 +263,7 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
     <Modal
       open={open}
       title={project ? "تعديل المشروع" : "إضافة مشروع"}
-      onClose={onClose}
+      onClose={cancel}
       size="lg"
       footer={
         <>
@@ -240,7 +281,7 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
               </>
             )}
           </span>
-          <ClayButton variant="soft" onClick={onClose} disabled={saving}>
+          <ClayButton variant="soft" onClick={cancel} disabled={saving}>
             إلغاء
           </ClayButton>
           {/* اسم واحد للحفظ في الحالتين: كان «إضافة المشروع» بينما زرّ
@@ -358,8 +399,8 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
                 type="button"
                 className="iz-thumb__remove"
                 aria-label="حذف صورة الغلاف"
-                onClick={async () => {
-                  await deleteFile(cover.path);
+                onClick={() => {
+                  trash.drop(cover.path);
                   setCover(null);
                 }}
               >
@@ -377,8 +418,10 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
             crop
             cropAspect={4 / 3}
             label={cover ? "استبدال الغلاف" : "رفع غلاف"}
-            onUploaded={async (files) => {
-              if (cover) await deleteFile(cover.path);
+            onUploaded={(files) => {
+              // القديم يُزاح لا يُمحى: لو تراجعت عن الاستبدال عادت صورتها.
+              if (cover) trash.drop(cover.path);
+              trash.track(files[0].path);
               setCover({ url: files[0].url, path: files[0].path });
             }}
           />
@@ -419,7 +462,8 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
           accept={MEDIA_BACKEND === "firestore" ? "image" : "media"}
           multiple
           label="رفع صور"
-          onUploaded={(files: UploadedFile[]) =>
+          onUploaded={(files: UploadedFile[]) => {
+            files.forEach((file) => trash.track(file.path));
             setMedia((current) => [
               ...current,
               ...files.map((file) => ({
@@ -431,8 +475,8 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
                 size: file.size,
                 mime: file.mime,
               })),
-            ])
-          }
+            ]);
+          }}
         />
       </section>
 

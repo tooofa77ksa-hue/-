@@ -24,9 +24,11 @@
 import { addDoc, collection, deleteDoc, doc, getDoc } from "firebase/firestore";
 import { auth, db, isFirebaseUsable } from "@/injazi/firebase/client";
 import { COL } from "@/injazi/services/repo";
+import { MEDIA_PREFIX, isMediaRef, mediaIdOf } from "@/injazi/services/mediaRef";
 
-/** بادئة تميّز مرجع الصورة المحفوظة في Firestore عن أي رابط عادي. */
-export const MEDIA_PREFIX = "iz-media://";
+// شكل المرجع يعيش في mediaRef.ts (بلا تبعيات) ويُعاد تصديره من هنا حتى
+// يبقى كل مستورِد قديم عاملًا كما هو.
+export { MEDIA_PREFIX, isMediaRef };
 
 /** الحد الآمن للبايتات قبل الترميز (مستند Firestore ~1MiB). */
 export const MAX_MEDIA_BYTES = 700 * 1024;
@@ -35,10 +37,7 @@ const IMAGE_MIMES = ["image/webp", "image/jpeg", "image/png", "image/avif"];
 
 export class MediaError extends Error {}
 
-export const isMediaRef = (value: string | null | undefined): boolean =>
-  typeof value === "string" && value.startsWith(MEDIA_PREFIX);
-
-const idOf = (ref: string) => ref.slice(MEDIA_PREFIX.length);
+const idOf = mediaIdOf;
 
 function blobToDataUrl(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {

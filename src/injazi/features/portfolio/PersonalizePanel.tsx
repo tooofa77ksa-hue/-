@@ -5,7 +5,7 @@
   التصميم أو لتباين نصّ غير مقروء.
   المعاينة حيّة: التغيير يظهر في البطاقة أعلى النافذة قبل الحفظ.
 */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Media } from "@/injazi/ui/Media";
 import type { CSSProperties } from "react";
 import { motion } from "motion/react";
@@ -15,7 +15,8 @@ import { Modal } from "@/injazi/ui/Modal";
 import { Field, Notice, TextArea, TextInput } from "@/injazi/ui/primitives";
 import { IconPicker, Icon } from "@/injazi/ui/IconPicker";
 import { Uploader } from "@/injazi/ui/Uploader";
-import { deleteFile, studentScope } from "@/injazi/services/storage";
+import { useFileTrash } from "@/injazi/hooks/useFileTrash";
+import { studentScope } from "@/injazi/services/storage";
 import { logActivity, updateStudent } from "@/injazi/services/repo";
 import { showToast } from "@/injazi/lib/toast";
 import { ACCENT_PRESETS, CARD_STYLES, COVER_STYLES, THEMES, themeVars } from "@/injazi/themes/themes";
@@ -46,9 +47,27 @@ export function PersonalizePanel({ open, student, actor, onClose }: Props) {
      يمضي ويكتب «بلا صورة» بينما تظنّ صاحبة الشاشة أن صورتها حُفظت —
      ولا تكتشف ذلك إلا بعد التحديث، بلا سبب ظاهر. */
   const [photoError, setPhotoError] = useState<string | null>(null);
+  /* لا تُمحى صورة قبل أن يُحفظ المستند الذي تركها — التفصيل في
+     hooks/useFileTrash.ts. */
+  const trash = useFileTrash();
+  /*
+    التعبئة مرّة واحدة لكل فتح.
+    ------------------------------------------------------------------
+    student قراءة حيّة: كل لقطة من Firestore تُنتج كائنًا جديدًا، وهو
+    في اعتماديات هذا الأثر. فكانت لقطة واحدة تصل أثناء التحرير تُعيد
+    النص القديم فوق ما كُتب — وتُعيد الصورة التي حُذفت للتو، فتُحفظ
+    بعدها صورة ظنّت صاحبتها أنها أزالتها.
+  */
+  const filled = useRef(false);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      filled.current = false;
+      return;
+    }
+    if (filled.current) return;
+    filled.current = true;
+    trash.reset();
     setName(student.name);
     setBio(student.bio);
     setThemeId(student.themeId);
@@ -58,9 +77,16 @@ export function PersonalizePanel({ open, student, actor, onClose }: Props) {
     setDecorIcon(student.decorIcon);
     setPhoto(student.photoUrl ? { url: student.photoUrl, path: student.photoPath ?? "" } : null);
     setError(null);
-  }, [open, student]);
+    setPhotoError(null);
+  }, [open, student, trash]);
 
   const previewStyle = themeVars(themeId, accent) as CSSProperties;
+
+  /** الإغلاق بلا حفظ: لا يُمحى ما أُزيل، ويُمحى ما رُفع ولم يُحفظ. */
+  function cancel() {
+    void trash.rollback();
+    onClose();
+  }
 
   async function save() {
     if (name.trim().length < 2 || saving) return;
@@ -88,6 +114,8 @@ export function PersonalizePanel({ open, student, actor, onClose }: Props) {
         actor?.name ?? "زائرة",
         actor?.role ?? "guest",
       );
+      // الكتابة تأكّدت: الآن تُمحى الصورة التي أُزيلت من النموذج.
+      await trash.commit();
       showToast("تم حفظ التخصيص");
       onClose();
     } catch (err) {
@@ -101,11 +129,11 @@ export function PersonalizePanel({ open, student, actor, onClose }: Props) {
     <Modal
       open={open}
       title="تخصيص الملف"
-      onClose={onClose}
+      onClose={cancel}
       size="lg"
       footer={
         <>
-          <ClayButton variant="soft" onClick={onClose} disabled={saving}>
+          <ClayButton variant="soft" onClick={cancel} disabled={saving}>
             إلغاء
           </ClayButton>
           <ClayButton onClick={save} disabled={name.trim().length < 2} loading={saving}>
@@ -162,8 +190,10 @@ export function PersonalizePanel({ open, student, actor, onClose }: Props) {
             cropAspect={1}
             label={photo ? "استبدال الصورة" : "اختيار صورة"}
             onError={setPhotoError}
-            onUploaded={async (files) => {
-              if (photo) await deleteFile(photo.path);
+            onUploaded={(files) => {
+              // القديمة تُزاح لا تُمحى: لو تراجعت عن الاستبدال عادت.
+              if (photo) trash.drop(photo.path);
+              trash.track(files[0].path);
               setPhoto({ url: files[0].url, path: files[0].path });
               setPhotoError(null);
             }}
@@ -173,8 +203,8 @@ export function PersonalizePanel({ open, student, actor, onClose }: Props) {
               variant="ghost"
               className="iz-btn--danger"
               icon={<Trash2 size={16} strokeWidth={2.4} />}
-              onClick={async () => {
-                await deleteFile(photo.path);
+              onClick={() => {
+                trash.drop(photo.path);
                 setPhoto(null);
               }}
             >

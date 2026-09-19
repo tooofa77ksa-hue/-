@@ -10,7 +10,8 @@ import { ClayButton } from "@/injazi/components/ClayButton";
 import { Modal } from "@/injazi/ui/Modal";
 import { Field, Notice, SelectInput, TextArea, TextInput } from "@/injazi/ui/primitives";
 import { Uploader } from "@/injazi/ui/Uploader";
-import { deleteFile, studentScope } from "@/injazi/services/storage";
+import { useFileTrash } from "@/injazi/hooks/useFileTrash";
+import { studentScope } from "@/injazi/services/storage";
 import { createAchievement, logActivity, updateAchievement } from "@/injazi/services/repo";
 import { showToast } from "@/injazi/lib/toast";
 import { VISIBILITY_LABEL } from "@/injazi/lib/permissions";
@@ -37,11 +38,15 @@ export function AchievementEditor({ open, student, kind, achievement, actor, onC
   const [image, setImage] = useState<{ url: string; path: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /* لا تُمحى صورة قبل أن يُحفظ المستند الذي تركها — تفصيل السبب في
+     hooks/useFileTrash.ts. */
+  const trash = useFileTrash();
 
   const noun = kind === "certificate" ? "الشهادة" : "الإنجاز";
 
   useEffect(() => {
     if (!open) return;
+    trash.reset();
     setError(null);
     setTitle(achievement?.title ?? "");
     setDescription(achievement?.description ?? "");
@@ -54,7 +59,13 @@ export function AchievementEditor({ open, student, kind, achievement, actor, onC
     setImage(
       achievement?.imageUrl ? { url: achievement.imageUrl, path: achievement.imagePath ?? "" } : null,
     );
-  }, [open, achievement]);
+  }, [open, achievement, trash]);
+
+  /** الإغلاق بلا حفظ: لا يُمحى ما أُزيل، ويُمحى ما رُفع ولم يُحفظ. */
+  function cancel() {
+    void trash.rollback();
+    onClose();
+  }
 
   async function save() {
     if (title.trim().length < 2 || saving) return;
@@ -82,6 +93,8 @@ export function AchievementEditor({ open, student, kind, achievement, actor, onC
         await createAchievement(payload);
         showToast(`تمت إضافة ${noun}`);
       }
+      // الكتابة تأكّدت: الآن تُمحى الصورة التي أُزيلت من النموذج.
+      await trash.commit();
       await logActivity(
         "achievement.save",
         `${achievement ? "تم تعديل" : "تمت إضافة"} ${noun} «${payload.title}» لـ ${student.name}`,
@@ -100,10 +113,10 @@ export function AchievementEditor({ open, student, kind, achievement, actor, onC
     <Modal
       open={open}
       title={`${achievement ? "تعديل" : "إضافة"} ${noun}`}
-      onClose={onClose}
+      onClose={cancel}
       footer={
         <>
-          <ClayButton variant="soft" onClick={onClose} disabled={saving}>
+          <ClayButton variant="soft" onClick={cancel} disabled={saving}>
             إلغاء
           </ClayButton>
           <ClayButton onClick={save} disabled={title.trim().length < 2} loading={saving}>
@@ -179,8 +192,8 @@ export function AchievementEditor({ open, student, kind, achievement, actor, onC
                 type="button"
                 className="iz-thumb__remove"
                 aria-label="حذف الصورة"
-                onClick={async () => {
-                  await deleteFile(image.path);
+                onClick={() => {
+                  trash.drop(image.path);
                   setImage(null);
                 }}
               >
@@ -197,8 +210,10 @@ export function AchievementEditor({ open, student, kind, achievement, actor, onC
             crop
             cropAspect={4 / 3}
             label={image ? "استبدال الصورة" : "رفع صورة"}
-            onUploaded={async (files) => {
-              if (image) await deleteFile(image.path);
+            onUploaded={(files) => {
+              // القديمة تُزاح لا تُمحى: لو تراجعت عن الاستبدال عادت.
+              if (image) trash.drop(image.path);
+              trash.track(files[0].path);
               setImage({ url: files[0].url, path: files[0].path });
             }}
           />

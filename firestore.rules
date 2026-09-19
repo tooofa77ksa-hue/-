@@ -461,7 +461,22 @@ service cloud.firestore {
       // فلا يمكن تبديل محتوى صورة يشير إليها مستند طالبة أخرى.
       allow update: if false;
 
-      allow delete: if izIsAdmin() || resource.data.ownerUid == request.auth.uid;
+      /*
+        الحذف لمن يملك الملف الذي تظهر فيه الصورة، لا لمن رفعها وحده.
+        ------------------------------------------------------------
+        ownerUid هو uid الجلسة التي رفعت. وجلسة الطالبة مجهولة
+        (anonymous)، وuid المجهول يخصّ الجهاز والمتصفّح لا الشخص: تفتح
+        الطالبة رابطها من جوّال أمها أو بعد مسح بيانات المتصفّح فتصير
+        uid آخر. فكان شرط ownerUid وحده يمنعها من حذف صورتها هي —
+        والحذف يُبتلع صامتًا في الواجهة، فتختفي الصورة من الشاشة وتبقى
+        في قاعدة البيانات إلى الأبد بلا أي مرجع إليها.
+        الإضافة لا توسّع الصلاحية: من يستطيع تعديل ملف الطالبة يستطيع
+        أصلًا فصل الصورة عنه ورفع غيرها.
+      */
+      allow delete: if izIsAdmin()
+        || resource.data.ownerUid == request.auth.uid
+        || (resource.data.get('studentId', null) != null
+            && izCanEditStudent(resource.data.studentId));
     }
 
     match /{document=**} {

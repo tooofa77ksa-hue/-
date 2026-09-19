@@ -23,6 +23,7 @@ import {
   type Unsubscribe,
 } from "firebase/firestore";
 import { db, isFirebaseUsable } from "@/injazi/firebase/client";
+import { isMediaRef, mediaIdOf } from "@/injazi/services/mediaRef";
 import { DEFAULT_SETTINGS } from "@/injazi/types/models";
 import type {
   Achievement,
@@ -155,6 +156,53 @@ export async function reorder(name: string, orderedIds: string[]): Promise<void>
   فهذا العطل لا يظهر في أي اختبار محلي مهما كثر — يظهر في الإنتاج وحده.
   عدد مستندات الطالبة عشرات، فحساب الأقصى في المتصفّح بلا كلفة.
 */
+/*
+  كل مراجع الصور داخل مستند واحد.
+  ------------------------------------------------------------------
+  الصورة هنا مستند مستقل في apps/injazi/media يحمل نسخة base64 كاملة
+  (حتى ٧٠٠ كيلوبايت)، والمستند المرجعي لا يحمل إلا نصًّا قصيرًا.
+  فحذف مشروع دون حذف صوره يترك تلك النسخ في قاعدة البيانات بلا أي
+  طريق يصل إليها: مساحة محجوزة من حصة المدرسة المجانية إلى الأبد، ولا
+  زرّ في المنصة كلها يحذفها. ولهذا يُجمَع المرجع من كل حقل قد يحمله.
+  url وpath متطابقان على وجهة Firestore، فيُزال التكرار.
+*/
+function mediaRefsOf(data: Record<string, unknown>): string[] {
+  const found: string[] = [];
+  const add = (value: unknown) => {
+    if (typeof value === "string" && isMediaRef(value)) found.push(value);
+  };
+  add(data.coverUrl);
+  add(data.coverPath);
+  add(data.imageUrl);
+  add(data.imagePath);
+  add(data.photoUrl);
+  add(data.photoPath);
+  const attachments = Array.isArray(data.media) ? (data.media as Record<string, unknown>[]) : [];
+  for (const item of attachments) {
+    add(item?.url);
+    add(item?.path);
+  }
+  return [...new Set(found)];
+}
+
+/*
+  حذف صور مستند حُذف.
+  ------------------------------------------------------------------
+  خارج الدفعة عمدًا: قواعد الحماية قد ترفض حذف صورة رفعتها جلسة أخرى،
+  ورفض واحد داخل writeBatch يُسقط الدفعة كلها — فيصير المشروع غير
+  قابل للحذف إطلاقًا بسبب صورة. الترتيب هنا: يُحذف المستند المرجعي
+  أولًا (وهو ما طلبته المستخدمة)، ثم تُنظَّف الصور بأفضل جهد.
+*/
+async function purgeMedia(references: string[]): Promise<void> {
+  for (const reference of references) {
+    try {
+      await deleteDoc(doc(db, COL.media, mediaIdOf(reference)));
+    } catch {
+      /* صورة لجلسة أخرى أو محذوفة مسبقًا: لا توقف حذف صاحبها */
+    }
+  }
+}
+
 async function nextOrder(name: string, constraints: QueryConstraint[] = []): Promise<number> {
   const snapshot = await getDocs(query(collection(db, name), ...constraints));
   if (snapshot.empty) return 0;
@@ -197,16 +245,30 @@ export async function createStudent(input: Partial<Student> & { name: string }):
 
 export const updateStudent = (id: string, data: Partial<Student>) => patch(COL.students, id, data);
 
-/** حذف طالبة يزيل معها مشاريعها وإنجازاتها وتقييماتها — لا بيانات يتيمة. */
+/**
+ * حذف طالبة يزيل معها مشاريعها وإنجازاتها وتقييماتها وصورها ورابطها —
+ * لا بيانات يتيمة. الرابط بالذات: مستنده هو السرّ والصلاحية معًا،
+ * وبقاؤه بعد حذف صاحبته يعني جلسة تُمنح صلاحية على ملف لم يعد موجودًا.
+ */
 export async function deleteStudent(id: string): Promise<void> {
   assertReady();
+  const student = await getDoc(doc(db, COL.students, id));
+  const images = student.exists() ? mediaRefsOf(student.data()) : [];
+
   const batch = writeBatch(db);
   for (const name of [COL.projects, COL.achievements, COL.evaluations]) {
     const rows = await getDocs(query(collection(db, name), where("studentId", "==", id)));
-    rows.forEach((row) => batch.delete(row.ref));
+    rows.forEach((row) => {
+      images.push(...mediaRefsOf(row.data()));
+      batch.delete(row.ref);
+    });
   }
+  const links = await getDocs(query(collection(db, COL.studentLinks), where("studentId", "==", id)));
+  links.forEach((row) => batch.delete(row.ref));
   batch.delete(doc(db, COL.students, id));
   await batch.commit();
+
+  await purgeMedia([...new Set(images)]);
 }
 
 // ------------------------------------------------------------ المعلمات
@@ -314,13 +376,20 @@ export const updateProject = (id: string, data: Partial<Project>) => patch(COL.p
 export const archiveProject = (id: string, archived: boolean) =>
   patch(COL.projects, id, { archived });
 
+/** حذف مشروع يزيل معه تقييماته وصوره — لا نصّ ولا صورة ولا سجل يتيم. */
 export async function deleteProject(id: string): Promise<void> {
   assertReady();
+  const ref = doc(db, COL.projects, id);
+  const snapshot = await getDoc(ref);
+  const images = snapshot.exists() ? mediaRefsOf(snapshot.data()) : [];
+
   const batch = writeBatch(db);
   const evaluations = await getDocs(query(collection(db, COL.evaluations), where("projectId", "==", id)));
   evaluations.forEach((row) => batch.delete(row.ref));
-  batch.delete(doc(db, COL.projects, id));
+  batch.delete(ref);
   await batch.commit();
+
+  await purgeMedia(images);
 }
 
 // --------------------------------------------------------- التقييمات
@@ -391,7 +460,15 @@ export const updateAchievement = (id: string, data: Partial<Achievement>) =>
 
 export const archiveAchievement = (id: string, archived: boolean) =>
   patch(COL.achievements, id, { archived });
-export const deleteAchievement = (id: string) => remove(COL.achievements, id);
+/** وحذف الإنجاز يزيل صورته معه، للسبب نفسه. */
+export async function deleteAchievement(id: string): Promise<void> {
+  assertReady();
+  const ref = doc(db, COL.achievements, id);
+  const snapshot = await getDoc(ref);
+  const images = snapshot.exists() ? mediaRefsOf(snapshot.data()) : [];
+  await deleteDoc(ref);
+  await purgeMedia(images);
+}
 
 // ------------------------------------------------------------ الإعدادات
 
