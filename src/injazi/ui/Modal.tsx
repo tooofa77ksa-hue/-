@@ -3,7 +3,7 @@
   لا يُستخدَم window.confirm إطلاقًا: نافذة التأكيد هنا تحبس التركيز،
   تُغلق بـ Escape، تعيد التركيز لمصدرها، وتُظهر حالة "جارٍ الحذف".
 */
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
@@ -21,11 +21,39 @@ type ModalProps = {
   children: ReactNode;
   footer?: ReactNode;
   size?: "sm" | "md" | "lg";
+  /**
+   * هل في النموذج تعديل لم يُحفظ؟
+   * ------------------------------------------------------------------
+   * حين يكون صحيحًا، لا تُغلق النافذة بلمسة على الخلفية ولا بـEscape
+   * إلا بعد تأكيد. السبب عملي بحت: النموذج على الجوّال يملأ الشاشة
+   * تقريبًا، والإبهام يلمس حافتها بسهولة أثناء الكتابة — فكانت لمسة
+   * واحدة تمحو كل ما كُتب بلا سؤال ولا رجعة.
+   * زرّا «إلغاء» و«إغلاق» يبقيان فوريّين: هناك القصد واضح.
+   */
+  dirty?: boolean;
 };
 
-export function Modal({ open, title, onClose, children, footer, size = "md" }: ModalProps) {
+export function Modal({
+  open,
+  title,
+  onClose,
+  children,
+  footer,
+  size = "md",
+  dirty = false,
+}: ModalProps) {
   const panel = useRef<HTMLDivElement | null>(null);
   const opener = useRef<HTMLElement | null>(null);
+  /* المرجع لا الحالة: مستمع لوحة المفاتيح يُسجَّل مرة واحدة عند الفتح،
+     فقراءة dirty منه مباشرةً كانت ستلتقط قيمتها لحظة التسجيل لا لحظة
+     الضغط. */
+  const dirtyRef = useRef(dirty);
+  dirtyRef.current = dirty;
+
+  const requestClose = useCallback(() => {
+    if (dirtyRef.current && !window.confirm("لديكِ تعديل لم يُحفظ. هل تُغلقين بلا حفظ؟")) return;
+    onClose();
+  }, [onClose]);
 
   useEffect(() => {
     if (!open) return;
@@ -35,7 +63,7 @@ export function Modal({ open, title, onClose, children, footer, size = "md" }: M
 
     function onKey(event: KeyboardEvent) {
       if (event.key === "Escape") {
-        onClose();
+        requestClose();
         return;
       }
       // حبس التركيز: بدونه يهرب Tab إلى الصفحة خلف النافذة، وهي مخفية
@@ -66,7 +94,7 @@ export function Modal({ open, title, onClose, children, footer, size = "md" }: M
       document.body.style.overflow = previousOverflow;
       opener.current?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open, requestClose]);
 
   return (
     createPortal(
@@ -75,7 +103,7 @@ export function Modal({ open, title, onClose, children, footer, size = "md" }: M
         <div className="iz-modal-layer">
           <motion.div
             className="iz-modal__scrim"
-            onClick={onClose}
+            onClick={requestClose}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

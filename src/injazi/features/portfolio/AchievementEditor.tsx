@@ -3,7 +3,7 @@
   نموذج واحد لنوعين (إنجاز/شهادة) لأن الحقول متطابقة والفرق هو مكان
   العرض فقط — نموذجان منفصلان كانا سيضاعفان الصيانة بلا مقابل.
 */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Media } from "@/injazi/ui/Media";
 import { Trash2 } from "lucide-react";
 import { ClayButton } from "@/injazi/components/ClayButton";
@@ -14,6 +14,7 @@ import { useFileTrash } from "@/injazi/hooks/useFileTrash";
 import { studentScope } from "@/injazi/services/storage";
 import { createAchievement, logActivity, updateAchievement } from "@/injazi/services/repo";
 import { showToast } from "@/injazi/lib/toast";
+import { writeErrorMessage } from "@/injazi/lib/firestoreError";
 import { VISIBILITY_LABEL } from "@/injazi/lib/permissions";
 import type { Achievement, Student, UserDoc, Visibility } from "@/injazi/types/models";
 
@@ -38,6 +39,16 @@ export function AchievementEditor({ open, student, kind, achievement, actor, onC
   const [image, setImage] = useState<{ url: string; path: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /* فشل رفع الصورة يبقى معلَّقًا حتى يُعالَج: بدونه كان الحفظ يمضي
+     ويكتب الشهادة «بلا صورة» بينما صاحبتها متأكدة أنها أرفقتها. */
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  /*
+    قفل متزامن للحفظ.
+    حالة React لا تتحدّث فورًا: ضغطتان متتاليتان تقرآن معًا saving=false
+    قبل إعادة الرسم، فيمضيان معًا وتُنشأ شهادتان. هذا رُصد فعليًا في
+    محرّر المشاريع وعولج بمرجع؛ والمحرّر هنا كان ما زال يعتمد الحالة.
+  */
+  const busy = useRef(false);
   /* لا تُمحى صورة قبل أن يُحفظ المستند الذي تركها — تفصيل السبب في
      hooks/useFileTrash.ts. */
   const trash = useFileTrash();
@@ -47,7 +58,9 @@ export function AchievementEditor({ open, student, kind, achievement, actor, onC
   useEffect(() => {
     if (!open) return;
     trash.reset();
+    busy.current = false;
     setError(null);
+    setUploadError(null);
     setTitle(achievement?.title ?? "");
     setDescription(achievement?.description ?? "");
     setDate(achievement?.date ?? new Date().toISOString().slice(0, 10));
@@ -68,7 +81,12 @@ export function AchievementEditor({ open, student, kind, achievement, actor, onC
   }
 
   async function save() {
-    if (title.trim().length < 2 || saving) return;
+    if (title.trim().length < 2 || busy.current) return;
+    if (uploadError) {
+      setError("لم يكتمل رفع الصورة. عالجي المشكلة أعلاه أو احذفي الصورة قبل الحفظ.");
+      return;
+    }
+    busy.current = true;
     setSaving(true);
     setError(null);
     try {
@@ -103,7 +121,8 @@ export function AchievementEditor({ open, student, kind, achievement, actor, onC
       );
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "تعذّر الحفظ.");
+      setError(writeErrorMessage(err, "achievement"));
+      busy.current = false;
     } finally {
       setSaving(false);
     }
@@ -114,6 +133,7 @@ export function AchievementEditor({ open, student, kind, achievement, actor, onC
       open={open}
       title={`${achievement ? "تعديل" : "إضافة"} ${noun}`}
       onClose={cancel}
+      dirty={title.trim().length > 0 || description.trim().length > 0}
       footer={
         <>
           <ClayButton variant="soft" onClick={cancel} disabled={saving}>
@@ -204,6 +224,7 @@ export function AchievementEditor({ open, student, kind, achievement, actor, onC
             <p className="iz-field__meter">لا توجد صورة.</p>
           )}
           <Uploader
+            onError={setUploadError}
             scope={studentScope(student.id)}
             kind="achievements"
             accept="image"
@@ -244,6 +265,24 @@ export function AchievementEditor({ open, student, kind, achievement, actor, onC
             maxLength={60}
           />
         </Field>
+      )}
+
+      {uploadError && (
+        <Notice tone="danger">
+          <span>{uploadError}</span>
+          <span className="iz-chip-row" style={{ marginTop: 10 }}>
+            <ClayButton
+              variant="soft"
+              size="sm"
+              onClick={() => {
+                setUploadError(null);
+                setError(null);
+              }}
+            >
+              تجاهل ومتابعة بلا صورة
+            </ClayButton>
+          </span>
+        </Notice>
       )}
 
       {error && <Notice tone="danger">{error}</Notice>}

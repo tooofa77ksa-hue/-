@@ -44,16 +44,19 @@ export function TeacherPortal() {
   const { data: students } = useStudents();
 
   const mySubjectIds = useMemo(() => profile?.subjectIds ?? [], [profile]);
-  const { data: projects, loading } = useProjectsForSubjects(mySubjectIds);
+  const { data: projects, loading, error: projectsError } = useProjectsForSubjects(mySubjectIds);
 
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
+  // المواد نفسها لا عددها: نقل المعلمة من مادة إلى أخرى بنفس العدد كان
+  // يُبقي الاشتراك على حاله.
+  const subjectsKey = mySubjectIds.join(",");
   useEffect(() => {
-    if (mySubjectIds.length === 0) {
+    if (subjectsKey === "") {
       setEvaluations([]);
       return;
     }
     return liveCollection<Evaluation>(COL.evaluations, [], setEvaluations);
-  }, [mySubjectIds.length]);
+  }, [subjectsKey]);
 
   const [query, setQuery] = useState("");
   /* بحث الطالبات منفصل عن بحث المشاريع عمدًا: خلطهما في مربّع واحد
@@ -276,7 +279,17 @@ export function TeacherPortal() {
           </SelectInput>
         </div>
 
-        {loading ? (
+        {/* عطل القراءة يُقال صراحةً: «لم ترفع أي طالبة عملًا بعد» رسالة
+            مطمئنة، وقولها بينما السبب رفض صلاحية أو انقطاع شبكة يجعل
+            المعلمة تنتظر عملًا موجودًا فعلًا ولا يصلها. */}
+        {projectsError ? (
+          <EmptyState
+            object="pencil"
+            tone="apricot"
+            title="تعذّر تحميل المشاريع"
+            body={projectsError}
+          />
+        ) : loading ? (
           <SkeletonCards count={4} />
         ) : rows.length === 0 ? (
           hasAnyWork ? (

@@ -16,6 +16,7 @@ import { MEDIA_BACKEND, PLATFORM_SCOPE, deleteFile } from "@/injazi/services/sto
 import { logActivity, saveSettings } from "@/injazi/services/repo";
 import { useSession, useSettings } from "@/injazi/hooks/useLive";
 import { showToast } from "@/injazi/lib/toast";
+import { writeErrorMessage } from "@/injazi/lib/firestoreError";
 import { ACCENT_PRESETS, THEMES } from "@/injazi/themes/themes";
 import { pageVariants } from "@/injazi/motion/motion";
 import type { Settings } from "@/injazi/types/models";
@@ -38,6 +39,8 @@ export function AdminSettings() {
   const [form, setForm] = useState<Settings>(live);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /* فشل رفع الشعار يمنع الحفظ بدل أن يُكتب «بلا شعار» بصمت. */
+  const [logoError, setLogoError] = useState<string | null>(null);
 
   // النموذج يُزامَن مع المستند الحيّ حتى وصول أول قراءة فقط، فلا تُمسح
   // تعديلات المشرفة إن وصل تحديث أثناء الكتابة.
@@ -54,6 +57,10 @@ export function AdminSettings() {
   }
 
   async function save() {
+    if (logoError) {
+      setError("لم يكتمل رفع الشعار. عالجي المشكلة أو احذفيه قبل الحفظ.");
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -61,7 +68,7 @@ export function AdminSettings() {
       await logActivity("settings.save", "تم تحديث إعدادات المنصة", profile?.name ?? "مشرفة", "admin");
       showToast("تم حفظ الإعدادات");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "تعذّر الحفظ.");
+      setError(writeErrorMessage(err, "settings"));
     } finally {
       setBusy(false);
     }
@@ -124,6 +131,7 @@ export function AdminSettings() {
             <p className="iz-field__meter">لا يوجد شعار — يظهر اسم المنصة نصًّا.</p>
           )}
           <Uploader
+            onError={setLogoError}
             scope={PLATFORM_SCOPE}
             kind="settings"
             accept="image"

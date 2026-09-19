@@ -21,6 +21,7 @@ import { PublicHome } from "@/injazi/pages/PublicHome";
 import { StudentPortfolio } from "@/injazi/pages/StudentPortfolio";
 import { TeacherInvite } from "@/injazi/pages/TeacherInvite";
 import { StudentLinkEntry } from "@/injazi/pages/StudentLinkEntry";
+import { SelfCheck } from "@/injazi/pages/SelfCheck";
 import { ensureDisplayFont } from "@/injazi/lib/displayFont";
 import { startAppCheck } from "@/injazi/firebase/appCheck";
 import { useSettings } from "@/injazi/hooks/useLive";
@@ -130,6 +131,10 @@ export default function InjaziApp() {
                 <Route path="subjects" element={<AdminSubjects />} />
                 <Route path="settings" element={<AdminSettings />} />
               </Route>
+
+              {/* فحص ذاتي: ينفّذ العمليات الحقيقية ويطبع رمز كل فشل.
+                  «لا يحفظ» لا تُصلَح، ورمز الخطأ يُصلَح. */}
+              <Route path="check" element={<SelfCheck />} />
 
               <Route path="*" element={<PublicHome />} />
             </Routes>

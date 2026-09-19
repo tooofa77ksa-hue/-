@@ -19,6 +19,7 @@ import { Field, Notice, TextArea, TextInput } from "@/injazi/ui/primitives";
 import { Icon, IconPicker } from "@/injazi/ui/IconPicker";
 import { SortableList } from "@/injazi/ui/SortableList";
 import { logActivity, updateStudent } from "@/injazi/services/repo";
+import { writeErrorMessage } from "@/injazi/lib/firestoreError";
 import { showToast } from "@/injazi/lib/toast";
 import type { AboutEntry, Student, UserDoc } from "@/injazi/types/models";
 
@@ -52,15 +53,30 @@ export function AboutEditor({ open, student, actor, onClose }: Props) {
   const [error, setError] = useState<string | null>(null);
   const bodyRef = useRef<HTMLTextAreaElement | null>(null);
 
+  /*
+    التعبئة مرّة واحدة لكل فتح — للسبب نفسه المشروح في HobbiesEditor:
+    student قراءة حيّة، وأي لقطة تصل أثناء الكتابة كانت تمسح ما كُتب
+    وتُعطّل زر الحفظ. ولذلك لم يُكتب قسم «عني» واحد لأي طالبة قط.
+  */
+  const filled = useRef(false);
+  const [baseline, setBaseline] = useState<AboutEntry[]>([]);
+
   useEffect(() => {
-    if (!open) return;
-    setEntries(student.about ?? []);
+    if (!open) {
+      filled.current = false;
+      return;
+    }
+    if (filled.current) return;
+    filled.current = true;
+    const stored = student.about ?? [];
+    setEntries(stored);
+    setBaseline(stored);
     setTitle("");
     setBody("");
     setError(null);
   }, [open, student]);
 
-  const saved = student.about ?? [];
+  const saved = baseline;
   const dirty = JSON.stringify(entries) !== JSON.stringify(saved);
   const canAdd = title.trim().length >= 2 && body.trim().length >= 2;
 
@@ -97,10 +113,11 @@ export function AboutEditor({ open, student, actor, onClose }: Props) {
         actor?.name ?? "زائرة",
         actor?.role ?? "guest",
       );
+      setBaseline(clean);
       showToast("تم حفظ «عني»");
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "تعذّر الحفظ.");
+      setError(writeErrorMessage(err, "about"));
     } finally {
       setSaving(false);
     }
@@ -111,6 +128,7 @@ export function AboutEditor({ open, student, actor, onClose }: Props) {
       open={open}
       title="عني"
       onClose={onClose}
+      dirty={dirty}
       footer={
         <>
           <ClayButton

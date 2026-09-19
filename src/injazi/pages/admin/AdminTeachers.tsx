@@ -425,9 +425,13 @@ function TeacherEditor({
   const [photo, setPhoto] = useState<{ url: string; path: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /* فشل رفع الصورة يمنع الحفظ: بدونه كانت المعلمة تُحفَظ «بلا صورة»
+     والمشرفة متأكدة أنها أرفقتها. */
+  const [photoError, setPhotoError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
+    setPhotoError(null);
     setName(row?.name ?? "");
     setEmail(row?.email ?? "");
     setPassword("");
@@ -450,6 +454,10 @@ function TeacherEditor({
 
   async function save() {
     if (name.trim().length < 2 || busy) return;
+    if (photoError) {
+      setError("لم يكتمل رفع الصورة. عالجي المشكلة أو احذفي الصورة قبل الحفظ.");
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -607,6 +615,7 @@ function TeacherEditor({
               </div>
             )}
             <Uploader
+              onError={setPhotoError}
               scope={PLATFORM_SCOPE}
               kind="teachers"
               accept="image"

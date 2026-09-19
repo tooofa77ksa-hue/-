@@ -4,7 +4,7 @@
   (مشروع × معلمة) فتعديل تقييمها لاحقًا يحدّثه ولا ينشئ تقييمًا ثانيًا.
   منح شارة التميّز يُشغّل لحظة التاج مرة واحدة عند المنح فقط.
 */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Media } from "@/injazi/ui/Media";
 import { ExternalLink, FileText, Film } from "lucide-react";
 import { ClayButton } from "@/injazi/components/ClayButton";
@@ -14,6 +14,7 @@ import { Modal } from "@/injazi/ui/Modal";
 import { Field, Notice, SelectInput, TextArea } from "@/injazi/ui/primitives";
 import { Rating } from "@/injazi/ui/Rating";
 import { logActivity, saveEvaluation } from "@/injazi/services/repo";
+import { writeErrorMessage } from "@/injazi/lib/firestoreError";
 import { showToast } from "@/injazi/lib/toast";
 import type {
   Evaluation,
@@ -57,14 +58,30 @@ export function EvaluationEditor({
   const [error, setError] = useState<string | null>(null);
   const [celebrate, setCelebrate] = useState(false);
 
+  /*
+    التعبئة مرّة واحدة لكل فتح.
+    ------------------------------------------------------------------
+    existing يُشتق من مصفوفة تقييمات حيّة تُعاد بناؤها مع كل لقطة، وهي
+    مشتركة بين كل المعلمات: تقييم أي زميلة لأي مشروع يُطلق لقطة جديدة
+    هنا. فكانت المعلمة تكتب تعليقها ثم يُستبدَل فجأةً بالمحفوظ — وهي
+    تظنّ أنها كتبت، ثم تحفظ فيُكتب القديم.
+  */
+  const filledFor = useRef<string | null>(null);
+
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      filledFor.current = null;
+      return;
+    }
+    const key = project?.id ?? "none";
+    if (filledFor.current === key) return;
+    filledFor.current = key;
     setStars(existing?.stars ?? 5);
     setBadge(existing?.badge ?? false);
     setComment(existing?.comment ?? "");
     setStatus(existing?.status ?? "complete");
     setError(null);
-  }, [open, existing]);
+  }, [open, project, existing]);
 
   async function save() {
     if (!project || !teacher || saving) return;
@@ -98,7 +115,7 @@ export function EvaluationEditor({
         onClose();
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "تعذّر حفظ التقييم.");
+      setError(writeErrorMessage(err, "evaluation"));
     } finally {
       setSaving(false);
     }
@@ -110,6 +127,7 @@ export function EvaluationEditor({
         open={open}
         title={project ? `تقييم: ${project.title}` : "تقييم"}
         onClose={onClose}
+        dirty={comment.trim() !== (existing?.comment ?? "")}
         size="lg"
         footer={
           <>

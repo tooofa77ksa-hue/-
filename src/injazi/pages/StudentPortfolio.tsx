@@ -37,7 +37,7 @@ import { PersonalizePanel } from "@/injazi/features/portfolio/PersonalizePanel";
 import { ProjectCard } from "@/injazi/features/portfolio/ProjectCard";
 import { ProjectEditor } from "@/injazi/features/portfolio/ProjectEditor";
 import { ConfirmDialog } from "@/injazi/ui/Modal";
-import { Chip, MetricCard, Panel, SectionTitle, Skeleton } from "@/injazi/ui/primitives";
+import { Chip, MetricCard, Notice, Panel, SectionTitle, Skeleton } from "@/injazi/ui/primitives";
 import { Icon } from "@/injazi/ui/IconPicker";
 import { Rating } from "@/injazi/ui/Rating";
 import {
@@ -65,12 +65,19 @@ import type { Achievement, Project } from "@/injazi/types/models";
 export function StudentPortfolio() {
   const { studentId = "" } = useParams();
   const { profile } = useSession();
-  const { data: student, loading } = useStudent(studentId);
+  const { data: student, loading, error: studentError } = useStudent(studentId);
   const { data: subjects } = useSubjects();
   const { data: teachers } = useTeachers();
-  const { data: projects } = useStudentProjects(studentId);
-  const { data: achievements } = useStudentAchievements(studentId);
-  const { data: evaluations } = useStudentEvaluations(studentId);
+  const { data: projects, error: projectsError } = useStudentProjects(studentId);
+  const { data: achievements, error: achievementsError } = useStudentAchievements(studentId);
+  const { data: evaluations, error: evaluationsError } = useStudentEvaluations(studentId);
+  /*
+    عطل القراءة يُقال، لا يُترجَم إلى «لا يوجد شيء».
+    القائمة الفارغة بسبب رفض صلاحية أو انقطاع شبكة كانت تُعرض بالضبط
+    كقائمة فارغة لأن الطالبة لم تُضِف بعد — وهي أسوأ رسالة ممكنة:
+    كذبٌ يبدو طبيعيًا، ولا شيء فيه يدلّ على أن هناك عطلًا أصلًا.
+  */
+  const readError = studentError ?? projectsError ?? achievementsError ?? evaluationsError;
 
   const [projectEditor, setProjectEditor] = useState<{ open: boolean; project: Project | null }>({
     open: false,
@@ -147,8 +154,8 @@ export function StudentPortfolio() {
         <EmptyState
           object="globe"
           tone="sky"
-          title="لم نجد هذا الملف"
-          body="ربما حُذف الملف أو تغيّر رابطه."
+          title={studentError ? "تعذّر فتح الملف" : "لم نجد هذا الملف"}
+          body={studentError ?? "ربما حُذف الملف أو تغيّر رابطه."}
           action={
             <ClayButton to="/" size="lg">
               العودة للرئيسية
@@ -184,6 +191,8 @@ export function StudentPortfolio() {
         <ArrowRight size={18} strokeWidth={2.6} aria-hidden="true" />
         كل الطالبات
       </Link>
+
+      {readError && <Notice tone="danger">{readError}</Notice>}
 
       {/* ---------------- ترويسة الملف ---------------- */}
       <motion.header className="iz-profile" variants={staggerContainer}>

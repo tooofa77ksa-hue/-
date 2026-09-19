@@ -6,7 +6,7 @@
   التعديل يحدث على نسخة محلية، ويُحفظ كله بضغطة واحدة مع إمكانية
   التراجع عمّا لم يُحفظ بعد.
 */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Plus, RotateCcw, Trash2 } from "lucide-react";
 import { ClayButton } from "@/injazi/components/ClayButton";
 import { Modal } from "@/injazi/ui/Modal";
@@ -14,6 +14,7 @@ import { Field, Notice, TextInput } from "@/injazi/ui/primitives";
 import { Icon, IconPicker } from "@/injazi/ui/IconPicker";
 import { SortableList } from "@/injazi/ui/SortableList";
 import { logActivity, updateStudent } from "@/injazi/services/repo";
+import { writeErrorMessage } from "@/injazi/lib/firestoreError";
 import { showToast } from "@/injazi/lib/toast";
 import type { Hobby, Student, UserDoc } from "@/injazi/types/models";
 
@@ -30,15 +31,40 @@ export function HobbiesEditor({ open, student, actor, onClose }: Props) {
   const [icon, setIcon] = useState("Heart");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /*
+    التعبئة مرّة واحدة لكل فتح.
+    ------------------------------------------------------------------
+    student قراءة حيّة: كل لقطة من Firestore تُنتج كائنًا جديدًا، وهو في
+    اعتماديات هذا الأثر. فكانت أي لقطة تصل أثناء الكتابة تمسح ما كُتب
+    وتعيده إلى المحفوظ — ولقطة كهذه تصل حتمًا: لقطة الخادم بعد لقطة
+    الذاكرة، أو سحبُ المشرفة لإعادة ترتيب الطالبات (يكتب order على كل
+    مستند طالبة)، أو مجرّد عودة الاتصال على جوّال.
+    والأسوأ أن زر «حفظ» معطَّل ما لم يتغيّر شيء، فبعد المسح يموت الزر.
+    ولهذا لم تُحفظ هواية واحدة لأي طالبة منذ إطلاق المنصة.
+  */
+  const filled = useRef(false);
+  /*
+    والمقارنة تكون مع ما فُتح عليه النموذج، لا مع القراءة الحيّة: لو
+    تغيّر المستند من جهاز آخر وهي تكتب، فالمقارنة بالحيّ تقلب حالة
+    «غير محفوظ» عشوائيًا وتُعطّل الزر أو تُفعّله بلا سبب.
+  */
+  const [baseline, setBaseline] = useState<Hobby[]>([]);
 
   useEffect(() => {
-    if (!open) return;
-    setHobbies(student.hobbies ?? []);
+    if (!open) {
+      filled.current = false;
+      return;
+    }
+    if (filled.current) return;
+    filled.current = true;
+    const saved = student.hobbies ?? [];
+    setHobbies(saved);
+    setBaseline(saved);
     setLabel("");
     setError(null);
   }, [open, student]);
 
-  const dirty = JSON.stringify(hobbies) !== JSON.stringify(student.hobbies ?? []);
+  const dirty = JSON.stringify(hobbies) !== JSON.stringify(baseline);
 
   function add() {
     const text = label.trim();
@@ -61,10 +87,11 @@ export function HobbiesEditor({ open, student, actor, onClose }: Props) {
         actor?.name ?? "زائرة",
         actor?.role ?? "guest",
       );
+      setBaseline(hobbies);
       showToast("تم حفظ الهوايات");
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "تعذّر الحفظ.");
+      setError(writeErrorMessage(err, "hobbies"));
     } finally {
       setSaving(false);
     }
@@ -75,12 +102,13 @@ export function HobbiesEditor({ open, student, actor, onClose }: Props) {
       open={open}
       title="هواياتي"
       onClose={onClose}
+      dirty={dirty}
       footer={
         <>
           <ClayButton
             variant="ghost"
             icon={<RotateCcw size={16} strokeWidth={2.4} />}
-            onClick={() => setHobbies(student.hobbies ?? [])}
+            onClick={() => setHobbies(baseline)}
             disabled={!dirty || saving}
           >
             تراجع

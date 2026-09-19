@@ -19,6 +19,7 @@ import { useFileTrash } from "@/injazi/hooks/useFileTrash";
 import { MEDIA_BACKEND, studentScope } from "@/injazi/services/storage";
 import { createProject, logActivity, updateProject } from "@/injazi/services/repo";
 import { showToast } from "@/injazi/lib/toast";
+import { writeErrorMessage } from "@/injazi/lib/firestoreError";
 import { VISIBILITY_LABEL } from "@/injazi/lib/permissions";
 import { DUR, EASE_POP } from "@/injazi/motion/motion";
 import type { LinkItem, MediaItem, Project, Student, Subject, UserDoc, Visibility } from "@/injazi/types/models";
@@ -57,7 +58,15 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
   const [error, setError] = useState<string | null>(null);
   /* فشل رفع صورة يبقى معلَّقًا حتى يُعالَج: بدونه يُحفظ المشروع بلا
      صورته وتظنّ صاحبته أنها حُفظت معه. */
-  const [uploadError, setUploadError] = useState<string | null>(null);
+  /*
+    خطأ مستقل لكل رافعة.
+    كانتا تتشاركان حالة واحدة، وUploader يصفّر الخطأ في بداية كل محاولة
+    جديدة — فنجاح رفع الغلاف كان يمحو فشل رفع صور المشروع ويرفع المنع
+    عن الحفظ، فيُحفظ المشروع ناقص الصور وهو يبدو ناجحًا تمامًا.
+  */
+  const [coverError, setCoverError] = useState<string | null>(null);
+  const [mediaError, setMediaError] = useState<string | null>(null);
+  const uploadError = coverError ?? mediaError;
   /*
     قفل متزامن للحفظ.
     حالة React لا تتحدّث فورًا: ضغطتان متتاليتان تقرآن معًا saving=false
@@ -65,6 +74,9 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
     فعلًا في الفحص. المرجع يتغيّر في اللحظة نفسها، فيُوقف الثانية.
   */
   const busy = useRef(false);
+  /* مؤقّت لحظة الاحتفال. بلا تنظيفه كان الإلغاء ثم إعادة الفتح خلال
+     ١٫٤ ثانية يجعل المؤقّت القديم يُغلق النموذج الجديد ويضيع ما كُتب. */
+  const closeTimer = useRef<number | null>(null);
   /* حالة الحفظ في شريط الأزرار.
      «تم الحفظ» لا تُعرض إلا بعد أن يؤكّد الخادم الكتابة فعلًا — لا عند
      الضغط ولا عند انتهاء الرسم. الطالبة تملأ نموذجًا طويلًا، ولها أن
@@ -99,7 +111,8 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
     busy.current = false;
     setSavedAt(null);
     setError(null);
-    setUploadError(null);
+    setCoverError(null);
+    setMediaError(null);
     setCelebrate(false);
     setLinkDraft("");
     setLinkLabel("");
@@ -130,6 +143,13 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
       current.subjectId ? current : { ...current, subjectId: subjects[0]?.id ?? "" },
     );
   }, [open, project, subjects]);
+
+  useEffect(
+    () => () => {
+      if (closeTimer.current !== null) window.clearTimeout(closeTimer.current);
+    },
+    [],
+  );
 
   // أي تعديل بعد الحفظ يُعيد الحالة إلى «غير محفوظ» فورًا.
   useEffect(() => {
@@ -179,8 +199,16 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
 
   /** الإغلاق بلا حفظ: لا يُمحى ما أُزيل، ويُمحى ما رُفع ولم يُحفظ. */
   function cancel() {
+    clearCloseTimer();
     void trash.rollback();
     onClose();
+  }
+
+  function clearCloseTimer() {
+    if (closeTimer.current !== null) {
+      window.clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
   }
 
   async function save() {
@@ -242,7 +270,8 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
 
       setSavedAt(Date.now());
       setCelebrate(true);
-      window.setTimeout(() => {
+      closeTimer.current = window.setTimeout(() => {
+        closeTimer.current = null;
         setCelebrate(false);
         onClose();
       }, 1400);
@@ -253,7 +282,7 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
       setSaving(false);
       return;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "تعذّر الحفظ.");
+      setError(writeErrorMessage(err, "project"));
       busy.current = false;
       setSaving(false);
     }
@@ -264,6 +293,7 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
       open={open}
       title={project ? "تعديل المشروع" : "إضافة مشروع"}
       onClose={cancel}
+      dirty={savedAt === null && (form.title.trim() !== "" || form.description.trim() !== "")}
       size="lg"
       footer={
         <>
@@ -307,7 +337,8 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
               variant="soft"
               size="sm"
               onClick={() => {
-                setUploadError(null);
+                setCoverError(null);
+                setMediaError(null);
                 setError(null);
               }}
             >
@@ -411,7 +442,7 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
             <p className="iz-field__meter">لم تُضَف صورة غلاف بعد.</p>
           )}
           <Uploader
-            onError={setUploadError}
+            onError={setCoverError}
             scope={scope}
             kind="projects/covers"
             accept="image"
@@ -456,7 +487,7 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
           </div>
         )}
         <Uploader
-          onError={setUploadError}
+          onError={setMediaError}
           scope={scope}
           kind="projects/media"
           accept={MEDIA_BACKEND === "firestore" ? "image" : "media"}

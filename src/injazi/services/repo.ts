@@ -219,8 +219,12 @@ export function liveStudents(onData: (rows: Student[]) => void, onError?: (e: Er
   return liveCollection<Student>(COL.students, [orderBy("order", "asc")], onData, onError);
 }
 
-export function liveStudent(id: string, onData: (row: Student | null) => void) {
-  return liveDoc<Student>(COL.students, id, onData);
+export function liveStudent(
+  id: string,
+  onData: (row: Student | null) => void,
+  onError?: (e: Error) => void,
+) {
+  return liveDoc<Student>(COL.students, id, onData, onError);
 }
 
 export async function createStudent(input: Partial<Student> & { name: string }): Promise<string> {
@@ -325,17 +329,30 @@ export const deleteSubject = (id: string) => remove(COL.subjects, id);
 
 // ----------------------------------------------------------- المشاريع
 
-export function liveProjectsByStudent(studentId: string, onData: (rows: Project[]) => void) {
+export function liveProjectsByStudent(
+  studentId: string,
+  onData: (rows: Project[]) => void,
+  onError?: (e: Error) => void,
+) {
   // where + orderBy على حقلين مختلفين يستلزم فهرسًا مركّبًا؛ الترتيب هنا
   // في المتصفّح فلا يتوقّف عرض ملف الطالبة على فهرس لم يُنشأ.
+  //
+  // ومعالج الخطأ ليس زينة: بدونه كان رفض الصلاحية أو نقص الفهرس أو
+  // انقطاع الشبكة يُنتج قائمة فارغة صامتة تقول «لا توجد مشاريع بعد» —
+  // وهي أسوأ رسالة ممكنة، لأنها كذب يبدو طبيعيًا.
   return liveCollection<Project>(
     COL.projects,
     [where("studentId", "==", studentId)],
     (rows) => onData([...rows].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))),
+    onError,
   );
 }
 
-export function liveProjectsBySubjects(subjectIds: string[], onData: (rows: Project[]) => void) {
+export function liveProjectsBySubjects(
+  subjectIds: string[],
+  onData: (rows: Project[]) => void,
+  onError?: (e: Error) => void,
+) {
   if (subjectIds.length === 0) {
     onData([]);
     return () => {};
@@ -346,6 +363,7 @@ export function liveProjectsBySubjects(subjectIds: string[], onData: (rows: Proj
     COL.projects,
     [where("subjectId", "in", subjectIds.slice(0, 10))],
     (rows) => onData([...rows].sort((a, b) => b.createdAt.localeCompare(a.createdAt))),
+    onError,
   );
 }
 
@@ -394,8 +412,17 @@ export async function deleteProject(id: string): Promise<void> {
 
 // --------------------------------------------------------- التقييمات
 
-export function liveEvaluationsByStudent(studentId: string, onData: (rows: Evaluation[]) => void) {
-  return liveCollection<Evaluation>(COL.evaluations, [where("studentId", "==", studentId)], onData);
+export function liveEvaluationsByStudent(
+  studentId: string,
+  onData: (rows: Evaluation[]) => void,
+  onError?: (e: Error) => void,
+) {
+  return liveCollection<Evaluation>(
+    COL.evaluations,
+    [where("studentId", "==", studentId)],
+    onData,
+    onError,
+  );
 }
 
 /** تقييم واحد لكل (مشروع × معلمة): المعرّف مركّب فيصبح الحفظ idempotent. */
@@ -422,11 +449,16 @@ export const deleteEvaluation = (id: string) => remove(COL.evaluations, id);
 
 // -------------------------------------------------- الإنجازات والشهادات
 
-export function liveAchievements(studentId: string, onData: (rows: Achievement[]) => void) {
+export function liveAchievements(
+  studentId: string,
+  onData: (rows: Achievement[]) => void,
+  onError?: (e: Error) => void,
+) {
   return liveCollection<Achievement>(
     COL.achievements,
     [where("studentId", "==", studentId)],
     (rows) => onData([...rows].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))),
+    onError,
   );
 }
 

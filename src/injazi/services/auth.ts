@@ -58,6 +58,36 @@ function wrap(error: unknown): AuthError {
   return new AuthError(humanize(code));
 }
 
+/*
+  فشل القراءة ليس إلغاءً للرابط.
+  ==================================================================
+  كان الكود يكتب `.catch(() => null)` حول قراءة الرابط، فيصير أي
+  انقطاع شبكة لحظي مساويًا تمامًا لرابط محذوف — والنتيجة رسالة
+  «هذا الرابط لم يعد صالحًا، اطلبي رابطًا جديدًا» تُقال لأمّ رابطها
+  سليم تمامًا، ومعها تسجيل خروج يزيد الطين بلّة. ثم تطلب المشرفة
+  رابطًا جديدًا فيُلغى القديم على بقية الأجهزة فعلًا — عطل يصنع نفسه.
+
+  فرقٌ واحد يحسم الأمر: «غير موجود» تعني الإلغاء، و«تعذّرت القراءة»
+  تعني الشبكة. ولا نسجّل خروجًا في الحالة الثانية إطلاقًا.
+*/
+async function readOrExplain<T>(read: () => Promise<T>, what: string): Promise<T> {
+  try {
+    return await read();
+  } catch (error) {
+    const code = (error as { code?: string })?.code ?? "";
+    // eslint-disable-next-line no-console
+    console.error("[Auth]", what, code, error);
+    if (code === "permission-denied") {
+      throw new AuthError(
+        `تعذّر التحقّق من ${what}. أغلقي الصفحة وافتحي رابطكِ من جديد — رابطكِ لم يُلغَ.`,
+      );
+    }
+    throw new AuthError(
+      `تعذّر التحقّق من ${what} — الاتصال لم يكتمل. تحقّقي من الإنترنت ثم أعيدي فتح الرابط. رابطكِ لم يُلغَ ولم يتغيّر شيء.`,
+    );
+  }
+}
+
 export async function signIn(email: string, password: string): Promise<UserDoc | null> {
   if (!isFirebaseUsable) throw new AuthError("لم تُضبَط إعدادات Firebase بعد.");
   try {
@@ -116,7 +146,7 @@ export async function signInWithInvite(code: string): Promise<UserDoc> {
   const uid = credential.user.uid;
 
   // تُقرأ الدعوة بعد الدخول لا قبله: القواعد تشترط هوية للقراءة.
-  const invite = await getInvite(code).catch(() => null);
+  const invite = await readOrExplain(() => getInvite(code), "الرابط");
   if (!invite || invite.active !== true) {
     // ملف الصلاحيات القديم على هذا الجهاز لا قيمة له بعد إلغاء الرابط —
     // القواعد ترفض كل كتابة منه. نُسقط الجلسة حتى لا تبقى الواجهة تُظهر
@@ -125,7 +155,7 @@ export async function signInWithInvite(code: string): Promise<UserDoc> {
     throw new AuthError("هذا الرابط لم يعد صالحًا. اطلبي رابطًا جديدًا من مشرفة المنصة.");
   }
 
-  const existing = await getUserDoc(uid).catch(() => null);
+  const existing = await readOrExplain(() => getUserDoc(uid), "صلاحيتكِ");
   const staleGrant =
     existing &&
     (existing.inviteCode !== code ||
@@ -200,13 +230,13 @@ export async function signInWithStudentLink(code: string): Promise<UserDoc> {
 
   const uid = credential.user.uid;
 
-  const link = await getStudentLink(code).catch(() => null);
+  const link = await readOrExplain(() => getStudentLink(code), "الرابط");
   if (!link || link.active !== true) {
     await signOut(auth).catch(() => {});
     throw new AuthError("هذا الرابط لم يعد صالحًا. اطلبي رابطًا جديدًا من مشرفة المنصة.");
   }
 
-  const existing = await getUserDoc(uid).catch(() => null);
+  const existing = await readOrExplain(() => getUserDoc(uid), "صلاحيتكِ");
   const stale =
     existing &&
     (existing.linkCode !== code ||

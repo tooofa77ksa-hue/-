@@ -23,6 +23,7 @@ import {
   liveTeachers,
   liveUsers,
 } from "@/injazi/services/repo";
+import { readErrorMessage } from "@/injazi/lib/firestoreError";
 import { DEFAULT_SETTINGS } from "@/injazi/types/models";
 import type {
   Achievement,
@@ -39,35 +40,6 @@ import type {
 } from "@/injazi/types/models";
 
 export type Loadable<T> = { data: T; loading: boolean; error: string | null };
-
-/*
-  رسالة الخطأ كما تقرؤها طالبة في الرابع الابتدائي.
-  ------------------------------------------------------------------
-  رسائل Firestore إنجليزية وتحمل روابط لوحة تحكّم المطوّر (رابط إنشاء
-  فهرس مثلًا). ظهورها في ملف الطالبة ليس قبحًا فحسب: هو تسريب لتفاصيل
-  البنية التحتية إلى شاشة طفلة، ولا يفيدها بشيء. فتُترجَم هنا عند
-  الحدّ، مرة واحدة، فلا يمكن لأي شاشة أن تعرض النصّ الخام.
-  والنصّ الأصلي يبقى في طرفية المطوّر للتشخيص.
-*/
-function humanizeQueryError(err: Error): string {
-  const code = (err as { code?: string }).code ?? "";
-  // eslint-disable-next-line no-console
-  console.error("[Firestore]", code, err.message);
-
-  if (code === "permission-denied") {
-    return "لا تملكين صلاحية عرض هذا المحتوى.";
-  }
-  if (code === "unavailable" || code === "deadline-exceeded") {
-    return "تعذّر الوصول إلى الخادم. تحقّقي من الاتصال ثم حدّثي الصفحة.";
-  }
-  if (code === "failed-precondition") {
-    return "تعذّر تحميل هذا القسم بسبب إعداد ناقص في قاعدة البيانات. أبلغي المشرفة.";
-  }
-  if (code === "unauthenticated") {
-    return "انتهت الجلسة. افتحي رابطكِ من جديد.";
-  }
-  return "تعذّر تحميل البيانات. حدّثي الصفحة، وإن تكرّر أبلغي المشرفة.";
-}
 
 function useLiveList<T>(
   subscribe: (onData: (rows: T[]) => void, onError?: (e: Error) => void) => () => void,
@@ -86,7 +58,7 @@ function useLiveList<T>(
         setLoading(false);
       },
       (err) => {
-        setError(humanizeQueryError(err));
+        setError(readErrorMessage(err, "list"));
         setLoading(false);
       },
     );
@@ -103,6 +75,8 @@ export type SessionState = {
   uid: string | null;
   profile: UserDoc | null;
   loading: boolean;
+  /** فشل قراءة ملف الصلاحيات — لا يعني غيابه. */
+  error: string | null;
 };
 
 /** الجلسة الحالية + دور المستخدمة من users/{uid}. */
@@ -111,11 +85,12 @@ export function useSession(): SessionState {
     uid: null,
     profile: null,
     loading: isFirebaseUsable,
+    error: null,
   });
 
   useEffect(() => {
     if (!isFirebaseUsable) {
-      setState({ uid: null, profile: null, loading: false });
+      setState({ uid: null, profile: null, loading: false, error: null });
       return;
     }
 
@@ -126,7 +101,7 @@ export function useSession(): SessionState {
       stopProfile = undefined;
 
       if (!user) {
-        setState({ uid: null, profile: null, loading: false });
+        setState({ uid: null, profile: null, loading: false, error: null });
         return;
       }
 
@@ -139,8 +114,23 @@ export function useSession(): SessionState {
         تعطّله المشرفة أثناء الجلسة. قراءة واحدة عند الدخول كانت تترك
         الترويسة تعرض «دخول» لمعلمة داخلة فعلًا.
       */
-      stopProfile = liveDoc<UserDoc>(COL.users, user.uid, (profile) =>
-        setState({ uid: user.uid, profile, loading: false }),
+      stopProfile = liveDoc<UserDoc>(
+        COL.users,
+        user.uid,
+        (profile) => setState({ uid: user.uid, profile, loading: false, error: null }),
+        /*
+          أخطر موضع في الملف كله: بدون هذا المعالج كان فشل قراءة ملف
+          الصلاحيات يُبقي loading=true إلى الأبد — فتعلق شاشة «جارٍ
+          التحقق من الصلاحية…»، ويبقى profile فارغًا فتختفي كل أزرار
+          التعديل من ملف الطالبة بلا أي سبب ظاهر.
+        */
+        (err) =>
+          setState({
+            uid: user.uid,
+            profile: null,
+            loading: false,
+            error: readErrorMessage(err, "session"),
+          }),
       );
     });
 
@@ -165,31 +155,61 @@ export const useInvites = () => useLiveList<TeacherInvite>(liveInvites);
 export const useStudentLinks = () => useLiveList<StudentLink>(liveStudentLinks);
 export const useActivity = () => useLiveList<ActivityLog>(liveActivity);
 
+/*
+  الوسيط الثاني (onError) كان يُهمَل في هذه الأربعة وحدها — وهي بالذات
+  بيانات الطالبة والمعلمة. فكان رفض الصلاحية أو نقص الفهرس أو انقطاع
+  الشبكة يُنتج قائمة فارغة صامتة: «لا توجد مشاريع بعد» بينما السبب شيء
+  آخر تمامًا. تمريره هنا يوصلها بمترجم الأخطاء الذي كان موجودًا ولا
+  يُستدعى.
+*/
 export const useStudentProjects = (studentId: string) =>
-  useLiveList<Project>((onData) => liveProjectsByStudent(studentId, onData), [studentId]);
+  useLiveList<Project>(
+    (onData, onError) => liveProjectsByStudent(studentId, onData, onError),
+    [studentId],
+  );
 
 export const useStudentAchievements = (studentId: string) =>
-  useLiveList<Achievement>((onData) => liveAchievements(studentId, onData), [studentId]);
+  useLiveList<Achievement>(
+    (onData, onError) => liveAchievements(studentId, onData, onError),
+    [studentId],
+  );
 
 export const useStudentEvaluations = (studentId: string) =>
-  useLiveList<Evaluation>((onData) => liveEvaluationsByStudent(studentId, onData), [studentId]);
+  useLiveList<Evaluation>(
+    (onData, onError) => liveEvaluationsByStudent(studentId, onData, onError),
+    [studentId],
+  );
 
 export const useProjectsForSubjects = (subjectIds: string[]) =>
-  useLiveList<Project>((onData) => liveProjectsBySubjects(subjectIds, onData), [subjectIds.join(",")]);
+  useLiveList<Project>(
+    (onData, onError) => liveProjectsBySubjects(subjectIds, onData, onError),
+    [subjectIds.join(",")],
+  );
 
 export function useStudent(id: string): Loadable<Student | null> {
   const [data, setData] = useState<Student | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);
-    return liveStudent(id, (row) => {
-      setData(row);
-      setLoading(false);
-    });
+    setError(null);
+    return liveStudent(
+      id,
+      (row) => {
+        setData(row);
+        setLoading(false);
+      },
+      /* بدون هذا كان فشل قراءة مستند الطالبة يترك loading=true إلى
+         الأبد: هيكل تحميل دائم لا ينتهي ولا يقول شيئًا. */
+      (err) => {
+        setError(readErrorMessage(err, "student"));
+        setLoading(false);
+      },
+    );
   }, [id]);
 
-  return { data, loading, error: null };
+  return { data, loading, error };
 }
 
 export function useSettings(): Settings {
