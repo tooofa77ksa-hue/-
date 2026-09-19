@@ -37,6 +37,8 @@ type Props = {
   student: Student | undefined;
   subject: Subject | undefined;
   existing: Evaluation | undefined;
+  /** هل وصلت التقييمات من الخادم؟ existing قبلها لا معنى له. */
+  ready: boolean;
   teacher: UserDoc | null;
   onClose: () => void;
 };
@@ -47,6 +49,7 @@ export function EvaluationEditor({
   student,
   subject,
   existing,
+  ready,
   teacher,
   onClose,
 }: Props) {
@@ -67,24 +70,51 @@ export function EvaluationEditor({
     تظنّ أنها كتبت، ثم تحفظ فيُكتب القديم.
   */
   const filledFor = useRef<string | null>(null);
+  /* ما فُتح عليه النموذج — للمقارنة بـ«غير محفوظ». */
+  const [baseline, setBaseline] = useState({ stars: 5, badge: false, comment: "", status: "complete" as EvaluationStatus });
 
+  /*
+    التعبئة مرّة واحدة — بعد أن يُعرَف المحفوظ لا قبله.
+    ------------------------------------------------------------------
+    كان الشرط «أول فتح» وحده، فإن وصلت لقطة التقييمات بعد الفتح (وهو
+    حال المعلمة التي تفتح بوابتها أول مرّة على جوّالها) لم يُطبَّق
+    تقييمها المحفوظ إطلاقًا: ترى ٥ نجوم وتعليقًا فارغًا، ثم تحفظ فوق
+    تقييمها فتمحوه. الآن تنتظر النافذة وصول اللقطة، ثم تُعبَّأ منها،
+    ثم تُفتح للكتابة.
+  */
   useEffect(() => {
     if (!open) {
       filledFor.current = null;
       return;
     }
+    if (!ready) return;
     const key = project?.id ?? "none";
     if (filledFor.current === key) return;
     filledFor.current = key;
-    setStars(existing?.stars ?? 5);
-    setBadge(existing?.badge ?? false);
-    setComment(existing?.comment ?? "");
-    setStatus(existing?.status ?? "complete");
+    const loaded = {
+      stars: existing?.stars ?? 5,
+      badge: existing?.badge ?? false,
+      comment: existing?.comment ?? "",
+      status: existing?.status ?? ("complete" as EvaluationStatus),
+    };
+    setStars(loaded.stars);
+    setBadge(loaded.badge);
+    setComment(loaded.comment);
+    setStatus(loaded.status);
+    setBaseline(loaded);
     setError(null);
-  }, [open, project, existing]);
+  }, [open, ready, project, existing]);
+
+  /* «غير محفوظ» يشمل النجوم والشارة والحالة، لا التعليق وحده: كانت
+     لمسة على الخلفية تمحو تغيير النجوم بلا سؤال. */
+  const dirty =
+    comment.trim() !== baseline.comment.trim() ||
+    stars !== baseline.stars ||
+    badge !== baseline.badge ||
+    status !== baseline.status;
 
   async function save() {
-    if (!project || !teacher || saving) return;
+    if (!project || !teacher || saving || !ready) return;
     setSaving(true);
     setError(null);
     try {
@@ -105,6 +135,9 @@ export function EvaluationEditor({
         teacher.name,
         teacher.role,
       );
+      // خطّ الأساس يلحق بالمحفوظ: بدونه تبقى الحالة «غير محفوظ» أثناء
+      // لحظة الاحتفال، فيسأل الإغلاق عن تعديل لم يعد موجودًا.
+      setBaseline({ stars, badge, comment: comment.trim(), status });
       showToast("تم حفظ التقييم");
 
       // الاحتفال يظهر عند منح الشارة لأول مرة فقط، لا مع كل حفظ.
@@ -127,14 +160,15 @@ export function EvaluationEditor({
         open={open}
         title={project ? `تقييم: ${project.title}` : "تقييم"}
         onClose={onClose}
-        dirty={comment.trim() !== (existing?.comment ?? "")}
+        dirty={dirty}
+        busy={saving}
         size="lg"
         footer={
           <>
             <ClayButton variant="soft" onClick={onClose} disabled={saving}>
               إلغاء
             </ClayButton>
-            <ClayButton onClick={save} loading={saving}>
+            <ClayButton onClick={save} loading={saving} disabled={!ready}>
               حفظ التقييم
             </ClayButton>
           </>

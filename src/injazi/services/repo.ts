@@ -299,11 +299,19 @@ export const updateTeacher = (id: string, data: Partial<Teacher>) => patch(COL.t
 /** حذف معلمة يفكّ ارتباطها بموادها أولًا حتى لا تبقى مادة بمعلمة محذوفة. */
 export async function deleteTeacher(id: string): Promise<void> {
   assertReady();
+  // وصورتها تُحذف معها كغيرها: كان هذا المسار وحده يترك نسخة base64
+  // كاملة في مخزن الصور بلا أي مرجع إليها.
+  const ref = doc(db, COL.teachers, id);
+  const snapshot = await getDoc(ref);
+  const images = snapshot.exists() ? mediaRefsOf(snapshot.data()) : [];
+
   const batch = writeBatch(db);
   const owned = await getDocs(query(collection(db, COL.subjects), where("teacherId", "==", id)));
   owned.forEach((row) => batch.update(row.ref, { teacherId: null, updatedAt: now() }));
-  batch.delete(doc(db, COL.teachers, id));
+  batch.delete(ref);
   await batch.commit();
+
+  await purgeMedia(images);
 }
 
 // -------------------------------------------------------------- المواد
@@ -527,9 +535,33 @@ export async function getUserDoc(uid: string): Promise<UserDoc | null> {
   return snapshot.exists() ? ({ id: snapshot.id, ...snapshot.data() } as UserDoc) : null;
 }
 
+/**
+ * كتابة ملف صلاحيات.
+ * createdAt يُكتب عند الإنشاء وحده: كان يُعاد ضبطه مع كل تعديل جزئي
+ * تحت merge، فيضيع تاريخ أول دخول ويبدو كل حساب قديم جديدًا.
+ */
 export async function saveUserDoc(uid: string, data: Partial<UserDoc>): Promise<void> {
   assertReady();
-  await setDoc(doc(db, COL.users, uid), { ...data, createdAt: data.createdAt ?? now() }, { merge: true });
+  const ref = doc(db, COL.users, uid);
+  const payload: Record<string, unknown> = { ...data };
+  if (data.createdAt) {
+    payload.createdAt = data.createdAt;
+  } else {
+    /*
+      «تعذّرت القراءة» ليست «المستند غير موجود».
+      ابتلاع الخطأ هنا كان سيُعيد ختم createdAt على ملف قائم عند أي
+      انقطاع لحظي — وهو العطل نفسه الذي يعالجه هذا التغيير. فعند فشل
+      القراءة لا يُكتب الحقل إطلاقًا: merge يُبقي القديم كما هو.
+    */
+    let exists: boolean | null = null;
+    try {
+      exists = (await getDoc(ref)).exists();
+    } catch {
+      exists = null;
+    }
+    if (exists === false) payload.createdAt = now();
+  }
+  await setDoc(ref, payload, { merge: true });
 }
 
 export const deleteUserDoc = (uid: string) => remove(COL.users, uid);

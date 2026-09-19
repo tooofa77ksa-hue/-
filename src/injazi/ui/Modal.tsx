@@ -31,6 +31,14 @@ type ModalProps = {
    * زرّا «إلغاء» و«إغلاق» يبقيان فوريّين: هناك القصد واضح.
    */
   dirty?: boolean;
+  /**
+   * حفظ جارٍ الآن.
+   * ------------------------------------------------------------------
+   * المعطَّل أثناء الحفظ كان زرّ «إلغاء» وحده، بينما Escape ولمسة
+   * الخلفية تُغلقان النافذة — فيُنفَّذ تراجع الملفات ويُحذف مستند صورة
+   * على وشك أن تشير إليه الكتابة الجارية. الإغلاق يُمنع حتى تنتهي.
+   */
+  busy?: boolean;
 };
 
 export function Modal({
@@ -41,6 +49,7 @@ export function Modal({
   footer,
   size = "md",
   dirty = false,
+  busy = false,
 }: ModalProps) {
   const panel = useRef<HTMLDivElement | null>(null);
   const opener = useRef<HTMLElement | null>(null);
@@ -49,6 +58,8 @@ export function Modal({
      الضغط. */
   const dirtyRef = useRef(dirty);
   dirtyRef.current = dirty;
+  const busyRef = useRef(busy);
+  busyRef.current = busy;
 
   /*
     onClose يُمرَّر دالةً جديدة مع كل إعادة رسم (تُعرَّف داخل النموذج)،
@@ -59,6 +70,7 @@ export function Modal({
   closeRef.current = onClose;
 
   const requestClose = useCallback(() => {
+    if (busyRef.current) return;
     if (dirtyRef.current && !window.confirm("لديكِ تعديل لم يُحفظ. هل تُغلقين بلا حفظ؟")) return;
     closeRef.current();
   }, []);
@@ -148,7 +160,7 @@ export function Modal({
               <motion.button
                 type="button"
                 className="iz-icon-btn"
-                onClick={onClose}
+                onClick={requestClose}
                 aria-label="إغلاق"
                 whileHover={{ rotate: 90 }}
                 whileTap={{ scale: 0.9 }}

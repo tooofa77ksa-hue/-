@@ -293,6 +293,7 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
       open={open}
       title={project ? "تعديل المشروع" : "إضافة مشروع"}
       onClose={cancel}
+      busy={saving}
       dirty={savedAt === null && (form.title.trim() !== "" || form.description.trim() !== "")}
       size="lg"
       footer={

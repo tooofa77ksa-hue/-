@@ -34,6 +34,8 @@ type Props = {
 };
 
 export function ProjectCard({ project, subject, evaluations, canEdit, onEdit, onDelete, onArchive, onOpen }: Props) {
+  // عنصر غير تفاعلي حين لا يوجد فعل: لا مؤشّر يد ولا تركيز ولا وعد.
+  const Wrapper = (onOpen ? "button" : "div") as "button";
   const best = evaluations.find((entry) => entry.projectId === project.id);
   const attachments = project.media.length + project.links.length;
 
@@ -41,11 +43,19 @@ export function ProjectCard({ project, subject, evaluations, canEdit, onEdit, on
     <motion.div variants={popItem}>
       <ClayCard>
         <article className="iz-project">
-          <button
-            type="button"
-            className="iz-project__open"
-            onClick={onOpen}
-            aria-label={`عرض تفاصيل ${project.title}`}
+          {/*
+            زرّ حقيقي لمن يملك التعديل فقط.
+            كان الغلاف زرًّا دائمًا يستدعي onOpen بلا فحص، ومالكة الملف
+            وحدها من يفتح لها محرّرًا — فكانت الزائرة والمعلمة تضغطان
+            البطاقة فينفتح نموذج تعديل كامل لمشروع ليس لهما. القواعد
+            ترفض الحفظ، لكن الباب لا ينبغي أن يُفتح أصلًا: وعدٌ كاذب
+            بالتعديل ثم رفض.
+          */}
+          <Wrapper
+            {...(onOpen
+              ? { type: "button" as const, onClick: onOpen, "aria-label": `عرض تفاصيل ${project.title}` }
+              : {})}
+            className={`iz-project__open${onOpen ? "" : " iz-project__open--static"}`}
           >
             <div className="iz-project__cover">
               {project.coverUrl ? (
@@ -93,7 +103,7 @@ export function ProjectCard({ project, subject, evaluations, canEdit, onEdit, on
                 )}
               </div>
             </div>
-          </button>
+          </Wrapper>
 
           {project.links.length > 0 && (
             <div className="iz-project__links">

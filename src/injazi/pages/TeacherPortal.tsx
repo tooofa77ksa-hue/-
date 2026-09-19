@@ -20,6 +20,7 @@ import { ClayCard } from "@/injazi/components/ClayCard";
 import { StudentCard } from "@/injazi/features/students/StudentCard";
 import { EmptyState } from "@/injazi/components/EmptyState";
 import { textMatches } from "@/injazi/lib/arabicSearch";
+import { readErrorMessage } from "@/injazi/lib/firestoreError";
 import { EvaluationEditor } from "@/injazi/features/teacher/EvaluationEditor";
 import { Chip, MetricCard, SectionTitle, SelectInput, SkeletonCards } from "@/injazi/ui/primitives";
 import { Icon } from "@/injazi/ui/IconPicker";
@@ -47,15 +48,41 @@ export function TeacherPortal() {
   const { data: projects, loading, error: projectsError } = useProjectsForSubjects(mySubjectIds);
 
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
+  /*
+    هل وصلت التقييمات؟
+    ------------------------------------------------------------------
+    المصفوفة تبدأ فارغة، ففارغةٌ «لأنها لم تصل» تبدو تمامًا كفارغةٍ
+    «لأنه لا تقييم». وعلى هذا الالتباس كانت نافذة التقييم تُعبَّأ
+    بالقيم الافتراضية (٥ نجوم وتعليق فارغ) وتُتيح الحفظ — فتمحو المعلمة
+    تقييمها السابق دون أن تراه. العلم صريح الآن، والنافذة تنتظره.
+  */
+  const [evaluationsReady, setEvaluationsReady] = useState(false);
+  const [evaluationsError, setEvaluationsError] = useState<string | null>(null);
   // المواد نفسها لا عددها: نقل المعلمة من مادة إلى أخرى بنفس العدد كان
   // يُبقي الاشتراك على حاله.
   const subjectsKey = mySubjectIds.join(",");
   useEffect(() => {
     if (subjectsKey === "") {
       setEvaluations([]);
+      setEvaluationsReady(true);
       return;
     }
-    return liveCollection<Evaluation>(COL.evaluations, [], setEvaluations);
+    setEvaluationsReady(false);
+    setEvaluationsError(null);
+    return liveCollection<Evaluation>(
+      COL.evaluations,
+      [],
+      (rows) => {
+        setEvaluations(rows);
+        setEvaluationsReady(true);
+      },
+      /* بلا هذا يبقى «جاهز» false إلى الأبد عند فشل القراءة، فيتجمّد
+         زرّ حفظ التقييم بلا سبب ظاهر. الفشل يُقال ويُفكّ الانتظار. */
+      (err) => {
+        setEvaluationsError(readErrorMessage(err, "evaluations"));
+        setEvaluationsReady(true);
+      },
+    );
   }, [subjectsKey]);
 
   const [query, setQuery] = useState("");
@@ -282,6 +309,14 @@ export function TeacherPortal() {
         {/* عطل القراءة يُقال صراحةً: «لم ترفع أي طالبة عملًا بعد» رسالة
             مطمئنة، وقولها بينما السبب رفض صلاحية أو انقطاع شبكة يجعل
             المعلمة تنتظر عملًا موجودًا فعلًا ولا يصلها. */}
+        {evaluationsError && (
+          <EmptyState
+            object="pencil"
+            tone="apricot"
+            title="تعذّر تحميل التقييمات"
+            body={evaluationsError}
+          />
+        )}
         {projectsError ? (
           <EmptyState
             object="pencil"
@@ -378,6 +413,7 @@ export function TeacherPortal() {
         student={editing ? studentIndex[editing.studentId] : undefined}
         subject={editing ? subjectIndex[editing.subjectId] : undefined}
         existing={editing ? myEvaluationFor(editing.id) : undefined}
+        ready={evaluationsReady}
         teacher={profile}
         onClose={() => setEditing(null)}
       />

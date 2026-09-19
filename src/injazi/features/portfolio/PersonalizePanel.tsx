@@ -19,6 +19,7 @@ import { useFileTrash } from "@/injazi/hooks/useFileTrash";
 import { studentScope } from "@/injazi/services/storage";
 import { logActivity, updateStudent } from "@/injazi/services/repo";
 import { showToast } from "@/injazi/lib/toast";
+import { writeErrorMessage } from "@/injazi/lib/firestoreError";
 import { ACCENT_PRESETS, CARD_STYLES, COVER_STYLES, THEMES, themeVars } from "@/injazi/themes/themes";
 import { DUR, EASE_POP } from "@/injazi/motion/motion";
 import type { Student, UserDoc } from "@/injazi/types/models";
@@ -119,7 +120,7 @@ export function PersonalizePanel({ open, student, actor, onClose }: Props) {
       showToast("تم حفظ التخصيص");
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "تعذّر الحفظ.");
+      setError(writeErrorMessage(err, "personalize"));
     } finally {
       setSaving(false);
     }
@@ -130,6 +131,20 @@ export function PersonalizePanel({ open, student, actor, onClose }: Props) {
       open={open}
       title="تخصيص الملف"
       onClose={cancel}
+      busy={saving}
+      /* كل ما يُحفظ يدخل في «غير محفوظ» — لا الاسم والنبذة وحدهما.
+         كانت صورة رُفعت للتو تضيع بلمسة على الخلفية بلا سؤال، لأن
+         الإلغاء يتراجع عنها ويحذفها. */
+      dirty={
+        name.trim() !== student.name ||
+        bio.trim() !== student.bio ||
+        themeId !== student.themeId ||
+        accent !== student.accentColor ||
+        coverStyle !== student.coverStyle ||
+        cardStyle !== student.cardStyle ||
+        decorIcon !== student.decorIcon ||
+        (photo?.url ?? null) !== (student.photoUrl ?? null)
+      }
       size="lg"
       footer={
         <>

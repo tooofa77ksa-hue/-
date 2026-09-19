@@ -392,7 +392,7 @@ export function StudentPortfolio() {
                         subject={subject}
                         evaluations={evaluations.filter((entry) => entry.projectId === project.id)}
                         canEdit={canEdit}
-                        onOpen={() => setProjectEditor({ open: true, project })}
+                        onOpen={canEdit ? () => setProjectEditor({ open: true, project }) : undefined}
                         onEdit={() => setProjectEditor({ open: true, project })}
                         onArchive={async () => {
                           await archiveProject(project.id, !project.archived);

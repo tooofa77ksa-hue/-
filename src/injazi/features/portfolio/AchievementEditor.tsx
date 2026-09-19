@@ -133,6 +133,7 @@ export function AchievementEditor({ open, student, kind, achievement, actor, onC
       open={open}
       title={`${achievement ? "تعديل" : "إضافة"} ${noun}`}
       onClose={cancel}
+      busy={saving}
       dirty={title.trim().length > 0 || description.trim().length > 0}
       footer={
         <>

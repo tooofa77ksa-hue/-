@@ -945,6 +945,11 @@
   display: grid;
 }
 
+/* غلاف غير تفاعلي لمن لا يملك التعديل: لا مؤشّر يد يَعِد بفعل لا يقع. */
+.iz-project__open--static {
+  cursor: default;
+}
+
 .iz-project__open {
   display: grid;
   gap: var(--iz-s-3);
