@@ -50,16 +50,48 @@ export function Modal({
   const dirtyRef = useRef(dirty);
   dirtyRef.current = dirty;
 
+  /*
+    onClose يُمرَّر دالةً جديدة مع كل إعادة رسم (تُعرَّف داخل النموذج)،
+    فلو دخل في اعتماديات أيّ أثر لأُعيد تشغيل ذلك الأثر مع كل حرف
+    تكتبه المستخدمة. المرجع يكسر هذا الارتباط ويبقي requestClose ثابتة.
+  */
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+
   const requestClose = useCallback(() => {
     if (dirtyRef.current && !window.confirm("لديكِ تعديل لم يُحفظ. هل تُغلقين بلا حفظ؟")) return;
-    onClose();
-  }, [onClose]);
+    closeRef.current();
+  }, []);
 
+  /*
+    التركيز وقفل التمرير: مرّة واحدة عند الفتح لا مع كل إعادة رسم.
+    ------------------------------------------------------------------
+    كان هذا الأثر يعتمد على onClose، وهي دالة جديدة مع كل حرف يُكتب.
+    فكان يُعاد تشغيله مع كل ضغطة مفتاح، وينقل التركيز بعد ٤٠ جزءًا من
+    الثانية إلى أول عنصر في النافذة (زرّ الإغلاق) — فتهبط لوحة مفاتيح
+    الجوّال بعد كل حرف، ويتوقّف ما تكتبه المستخدمة حرفًا حرفًا.
+  */
   useEffect(() => {
     if (!open) return;
     opener.current = document.activeElement as HTMLElement | null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+
+    const timer = window.setTimeout(() => {
+      const target = panel.current?.querySelector<HTMLElement>(FOCUSABLE);
+      (target ?? panel.current)?.focus();
+    }, 40);
+
+    return () => {
+      window.clearTimeout(timer);
+      document.body.style.overflow = previousOverflow;
+      opener.current?.focus?.();
+    };
+  }, [open]);
+
+  /* مستمع لوحة المفاتيح منفصل: تبديله رخيص ولا يمسّ التركيز. */
+  useEffect(() => {
+    if (!open) return;
 
     function onKey(event: KeyboardEvent) {
       if (event.key === "Escape") {
@@ -83,17 +115,7 @@ export function Modal({
     }
 
     window.addEventListener("keydown", onKey);
-    const timer = window.setTimeout(() => {
-      const target = panel.current?.querySelector<HTMLElement>(FOCUSABLE);
-      (target ?? panel.current)?.focus();
-    }, 40);
-
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      window.clearTimeout(timer);
-      document.body.style.overflow = previousOverflow;
-      opener.current?.focus?.();
-    };
+    return () => window.removeEventListener("keydown", onKey);
   }, [open, requestClose]);
 
   return (
