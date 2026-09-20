@@ -13,3 +13,13 @@ serviceAccountKey.json
 *.tsbuildinfo
 coverage
 .DS_Store
+
+# ─────────────────────────────────────────────────────────────
+#  بيانات شخصية — لا تُرفع إلى المستودع إطلاقًا
+#  تحتوي أسماء الطالبات واستجاباتهن وآراءهن.
+#  يعيد `npm run etl` توليد school-data.json من data/source/.
+# ─────────────────────────────────────────────────────────────
+data/source/
+data/import-report.json
+src/data/school-data.json
+src/data/dataset.json

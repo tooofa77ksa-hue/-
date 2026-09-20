@@ -1,50 +1,113 @@
 rules_version = '2';
 
-// قواعد أمان خاصة بمشروع "مرصد" وحده.
-// لا تشترك هذه القواعد مع أي قاعدة بيانات أو مشروع آخر،
-// وتنطبق فقط على مشروع Firebase المعرّف في ملف .firebaserc داخل هذا المجلد.
+// ═══════════════════════════════════════════════════════════════
+//  قواعد أمان «قياس اتجاه المتعلمين»
+//  الابتدائية الخامسة والستون بعد المائة
+//
+//  المبدأ: الفصل الفعلي بين القياس العام والإدارة يتحقّق هنا في
+//  طبقة البيانات، لا بإخفاء أزرار في الواجهة.
+//
+//  • القياس العام: يقرأ ما يلزم لإتمام القياس فقط (الصفوف والفصول
+//    وأسماء الطالبات والأسئلة)، ويكتب استجابته ولا يقرأ استجابة أحد.
+//  • الإدارة: حساب يحمل الادّعاء المخصّص admin == true.
+//
+//  هذه القواعد تخص مشروع Firebase المعرّف في .firebaserc داخل هذا
+//  المجلد وحده، ولا تشترك مع أي مشروع آخر.
+// ═══════════════════════════════════════════════════════════════
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function isSignedIn() {
+    function signedIn() {
       return request.auth != null;
     }
 
-    function isOwner(ownerUid) {
-      return isSignedIn() && request.auth.uid == ownerUid;
+    function isAdmin() {
+      return signedIn() && request.auth.token.admin == true;
     }
 
-    function isValidEntry(data) {
-      return data.keys().hasAll(['title', 'category', 'status', 'amount', 'ownerUid', 'createdAt', 'updatedAt'])
-        && data.title is string
-        && data.title.size() > 0
-        && data.title.size() <= 120
-        && data.category is string
-        && data.category.size() <= 60
-        && data.status in ['active', 'pending', 'archived']
-        && data.amount is number
-        && data.amount >= 0
-        && data.ownerUid is string
-        && data.notes is string
-        && data.notes.size() <= 1000;
+    function unchanged(field) {
+      return request.resource.data[field] == resource.data[field];
     }
 
-    // سجلات لوحة التحكم — كل مستخدم يرى ويعدّل سجلاته فقط.
-    match /entries/{entryId} {
-      allow read: if isOwner(resource.data.ownerUid);
+    // ───── مرجعيات يحتاجها القياس العام للعرض ─────
+    // تُقرأ للمصادَق لهم (ولو بحساب مجهول) وتُكتب من الإدارة وحدها.
 
-      allow create: if isSignedIn()
-        && isValidEntry(request.resource.data)
-        && isOwner(request.resource.data.ownerUid);
-
-      allow update: if isOwner(resource.data.ownerUid)
-        && isValidEntry(request.resource.data)
-        && request.resource.data.ownerUid == resource.data.ownerUid;
-
-      allow delete: if isOwner(resource.data.ownerUid);
+    match /grades/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
     }
 
-    // كل ما عدا ذلك مرفوض افتراضيًا.
+    match /classes/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    match /questions/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    match /cycles/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // أسماء الطالبات تظهر في قائمة اختيار القياس، فتُقرأ للمصادَق لهم.
+    // لا يجوز للقياس العام إنشاؤها ولا تعديلها ولا حذفها.
+    match /students/{id} {
+      allow read: if signedIn();
+      allow create, update: if isAdmin();
+      // لا حذف نهائي إطلاقًا — الأرشفة تتم بتعديل الحقل status
+      allow delete: if false;
+    }
+
+    // ───── الاستجابات ─────
+    // تُكتب من القياس العام بلا قراءة، وتُقرأ للإدارة وحدها.
+
+    function validResponse(d) {
+      return d.keys().hasAll(['cycleId', 'studentId', 'answers', 'submittedAt'])
+        && d.cycleId is string
+        && d.studentId is string
+        && d.answers is list
+        && d.answers.size() > 0
+        && d.answers.size() <= 100
+        && d.submittedAt is string;
+    }
+
+    match /responses/{id} {
+      allow read: if isAdmin();
+      allow create: if signedIn() && validResponse(request.resource.data);
+      // الاستجابة المُرسَلة لا تُعدَّل إلا من الإدارة، ولا تُحذف أبدًا:
+      // الاستجابة المكرّرة تُحفظ وتُراجَع، ولا تُستبدل ولا تُمحى.
+      allow update: if isAdmin() && unchanged('answers');
+      allow delete: if false;
+    }
+
+    // ───── بيانات إدارية بحتة ─────
+
+    match /suggestions/{id} {
+      allow read, write: if isAdmin();
+      allow delete: if false;
+    }
+
+    match /improvementActions/{id} {
+      allow read, write: if isAdmin();
+    }
+
+    match /categories/{id} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // سجل العمليات: يُكتب ولا يُعدَّل ولا يُحذف
+    match /auditLogs/{id} {
+      allow read: if isAdmin();
+      allow create: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    // كل ما عدا ذلك مرفوض افتراضيًا
     match /{document=**} {
       allow read, write: if false;
     }

@@ -1,43 +1,50 @@
-/** تنسيق المبالغ بالأرقام العربية الشرقية مع فاصل الآلاف. */
-export function formatAmount(amount: number): string {
-  return new Intl.NumberFormat('ar-SA', {
+const AR = 'ar-SA-u-nu-arab'
+
+/** عدد صحيح بالأرقام العربية. */
+export function num(value: number): string {
+  return new Intl.NumberFormat(AR).format(value)
+}
+
+/** نسبة مئوية بخانة عشرية واحدة عند الحاجة. */
+export function pct(value: number, digits = 1): string {
+  return `${new Intl.NumberFormat(AR, { maximumFractionDigits: digits }).format(value)}٪`
+}
+
+/** متوسط بخانتين. */
+export function avg(value: number): string {
+  return new Intl.NumberFormat(AR, {
+    minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-    minimumFractionDigits: 0,
-  }).format(amount)
+  }).format(value)
 }
 
-/** تنسيق عدد صحيح (للعدادات والبطاقات). */
-export function formatCount(value: number): string {
-  return new Intl.NumberFormat('ar-SA').format(value)
+export function dateTime(iso: string | null): string {
+  if (!iso) return '—'
+  return new Intl.DateTimeFormat(AR, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(iso))
 }
 
-/** تنسيق طابع زمني إلى تاريخ ميلادي مقروء بالعربية. */
-export function formatDate(timestamp: number): string {
-  if (!Number.isFinite(timestamp) || timestamp <= 0) return '—'
-  return new Intl.DateTimeFormat('ar-SA-u-ca-gregory', {
-    year: 'numeric',
-    month: 'short',
+export function dateOnly(iso: string | null): string {
+  if (!iso) return '—'
+  return new Intl.DateTimeFormat(AR, { dateStyle: 'medium' }).format(new Date(iso))
+}
+
+/** التاريخ الهجري لعرضه في الترويسة والتقارير. */
+export function hijriToday(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura-nu-arab', {
+    weekday: 'long',
     day: 'numeric',
-  }).format(new Date(timestamp))
+    month: 'long',
+    year: 'numeric',
+  }).format(now)
 }
 
-/** وصف مختصر للزمن المنقضي، مثل: "قبل ٣ أيام". */
-export function formatRelative(timestamp: number, now: number = Date.now()): string {
-  if (!Number.isFinite(timestamp) || timestamp <= 0) return '—'
-  const diffSeconds = Math.round((timestamp - now) / 1000)
-  const rtf = new Intl.RelativeTimeFormat('ar', { numeric: 'auto' })
-
-  const thresholds: [limit: number, divisor: number, unit: Intl.RelativeTimeFormatUnit][] = [
-    [60, 1, 'second'],
-    [3600, 60, 'minute'],
-    [86400, 3600, 'hour'],
-    [2592000, 86400, 'day'],
-    [31536000, 2592000, 'month'],
-  ]
-
-  const magnitude = Math.abs(diffSeconds)
-  for (const [limit, divisor, unit] of thresholds) {
-    if (magnitude < limit) return rtf.format(Math.round(diffSeconds / divisor), unit)
-  }
-  return rtf.format(Math.round(diffSeconds / 31536000), 'year')
+export function clockTime(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat(AR, {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  }).format(now)
 }

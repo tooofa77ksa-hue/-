@@ -2,20 +2,18 @@ import { useCallback, useEffect, useState } from 'react'
 
 export type Theme = 'dark' | 'light'
 
-const STORAGE_KEY = 'mirsad.dashboard.theme'
+const STORAGE_KEY = 'qiyas.theme'
 
 function initialTheme(): Theme {
   try {
     const saved = window.localStorage.getItem(STORAGE_KEY)
     if (saved === 'dark' || saved === 'light') return saved
   } catch {
-    // التخزين محجوب — نكمل بتفضيل النظام.
+    // التخزين محجوب — نكمل بتفضيل النظام
   }
-  const prefersLight = window.matchMedia?.('(prefers-color-scheme: light)').matches
-  return prefersLight ? 'light' : 'dark'
+  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
-/** يحفظ تفضيل السمة ويطبّقه على عنصر <html>. */
 export function useTheme() {
   const [theme, setTheme] = useState<Theme>(initialTheme)
 
@@ -24,7 +22,7 @@ export function useTheme() {
     try {
       window.localStorage.setItem(STORAGE_KEY, theme)
     } catch {
-      // لا شيء نفعله إن كان التخزين محجوبًا.
+      // لا شيء نفعله إن كان التخزين محجوبًا
     }
   }, [theme])
 

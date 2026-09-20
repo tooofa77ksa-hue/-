@@ -1,0 +1,380 @@
+{
+  "meta": {
+    "school": "الابتدائية الخامسة والستون بعد المائة",
+    "directorate": "الإدارة العامة للتعليم بمحافظة جدة",
+    "surveyTitle": "قياس اتجاه المتعلمين",
+    "hijriYear": "1448",
+    "academicYear": "1447-1448",
+    "generatedAt": "2026-09-20T18:31:22+00:00",
+    "sources": [
+      "responses-grade2.xlsx",
+      "responses-grade3.xlsx",
+      "responses-grade6.xlsx",
+      "roster-grade3.pdf",
+      "roster-grade6.pdf"
+    ],
+    "scale": {
+      "min": 1,
+      "max": 3
+    }
+  },
+  "cycles": [
+    {
+      "id": "cy-1448",
+      "name": "قياس اتجاه المتعلمين 1448هـ",
+      "academicYear": "1447-1448",
+      "hijriYear": "1448",
+      "status": "open",
+      "questionIds": [
+        "q01",
+        "q02",
+        "q03",
+        "q04",
+        "q05",
+        "q06",
+        "q07",
+        "q08",
+        "q09",
+        "q10",
+        "q11",
+        "q12",
+        "q13",
+        "q14",
+        "q15",
+        "q16",
+        "q17",
+        "q18",
+        "q19",
+        "q20",
+        "q21",
+        "q22",
+        "q23",
+        "q_overall",
+        "q_suggestion"
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": "q01",
+      "order": 1,
+      "text": "1_توضح االمدرسة تعليماتها من بداية العام الدراسي لجميع الطلاب",
+      "kind": "likert",
+      "scored": true,
+      "direction": "positive",
+      "reverseNote": null,
+      "required": true,
+      "active": true,
+      "weight": 1
+    },
+    {
+      "id": "q02",
+      "order": 2,
+      "text": "2_القرارات التي تتخذها المدرسة عادلة بين الطلاب.",
+      "kind": "likert",
+      "scored": true,
+      "direction": "positive",
+      "reverseNote": null,
+      "required": true,
+      "active": true,
+      "weight": 1
+    },
+    {
+      "id": "q03",
+      "order": 3,
+      "text": "3_أتواصل مع المدرسة بسهولة عند الحاجة",
+      "kind": "likert",
+      "scored": true,
+      "direction": "positive",
+      "reverseNote": null,
+      "required": true,
+      "active": true,
+      "weight": 1
+    },
+    {
+      "id": "q04",
+      "order": 4,
+      "text": "4- تستطلع االمدرسة آراء الطالب حول خدماتها.",
+      "kind": "likert",
+      "scored": true,
+      "direction": "positive",
+      "reverseNote": null,
+      "required": true,
+      "active": true,
+      "weight": 1
+    },
+    {
+      "id": "q05",
+      "order": 5,
+      "text": "5_احاور معلمتي بحرية بلا تخوف",
+      "kind": "likert",
+      "scored": true,
+      "direction": "positive",
+      "reverseNote": null,
+      "required": true,
+      "active": true,
+      "weight": 1
+    },
+    {
+      "id": "q06",
+      "order": 6,
+      "text": "6-لانراعي المدرسة اختلاف القدرات بين الطالبات",
+      "kind": "likert",
+      "scored": true,
+      "direction": "reverse",
+      "reverseNote": "نصّه نفي: عدم مراعاة المدرسة لاختلاف القدرات",
+      "required": true,
+      "active": true,
+      "weight": 1
+    },
+    {
+      "id": "q07",
+      "order": 7,
+      "text": "7_يمكن أن أحقق أداء أفضل لو كنت في مدرسة أخرى",
+      "kind": "likert",
+      "scored": true,
+      "direction": "reverse",
+      "reverseNote": "تفضيل مدرسة أخرى لتحقيق أداء أفضل",
+      "required": true,
+      "active": true,
+      "weight": 1
+    },
+    {
+      "id": "q08",
+      "order": 8,
+      "text": "8- يحرص المعلمون في المدرسة على استثمار زمن الحصة الدراسية .",
+      "kind": "likert",
+      "scored": true,
+      "direction": "positive",
+      "reverseNote": null,
+      "required": true,
+      "active": true,
+      "weight": 1
+    },
+    {
+      "id": "q09",
+      "order": 9,
+      "text": "9- يحرص المعلمون على توجيهي تربوياً .",
+      "kind": "likert",
+      "scored": true,
+      "direction": "positive",
+      "reverseNote": null,
+      "required": true,
+      "active": true,
+      "weight": 1
+    },
+    {
+      "id": "q10",
+      "order": 10,
+      "text": "10_ تسعى المدرسة إلى التعرف على مواهبي وإبداعاتي .",
+      "kind": "likert",
+      "scored": true,
+      "direction": "positive",
+      "reverseNote": null,
+      "required": true,
+      "active": true,
+      "weight": 1
+    },
+    {
+      "id": "q11",
+      "order": 11,
+      "text": "11_ يحصل الطالب المجدّ على تقدير كاف من المدرسة .",
+      "kind": "likert",
+      "scored": true,
+      "direction": "positive",
+      "reverseNote": null,
+      "required": true,
+      "active": true,
+      "weight": 1
+    },
+    {
+      "id": "q12",
+      "order": 12,
+      "text": "12- أتوجه إلى المرشد الطلابي عندما أتعرض لمشكلة ما .",
+      "kind": "likert",
+      "scored": true,
+      "direction": "positive",
+      "reverseNote": null,
+      "required": true,
+      "active": true,
+      "weight": 1
+    },
+    {
+      "id": "q13",
+      "order": 13,
+      "text": "13- تسخر المدرسة مرافقها و إمكانها لخدمة طلابها ( معامل ، مصادر التعلم ، صالات ، ... ) .",
+      "kind": "likert",
+      "scored": true,
+      "direction": "positive",
+      "reverseNote": null,
+      "required": true,
+      "active": true,
+      "weight": 1
+    },
+    {
+      "id": "q14",
+      "order": 14,
+      "text": "14_أحرص على الحضور المبكر يومياً إلى المدرسة .",
+      "kind": "likert",
+      "scored": true,
+      "direction": "positive",
+      "reverseNote": null,
+      "required": true,
+      "active": true,
+      "weight": 1
+    },
+    {
+      "id": "q15",
+      "order": 15,
+      "text": "15_الانضباط في مدرستي قلل من مشكلات الطلاب .",
+      "kind": "likert",
+      "scored": true,
+      "direction": "positive",
+      "reverseNote": null,
+      "required": true,
+      "active": true,
+      "weight": 1
+    },
+    {
+      "id": "q16",
+      "order": 16,
+      "text": "16_ أشعر بالقلق أثناء وجودي في المدرسة .",
+      "kind": "likert",
+      "scored": true,
+      "direction": "reverse",
+      "reverseNote": "الشعور بالقلق داخل المدرسة",
+      "required": true,
+      "active": true,
+      "weight": 1
+    },
+    {
+      "id": "q17",
+      "order": 17,
+      "text": "17_يمكن أن أتعرض للإيذاء من قبل بعض الطلاب داخل المدرسة .",
+      "kind": "likert",
+      "scored": true,
+      "direction": "reverse",
+      "reverseNote": "احتمال التعرّض للإيذاء داخل المدرسة",
+      "required": true,
+      "active": true,
+      "weight": 1
+    },
+    {
+      "id": "q18",
+      "order": 18,
+      "text": "18_أعرف النظام المطبق في المدرسة بشأن السلوك .",
+      "kind": "likert",
+      "scored": true,
+      "direction": "positive",
+      "reverseNote": null,
+      "required": true,
+      "active": true,
+      "weight": 1
+    },
+    {
+      "id": "q19",
+      "order": 19,
+      "text": "19_ أرى من بعض الطلاب سلوكيات غير لائقة داخل المدرسة .",
+      "kind": "likert",
+      "scored": true,
+      "direction": "reverse",
+      "reverseNote": "مشاهدة سلوكيات غير لائقة داخل المدرسة",
+      "required": true,
+      "active": true,
+      "weight": 1
+    },
+    {
+      "id": "q20",
+      "order": 20,
+      "text": "20_أحب مدرستي كثيراً .",
+      "kind": "likert",
+      "scored": true,
+      "direction": "positive",
+      "reverseNote": null,
+      "required": true,
+      "active": true,
+      "weight": 1
+    },
+    {
+      "id": "q21",
+      "order": 21,
+      "text": "21_ أرغب في الانتقال إلى مدرسة أخرى .",
+      "kind": "likert",
+      "scored": true,
+      "direction": "reverse",
+      "reverseNote": "الرغبة في الانتقال إلى مدرسة أخرى",
+      "required": true,
+      "active": true,
+      "weight": 1
+    },
+    {
+      "id": "q22",
+      "order": 22,
+      "text": "22_ توجهني المدرسة للاستخدام الأمثل لوسائل الأمن والسلامة",
+      "kind": "likert",
+      "scored": true,
+      "direction": "positive",
+      "reverseNote": null,
+      "required": true,
+      "active": true,
+      "weight": 1
+    },
+    {
+      "id": "q23",
+      "order": 23,
+      "text": "23_تقام في المدرسة أنشطة وفعاليات طلابية .",
+      "kind": "likert",
+      "scored": true,
+      "direction": "positive",
+      "reverseNote": null,
+      "required": true,
+      "active": true,
+      "weight": 1
+    },
+    {
+      "id": "q_overall",
+      "order": 24,
+      "text": "التقويم العام للمدرسة",
+      "kind": "overall",
+      "scored": false,
+      "direction": "descriptive",
+      "reverseNote": null,
+      "required": false,
+      "active": true,
+      "weight": 0
+    },
+    {
+      "id": "q_suggestion",
+      "order": 25,
+      "text": "الاقتراحات لتطوير المدرسة",
+      "kind": "text",
+      "scored": false,
+      "direction": "descriptive",
+      "reverseNote": null,
+      "required": false,
+      "active": true,
+      "weight": 0
+    }
+  ],
+  "options": [
+    {
+      "id": "agree_fully",
+      "label": "أوافق تماماً",
+      "score": 3
+    },
+    {
+      "id": "agree_somewhat",
+      "label": "أوافق إلى حد ما",
+      "score": 2
+    },
+    {
+      "id": "disagree",
+      "label": "لا أوافق إطلاقاً",
+      "score": 1
+    }
+  ],
+  "overallOptions": [
+    "ممتاز",
+    "جيد"
+  ]
+}
