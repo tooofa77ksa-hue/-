@@ -49,28 +49,3 @@ export function getDb(): Firestore | null {
 
   return cachedDb
 }
-
-/** اسم المجموعة الوحيدة التي يستخدمها هذا المشروع. */
-export const ENTRIES_COLLECTION = 'entries'
-
-/** مصادقة مجهولة: تمنح كل متصفّح هوية ثابتة تطابق شرط ownerUid في القواعد. */
-export async function resolveOwnerUid(): Promise<string | null> {
-  const app = getFirebaseApp()
-  if (!app) return null
-
-  const { getAuth, signInAnonymously, onAuthStateChanged } = await import('firebase/auth')
-  const auth = getAuth(app)
-
-  if (auth.currentUser) return auth.currentUser.uid
-
-  const existing = await new Promise<string | null>((resolve) => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      unsubscribe()
-      resolve(user ? user.uid : null)
-    })
-  })
-  if (existing) return existing
-
-  const credential = await signInAnonymously(auth)
-  return credential.user.uid
-}

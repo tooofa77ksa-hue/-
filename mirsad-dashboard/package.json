@@ -15,7 +15,8 @@
     "firebase:emulate": "firebase emulators:start --only firestore,hosting",
     "firebase:deploy": "npm run build && firebase deploy --only hosting,firestore",
     "etl": "python3 scripts/etl/build_dataset.py",
-    "verify": "npm run lint && npx tsc -b && npm run test && npm run build"
+    "verify": "npm run lint && npx tsc -b && npm run test && npm run build",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-qiyas-rules \"node scripts/firestore/rules.test.mjs\""
   },
   "dependencies": {
     "exceljs": "^4.4.0",
@@ -26,6 +27,7 @@
     "react-router-dom": "^7.18.4"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^3.0.4",
     "@testing-library/jest-dom": "^6.4.6",
     "@testing-library/react": "^16.0.0",
     "@types/qrcode": "^1.5.6",
@@ -37,6 +39,7 @@
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-react-refresh": "^0.4.7",
+    "firebase-tools": "^13.35.1",
     "jsdom": "^24.1.0",
     "typescript": "^5.4.5",
     "vite": "^5.3.1",

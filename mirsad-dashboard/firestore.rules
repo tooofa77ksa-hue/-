@@ -1,15 +1,17 @@
 rules_version = '2';
 
 // ═══════════════════════════════════════════════════════════════
-//  قواعد أمان «قياس اتجاه المتعلمين»
+//  قواعد أمان «قياس اتجاه المتعلمين ١٤٤٨هـ»
 //  الابتدائية الخامسة والستون بعد المائة
 //
-//  المبدأ: الفصل الفعلي بين القياس العام والإدارة يتحقّق هنا في
-//  طبقة البيانات، لا بإخفاء أزرار في الواجهة.
+//  المبدأ: الفصل بين القياس العام والإدارة يتحقّق هنا في طبقة
+//  البيانات، لا بإخفاء أزرار في الواجهة. كل قاعدة هنا مغطّاة
+//  باختبار فعلي في scripts/firestore/rules.test.mjs.
 //
-//  • القياس العام: يقرأ ما يلزم لإتمام القياس فقط (الصفوف والفصول
-//    وأسماء الطالبات والأسئلة)، ويكتب استجابته ولا يقرأ استجابة أحد.
-//  • الإدارة: حساب يحمل الادّعاء المخصّص admin == true.
+//  ثلاث ممنوعات ثابتة لا تُخترق من الواجهة:
+//    ١) أسماء الطالبات لا تُقرأ إلا بصلاحية إدارة.
+//    ٢) لا حذف نهائي لطالبة ولا لاستجابة — إطلاقًا.
+//    ٣) القياس العام يكتب استجابته ولا يقرأ استجابة أحد.
 //
 //  هذه القواعد تخص مشروع Firebase المعرّف في .firebaserc داخل هذا
 //  المجلد وحده، ولا تشترك مع أي مشروع آخر.
@@ -30,8 +32,8 @@ service cloud.firestore {
       return request.resource.data[field] == resource.data[field];
     }
 
-    // ───── مرجعيات يحتاجها القياس العام للعرض ─────
-    // تُقرأ للمصادَق لهم (ولو بحساب مجهول) وتُكتب من الإدارة وحدها.
+    // ───── مرجعيات القياس (غير شخصية) ─────
+    // أسماء الصفوف والفصول والأسئلة وحدها: لا تكشف هوية أي طالبة.
 
     match /grades/{id} {
       allow read: if signedIn();
@@ -48,15 +50,26 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    match /options/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
     match /cycles/{id} {
       allow read: if signedIn();
       allow write: if isAdmin();
     }
 
-    // أسماء الطالبات تظهر في قائمة اختيار القياس، فتُقرأ للمصادَق لهم.
-    // لا يجوز للقياس العام إنشاؤها ولا تعديلها ولا حذفها.
-    match /students/{id} {
+    match /meta/{id} {
       allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // ───── الطالبات: بيانات شخصية لقاصرات ─────
+    // القراءة للإدارة وحدها. القياس العام لا يرى القائمة إطلاقًا،
+    // بل تكتب الطالبة اسمها وتُطابقه الإدارة لاحقًا في شاشة المطابقة.
+    match /students/{id} {
+      allow read: if isAdmin();
       allow create, update: if isAdmin();
       // لا حذف نهائي إطلاقًا — الأرشفة تتم بتعديل الحقل status
       allow delete: if false;
@@ -65,29 +78,56 @@ service cloud.firestore {
     // ───── الاستجابات ─────
     // تُكتب من القياس العام بلا قراءة، وتُقرأ للإدارة وحدها.
 
-    function validResponse(d) {
-      return d.keys().hasAll(['cycleId', 'studentId', 'answers', 'submittedAt'])
-        && d.cycleId is string
-        && d.studentId is string
-        && d.answers is list
-        && d.answers.size() > 0
-        && d.answers.size() <= 100
-        && d.submittedAt is string;
+    // الشكل الذي يُسمح للقياس العام بكتابته، حرفًا بحرف:
+    // لا يربط نفسه بطالبة، ولا يدّعي مطابقة، ولا يضع علامة مراجعة.
+    function publicResponse(d) {
+      return d.keys().hasAll([
+          'cycleId', 'rawName', 'declaredGradeId', 'classId', 'matchStatus',
+          'studentId', 'candidateStudentIds', 'duplicateFlag', 'source',
+          'submittedAt', 'reviewedAt', 'reviewedBy', 'answers'
+        ])
+        && d.keys().hasOnly([
+          'cycleId', 'rawName', 'declaredGradeId', 'classId', 'matchStatus',
+          'studentId', 'candidateStudentIds', 'duplicateFlag', 'source',
+          'submittedAt', 'reviewedAt', 'reviewedBy', 'answers', 'clientToken'
+        ])
+        && d.cycleId is string && d.cycleId.size() > 0
+        && d.rawName is string && d.rawName.size() >= 2 && d.rawName.size() <= 120
+        && (d.declaredGradeId == null || d.declaredGradeId is string)
+        && (d.classId == null || d.classId is string)
+        && d.answers is list && d.answers.size() > 0 && d.answers.size() <= 100
+        && d.submittedAt is string && d.submittedAt.size() > 0
+        // لا يملك القياس العام أن يربط نفسه بطالبة ولا أن يدّعي مطابقة
+        && d.studentId == null
+        && d.matchStatus == 'NEW'
+        && d.candidateStudentIds is list && d.candidateStudentIds.size() == 0
+        && d.duplicateFlag == false
+        && d.source == 'web'
+        && d.reviewedAt == null
+        && d.reviewedBy == null;
+    }
+
+    // لا تُقبل استجابة إلا في دورة قياس مفتوحة فعلًا.
+    function cycleOpen(cycleId) {
+      return exists(/databases/$(database)/documents/cycles/$(cycleId))
+        && get(/databases/$(database)/documents/cycles/$(cycleId)).data.status == 'open';
     }
 
     match /responses/{id} {
       allow read: if isAdmin();
-      allow create: if signedIn() && validResponse(request.resource.data);
+      allow create: if isAdmin()
+        || (signedIn() && publicResponse(request.resource.data) && cycleOpen(request.resource.data.cycleId));
       // الاستجابة المُرسَلة لا تُعدَّل إلا من الإدارة، ولا تُحذف أبدًا:
       // الاستجابة المكرّرة تُحفظ وتُراجَع، ولا تُستبدل ولا تُمحى.
-      allow update: if isAdmin() && unchanged('answers');
+      // حتى الإدارة لا تملك تغيير نص الإجابات نفسها.
+      allow update: if isAdmin() && unchanged('answers') && unchanged('rawName');
       allow delete: if false;
     }
 
     // ───── بيانات إدارية بحتة ─────
 
     match /suggestions/{id} {
-      allow read, write: if isAdmin();
+      allow read, create, update: if isAdmin();
       allow delete: if false;
     }
 
@@ -96,8 +136,11 @@ service cloud.firestore {
     }
 
     match /categories/{id} {
-      allow read: if isAdmin();
-      allow write: if isAdmin();
+      allow read, write: if isAdmin();
+    }
+
+    match /reviewAcks/{id} {
+      allow read, write: if isAdmin();
     }
 
     // سجل العمليات: يُكتب ولا يُعدَّل ولا يُحذف
