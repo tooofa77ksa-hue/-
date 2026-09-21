@@ -27,3 +27,4 @@ src/data/dataset.json
 # ملفات بايثون المؤقتة
 __pycache__/
 *.pyc
+.e2e-out/

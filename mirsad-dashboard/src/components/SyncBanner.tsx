@@ -12,7 +12,7 @@ export function SyncBanner() {
 
   if (mode === 'local') {
     return (
-      <div className="sync sync--local" role="status">
+      <div className="sync no-print sync--local" role="status">
         <span className="sync__dot" aria-hidden="true" />
         <span>
           <strong>وضع محلي:</strong> البيانات محفوظة في هذا المتصفّح وحده — لا تُشارَك مع جهاز
@@ -24,7 +24,7 @@ export function SyncBanner() {
 
   if (syncError) {
     return (
-      <div className="sync sync--error" role="alert">
+      <div className="sync no-print sync--error" role="alert">
         <span className="sync__dot" aria-hidden="true" />
         <span><strong>تعذّر الحفظ في قاعدة البيانات:</strong> {syncError}</span>
         <button type="button" className="button button--ghost button--small" onClick={() => void reload()}>
@@ -36,7 +36,7 @@ export function SyncBanner() {
 
   if (status === 'empty') {
     return (
-      <div className="sync sync--warn" role="status">
+      <div className="sync no-print sync--warn" role="status">
         <span className="sync__dot" aria-hidden="true" />
         <span>
           قاعدة البيانات متصلة لكنها <strong>فارغة</strong>. ما تشاهدينه الآن بيانات المصدر
@@ -48,7 +48,7 @@ export function SyncBanner() {
 
   if (saving > 0) {
     return (
-      <div className="sync sync--busy" role="status">
+      <div className="sync no-print sync--busy" role="status">
         <span className="sync__dot" aria-hidden="true" />
         <span>جارٍ الحفظ في قاعدة البيانات… لا تُغلقي الصفحة.</span>
       </div>
@@ -57,7 +57,7 @@ export function SyncBanner() {
 
   if (status === 'ready') {
     return (
-      <div className="sync sync--ok" role="status">
+      <div className="sync no-print sync--ok" role="status">
         <span className="sync__dot" aria-hidden="true" />
         <span>محفوظ في قاعدة البيانات.</span>
       </div>
@@ -65,7 +65,7 @@ export function SyncBanner() {
   }
 
   return (
-    <div className="sync sync--busy" role="status">
+    <div className="sync no-print sync--busy" role="status">
       <span className="sync__dot" aria-hidden="true" />
       <span>جارٍ قراءة البيانات…</span>
     </div>

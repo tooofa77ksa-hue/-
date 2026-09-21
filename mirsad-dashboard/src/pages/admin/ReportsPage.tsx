@@ -12,7 +12,7 @@ import {
   satisfactionIndex, strengthsAndGaps, suggestionsInScope, type Scope,
 } from '../../lib/analysis'
 import { exportResults } from '../../lib/excel'
-import { avg, dateOnly, hijriToday, num, pct } from '../../lib/format'
+import { avg, dateOnly, hijriToday, num, pct, arabicDigits } from '../../lib/format'
 import { useSystem } from '../../state/useSystem'
 
 const STATUS = { planned: 'مخطط', in_progress: 'جارٍ التنفيذ', completed: 'مكتمل' } as const
@@ -81,12 +81,12 @@ export function ReportsPage() {
           <img className="report__logo" src={ORGANIZATION.logo} alt={`شعار ${ORGANIZATION.ministry}`} />
           <p className="report__org">{ORGANIZATION.directorate}</p>
           <h1 className="report__title">
-            {state.meta.surveyTitle} {state.meta.hijriYear}هـ
+            {state.meta.surveyTitle} {arabicDigits(state.meta.hijriYear)}هـ
           </h1>
           <p className="report__school">{state.meta.school}</p>
           <p className="report__scope">{scopeName}</p>
           <dl className="report__facts">
-            <div><dt>العام الدراسي</dt><dd>{state.meta.academicYear}هـ</dd></div>
+            <div><dt>العام الدراسي</dt><dd>{arabicDigits(state.meta.academicYear)}هـ</dd></div>
             <div><dt>تاريخ إصدار التقرير</dt><dd>{hijriToday()}</dd></div>
             <div><dt>مصادر البيانات</dt><dd>{num(state.meta.sources.length)} ملفًا</dd></div>
           </dl>
@@ -127,14 +127,14 @@ export function ReportsPage() {
           <p className="report__note">ن = {num(overall.n)} استجابة أجابت على التقويم العام.</p>
         </section>
 
-        <section className="report__section page-break">
+        <section className="report__section">
           <h2 className="report__h2">نقاط القوة</h2>
           <RankedList rows={strengths} />
           <h2 className="report__h2">فرص التحسين</h2>
           <RankedList rows={gaps} variant="gap" />
         </section>
 
-        <section className="report__section page-break">
+        <section className="report__section">
           <h2 className="report__h2">تحليل الأسئلة</h2>
           <Legend items={state.options.map((o) => ({ label: o.label, tone: OPTION_TONES[o.id] }))} />
           <ReverseNote />
@@ -156,7 +156,7 @@ export function ReportsPage() {
           </div>
         </section>
 
-        <section className="report__section page-break">
+        <section className="report__section">
           <h2 className="report__h2">صوت طالباتنا</h2>
           <p className="report__note">
             {num(voices.length)} رأيًا ومقترحًا، معروضة بنصّها الأصلي كما كتبته الطالبات.
@@ -166,7 +166,7 @@ export function ReportsPage() {
           </ul>
         </section>
 
-        <section className="report__section page-break">
+        <section className="report__section">
           <h2 className="report__h2">استجابة المدرسة — من الرأي إلى التحسين</h2>
           {actions.length === 0 ? (
             <p className="muted">لم تُسجَّل إجراءات تحسين بعد.</p>
@@ -200,7 +200,7 @@ export function ReportsPage() {
           )}
         </section>
 
-        <section className="report__section page-break">
+        <section className="report__section">
           <h2 className="report__h2">غير المستجيبات</h2>
           <p className="report__note">{num(missing.length)} طالبة في الكشف بلا استجابة مؤكّدة.</p>
           {missing.length > 0 && (

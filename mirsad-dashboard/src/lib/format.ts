@@ -48,3 +48,16 @@ export function clockTime(now: Date = new Date()): string {
     second: '2-digit',
   }).format(now)
 }
+
+const WESTERN_TO_ARABIC = '٠١٢٣٤٥٦٧٨٩'
+
+/**
+ * يحوّل أرقام نصٍّ جاهز إلى الأرقام العربية.
+ *
+ * للنصوص التي تحمل أرقامًا وليست أعدادًا: السنة الهجرية «١٤٤٨»
+ * والعام الدراسي «١٤٤٧-١٤٤٨». دونها يظهر التقرير بخليط من نظامي
+ * أرقام في السطر الواحد.
+ */
+export function arabicDigits(text: string): string {
+  return text.replace(/[0-9]/g, (d) => WESTERN_TO_ARABIC[Number(d)])
+}

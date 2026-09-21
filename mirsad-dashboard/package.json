@@ -20,7 +20,8 @@
     "verify:no-pii": "node scripts/verify/no-personal-data.mjs",
     "build:deploy": "npm run build && npm run verify:no-pii",
     "verify:all": "npm run verify && npm run test:rules && npm run test:e2e",
-    "test:e2e": "bash scripts/e2e/run.sh"
+    "test:e2e": "bash scripts/e2e/run.sh",
+    "test:reports": "npm run build && node scripts/e2e/reports.mjs"
   },
   "dependencies": {
     "exceljs": "^4.4.0",

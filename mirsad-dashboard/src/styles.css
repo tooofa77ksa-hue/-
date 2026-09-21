@@ -1752,9 +1752,25 @@ th {
     break-inside: avoid;
   }
 
-  .report__cover { min-height: 60vh; justify-content: center; }
+  /* الغلاف صفحة كاملة، ثم يتدفّق التقرير بلا فراغات مهدَرة */
+  .report__cover { min-height: 232mm; justify-content: center; break-after: page; }
 
   .page-break { break-before: page; }
+
+  /* الأقسام تنكسر عبر الصفحات عند الحاجة بدل أن تُدفع كتلةً واحدة
+     فتترك نصف الصفحة بياضًا. والعنوان لا يبقى وحده في آخر صفحة. */
+  .report__section { break-inside: auto; }
+
+  .report__section > h2,
+  .report__section > .section-title,
+  .section-pill,
+  h2, h3 { break-after: avoid; }
+
+  .report { gap: 12px; }
+  .report__section + .report__section { margin-top: 0; }
+
+  /* ستة مؤشرات في صفّين متساويين بدل ٤+٢ يترك فراغًا */
+  .report__kpis { grid-template-columns: repeat(3, 1fr); }
 
   .qlist__item,
   .bar-row,

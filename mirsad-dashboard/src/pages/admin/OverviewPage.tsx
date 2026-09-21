@@ -13,7 +13,7 @@ import {
   SCHOOL_SCOPE, overallDistribution, participation, satisfactionIndex,
   strengthsAndGaps, suggestionsInScope,
 } from '../../lib/analysis'
-import { avg, num, pct } from '../../lib/format'
+import { avg, num, pct, arabicDigits } from '../../lib/format'
 import { hasSchoolData } from '../../data/store'
 import { useSystem } from '../../state/useSystem'
 
@@ -29,7 +29,7 @@ export function OverviewPage() {
 
   return (
     <>
-      <SectionTitle note={`العام الدراسي ${state.meta.academicYear}هـ`}>نظرة عامة</SectionTitle>
+      <SectionTitle note={`العام الدراسي ${arabicDigits(state.meta.academicYear)}هـ`}>نظرة عامة</SectionTitle>
 
       {!hasSchoolData && <NoDataNotice />}
 
