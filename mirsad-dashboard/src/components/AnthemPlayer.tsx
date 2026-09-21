@@ -18,6 +18,10 @@ export function AnthemPlayer() {
   const [blocked, setBlocked] = useState(false)
   const [open, setOpen] = useState(false)
 
+  // مرجعان يحملان آخر قيمة ليقرأهما تأثير إنشاء النسخة الصوتية
+  const volumeRef = useRef(volume)
+  const mutedRef = useRef(muted)
+
   useEffect(() => {
     let alive = true
     fetch(ANTHEM_SRC, { method: 'HEAD' })
@@ -39,6 +43,10 @@ export function AnthemPlayer() {
     if (status !== 'ready') return undefined
     const audio = new Audio(ANTHEM_SRC)
     audio.preload = 'none'
+    // يُضبط المستوى والكتم عند الإنشاء: تأثير المستوى أدناه لا يعمل هنا
+    // لأن اعتمادياته لم تتغيّر بعد، فتبقى النسخة على مستواها الافتراضي.
+    audio.volume = volumeRef.current
+    audio.muted = mutedRef.current
     audioRef.current = audio
 
     const onEnded = () => setPlaying(false)
@@ -51,6 +59,8 @@ export function AnthemPlayer() {
   }, [status])
 
   useEffect(() => {
+    volumeRef.current = volume
+    mutedRef.current = muted
     if (audioRef.current) {
       audioRef.current.volume = volume
       audioRef.current.muted = muted
