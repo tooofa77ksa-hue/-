@@ -19,7 +19,8 @@
     "test:rules": "firebase emulators:exec --only firestore --project demo-qiyas-rules \"node scripts/firestore/rules.test.mjs\"",
     "verify:no-pii": "node scripts/verify/no-personal-data.mjs",
     "build:deploy": "npm run build && npm run verify:no-pii",
-    "verify:all": "npm run verify && npm run test:rules"
+    "verify:all": "npm run verify && npm run test:rules && npm run test:e2e",
+    "test:e2e": "bash scripts/e2e/run.sh"
   },
   "dependencies": {
     "exceljs": "^4.4.0",
@@ -45,6 +46,7 @@
     "firebase-admin": "^12.7.0",
     "firebase-tools": "^13.35.1",
     "jsdom": "^24.1.0",
+    "playwright": "^1.63.0",
     "typescript": "^5.4.5",
     "vite": "^5.3.1",
     "vitest": "^1.6.0"

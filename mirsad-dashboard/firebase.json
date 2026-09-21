@@ -2,7 +2,11 @@
   "hosting": {
     "site": "mirsad-dashboard",
     "public": "dist",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
     "rewrites": [
       {
         "source": "**",
@@ -45,6 +49,9 @@
       "enabled": true,
       "port": 4183
     },
-    "singleProjectMode": true
+    "singleProjectMode": true,
+    "auth": {
+      "port": 9199
+    }
   }
 }
