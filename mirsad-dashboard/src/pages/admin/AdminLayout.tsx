@@ -5,6 +5,9 @@ import { BrandHeader } from '../../components/BrandHeader'
 import { AnthemPlayer } from '../../components/AnthemPlayer'
 import { LiveClock } from '../../components/LiveClock'
 import { useTheme } from '../../hooks/useTheme'
+import { flagCounts } from '../../lib/reviewFlags'
+import { num } from '../../lib/format'
+import { useSystem } from '../../state/useSystem'
 
 const LINKS = [
   { to: '/admin', end: true, label: 'نظرة عامة' },
@@ -14,6 +17,7 @@ const LINKS = [
   { to: '/admin/non-respondents', label: 'غير المستجيبات' },
   { to: '/admin/students', label: 'إدارة الطالبات' },
   { to: '/admin/match-review', label: 'مراجعة المطابقة' },
+  { to: '/admin/review-queue', label: 'حالات للمراجعة', badge: true },
   { to: '/admin/links', label: 'الروابط والباركود' },
   { to: '/admin/reports', label: 'التقارير' },
   { to: '/admin/settings', label: 'الإعدادات' },
@@ -21,6 +25,8 @@ const LINKS = [
 
 export function AdminLayout() {
   const { theme, toggle } = useTheme()
+  const { state } = useSystem()
+  const pending = flagCounts(state).pending
 
   return (
     <div className="app">
@@ -50,6 +56,9 @@ export function AdminLayout() {
             className={({ isActive }) => (isActive ? 'admin-nav__item is-active' : 'admin-nav__item')}
           >
             {l.label}
+            {l.badge && pending > 0 && (
+              <span className="admin-nav__count" title="حالات تنتظر مراجعتك">{num(pending)}</span>
+            )}
           </NavLink>
         ))}
       </nav>

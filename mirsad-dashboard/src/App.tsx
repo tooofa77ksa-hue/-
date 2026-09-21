@@ -20,6 +20,7 @@ const NonRespondentsPage = lazy(() => import('./pages/admin/NonRespondentsPage')
 const StudentsPage = lazy(() => import('./pages/admin/StudentsPage').then((m) => ({ default: m.StudentsPage })))
 const MatchReviewPage = lazy(() => import('./pages/admin/MatchReviewPage').then((m) => ({ default: m.MatchReviewPage })))
 const LinksPage = lazy(() => import('./pages/admin/LinksPage').then((m) => ({ default: m.LinksPage })))
+const ReviewQueuePage = lazy(() => import('./pages/admin/ReviewQueuePage').then((m) => ({ default: m.ReviewQueuePage })))
 const ReportsPage = lazy(() => import('./pages/admin/ReportsPage').then((m) => ({ default: m.ReportsPage })))
 const SettingsPage = lazy(() => import('./pages/admin/SettingsPage').then((m) => ({ default: m.SettingsPage })))
 
@@ -56,6 +57,7 @@ export default function App() {
               <Route path="non-respondents" element={<NonRespondentsPage />} />
               <Route path="students" element={<StudentsPage />} />
               <Route path="match-review" element={<MatchReviewPage />} />
+              <Route path="review-queue" element={<ReviewQueuePage />} />
               <Route path="links" element={<LinksPage />} />
               <Route path="reports" element={<ReportsPage />} />
               <Route path="settings" element={<SettingsPage />} />

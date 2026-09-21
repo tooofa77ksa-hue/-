@@ -1549,6 +1549,157 @@ th {
   align-items: end;
 }
 
+/* ───────── تمييز المراجعة (إداري داخلي) ───────── */
+
+.admin-nav__count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  margin-inline-start: 7px;
+  border-radius: var(--radius-pill);
+  background: var(--moe-sand);
+  color: #4a4223;
+  font-size: 11.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-nav__item.is-active .admin-nav__count {
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--moe-purple-deep);
+}
+
+/* شارة هادئة: تلفت النظر ولا تُنذر */
+.review-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--text);
+  background: color-mix(in srgb, var(--moe-sand) 18%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--moe-sand) 55%, var(--surface));
+}
+
+.review-badge__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--moe-sand);
+}
+
+.review-badge__n {
+  font-size: 11px;
+  opacity: 0.75;
+}
+
+.review-badge--done {
+  background: color-mix(in srgb, var(--moe-green) 14%, var(--surface));
+  border-color: color-mix(in srgb, var(--moe-green) 45%, var(--surface));
+}
+
+.review-badge--done .review-badge__dot {
+  background: var(--moe-green);
+}
+
+.review-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.review-case {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  /* شريط جانبي رفيع يميّز الحالة دون صخب */
+  border-inline-start: 4px solid var(--moe-sand);
+}
+
+.review-case.is-done {
+  border-inline-start-color: var(--moe-green);
+  opacity: 0.72;
+}
+
+.review-case:last-child {
+  border-bottom: none;
+}
+
+.review-case__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.review-case__toggle {
+  font: inherit;
+  background: none;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: start;
+}
+
+.review-case__name {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.review-case__chev {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.review-case__reasons {
+  margin: 0;
+  padding-inline-start: 20px;
+  font-size: 13.5px;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.review-case__detail {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+  margin: 4px 0 0;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-tint);
+}
+
+.review-case__detail dt {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.review-case__detail dd {
+  margin: 2px 0 0;
+  font-size: 13.5px;
+}
+
+.review-case__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 /* ───────── الطباعة ───────── */
 
 @media print {
@@ -1562,6 +1713,9 @@ th {
   }
 
   .no-print,
+  .review-badge,
+  .review-case__actions,
+  .admin-nav__count,
   .admin-nav,
   .toolbar,
   .header__actions,

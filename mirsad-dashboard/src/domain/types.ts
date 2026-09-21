@@ -185,10 +185,23 @@ export interface Dataset {
   duplicateGroups: { key: string; gradeId: Id | null; responseIds: Id[] }[]
 }
 
+/**
+ * إقرار الإدارة بالاطّلاع على حالة تحتاج مراجعة.
+ *
+ * لا يعني موافقةً على المطابقة ولا تصحيحًا للبيانات — يعني فقط
+ * أن الإدارة شاهدت الحالة، فيزول التمييز البصري عنها.
+ */
+export interface ReviewAck {
+  at: string
+  by: string
+}
+
 /** الحالة الكاملة للنظام: بيانات المصدر + ما تضيفه الإدارة. */
 export interface SystemState extends Dataset {
   categories: Category[]
   improvementActions: ImprovementAction[]
   audit: AuditEntry[]
+  /** إقرارات المراجعة، مفتاحها معرّف الاستجابة. طبقة إدارية بحتة. */
+  reviewAcks: Record<Id, ReviewAck>
   version: number
 }

@@ -1,12 +1,14 @@
 import { useMemo, useState } from 'react'
 
 import { EmptyState } from '../../components/EmptyState'
+import { ReviewBadge } from '../../components/ReviewBadge'
 import { SectionTitle } from '../../components/SectionTitle'
 import { StatCard } from '../../components/StatCard'
 import { confirmMatch, confirmUnambiguousMatches, rejectMatch } from '../../domain/actions'
 import type { MatchStatus } from '../../domain/types'
 import { isNameCandidate, normalizeArabic } from '../../lib/arabic'
 import { num } from '../../lib/format'
+import { needsReview } from '../../lib/reviewFlags'
 import { useSystem } from '../../state/useSystem'
 
 const STATUS_LABELS: Record<MatchStatus, string> = {
@@ -165,6 +167,7 @@ export function MatchReviewPage() {
                       {r.declaredGradeId ? gradeById.get(r.declaredGradeId)?.name ?? '—' : 'صف غير معلن'}
                     </span>
                     {r.duplicateFlag && <span className="chip chip--warn">احتمال تكرار</span>}
+                    {needsReview(state, r.id) && <ReviewBadge />}
                     {r.sourceFile && <span className="muted">{r.sourceFile} · صف {r.sourceRow}</span>}
                   </div>
 

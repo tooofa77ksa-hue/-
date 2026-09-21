@@ -187,6 +187,36 @@ export function rejectMatch(state: SystemState, responseId: Id): SystemState {
   return next
 }
 
+// ───────────────── تمييز المراجعة ─────────────────
+
+/**
+ * «تمت المراجعة ✓» — يزيل التمييز البصري لا غير.
+ *
+ * لا يحذف سجلًا ولا استجابة، ولا يغيّر نتيجة ولا مطابقة ولا اسم طالبة.
+ * يسجّل فقط أن الإدارة اطّلعت على الحالة، ويُدوَّن ذلك في سجل العمليات.
+ */
+export function markReviewed(state: SystemState, responseId: Id,
+                             by = 'إدارة المدرسة'): SystemState {
+  const next = clone(state)
+  const response = next.responses.find((r) => r.id === responseId)
+  next.reviewAcks = { ...next.reviewAcks, [responseId]: { at: new Date().toISOString(), by } }
+  audit(next, 'تمت مراجعة حالة', 'review', responseId,
+    `«${response?.rawName ?? responseId}» — اطّلاع فقط، بلا تغيير في البيانات`)
+  return next
+}
+
+/** إعادة التمييز للمراجعة — تراجُع عن الإقرار دون أي أثر على البيانات. */
+export function unmarkReviewed(state: SystemState, responseId: Id): SystemState {
+  const next = clone(state)
+  const response = next.responses.find((r) => r.id === responseId)
+  const acks = { ...next.reviewAcks }
+  delete acks[responseId]
+  next.reviewAcks = acks
+  audit(next, 'إعادة تمييز للمراجعة', 'review', responseId,
+    `«${response?.rawName ?? responseId}»`)
+  return next
+}
+
 // ───────────────── آراء الطالبات ─────────────────
 
 export function categorizeSuggestion(

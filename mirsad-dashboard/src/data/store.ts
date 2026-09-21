@@ -23,6 +23,7 @@ export function initialState(): SystemState {
     categories: DEFAULT_CATEGORIES,
     improvementActions: [],
     audit: [],
+    reviewAcks: {},
     version: SCHEMA_VERSION,
   }
 }
@@ -33,6 +34,9 @@ function safeRead(): SystemState | null {
     if (!raw) return null
     const parsed = JSON.parse(raw) as SystemState
     if (parsed.version !== SCHEMA_VERSION) return null
+    // حالة محفوظة قبل إضافة طبقة التمييز: تُستكمل بقيمة فارغة
+    // بدل إهدار عمل الإدارة بإعادة التهيئة من الصفر.
+    if (!parsed.reviewAcks) parsed.reviewAcks = {}
     return parsed
   } catch {
     return null
