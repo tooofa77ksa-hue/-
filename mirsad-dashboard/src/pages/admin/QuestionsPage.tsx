@@ -4,6 +4,7 @@ import { Legend } from '../../components/Legend'
 import { ReverseNote } from '../../components/ReverseNote'
 import { SectionTitle } from '../../components/SectionTitle'
 import { StackedBar } from '../../components/StackedBar'
+import { helpFor } from '../../data/questionHelp'
 import { OPTION_TONES } from '../../lib/tones'
 import { analyzeAllQuestions, type Scope } from '../../lib/analysis'
 import { avg, num, pct } from '../../lib/format'
@@ -98,7 +99,14 @@ export function QuestionsPage() {
           {rows.map((r) => (
             <article key={r.question.id} className="qlist__item">
               <header className="qlist__head">
-                <span className="qlist__text">{num(r.question.order)}. {r.question.text}</span>
+                <span className="qlist__text">
+                  {num(r.question.order)}. {r.question.text}
+                  {helpFor(r.question.id)?.plain && (
+                    <span className="qlist__explain">
+                      ما يراه وليّ الأمر: {helpFor(r.question.id)?.plain}
+                    </span>
+                  )}
+                </span>
                 <span className="qlist__meta">ن = {num(r.n)}</span>
               </header>
               <StackedBar n={r.n} segments={r.counts.map((c) => ({

@@ -150,6 +150,11 @@ try {
     (els) => els.map((e) => Math.round(e.getBoundingClientRect().width)))
   check('الخيارات الثلاثة متساوية بلا ترجيح بصري', new Set(widths).size === 1, `${widths[0]}px`)
 
+  const explain = await page.locator('.survey__explain').count()
+  check('تحت السؤال شرح مبسّط', explain === 1,
+    explain ? (await page.locator('.survey__explain').innerText()).slice(0, 48) + '…' : '')
+  check('تحت كل خيار شرح لمعناه',
+    await page.locator('.answer__hint').count() === 3)
   await page.screenshot({ path: join(shots, '4-question.png') })
 
   // الإجابة ثم الرجوع: هل بقيت الإجابة؟
@@ -165,6 +170,24 @@ try {
   check('الإجابة محفوظة بعد الرجوع',
     await page.locator('.answer.is-chosen').count() === 1)
   await page.screenshot({ path: join(shots, '5-back-keeps-answer.png') })
+
+  // ═════ ٢ب) العبارة المنفية ═════
+  console.log('\n٢ب) العبارة المنفية')
+  // السؤال السادس منفي: «لا تراعي المدرسة اختلاف القدرات»
+  while (true) {
+    const at = (await page.locator('.survey__count').innerText())
+      .replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
+    if (at.includes('السؤال 6 ')) break
+    await answer(page, 0)
+  }
+  const note = page.locator('.reverse-note')
+  check('العبارة المنفية تحمل تنبيهًا ظاهرًا', await note.count() === 1)
+  const noteText = await note.innerText()
+  check('التنبيه يقول ماذا تعني الموافقة', noteText.includes('أوافق تماماً'),
+    noteText.replace(/\n/g, ' ').slice(0, 70) + '…')
+  check('ولا يقول أيّ الخيارات يُختار',
+    !/اختاري|الإجابة الصحيحة|يُفضّل/.test(noteText))
+  await page.screenshot({ path: join(shots, '4c-reverse.png') })
 
   // ═════ ٣) سؤال مطلوب متروك ═════
   console.log('\n٣) سؤال مطلوب متروك')

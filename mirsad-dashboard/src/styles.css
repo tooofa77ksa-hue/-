@@ -2184,3 +2184,83 @@ th {
 .survey--ask { justify-content: flex-start; }
 .survey--ask .step { margin-block: auto; }
 .survey--ask .survey__nav { margin-top: 0; }
+
+/* ───── شرح السؤال ومعنى الخيارات ───── */
+
+.survey__explain {
+  margin: -8px 0 0;
+  font-size: 15.5px;
+  line-height: 1.9;
+  color: var(--text-muted);
+  max-width: 40ch;
+}
+
+/* تنبيه العبارة المنفية: يقول ماذا تعني الموافقة، ولا يقول ماذا تختار */
+.reverse-note {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--moe-sand) 20%, var(--surface));
+  border-inline-start: 4px solid var(--moe-sand);
+  font-size: 14.5px;
+  line-height: 1.85;
+}
+
+.reverse-note strong { color: var(--text); font-size: 14px; }
+.reverse-note span { color: var(--text-muted); }
+
+.answer { align-items: flex-start; }
+.answer__dot { margin-top: 3px; }
+
+.answer__body { display: flex; flex-direction: column; gap: 3px; }
+.answer__label { font-size: 17px; font-weight: 600; }
+
+.answer__hint {
+  font-size: 13.5px;
+  font-weight: 400;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.answer.is-chosen .answer__hint { color: var(--text); }
+
+/* مفتاح المقياس على شاشة الترحيب */
+.scale-key {
+  width: 100%;
+  text-align: start;
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.scale-key__intro {
+  margin: 0 0 12px;
+  font-size: 14.5px;
+  line-height: 1.85;
+  color: var(--text-muted);
+}
+
+.scale-key ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+
+.scale-key li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-inline-start: 12px;
+  border-inline-start: 3px solid var(--border-strong);
+}
+
+.scale-key strong { font-size: 15px; color: var(--text); }
+.scale-key span { font-size: 13.5px; color: var(--text-muted); }
+
+.qlist__explain {
+  display: block;
+  margin-top: 5px;
+  font-size: 12.5px;
+  font-weight: 400;
+  color: var(--text-muted);
+  line-height: 1.75;
+}

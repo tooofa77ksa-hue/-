@@ -7,6 +7,7 @@ import {
 } from '../../data/remote/firestoreRepo'
 import { submitResponse } from '../../domain/actions'
 import type { Id, Question } from '../../domain/types'
+import { SCALE_HELP, helpFor, optionHint } from '../../data/questionHelp'
 import { ensureRespondent } from '../../firebase/auth'
 import { normalizeArabic } from '../../lib/arabic'
 import { arabicDigits, num } from '../../lib/format'
@@ -455,8 +456,21 @@ export function SurveyPage() {
             أهلًا {respondentName}
           </h1>
           <p className="cover__lead">
-            لا توجد إجابة صحيحة وأخرى خاطئة — اختاري ما يعبّر عن رأيك أنتِ.
+            لا توجد إجابة صحيحة وأخرى خاطئة — اختاري ما يعبّر عن الواقع كما هو.
           </p>
+
+          <div className="scale-key">
+            <p className="scale-key__intro">{SCALE_HELP.intro}</p>
+            <ul>
+              {source.options.map((o) => (
+                <li key={o.id}>
+                  <strong>{o.label}</strong>
+                  <span>{optionHint(o.label) ?? ''}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
           <button type="button" className="survey__cta" onClick={beginAnswering}>
             هيّا نبدأ
           </button>
@@ -589,6 +603,9 @@ function Step({
         <p className="survey__lead">
           شاركي المدرسة برأيك أو مقترحك الذي ترغبين أن نعرفه.
         </p>
+        {helpFor(question.id)?.plain && (
+          <p className="survey__explain">{helpFor(question.id)?.plain}</p>
+        )}
         <label className="sr-only" htmlFor="voice-field">{question.text}</label>
         <textarea
           id="voice-field" className="field-area" rows={5} value={value}
@@ -604,6 +621,9 @@ function Step({
     return (
       <section className="step step--overall">
         <h1 className="survey__q" tabIndex={-1} ref={headingRef}>{forDisplay(question.text)}</h1>
+        {helpFor(question.id)?.plain && (
+          <p className="survey__explain">{helpFor(question.id)?.plain}</p>
+        )}
         <div className="verdicts">
           {overallOptions.map((label) => (
             <button
@@ -620,20 +640,38 @@ function Step({
     )
   }
 
+  const help = helpFor(question.id)
+
   return (
     <section className={flashing ? 'step step--flash' : 'step'}>
       <h1 className="survey__q" tabIndex={-1} ref={headingRef}>{forDisplay(question.text)}</h1>
+
+      {help?.plain && <p className="survey__explain">{help.plain}</p>}
+
+      {help?.reverseNote && (
+        <div className="reverse-note">
+          <strong>{SCALE_HELP.reverseHeading}</strong>
+          <span>{help.reverseNote}</span>
+        </div>
+      )}
+
       <div className="answers">
-        {options.map((opt) => (
-          <button
-            key={opt.id} type="button" aria-pressed={value === opt.id}
-            className={value === opt.id ? 'answer is-chosen' : 'answer'}
-            onClick={() => onChoose(opt.id)}
-          >
-            <span className="answer__dot" aria-hidden="true" />
-            <span>{opt.label}</span>
-          </button>
-        ))}
+        {options.map((opt) => {
+          const hint = optionHint(opt.label)
+          return (
+            <button
+              key={opt.id} type="button" aria-pressed={value === opt.id}
+              className={value === opt.id ? 'answer is-chosen' : 'answer'}
+              onClick={() => onChoose(opt.id)}
+            >
+              <span className="answer__dot" aria-hidden="true" />
+              <span className="answer__body">
+                <span className="answer__label">{opt.label}</span>
+                {hint && <span className="answer__hint">{hint}</span>}
+              </span>
+            </button>
+          )
+        })}
       </div>
     </section>
   )
