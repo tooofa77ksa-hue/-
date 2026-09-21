@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react'
 import { EmptyState } from '../../components/EmptyState'
 import { SectionTitle } from '../../components/SectionTitle'
 import { StatCard } from '../../components/StatCard'
-import { confirmMatch, rejectMatch } from '../../domain/actions'
+import { confirmMatch, confirmUnambiguousMatches, rejectMatch } from '../../domain/actions'
 import type { MatchStatus } from '../../domain/types'
 import { isNameCandidate, normalizeArabic } from '../../lib/arabic'
 import { num } from '../../lib/format'
@@ -20,6 +20,7 @@ const STATUS_LABELS: Record<MatchStatus, string> = {
 export function MatchReviewPage() {
   const { state, replace } = useSystem()
   const [status, setStatus] = useState<MatchStatus | 'all'>('POSSIBLE_MATCH')
+  const [confirmingBulk, setConfirmingBulk] = useState(false)
   const [gradeId, setGradeId] = useState('all')
   const [search, setSearch] = useState('')
 
@@ -36,6 +37,13 @@ export function MatchReviewPage() {
       .filter((r) => gradeId === 'all' || r.declaredGradeId === gradeId)
       .filter((r) => !needle || normalizeArabic(r.rawName).includes(needle))
   }, [state.responses, status, gradeId, search])
+
+  const unambiguous = useMemo(
+    () => state.responses.filter(
+      (r) => r.matchStatus === 'POSSIBLE_MATCH' && r.candidateStudentIds.length === 1,
+    ).length,
+    [state.responses],
+  )
 
   const tally = useMemo(() => {
     const t: Record<string, number> = {}
@@ -67,6 +75,42 @@ export function MatchReviewPage() {
         <StatCard tone="purple" label="بلا كشف رسمي" value={num(tally.LEGACY ?? 0)}
           meta="صفوف لم يُرفع كشفها" />
       </section>
+
+      {unambiguous > 0 && (
+        <div className="alert alert--info no-print">
+          <span>
+            <strong>{num(unambiguous)}</strong> استجابة لها مرشّح واحد لا غير. يمكنك تأكيدها
+            دفعةً واحدة بعد مراجعة القائمة أدناه — ويبقى كل ربط قابلًا للفكّ فرديًا.
+            الحالات متعددة المرشّحين مستثناة دائمًا.
+          </span>
+          {confirmingBulk ? (
+            <>
+              <span className="chip chip--warn">
+                سيُربط {num(unambiguous)} سجلًا. متأكدة؟
+              </span>
+              <button
+                type="button"
+                className="button button--small button--primary"
+                onClick={() => {
+                  replace(confirmUnambiguousMatches(state))
+                  setConfirmingBulk(false)
+                }}
+              >
+                نعم، أكّدي الكل
+              </button>
+              <button type="button" className="button button--small"
+                onClick={() => setConfirmingBulk(false)}>
+                إلغاء
+              </button>
+            </>
+          ) : (
+            <button type="button" className="button button--small button--primary"
+              onClick={() => setConfirmingBulk(true)}>
+              تأكيد الحالات ذات المرشّح الواحد
+            </button>
+          )}
+        </div>
+      )}
 
       {state.duplicateGroups.length > 0 && (
         <div className="alert alert--info">

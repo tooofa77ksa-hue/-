@@ -28,7 +28,7 @@ describe('عكس درجات الأسئلة السلبية', () => {
 
 describe('نطاق التحليل', () => {
   it('يشمل نطاق المدرسة كل الطالبات النشطات', () => {
-    expect(studentsInScope(state, SCHOOL_SCOPE)).toHaveLength(99)
+    expect(studentsInScope(state, SCHOOL_SCOPE)).toHaveLength(294)
   })
 
   it('يحصر نطاق الصف طالباته وحدهم', () => {
@@ -41,7 +41,7 @@ describe('نطاق التحليل', () => {
   })
 
   it('ينسب كل الاستجابات إلى نطاق المدرسة', () => {
-    expect(responsesInScope(state, SCHOOL_SCOPE)).toHaveLength(136)
+    expect(responsesInScope(state, SCHOOL_SCOPE)).toHaveLength(274)
   })
 
   it('لا ينسب إلى الفصل إلا الاستجابات المرتبطة بطالبة مؤكّدة', () => {
@@ -53,7 +53,7 @@ describe('نطاق التحليل', () => {
 describe('نِسَب الاستجابة', () => {
   it('تحسب غير المستجيبات كفرق بين طالبات الكشف والمستجيبات المؤكّدات', () => {
     const p = participation(state, SCHOOL_SCOPE)
-    expect(p.totalStudents).toBe(99)
+    expect(p.totalStudents).toBe(294)
     expect(p.confirmedRespondents + p.nonRespondents).toBe(p.totalStudents)
   })
 
@@ -72,11 +72,17 @@ describe('نِسَب الاستجابة', () => {
     expect(p.confirmedRespondents).toBeLessThanOrEqual(p.responsesReceived)
   })
 
-  it('تعطي نسبة صفرية عند غياب الكشف الرسمي بدل القسمة على صفر', () => {
-    const p = participation(state, { gradeId: 'g2' })
+  it('تعطي نسبة صفرية بدل القسمة على صفر عند نطاق بلا طالبات', () => {
+    const p = participation(state, { classId: 'لا-يوجد-فصل-بهذا-المعرّف' })
     expect(p.totalStudents).toBe(0)
     expect(p.rate).toBe(0)
-    expect(p.withoutRoster).toBe(42)
+  })
+
+  it('لم يعد أي صف بلا كشف رسمي بعد اكتمال المصادر', () => {
+    for (const g of state.grades) {
+      expect(participation(state, { gradeId: g.id }).totalStudents).toBeGreaterThan(0)
+      expect(participation(state, { gradeId: g.id }).withoutRoster).toBe(0)
+    }
   })
 })
 
@@ -115,7 +121,7 @@ describe('تحليل الأسئلة', () => {
   })
 
   it('يعيد قاعدة حساب صفرية لنطاق بلا إجابات', () => {
-    const a = analyzeQuestion(state, 'q01', { classId: 'g3-c1' })
+    const a = analyzeQuestion(state, 'q01', { classId: 'لا-يوجد' })
     expect(a?.n).toBe(0)
     expect(a?.counts.every((c) => c.percent === 0)).toBe(true)
   })
@@ -145,7 +151,7 @@ describe('مؤشر الاتجاه', () => {
   })
 
   it('يعيد قيمة فارغة لا صفرًا عند غياب الإجابات', () => {
-    const idx = satisfactionIndex(state, { classId: 'g3-c1' })
+    const idx = satisfactionIndex(state, { classId: 'لا-يوجد' })
     expect(idx.mean).toBeNull()
     expect(idx.percent).toBeNull()
     expect(idx.n).toBe(0)
@@ -155,16 +161,21 @@ describe('مؤشر الاتجاه', () => {
 describe('التقويم العام والآراء', () => {
   it('يوزّع التقويم العام بقيم المصدر ونسب مجموعها ١٠٠٪', () => {
     const d = overallDistribution(state, SCHOOL_SCOPE)
-    expect(d.n).toBe(131)
+    expect(d.n).toBe(268)
     expect(d.rows.map((r) => r.value)).toEqual(['ممتاز', 'جيد'])
     expect(d.rows.reduce((s, r) => s + r.percent, 0)).toBeCloseTo(100, 6)
     expect(d.rows.reduce((s, r) => s + r.count, 0)).toBe(d.n)
   })
 
   it('يحصر الآراء داخل النطاق المطلوب', () => {
-    expect(suggestionsInScope(state, SCHOOL_SCOPE)).toHaveLength(58)
+    expect(suggestionsInScope(state, SCHOOL_SCOPE)).toHaveLength(113)
     const g6 = suggestionsInScope(state, { gradeId: 'g6' })
-    expect(g6.length).toBeLessThan(58)
+    expect(g6.length).toBeLessThan(113)
+    // مجموع الآراء عبر الصفوف = مجموعها على مستوى المدرسة
+    const sum = state.grades.reduce(
+      (n, g) => n + suggestionsInScope(state, { gradeId: g.id }).length, 0,
+    )
+    expect(sum).toBe(113)
   })
 
   it('يرتّب نقاط القوة تنازليًا وفرص التحسين تصاعديًا', () => {

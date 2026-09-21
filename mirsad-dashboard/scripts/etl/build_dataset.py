@@ -42,6 +42,16 @@ GRADE_NAMES = {1: 'الأول الابتدائي', 2: 'الثاني الابتد
                4: 'الرابع الابتدائي', 5: 'الخامس الابتدائي', 6: 'السادس الابتدائي'}
 
 
+def _grade_no(value):
+    """يقرأ رقم الصف سواء ورد رقمًا أو نصًّا أو رقمًا عشريًّا."""
+    if value is None:
+        return None
+    try:
+        return int(float(str(value).strip()))
+    except ValueError:
+        return None
+
+
 def sid(*parts) -> str:
     return hashlib.sha1('|'.join(str(p) for p in parts).encode()).hexdigest()[:12]
 
@@ -64,7 +74,10 @@ def read_workbooks():
         ws = openpyxl.load_workbook(path, data_only=True).active
         header = [ws.cell(1, c).value for c in range(1, ws.max_column + 1)]
 
+        # تُحدَّد الأعمدة بترويستها لا بموضعها: بعض الملفات تبدأ بعمود
+        # «طابع زمني» إضافي، فأي افتراض بموضع ثابت يزيح البيانات كلها.
         q_cols, overall_col, text_col = [], None, None
+        name_col = grade_col = None
         for idx, h in enumerate(header, start=1):
             label = str(h).strip() if h else ''
             if not label:
@@ -75,6 +88,12 @@ def read_workbooks():
                 overall_col = (idx, label)
             elif 'الاقتراحات' in label:
                 text_col = (idx, label)
+            elif 'اسم' in label and name_col is None:
+                name_col = idx
+            elif label == 'الصف' and grade_col is None:
+                grade_col = idx
+        if name_col is None or grade_col is None:
+            raise SystemExit(f'تعذّر تحديد عمودَي الاسم والصف في {path}')
 
         found = [label for _, label in q_cols]
         if questions is None:
@@ -83,15 +102,15 @@ def read_workbooks():
             raise SystemExit(f'اختلاف في نصوص الأسئلة بين الملفات: {path}')
 
         for r in range(2, ws.max_row + 1):
-            name = ws.cell(r, 1).value
-            grade = ws.cell(r, 2).value
+            name = ws.cell(r, name_col).value
+            grade = ws.cell(r, grade_col).value
             if not name or not str(name).strip():
                 continue
             rows.append({
                 'sourceFile': os.path.basename(path),
                 'sourceRow': r,
                 'rawName': str(name).strip(),
-                'gradeNo': int(float(grade)) if grade is not None else None,
+                'gradeNo': _grade_no(grade),
                 'answers': [(col, label, ws.cell(r, col).value) for col, label in q_cols],
                 'overall': ws.cell(r, overall_col[0]).value if overall_col else None,
                 'overallLabel': overall_col[1] if overall_col else None,
@@ -121,18 +140,27 @@ def match_response(row, roster_by_grade):
         return 'POSSIBLE_MATCH', None, [s['id'] for s in exact]
 
     rt = core_tokens(row['rawName'])
-    candidates = []
+    if not rt:
+        return 'NEW', None, []
+
+    # تُرتَّب الاحتمالات في طبقات، ولا تُعرَض إلا أقواها الموجودة.
+    # بدون هذا الترتيب يظهر «رتيل منصور الحربي» مرشّحًا لطالبتين
+    # تشتركان في الاسم الأول والعائلة، فيلتبس ما هو في الحقيقة محسوم.
+    tiers = {1: [], 2: [], 3: []}
     for s in pool:
         st = core_tokens(s['name'])
-        if not rt or not st or rt[0] != st[0]:
+        if not st or rt[0] != st[0]:
             continue
-        if set(rt).issubset(set(st)) or set(st).issubset(set(rt)):
-            candidates.append(s)
+        if set(rt).issubset(set(st)):
+            tiers[1].append(s)          # كل أجزاء الاسم المُدخَل موجودة في الكشف
+        elif set(st).issubset(set(rt)):
+            tiers[2].append(s)          # الكشف أقصر، والمُدخَل يحتويه
         elif len(rt) >= 2 and len(st) >= 2 and rt[-1] == st[-1]:
-            candidates.append(s)
+            tiers[3].append(s)          # الاسم الأول والعائلة فقط
 
-    if candidates:
-        return 'POSSIBLE_MATCH', None, [s['id'] for s in candidates]
+    for level in (1, 2, 3):
+        if tiers[level]:
+            return 'POSSIBLE_MATCH', None, [s['id'] for s in tiers[level]]
     return 'NEW', None, []
 
 

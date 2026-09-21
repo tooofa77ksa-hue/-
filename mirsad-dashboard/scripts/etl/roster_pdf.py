@@ -27,6 +27,13 @@ GRADE_WORDS = {
 NUMBER_COLUMN_X = 520   # عمود «عدد» في أقصى يمين الجدول
 TABLE_TOP_Y = 185       # أسفل سطر عناوين الجدول
 
+# أي حرف عربي أو لاتيني: الأسماء قد تَرِد بأي منهما في الكشف الرسمي
+LETTER = re.compile(r'[؀-ۿA-Za-z]')
+
+# كلمات ترويسة وتذييل قد تقع ضمن نطاق صف الجدول
+SKIP_WORDS = {'عدد', 'كشف', 'الصف', 'الفصل', 'القسم', 'التوقيع', 'الطالبة',
+              'اسم', 'بأسماء', 'الطالبات', 'ReportID'}
+
 
 def _deglyph(ch: str) -> str:
     o = ord(ch)
@@ -39,8 +46,18 @@ def _deglyph(ch: str) -> str:
     return chr(0xFE00 + (o & 0xFF))
 
 
+ARABIC = re.compile(r'[؀-ۿﭐ-\ufeff]')
+
+
 def decode(s: str) -> str:
+    """يفكّ ترميز كلمة واحدة ويعيدها إلى اتجاهها الصحيح.
+
+    العربية مخزّنة بترتيب بصري معكوس فتُعكس، أما اللاتينية والأرقام فمخزّنة
+    بترتيبها المنطقي أصلًا فلا تُمسّ — وعكسها يقلب الاسم رأسًا على عقب.
+    """
     mapped = ''.join(_deglyph(c) for c in s)
+    if not ARABIC.search(mapped):
+        return re.sub(r'\s+', ' ', unicodedata.normalize('NFKC', mapped)).strip()
     out = unicodedata.normalize('NFKC', mapped[::-1])
     out = re.sub(r'\d+', lambda m: m.group()[::-1], out)   # الأرقام لاتينية الاتجاه
     return re.sub(r'\s+', ' ', out).strip()
@@ -82,15 +99,21 @@ def extract_roster(path: str):
             text = decode(raw)
             if x0 >= NUMBER_COLUMN_X and text.isdigit():
                 numbers.append((y0, int(text)))
-            elif re.search(r'[؀-ۿ]', text):
+            elif LETTER.search(text):
+                # تُقبل الحروف العربية واللاتينية معًا: بعض الأسماء في الكشف
+                # الرسمي مكتوبة بحروف لاتينية، وإسقاطها يفقد طالبات حقيقيات.
                 names.append((y0, x0, text))
 
         # رقم الصف يعلو اسمه بنحو ٣ نقاط؛ نضمّ كل اسم إلى أقرب رقم فوقه
         for y_num, number in sorted(numbers):
             parts = [(x, t) for y, x, t in names if -1 <= (y - y_num) <= 9]
+            parts = [(x, t) for x, t in parts if t not in SKIP_WORDS]
             if not parts:
                 continue
-            name = ' '.join(t for _, t in sorted(parts, key=lambda p: -p[0]))
+            # العربية تُقرأ من اليمين، واللاتينية من اليسار داخل السطر نفسه
+            latin_only = not any(ARABIC.search(t) for _, t in parts)
+            ordered = sorted(parts, key=lambda p: p[0] if latin_only else -p[0])
+            name = re.sub(r'\s*-\s*', ' ', ' '.join(t for _, t in ordered)).strip()
             out.append({
                 'grade': grade, 'gradeName': grade_name, 'className': klass,
                 'academicYear': year, 'no': number, 'name': name, 'page': page_index,

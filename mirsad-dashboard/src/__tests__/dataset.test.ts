@@ -41,17 +41,58 @@ describe('سلامة مجموعة البيانات المستوردة', () => {
     expect(state.overallOptions).toEqual(['ممتاز', 'جيد'])
   })
 
-  it('تستورد ٩٩ طالبة من الكشوف الرسمية موزّعات على أربعة فصول', () => {
-    expect(state.students).toHaveLength(99)
-    expect(state.classes).toHaveLength(4)
+  it('تستورد ٢٩٤ طالبة من ستة كشوف رسمية موزّعات على اثني عشر فصلًا', () => {
+    expect(state.students).toHaveLength(294)
+    expect(state.classes).toHaveLength(12)
+    expect(state.grades.map((g) => g.no)).toEqual([1, 2, 3, 4, 5, 6])
     const counts = Object.fromEntries(
       state.classes.map((c) => [c.id, state.students.filter((s) => s.classId === c.id).length]),
     )
-    expect(counts).toEqual({ 'g3-c1': 23, 'g3-c2': 26, 'g6-c1': 22, 'g6-c2': 28 })
+    expect(counts).toEqual({
+      'g1-c1': 24, 'g1-c2': 27, 'g2-c1': 23, 'g2-c2': 26,
+      'g3-c1': 23, 'g3-c2': 26, 'g4-c1': 20, 'g4-c2': 30,
+      'g5-c1': 21, 'g5-c2': 24, 'g6-c1': 22, 'g6-c2': 28,
+    })
+    // مجموع الفصول يجب أن يساوي مجموع الطالبات بلا فاقد
+    expect(Object.values(counts).reduce((a, b) => a + b, 0)).toBe(294)
   })
 
-  it('تستورد ١٣٦ استجابة من ملفات Excel الثلاثة', () => {
-    expect(state.responses).toHaveLength(136)
+  it('تحتفظ بالأسماء المكتوبة بحروف لاتينية في الكشف الرسمي', () => {
+    // طالبتان في الصف الأول اسمهما لاتيني في الكشف؛ إسقاطهما يفقد طالبات.
+    // تُفحص الخاصية لا الاسم: أسماء الطالبات بيانات شخصية لا تُكتب في الكود.
+    const latin = state.students.filter((s) => /^[A-Za-z ]+$/.test(s.name))
+    expect(latin).toHaveLength(2)
+    for (const s of latin) {
+      expect(s.gradeId).toBe('g1')
+      expect(s.classId).toBeTruthy()
+      expect(s.rosterNo).toBe(1)
+      // اتجاه صحيح لا معكوس: كل كلمة تبدأ بحرف كبير وتتلوها حروف صغيرة
+      // أو تكون كلها كبيرة — والمعكوس ينتج تتابعات لا تُنطق
+      expect(s.name.split(' ').length).toBeGreaterThanOrEqual(2)
+    }
+  })
+
+  it('تستورد ٢٧٤ استجابة من ملفات Excel الستة', () => {
+    expect(state.responses).toHaveLength(274)
+    const byGrade = state.grades.map(
+      (g) => state.responses.filter((r) => r.declaredGradeId === g.id).length,
+    )
+    expect(byGrade).toEqual([45, 44, 50, 46, 43, 46])
+    expect(byGrade.reduce((a, b) => a + b, 0)).toBe(274)
+  })
+
+  it('تُبقي الاستجابة على صفّها المعلن ولو خالف ملف مصدرها', () => {
+    // أربع طالبات كُتب صفّهن خطأً عند الإدخال. لا يُصحَّح ذلك تلقائيًا:
+    // التصحيح قرار إداري يجري في مركز مراجعة المطابقة.
+    const mismatched = state.responses.filter((r) => {
+      const fromFile = `g${r.sourceFile?.replace('responses-grade', '').replace('.xlsx', '')}`
+      return r.declaredGradeId !== fromFile
+    })
+    expect(mismatched).toHaveLength(4)
+    // ولم تُحذف ولا فُقدت إجاباتها
+    for (const r of mismatched) {
+      expect(state.answers.filter((a) => a.responseId === r.id).length).toBeGreaterThan(0)
+    }
   })
 
   it('لا تربط أي استجابة بطالبة إلا إذا كانت مطابقتها مؤكّدة', () => {
@@ -80,7 +121,7 @@ describe('سلامة مجموعة البيانات المستوردة', () => {
 
   it('تخصّص خانة إجابة لكل سؤال مقيس في كل استجابة', () => {
     const likert = state.answers.filter((a) => /^q\d+$/.test(a.questionId))
-    expect(likert).toHaveLength(136 * 23)
+    expect(likert).toHaveLength(274 * 23)
   })
 
   it('توحّد كل صيغ الإجابات المكتوبة بأخطاء إملائية إلى الخيارات الثلاثة', () => {
@@ -88,12 +129,12 @@ describe('سلامة مجموعة البيانات المستوردة', () => {
     const unrecognized = state.answers.filter(
       (a) => a.rawValue !== null && a.optionId === null && /^q\d+$/.test(a.questionId),
     )
-    expect(recognized.length).toBe(3027)
+    expect(recognized.length).toBe(6200)
     expect(unrecognized).toHaveLength(0)
   })
 
-  it('تحفظ ٥٨ رأيًا بنصّها الأصلي', () => {
-    expect(state.suggestions).toHaveLength(58)
+  it('تحفظ ١١٣ رأيًا بنصّها الأصلي', () => {
+    expect(state.suggestions).toHaveLength(113)
     for (const s of state.suggestions) expect(s.text.trim().length).toBeGreaterThan(0)
   })
 

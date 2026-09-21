@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it } from 'vitest'
 
 import { initialState } from '../data/store'
 import {
-  addStudent, archiveStudent, confirmMatch, rejectMatch, restoreStudent,
-  submitResponse, updateStudent,
+  addStudent, archiveStudent, confirmMatch, confirmUnambiguousMatches,
+  rejectMatch, restoreStudent, submitResponse, updateStudent,
 } from '../domain/actions'
 import type { SystemState } from '../domain/types'
 import { nonRespondents, participation, responsesInScope, studentsInScope } from '../lib/analysis'
@@ -189,18 +189,41 @@ describe('مركز مراجعة المطابقة', () => {
   })
 
   it('يربط الاستجابة بعد التأكيد الإداري ويحدّث الأرقام', () => {
-    const target = state.responses.find((r) => r.matchStatus === 'POSSIBLE_MATCH')!
+    // تُختار حالة مرشّحتها ليست مستجيبة مؤكّدة أصلًا: عدّ المستجيبات
+    // يحسب الطالبات المتمايزات، فربط استجابة ثانية بالطالبة نفسها لا يرفعه.
+    const linked = new Set(state.responses.filter((r) => r.studentId).map((r) => r.studentId))
+    const target = state.responses.find(
+      (r) => r.matchStatus === 'POSSIBLE_MATCH'
+        && r.candidateStudentIds.length === 1
+        && !linked.has(r.candidateStudentIds[0]),
+    )!
     const candidate = target.candidateStudentIds[0]
-    const before = participation(state, { gradeId: 'g6' })
+    const gradeId = state.students.find((s) => s.id === candidate)!.gradeId
+    const before = participation(state, { gradeId })
 
     const next = confirmMatch(state, target.id, candidate)
-    const after = participation(next, { gradeId: 'g6' })
+    const after = participation(next, { gradeId })
 
     expect(next.responses.find((r) => r.id === target.id)?.matchStatus).toBe('MATCHED')
     expect(next.responses.find((r) => r.id === target.id)?.studentId).toBe(candidate)
     expect(after.confirmedRespondents).toBe(before.confirmedRespondents + 1)
     expect(after.awaitingReview).toBe(before.awaitingReview - 1)
     expect(next.audit[0].operation).toBe('تأكيد مطابقة')
+  })
+
+  it('لا يرفع عدد المستجيبات عند ربط استجابة ثانية بالطالبة نفسها', () => {
+    const linked = state.responses.find((r) => r.studentId)!
+    const other = state.responses.find(
+      (r) => r.matchStatus === 'POSSIBLE_MATCH' && r.id !== linked.id,
+    )!
+    const gradeId = state.students.find((s) => s.id === linked.studentId)!.gradeId
+    const before = participation(state, { gradeId })
+    const next = confirmMatch(state, other.id, linked.studentId as string)
+    const after = participation(next, { gradeId })
+
+    expect(after.confirmedRespondents).toBe(before.confirmedRespondents)
+    expect(after.responsesReceived).toBe(before.responsesReceived)
+    expect(next.responses).toHaveLength(state.responses.length)
   })
 
   it('يحتفظ بالاستجابة كاملة عند رفض المطابقة', () => {
@@ -220,5 +243,57 @@ describe('مركز مراجعة المطابقة', () => {
     }
     expect(s.responses).toHaveLength(state.responses.length)
     expect(s.answers).toHaveLength(state.answers.length)
+  })
+})
+
+describe('التأكيد الجماعي للمطابقة', () => {
+  it('يربط الحالات ذات المرشّح الواحد فقط، ويستثني ما عداها', () => {
+    const unambiguous = state.responses.filter(
+      (r) => r.matchStatus === 'POSSIBLE_MATCH' && r.candidateStudentIds.length === 1,
+    )
+    const ambiguous = state.responses.filter(
+      (r) => r.matchStatus === 'POSSIBLE_MATCH' && r.candidateStudentIds.length > 1,
+    )
+    const newOnes = state.responses.filter((r) => r.matchStatus === 'NEW')
+    expect(unambiguous.length).toBeGreaterThan(0)
+
+    const next = confirmUnambiguousMatches(state)
+
+    for (const r of unambiguous) {
+      const after = next.responses.find((x) => x.id === r.id)!
+      expect(after.matchStatus).toBe('MATCHED')
+      expect(after.studentId).toBe(r.candidateStudentIds[0])
+      expect(after.reviewedBy).toBe('إدارة المدرسة')
+    }
+    for (const r of [...ambiguous, ...newOnes]) {
+      expect(next.responses.find((x) => x.id === r.id)?.matchStatus).toBe(r.matchStatus)
+      expect(next.responses.find((x) => x.id === r.id)?.studentId).toBeNull()
+    }
+  })
+
+  it('لا يحذف ولا يفقد أي استجابة أو إجابة', () => {
+    const next = confirmUnambiguousMatches(state)
+    expect(next.responses).toHaveLength(state.responses.length)
+    expect(next.answers).toHaveLength(state.answers.length)
+    expect(next.suggestions).toHaveLength(state.suggestions.length)
+  })
+
+  it('يُسجَّل في سجل العمليات ويبقى قابلًا للفكّ', () => {
+    const next = confirmUnambiguousMatches(state)
+    expect(next.audit[0].operation).toBe('تأكيد جماعي للمطابقة')
+
+    const one = next.responses.find((r) => r.matchStatus === 'MATCHED' && r.reviewedAt)!
+    const undone = rejectMatch(next, one.id)
+    expect(undone.responses.find((r) => r.id === one.id)?.studentId).toBeNull()
+    expect(undone.answers).toHaveLength(next.answers.length)
+  })
+
+  it('يرفع عدد المستجيبات المؤكّدات ويخفض المنتظرة للمراجعة', () => {
+    const before = participation(state, {})
+    const after = participation(confirmUnambiguousMatches(state), {})
+    expect(after.confirmedRespondents).toBeGreaterThan(before.confirmedRespondents)
+    expect(after.awaitingReview).toBeLessThan(before.awaitingReview)
+    expect(after.totalStudents).toBe(before.totalStudents)
+    expect(after.responsesReceived).toBe(before.responsesReceived)
   })
 })

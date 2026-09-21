@@ -23,3 +23,7 @@ data/source/
 data/import-report.json
 src/data/school-data.json
 src/data/dataset.json
+
+# ملفات بايثون المؤقتة
+__pycache__/
+*.pyc

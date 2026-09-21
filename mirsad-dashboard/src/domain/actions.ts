@@ -123,6 +123,49 @@ export function confirmMatch(state: SystemState, responseId: Id, studentId: Id):
   return next
 }
 
+/**
+ * تأكيد جماعي للحالات ذات المرشّح الواحد.
+ *
+ * لا يجري هذا تلقائيًا في أي وقت: تبدأه الإدارة بضغطة صريحة بعد اطّلاعها
+ * على القائمة، ويُسجَّل في سجل العمليات، ويبقى كل ربط قابلًا للفكّ.
+ * الحالات متعددة المرشّحين مستثناة دائمًا — قرارها بشري وحده.
+ */
+export function confirmUnambiguousMatches(state: SystemState): SystemState {
+  const next = clone(state)
+  const byId = new Map(next.students.map((s) => [s.id, s]))
+  const now = new Date().toISOString()
+  const linked: { responseId: Id; studentId: Id }[] = []
+
+  next.responses = next.responses.map((r) => {
+    if (r.matchStatus !== 'POSSIBLE_MATCH' || r.candidateStudentIds.length !== 1) return r
+    const student = byId.get(r.candidateStudentIds[0])
+    if (!student) return r
+    linked.push({ responseId: r.id, studentId: student.id })
+    return {
+      ...r,
+      studentId: student.id,
+      classId: student.classId,
+      matchStatus: 'MATCHED' as const,
+      reviewedAt: now,
+      reviewedBy: 'إدارة المدرسة',
+    }
+  })
+
+  const map = new Map(linked.map((l) => [l.responseId, l.studentId]))
+  next.suggestions = next.suggestions.map((s) => {
+    const sid = map.get(s.responseId)
+    if (!sid) return s
+    const student = byId.get(sid)
+    return student
+      ? { ...s, studentId: sid, gradeId: student.gradeId, classId: student.classId }
+      : s
+  })
+
+  audit(next, 'تأكيد جماعي للمطابقة', 'response', 'bulk',
+    `${linked.length} استجابة ذات مرشّح واحد`)
+  return next
+}
+
 /** رفض المطابقة: تبقى الاستجابة محفوظة بلا ربط، وتُعلَّم كجديدة. */
 export function rejectMatch(state: SystemState, responseId: Id): SystemState {
   const next = clone(state)
