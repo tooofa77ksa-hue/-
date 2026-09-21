@@ -7,6 +7,7 @@ import {
 import { saveBlob } from '../../lib/excel'
 import { dateTime, num } from '../../lib/format'
 import { useSystem } from '../../state/useSystem'
+import { DatabasePanel } from './DatabasePanel'
 
 export function SettingsPage() {
   const { state, replace } = useSystem()
@@ -53,6 +54,8 @@ export function SettingsPage() {
           {state.meta.sources.map((s) => <li key={s}><code>{s}</code></li>)}
         </ul>
       </section>
+
+      <DatabasePanel />
 
       <section className="panel panel--pad">
         <h3 className="sub-label">النسخ الاحتياطي والاستعادة</h3>

@@ -1798,3 +1798,54 @@ th {
   text-align: center;
   color: var(--text-muted);
 }
+
+/* ───────── شريط حالة الحفظ ───────── */
+
+.sync {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface-tint);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.sync__dot {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--text-muted);
+}
+
+.sync--ok { background: color-mix(in srgb, var(--moe-green) 12%, var(--surface)); border-color: var(--moe-green); }
+.sync--ok .sync__dot { background: var(--moe-green); }
+
+.sync--busy .sync__dot { background: var(--moe-blue); animation: sync-pulse 1.1s ease-in-out infinite; }
+
+.sync--warn { background: color-mix(in srgb, var(--moe-sand) 26%, var(--surface)); border-color: var(--moe-sand); }
+.sync--warn .sync__dot { background: #8a6d1f; }
+
+.sync--local { background: color-mix(in srgb, var(--moe-sand) 20%, var(--surface)); border-color: var(--moe-sand); }
+.sync--local .sync__dot { background: #8a6d1f; }
+
+.sync--error { background: color-mix(in srgb, #c0392b 12%, var(--surface)); border-color: #c0392b; }
+.sync--error .sync__dot { background: #c0392b; }
+
+.sync button { margin-inline-start: auto; }
+
+@keyframes sync-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+.gate__note--warn {
+  background: color-mix(in srgb, var(--moe-sand) 22%, var(--surface));
+  border: 1px solid var(--moe-sand);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  color: var(--text);
+}

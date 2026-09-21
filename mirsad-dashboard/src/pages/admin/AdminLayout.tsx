@@ -4,6 +4,7 @@ import { BrandFooter } from '../../components/BrandFooter'
 import { BrandHeader } from '../../components/BrandHeader'
 import { AnthemPlayer } from '../../components/AnthemPlayer'
 import { LiveClock } from '../../components/LiveClock'
+import { SyncBanner } from '../../components/SyncBanner'
 import { useTheme } from '../../hooks/useTheme'
 import { flagCounts } from '../../lib/reviewFlags'
 import { num } from '../../lib/format'
@@ -64,6 +65,7 @@ export function AdminLayout() {
       </nav>
 
       <main className="main">
+        <SyncBanner />
         <Outlet />
       </main>
 

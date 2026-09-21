@@ -13,10 +13,13 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "firebase:emulate": "firebase emulators:start --only firestore,hosting",
-    "firebase:deploy": "npm run build && firebase deploy --only hosting,firestore",
+    "firebase:deploy": "npm run build:deploy && firebase deploy --only hosting,firestore",
     "etl": "python3 scripts/etl/build_dataset.py",
-    "verify": "npm run lint && npx tsc -b && npm run test && npm run build",
-    "test:rules": "firebase emulators:exec --only firestore --project demo-qiyas-rules \"node scripts/firestore/rules.test.mjs\""
+    "verify": "npm run lint && tsc -b && npm run test && npm run build",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-qiyas-rules \"node scripts/firestore/rules.test.mjs\"",
+    "verify:no-pii": "node scripts/verify/no-personal-data.mjs",
+    "build:deploy": "npm run build && npm run verify:no-pii",
+    "verify:all": "npm run verify && npm run test:rules"
   },
   "dependencies": {
     "exceljs": "^4.4.0",
