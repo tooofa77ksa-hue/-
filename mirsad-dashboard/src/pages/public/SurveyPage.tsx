@@ -1,14 +1,29 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { BrandFooter } from '../../components/BrandFooter'
 import { BrandHeader } from '../../components/BrandHeader'
+import {
+  loadPublicContext, submitPublicResponse, type PublicContext,
+} from '../../data/remote/firestoreRepo'
 import { submitResponse } from '../../domain/actions'
 import type { Id, Question } from '../../domain/types'
+import { ensureRespondent } from '../../firebase/auth'
 import { normalizeArabic } from '../../lib/arabic'
 import { useSystem } from '../../state/useSystem'
 
 type Step = 'grade' | 'class' | 'student' | 'form' | 'done'
+
+/**
+ * رمز يميّز هذا الإرسال بعينه.
+ *
+ * يُولَّد مرة واحدة لكل نموذج مفتوح، فلو ضغطت الطالبة «إرسال» مرتين
+ * أو اهتزّت الشبكة فأُعيدت المحاولة، عرفت الإدارة أن المستندين إرسال
+ * واحد مكرّر لا رأيين. ولا يُحذف أي منهما: التكرار يُراجَع ولا يُمحى.
+ */
+function newToken(): string {
+  return `t-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
+}
 
 interface Draft {
   [questionId: string]: string
@@ -16,9 +31,57 @@ interface Draft {
 
 export function SurveyPage() {
   const { classId: classFromLink } = useParams()
-  const { state, replace } = useSystem()
+  const { state, replace, mode } = useSystem()
+  const remote = mode === 'remote'
 
-  const linkedClass = state.classes.find((c) => c.id === classFromLink) ?? null
+  // في الوضع البعيد لا يحمل المتصفّح أي بيانات مدرسة: يقرأ ما يلزم
+  // القياس فقط (الصفوف والفصول والأسئلة) ولا يرى اسم طالبة واحدة.
+  const [context, setContext] = useState<PublicContext | null>(null)
+  const [ready, setReady] = useState(!remote)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const token = useRef(newToken())
+  const [sending, setSending] = useState(false)
+  const [sendError, setSendError] = useState<string | null>(null)
+  const [typedName, setTypedName] = useState('')
+
+  useEffect(() => {
+    if (!remote) return
+    let alive = true
+    ;(async () => {
+      try {
+        await ensureRespondent()
+        const ctx = await loadPublicContext()
+        if (!alive) return
+        if (!ctx) setLoadError('لا يوجد قياس مفتوح حاليًا.')
+        else setContext(ctx)
+      } catch (error) {
+        if (alive) setLoadError(error instanceof Error ? error.message : String(error))
+      } finally {
+        if (alive) setReady(true)
+      }
+    })()
+    return () => { alive = false }
+  }, [remote])
+
+  const source = useMemo(() => (remote && context ? {
+    cycleId: context.cycle.id,
+    questionIds: context.cycle.questionIds,
+    grades: context.grades,
+    classes: context.classes,
+    questions: context.questions,
+    options: context.options,
+    overallOptions: context.overallOptions,
+  } : {
+    cycleId: state.cycles[0]?.id ?? '',
+    questionIds: state.cycles[0]?.questionIds ?? [],
+    grades: state.grades,
+    classes: state.classes,
+    questions: state.questions,
+    options: state.options,
+    overallOptions: state.overallOptions,
+  }), [remote, context, state])
+
+  const linkedClass = source.classes.find((c) => c.id === classFromLink) ?? null
 
   const [gradeId, setGradeId] = useState<Id | null>(linkedClass?.gradeId ?? null)
   const [classId, setClassId] = useState<Id | null>(linkedClass?.id ?? null)
@@ -29,52 +92,92 @@ export function SurveyPage() {
   const [step, setStep] = useState<Step>(linkedClass ? 'student' : 'grade')
   const [outcome, setOutcome] = useState<'saved' | 'pending_review' | null>(null)
 
-  const cycle = state.cycles[0]
+  // رابط فصل بعينه: يُطبَّق بعد وصول بيانات القياس لا قبلها
+  useEffect(() => {
+    if (!linkedClass) return
+    setGradeId(linkedClass.gradeId)
+    setClassId(linkedClass.id)
+    setStep((current) => (current === 'grade' ? 'student' : current))
+  }, [linkedClass])
+
   const questions = useMemo(
-    () => state.questions.filter((q) => q.active && cycle.questionIds.includes(q.id)),
-    [state.questions, cycle.questionIds],
+    () => source.questions.filter((q) => q.active && source.questionIds.includes(q.id)),
+    [source],
   )
 
   // الصفوف التي لها فصول فعلية في الكشوف الرسمية فقط
   const grades = useMemo(
-    () => state.grades.filter((g) => state.classes.some((c) => c.gradeId === g.id)),
-    [state.grades, state.classes],
+    () => source.grades.filter((g) => source.classes.some((c) => c.gradeId === g.id)),
+    [source],
   )
   const classes = useMemo(
-    () => state.classes.filter((c) => c.gradeId === gradeId),
-    [state.classes, gradeId],
+    () => source.classes.filter((c) => c.gradeId === gradeId),
+    [source, gradeId],
   )
   const students = useMemo(() => {
+    // الوضع البعيد لا يحمّل أسماء الطالبات إطلاقًا، فالقائمة فارغة عمدًا
+    if (remote) return []
     const needle = normalizeArabic(search)
     return state.students
       .filter((s) => s.classId === classId && s.status === 'active')
       .filter((s) => !needle || normalizeArabic(s.name).includes(needle))
       .sort((a, b) => (a.rosterNo ?? 0) - (b.rosterNo ?? 0))
-  }, [state.students, classId, search])
+  }, [remote, state.students, classId, search])
 
   const missing = questions.filter((q) => q.required && !draft[q.id]?.trim())
+  const nameOk = typedName.trim().length >= 2
 
-  function handleSubmit(event: React.FormEvent) {
+  const buildAnswers = useCallback(() => questions.map((q) => {
+    const raw = draft[q.id]?.trim() || null
+    if (q.kind === 'likert' && raw) {
+      const option = source.options.find((o) => o.id === raw)
+      return {
+        questionId: q.id, optionId: option?.id ?? null,
+        rawValue: option?.label ?? null, score: option?.score ?? null,
+      }
+    }
+    return { questionId: q.id, optionId: null, rawValue: raw, score: null }
+  }), [questions, draft, source.options])
+
+  async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
     setTouched(true)
-    if (missing.length > 0 || !studentId) {
+    setSendError(null)
+    if (missing.length > 0 || (remote ? !nameOk : !studentId)) {
       document.querySelector('.question--invalid')?.scrollIntoView({ block: 'center' })
       return
     }
+    // إرسالة واحدة في كل مرة: الضغط المتكرر لا ينتج نسخًا إضافية
+    if (sending) return
 
-    const answers = questions.map((q) => {
-      const raw = draft[q.id]?.trim() || null
-      if (q.kind === 'likert' && raw) {
-        const option = state.options.find((o) => o.id === raw)
-        return { questionId: q.id, optionId: option?.id ?? null, rawValue: option?.label ?? null, score: option?.score ?? null }
-      }
-      return { questionId: q.id, optionId: null, rawValue: raw, score: null }
-    })
+    if (!remote) {
+      const result = submitResponse(state, { studentId: studentId!, cycleId: source.cycleId, answers: buildAnswers() })
+      replace(result.state)
+      setOutcome(result.status)
+      setStep('done')
+      return
+    }
 
-    const result = submitResponse(state, { studentId, cycleId: cycle.id, answers })
-    replace(result.state)
-    setOutcome(result.status)
-    setStep('done')
+    setSending(true)
+    try {
+      await submitPublicResponse({
+        cycleId: source.cycleId,
+        rawName: typedName,
+        declaredGradeId: gradeId,
+        classId,
+        answers: buildAnswers(),
+        clientToken: token.current,
+      })
+      setOutcome('saved')
+      setStep('done')
+    } catch (error) {
+      const raw = error instanceof Error ? error.message : String(error)
+      setSendError(/permission/i.test(raw)
+        ? 'تعذّر الإرسال: القياس مغلق أو البيانات غير مكتملة. راجعي المدرسة.'
+        : `تعذّر الإرسال: ${raw}`)
+    } finally {
+      setSending(false)
+    }
   }
 
   if (step === 'done') {
@@ -91,6 +194,37 @@ export function SurveyPage() {
                 : 'شكرًا لك — رأيك يسهم في تطوير مدرستنا.'}
             </p>
           </div>
+        </main>
+        <BrandFooter />
+      </div>
+    )
+  }
+
+  if (remote && !ready) {
+    return (
+      <div className="app app--survey">
+        <BrandHeader compact />
+        <main className="survey">
+          <p className="loading" role="status">جارٍ فتح القياس…</p>
+        </main>
+        <BrandFooter />
+      </div>
+    )
+  }
+
+  if (remote && loadError) {
+    return (
+      <div className="app app--survey">
+        <BrandHeader compact />
+        <main className="survey">
+          <section className="survey__card">
+            <h2 className="survey__heading">تعذّر فتح القياس</h2>
+            <p className="survey__note">{loadError}</p>
+            <button type="button" className="button button--primary button--block"
+              onClick={() => window.location.reload()}>
+              إعادة المحاولة
+            </button>
+          </section>
         </main>
         <BrandFooter />
       </div>
@@ -161,7 +295,43 @@ export function SurveyPage() {
           </section>
         )}
 
-        {step === 'student' && (
+        {step === 'student' && remote && (
+          <section className="survey__card">
+            <h2 className="survey__heading">اكتبي اسمك</h2>
+            <p className="survey__note">
+              اكتبي اسمك كما هو في كشف الفصل. تُراجع المدرسة الأسماء لاحقًا، فلا تقلقي إن
+              اختلف حرف.
+            </p>
+            <label className="field__label" htmlFor="survey-name">الاسم</label>
+            <input
+              id="survey-name"
+              type="text"
+              className="input"
+              value={typedName}
+              onChange={(e) => setTypedName(e.target.value)}
+              autoComplete="off"
+              maxLength={120}
+            />
+            {typedName.length > 0 && !nameOk && (
+              <p className="field__error">اكتبي اسمك كاملًا.</p>
+            )}
+            <button
+              type="button"
+              className="button button--primary button--block"
+              disabled={!nameOk}
+              onClick={() => setStep('form')}
+            >
+              متابعة
+            </button>
+            {!linkedClass && (
+              <button type="button" className="link" onClick={() => setStep('class')}>
+                رجوع
+              </button>
+            )}
+          </section>
+        )}
+
+        {step === 'student' && !remote && (
           <section className="survey__card">
             <h2 className="survey__heading">اختاري اسمك</h2>
             <input
@@ -198,9 +368,9 @@ export function SurveyPage() {
         )}
 
         {step === 'form' && (
-          <form className="survey__card" onSubmit={handleSubmit} noValidate>
+          <form className="survey__card" onSubmit={(e) => { void handleSubmit(e) }} noValidate>
             <h2 className="survey__heading">
-              {state.students.find((s) => s.id === studentId)?.name}
+              {remote ? typedName.trim() : state.students.find((s) => s.id === studentId)?.name}
             </h2>
             <p className="survey__note">
               اختاري الإجابة التي تعبّر عن رأيك. كل الأسئلة مطلوبة عدا التقويم والاقتراحات.
@@ -224,8 +394,10 @@ export function SurveyPage() {
               </p>
             )}
 
-            <button type="submit" className="button button--primary button--block">
-              إرسال الإجابات
+            {sendError && <p className="alert alert--error" role="alert">{sendError}</p>}
+
+            <button type="submit" className="button button--primary button--block" disabled={sending}>
+              {sending ? 'جارٍ الإرسال…' : 'إرسال الإجابات'}
             </button>
           </form>
         )}

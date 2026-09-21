@@ -226,3 +226,51 @@ export async function submitPublicResponse(input: {
   const ref = await addDoc(collection(db, COLLECTIONS.responses), payload)
   return ref.id
 }
+
+/**
+ * ما يحتاجه القياس العام ليعرض نفسه — ولا شيء غيره.
+ *
+ * لا يقرأ مجموعة الطالبات إطلاقًا: قواعد الأمان ترفض ذلك، والواجهة
+ * لا تطلبه أصلًا. الطالبة تكتب اسمها، والمطابقة قرار إداري لاحق.
+ */
+export interface PublicContext {
+  cycle: { id: string; name: string; questionIds: string[] }
+  grades: { id: string; no: number; name: string }[]
+  classes: { id: string; gradeId: string; name: string }[]
+  questions: SystemState['questions']
+  options: SystemState['options']
+  overallOptions: string[]
+  scale: { min: number; max: number }
+  school: string
+}
+
+export async function loadPublicContext(): Promise<PublicContext | null> {
+  const db = requireDb()
+
+  const [systemSnap, cycles, grades, classes, questions, options] = await Promise.all([
+    getDoc(doc(db, COLLECTIONS.meta, SYSTEM_DOC)),
+    readAll<{ status: string; name: string; questionIds: string[] }>(db, COLLECTIONS.cycles),
+    readAll<{ no: number; name: string }>(db, COLLECTIONS.grades),
+    readAll<{ gradeId: string; name: string }>(db, COLLECTIONS.classes),
+    readAll<SystemState['questions'][number]>(db, COLLECTIONS.questions),
+    readAll<SystemState['options'][number]>(db, COLLECTIONS.options),
+  ])
+
+  if (!systemSnap.exists()) return null
+  const system = systemSnap.data() as SystemDoc
+
+  const open = cycles.find((c) => c.value.status === 'open')
+  if (!open) return null
+
+  return {
+    cycle: { id: open.id, name: open.value.name, questionIds: open.value.questionIds ?? [] },
+    grades: grades.map((g) => ({ id: g.id, no: g.value.no, name: g.value.name }))
+      .sort((a, b) => a.no - b.no),
+    classes: classes.map((c) => ({ id: c.id, gradeId: c.value.gradeId, name: c.value.name })),
+    questions: questions.map((q) => ({ ...q.value, id: q.id })).sort((a, b) => a.order - b.order),
+    options: options.map((o) => ({ ...o.value, id: o.id })).sort((a, b) => b.score - a.score),
+    overallOptions: system.overallOptions ?? [],
+    scale: system.meta?.scale ?? { min: 1, max: 3 },
+    school: system.meta?.school ?? '',
+  }
+}

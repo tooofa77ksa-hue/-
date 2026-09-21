@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { diffById, keyed, keyedRecord, sameValue } from '../data/remote/diff'
 import { planWrites } from '../data/remote/firestoreRepo'
 import { fromResponseDocs, toResponseDocs } from '../data/remote/schema'
-import { initialState } from '../data/store'
+import { hasSchoolData, initialState } from '../data/store'
 import { archiveStudent, markReviewed } from '../domain/actions'
 import type { SystemState } from '../domain/types'
 
@@ -128,5 +128,27 @@ describe('خطة الكتابة إلى قاعدة البيانات', () => {
       return false
     }
     expect(ops.some((op) => op.kind === 'set' && hasUndefined(op.data))).toBe(false)
+  })
+})
+
+describe('اتفاق سكربت الرفع مع طبقة المتصفّح', () => {
+  // يحتاج ملف بيانات المدرسة، وهو مستثنى من المستودع لأنه بيانات
+  // شخصية. على نسخة بلا الملف يُتخطّى الاختبار بدل أن يفشل كذبًا.
+  const it_ = hasSchoolData ? it : it.skip
+
+  it_('يكتبان المستندات نفسها بالمعرّفات نفسها والمحتوى نفسه', async () => {
+    const seed = await import('../../scripts/firestore/seed.mjs')
+    const state = seed.readState() as SystemState
+    const fromScript = seed.buildDocuments(state) as { path: string; id: string; data: unknown }[]
+    const fromApp = planWrites(null, { ...base, categories: [], improvementActions: [], audit: [] })
+
+    const key = (d: { path: string; id: string }) => `${d.path}/${d.id}`
+    expect(new Set(fromScript.map(key))).toEqual(new Set(fromApp.map(key)))
+
+    const scriptById = new Map(fromScript.map((d) => [key(d), d.data]))
+    for (const op of fromApp) {
+      if (op.kind !== 'set') continue
+      expect(scriptById.get(key(op))).toEqual(op.data)
+    }
   })
 })
