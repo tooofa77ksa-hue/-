@@ -1,7 +1,9 @@
 import { useState } from 'react'
 
 import { SectionTitle } from '../../components/SectionTitle'
-import { exportBackup, resetToSource } from '../../data/store'
+import {
+  exportBackup, inspectBackup, resetToSource, restoreBackup, type BackupFile,
+} from '../../data/store'
 import { saveBlob } from '../../lib/excel'
 import { dateTime, num } from '../../lib/format'
 import { useSystem } from '../../state/useSystem'
@@ -9,6 +11,23 @@ import { useSystem } from '../../state/useSystem'
 export function SettingsPage() {
   const { state, replace } = useSystem()
   const [confirming, setConfirming] = useState(false)
+  const [pending, setPending] = useState<BackupFile | null>(null)
+  const [restoreError, setRestoreError] = useState<string | null>(null)
+
+  /** يقرأ الملف ويفحصه فقط — لا يطبّق شيئًا قبل تأكيد صريح. */
+  async function pickBackup(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+    setRestoreError(null)
+    setPending(null)
+    const result = inspectBackup(await file.text())
+    if (!result.ok || !result.file) {
+      setRestoreError(result.error)
+      return
+    }
+    setPending(result.file)
+  }
 
   function downloadBackup() {
     const blob = new Blob([exportBackup(state)], { type: 'application/json' })
@@ -36,15 +55,30 @@ export function SettingsPage() {
       </section>
 
       <section className="panel panel--pad">
-        <h3 className="sub-label">النسخ الاحتياطي</h3>
+        <h3 className="sub-label">النسخ الاحتياطي والاستعادة</h3>
         <p className="basis-note">
-          نزّلي نسخة كاملة من حالة النظام قبل أي عملية واسعة. تشمل النسخة الطالبات
-          والاستجابات والآراء وإجراءات التحسين وسجل العمليات.
+          النسخة تشمل كل شيء: الطالبات والاستجابات والإجابات والآراء وإجراءات
+          التحسين وإقرارات المراجعة وسجل العمليات. تحمل بصمة محتوى تُفحص عند
+          الاستعادة، فلا يُقبل ملف تالف أو معدَّل.
         </p>
+
+        <dl className="action__grid">
+          <div><dt>الطالبات</dt><dd>{num(state.students.length)}</dd></div>
+          <div><dt>الاستجابات</dt><dd>{num(state.responses.length)}</dd></div>
+          <div><dt>الإجابات</dt><dd>{num(state.answers.length)}</dd></div>
+          <div><dt>الآراء</dt><dd>{num(state.suggestions.length)}</dd></div>
+          <div><dt>إجراءات التحسين</dt><dd>{num(state.improvementActions.length)}</dd></div>
+          <div><dt>حالات روجعت</dt><dd>{num(Object.keys(state.reviewAcks ?? {}).length)}</dd></div>
+        </dl>
+
         <div className="table__actions">
           <button type="button" className="button button--primary" onClick={downloadBackup}>
             تنزيل نسخة احتياطية
           </button>
+          <label className="button button--small" style={{ cursor: 'pointer' }}>
+            استعادة من ملف…
+            <input type="file" accept="application/json,.json" hidden onChange={pickBackup} />
+          </label>
           {confirming ? (
             <>
               <span className="chip chip--warn">
@@ -66,6 +100,45 @@ export function SettingsPage() {
           )}
         </div>
       </section>
+
+      {restoreError && (
+        <div className="alert alert--error" role="alert">
+          <span>تعذّرت الاستعادة: {restoreError}</span>
+          <button type="button" className="button button--small" onClick={() => setRestoreError(null)}>
+            إغلاق
+          </button>
+        </div>
+      )}
+
+      {pending && (
+        <section className="panel panel--pad">
+          <h3 className="sub-label">تأكيد الاستعادة</h3>
+          <p className="basis-note">
+            ستحلّ محتويات هذا الملف محل حالة النظام الحالية بالكامل. راجعي
+            الأرقام أدناه وتأكّدي أنه الملف الصحيح قبل المتابعة.
+          </p>
+          <dl className="action__grid">
+            <div><dt>تاريخ النسخة</dt><dd>{dateTime(pending.createdAt)}</dd></div>
+            <div><dt>المدرسة</dt><dd>{pending.school}</dd></div>
+            <div><dt>القياس</dt><dd>{pending.survey}</dd></div>
+            <div><dt>الطالبات</dt><dd>{num(pending.summary.students)}</dd></div>
+            <div><dt>الاستجابات</dt><dd>{num(pending.summary.responses)}</dd></div>
+            <div><dt>الإجابات</dt><dd>{num(pending.summary.answers)}</dd></div>
+            <div><dt>الآراء</dt><dd>{num(pending.summary.suggestions)}</dd></div>
+            <div><dt>إجراءات التحسين</dt><dd>{num(pending.summary.improvementActions)}</dd></div>
+            <div><dt>حالات روجعت</dt><dd>{num(pending.summary.reviewAcks)}</dd></div>
+          </dl>
+          <div className="table__actions">
+            <button type="button" className="button button--primary"
+              onClick={() => { replace(restoreBackup(pending)); setPending(null) }}>
+              نعم، استعيدي هذه النسخة
+            </button>
+            <button type="button" className="button button--small" onClick={() => setPending(null)}>
+              إلغاء
+            </button>
+          </div>
+        </section>
+      )}
 
       <section className="panel">
         <div className="panel__head">
