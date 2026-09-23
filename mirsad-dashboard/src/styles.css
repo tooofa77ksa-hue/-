@@ -3358,3 +3358,135 @@ th {
 }
 
 .chip--action:hover { background: var(--moe-teal); color: #ffffff; }
+
+/* ═══════════════════════════════════════════════════════════
+   لوح التحسين تحت رأي الطالبة
+
+   يُفتح في مكانه ولا ينقل الإدارة إلى صفحة أخرى: الرأي وردُّ
+   المدرسة عليه في موضع واحد.
+   ═══════════════════════════════════════════════════════════ */
+
+/* اللوح يقع تحت صفّ الشارات لا بينها: هو جزء من الرأي لا شارة فيه.
+   «voice__meta» صفٌّ مرن، فيُعطى اللوح عرض السطر كاملًا. */
+.improve {
+  flex-basis: 100%;
+  width: 100%;
+  margin-block-start: 12px;
+  padding-block-start: 14px;
+  border-block-start: 1px dashed var(--border-strong);
+  display: grid;
+  gap: 12px;
+}
+
+.improve__choices { display: grid; gap: 10px; }
+
+.choice {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 10px;
+  align-items: start;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  cursor: pointer;
+}
+
+.choice.is-on { border-color: var(--moe-teal); background: var(--surface-tint); }
+.choice:focus-within { outline: 2px solid var(--moe-teal); outline-offset: 2px; }
+
+.choice__dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--border-strong);
+  margin-block-start: 3px;
+}
+
+.choice.is-on .choice__dot { border-color: var(--moe-teal); border-width: 5px; }
+
+.choice__body { display: grid; gap: 9px; min-width: 0; }
+.choice__title { font-size: 14px; font-weight: 700; }
+
+.mini { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px 12px; }
+.mini--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.mini label,
+.mini__wide { display: grid; gap: 4px; font-size: 12px; color: var(--text-muted); }
+
+@media (max-width: 620px) {
+  .mini, .mini--3 { grid-template-columns: 1fr; }
+}
+
+.improve__note { font-size: 12px; color: var(--text-muted); line-height: 1.8; }
+
+/* ───── الرأي المعالَج: ردّ المدرسة عليه ───── */
+
+.done {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  border-inline-start: 3px solid var(--moe-teal);
+}
+
+.done__head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.done__title { margin: 0; font-size: 15px; font-weight: 700; }
+
+.done__grid {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px 16px;
+}
+
+.done__grid dt { font-size: 11.5px; color: var(--text-muted); }
+.done__grid dd { margin: 2px 0 0; font-size: 13px; font-weight: 600; }
+
+.improve__what { margin: 0; font-size: 13.5px; line-height: 1.85; }
+
+.improve__shared {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--moe-cyan);
+  text-decoration: none;
+}
+
+.improve__shared:hover { text-decoration: underline; }
+
+.row-btn { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ───── شاهد الإجراء بباركوده ───── */
+
+.proof { display: flex; align-items: flex-start; gap: 12px; }
+
+.proof__qr {
+  width: 74px;
+  height: 74px;
+  flex: none;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  /* الباركود على أبيض دائمًا: درجاته مفحوصة على سطح فاتح */
+  background: #ffffff;
+  padding: 3px;
+}
+
+.proof__qr--empty { background: var(--surface-tint); }
+
+.proof__txt { display: grid; gap: 3px; min-width: 0; font-size: 12.5px; }
+
+.proof__value {
+  color: var(--moe-cyan);
+  direction: ltr;
+  text-align: start;
+  word-break: break-all;
+  font-size: 11.5px;
+}
+
+.proof__hint { color: var(--text-muted); font-size: 11.5px; line-height: 1.7; }
+.proof--note { align-items: center; }
+
+@media print {
+  .improve { break-inside: avoid; }
+  .proof__qr { border-color: #cfd8dc; }
+}

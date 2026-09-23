@@ -49,55 +49,91 @@ try {
   if (await gate.count()) await gate.first().click()
   await page.waitForSelector('.admin-nav', { timeout: 25000 })
 
-  console.log('\n١) من صوت الطالبات')
+  console.log('\n١) اللوح يُفتح تحت الرأي')
   await page.goto(`http://127.0.0.1:${PORT}/#/admin/voice`, { waitUntil: 'domcontentloaded' })
   await page.waitForSelector('.voice', { timeout: 20000 })
 
-  // رأي ذو نصّ فعليّ: في البيانات آراء من نقاط فقط، ولا تصلح للتمييز
+  // رأي ذو نصّ فعليّ: في البيانات آراء من نقاط فقط ولا تصلح للتمييز
   const texts = await page.locator('.voice__text').allInnerTexts()
   const index = texts.findIndex((t) => t.trim().replace(/[.\s]/g, '').length >= 12)
   check('يوجد رأي بنصّ فعليّ', index >= 0)
   const voice = page.locator('.voice').nth(index)
   const text = (await voice.locator('.voice__text').innerText()).trim()
-  check('رأي الطالبة معروض بنصّه', text.length > 0, text.slice(0, 50) + '…')
 
-  const start = voice.locator('a:has-text("أنشئي إجراء تحسين")')
-  check('لكل رأي طريق مباشر إلى إجراء تحسين', await start.count() === 1)
-  await start.click()
+  check('اللوح مغلق حتى يُطلب', await voice.locator('.improve').count() === 0)
+  await voice.getByRole('button', { name: /لوح التحسين/ }).click()
+  await voice.locator('.improve').waitFor({ timeout: 10000 })
+  check('اللوح يُفتح تحت الرأي نفسه بلا انتقال',
+    page.url().includes('/admin/voice'))
 
-  console.log('\n٢) نموذج الإجراء')
-  await page.waitForSelector('#ia-problem', { timeout: 20000 })
-  const problem = await page.inputValue('#ia-problem')
-  check('النموذج يُفتح ونصّ الرأي فيه', problem.trim() === text,
-    problem.trim().slice(0, 50) + '…')
+  console.log('\n٢) إنشاء إجراء بشاهده')
+  await voice.locator('.choice').nth(1).click()
+  await voice.locator('.mini input').first().fill('تجربة آلية: تنظيم الخروج')
+  await voice.locator('.mini input').nth(1).fill('أ. تجربة')
+  await voice.locator('textarea.input').fill('نظّمت المدرسة خروج الصفوف الأولية قبل الكبار')
+  const proof = voice.locator('.mini').last().locator('input')
+  await proof.first().fill('صور التنفيذ')
+  await proof.nth(1).fill('https://example.test/evidence')
+  await voice.getByRole('button', { name: 'حفظ الإجراء' }).click()
 
-  await page.fill('#ia-title', 'تجربة آلية: إجراء على رأي طالبة')
-  const doAction = page.locator('#ia-action')
-  if (await doAction.count()) await doAction.fill('أجرت المدرسة كذا وكذا')
-  await page.getByRole('button', { name: /^حفظ/ }).click()
-  await page.waitForSelector('.action', { timeout: 20000 })
+  console.log('\n٣) ردّ المدرسة يظهر تحت الرأي')
+  await voice.getByRole('button', { name: /إجراء المدرسة/ }).click()
+  await voice.locator('.done').waitFor({ timeout: 10000 })
+  const done = await voice.locator('.done').innerText()
+  check('عنوان الإجراء تحت الرأي', done.includes('تجربة آلية: تنظيم الخروج'))
+  check('وما فعلته المدرسة', done.includes('نظّمت المدرسة خروج الصفوف'))
+  check('والمسؤولة', done.includes('أ. تجربة'))
 
-  console.log('\n٣) الإجراء يحمل شاهده')
-  const card = page.locator('.action').first()
-  check('الإجراء محفوظ ومعروض',
-    (await card.innerText()).includes('تجربة آلية: إجراء على رأي طالبة'))
-  const quoted = await card.locator('.action__voices blockquote').first().innerText()
-  check('نصّ الطالبة شاهدٌ على الإجراء', quoted.replace(/[«»]/g, '').trim() === text,
-    quoted.slice(0, 50) + '…')
-  await page.screenshot({ path: join(out, 'action.png'), fullPage: false })
+  const qr = voice.locator('.proof__qr')
+  await qr.waitFor({ timeout: 10000 })
+  check('الشاهد صار باركودًا', (await qr.getAttribute('src'))?.startsWith('data:image/png') === true)
+  // الباركود ملوّن لا أسود
+  const tone = await qr.evaluate((img) => {
+    const c = document.createElement('canvas')
+    c.width = img.naturalWidth; c.height = img.naturalHeight
+    const x = c.getContext('2d'); x.drawImage(img, 0, 0)
+    const d = x.getImageData(0, 0, c.width, c.height).data
+    const tally = new Map()
+    for (let i = 0; i < d.length; i += 4) {
+      if (d[i] > 240 && d[i + 1] > 240 && d[i + 2] > 240) continue
+      const k = `${d[i]},${d[i + 1]},${d[i + 2]}`
+      tally.set(k, (tally.get(k) ?? 0) + 1)
+    }
+    return [...tally.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? ''
+  })
+  check('والباركود ملوّن لا أسود', tone !== '0,0,0' && tone.length > 0, tone)
+  check('والرابط مكتوب تحته للمراجعة', done.includes('example.test'))
+  await page.screenshot({ path: join(out, 'panel-done.png') })
 
-  console.log('\n٤) الرأي يعرف إجراءه')
-  await page.goto(`http://127.0.0.1:${PORT}/#/admin/voice`, { waitUntil: 'domcontentloaded' })
-  await page.waitForSelector('.voice', { timeout: 20000 })
-  // الرأي نفسه لا أوّل ما في القائمة: ترتيبها يتغيّر بعد الربط
-  const back = page.locator('.voice').filter({ hasText: text.slice(0, 30) }).first()
-  await back.waitFor({ timeout: 20000 })
-  check('الرأي صار مرتبطًا بإجراء',
-    await back.locator('.chip--action').count() === 1,
-    (await back.locator('.chip--action').innerText().catch(() => '')).slice(0, 44))
-  check('ولا يعرض زرّ الإنشاء مرة ثانية',
-    await back.locator('a:has-text("أنشئي إجراء تحسين")').count() === 0)
-  await page.screenshot({ path: join(out, 'voice.png'), fullPage: false })
+  console.log('\n٤) رأي آخر يُربط بالإجراء نفسه لا بإجراء جديد')
+  const second = texts.findIndex((t, i) => i !== index && t.trim().replace(/[.\s]/g, '').length >= 12)
+  const other = page.locator('.voice').nth(second)
+  await other.getByRole('button', { name: /لوح التحسين/ }).click()
+  await other.locator('.improve').waitFor({ timeout: 10000 })
+  // القائمة الأولى وحدها هي قائمة الإجراءات؛ ما بعدها تصنيف وأولوية وحالة
+  const picker = other.locator('.choice').first().locator('select')
+  const options = await picker.locator('option').allInnerTexts()
+  check('الإجراء القائم معروض للربط',
+    options.some((o) => o.includes('تجربة آلية: تنظيم الخروج')), `${options.length} خيارًا`)
+  const label = options.find((o) => o.includes('تجربة آلية: تنظيم الخروج'))
+  await picker.selectOption({ label })
+  await other.getByRole('button', { name: 'اربطي' }).click()
+  await other.locator('.improve').waitFor({ state: 'detached', timeout: 10000 }).catch(() => {})
+
+  await other.getByRole('button', { name: /إجراء المدرسة/ }).click()
+  await other.locator('.done').waitFor({ timeout: 10000 })
+  check('الرأي الثاني يعرض الإجراء نفسه',
+    (await other.locator('.done__title').innerText()).includes('تجربة آلية: تنظيم الخروج'))
+  check('ويقول إنه مشترك مع رأي آخر',
+    (await other.locator('.improve__shared').innerText()).includes('1'))
+
+  const actions = await page.evaluate(() => {
+    const raw = window.localStorage.getItem('qiyas.state.v1')
+    return raw ? JSON.parse(raw).improvementActions.length : -1
+  })
+  check('ولم يُنشأ إجراء ثانٍ للمشكلة نفسها', actions === 1, `${actions} إجراء`)
+  await page.screenshot({ path: join(out, 'panel-shared.png') })
+
 } finally {
   await browser.close()
   server.close()

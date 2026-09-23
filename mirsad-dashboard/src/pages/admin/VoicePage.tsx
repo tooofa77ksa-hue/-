@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 
 import { BarRow } from '../../components/BarRow'
 import { EmptyState } from '../../components/EmptyState'
+import { VoiceImprovement } from '../../components/VoiceImprovement'
 import { SectionTitle } from '../../components/SectionTitle'
 import { StatCard } from '../../components/StatCard'
 import { categorizeSuggestion, setSuggestionStatus } from '../../domain/actions'
@@ -126,19 +126,6 @@ export function VoicePage() {
                   <div className="voice__meta">
                     <span className="chip">{gid ? gradeById.get(gid)?.name ?? '—' : 'صف غير محدد'}</span>
                     <span className={`chip chip--${s.status}`}>{STATUS_LABELS[s.status]}</span>
-                    {answeredBy.get(s.id) ? (
-                      <Link className="chip chip--action" to="/admin/improvement">
-                        إجراء المدرسة: {answeredBy.get(s.id)?.title || 'بلا عنوان'}
-                      </Link>
-                    ) : (
-                      <Link
-                        className="button button--small no-print"
-                        to="/admin/improvement"
-                        state={{ fromSuggestion: s.id }}
-                      >
-                        أنشئي إجراء تحسين من هذا الرأي
-                      </Link>
-                    )}
                     <select
                       className="input input--inline no-print"
                       aria-label="تصنيف الرأي"
@@ -156,6 +143,12 @@ export function VoicePage() {
                     >
                       {Object.entries(STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                     </select>
+                    <VoiceImprovement
+                      voice={s}
+                      action={answeredBy.get(s.id) ?? null}
+                      state={state}
+                      replace={replace}
+                    />
                   </div>
                 </li>
               )
