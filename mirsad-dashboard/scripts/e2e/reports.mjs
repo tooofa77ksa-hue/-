@@ -12,6 +12,7 @@ import { dirname, extname, join, normalize, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium } from 'playwright'
 import ExcelJS from 'exceljs'
+import JSZip from 'jszip'
 
 import { misorderedNumbers } from './bidi.mjs'
 
@@ -119,6 +120,24 @@ try {
     await w2.xlsx.readFile(f)
     check(`${title}: ملف سليم`, w2.worksheets.length > 0,
       w2.worksheets.map((s) => `${s.name}/${s.rowCount}`).join('، '))
+
+    if (title === 'آراء الطالبات') {
+      const names = w2.worksheets.map((w) => w.name)
+      check('  أوراق المؤشرات مع النصوص',
+        ['الموضوعات المتكرّرة', 'تصنيف الآراء', 'حالة المعالجة'].every((n) => names.includes(n)),
+        names.join('، '))
+
+      // جواب المدرسة بجانب الرأي لا في ملف آخر
+      const voices = w2.getWorksheet('الآراء والمقترحات')
+      const head = voices.getRow(6).values.filter(Boolean).map(String)
+      check('  عمود «إجراء المدرسة» بجانب نصّ الرأي',
+        head.includes('إجراء المدرسة') && head.includes('الشاهد'), head.join(' | '))
+
+      // الرسم داخل الملف لا صورة ملصقة: جزء رسم أصليّ في الحزمة
+      const zip = await JSZip.loadAsync(readFileSync(f))
+      const parts = Object.keys(zip.files).filter((n) => /^xl\/charts\/chart\d+\.xml$/.test(n))
+      check('  رسوم بيانية أصليّة داخل الملف', parts.length >= 3, `${parts.length} رسمًا`)
+    }
   }
 
   // ═════ PDF ═════

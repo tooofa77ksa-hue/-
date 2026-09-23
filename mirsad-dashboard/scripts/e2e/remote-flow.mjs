@@ -78,7 +78,7 @@ try {
   })
 
   await page.goto(`http://127.0.0.1:${PORT}/#/survey`, { waitUntil: 'domcontentloaded' })
-  await page.waitForSelector('.choice, .survey__card', { timeout: 20000 })
+  await page.waitForSelector('.cover__title', { timeout: 20000 })
 
   const leaked = sampleName && bodies.some((b) => b.includes(sampleName))
   check('ملفات الصفحة لا تحمل اسم طالبة', !leaked, `${bodies.length} ملف JavaScript`)
@@ -87,10 +87,16 @@ try {
   check('الصفحة المعروضة لا تحمل اسم طالبة', !sampleName || !html.includes(sampleName))
 
   // ═════ ٢) إرسال استجابة ═════
-  await page.locator('.choice').first().click()
-  await page.locator('.choice').first().click()
-  await page.waitForSelector('#survey-name', { timeout: 10000 })
-  check('القياس يطلب كتابة الاسم لا اختياره من قائمة', true)
+  await page.getByRole('button', { name: 'ابدئي القياس' }).click()
+  await page.waitForSelector('.picks', { timeout: 15000 })
+  await page.locator('.pick').first().click()      // الصف
+  await page.waitForTimeout(350)
+  await page.locator('.pick').first().click()      // الفصل
+  await page.waitForSelector('#survey-name', { timeout: 15000 })
+  // في الوضع البعيد لا تُقرأ كشوف الأسماء لمن لا يملك صلاحية الإدارة،
+  // فتكتب الطالبة اسمها ولا يُعرض عليها كشف بأسماء زميلاتها
+  check('القياس يطلب كتابة الاسم لا اختياره من قائمة',
+    await page.locator('.names').count() === 0)
 
   const marker = `اختبار آلي ${Date.now()}`
   // حرفًا حرفًا لا دفعة واحدة: هكذا تكتب الطالبة، وهكذا يظهر أي فقد للتركيز
@@ -99,17 +105,28 @@ try {
   check('الاسم يُكتب كاملًا دون انقطاع التركيز',
     (await page.inputValue('#survey-name')) === marker)
   await page.getByRole('button', { name: 'متابعة' }).click()
-  await page.waitForSelector('.question', { timeout: 10000 })
+  await page.getByRole('button', { name: 'هيّا نبدأ' }).click()
+  await page.waitForSelector('.survey__count', { timeout: 15000 })
 
-  // إجابة كل سؤال مطلوب: أول خيار في كل مجموعة
-  const groups = await page.locator('fieldset.question').all()
-  for (const group of groups) await group.locator('.option').first().click()
-  for (const area of await page.locator('textarea.input').all()) {
-    await area.fill('رأي اختباري آلي')
+  // الإجابة سؤالًا سؤالًا حتى تظهر شاشة المراجعة
+  for (let guard = 0; guard < 60; guard += 1) {
+    if (await page.locator('.survey__cta:has-text("إرسال القياس")').count()) break
+    const kind = await page.locator('.step').getAttribute('class')
+    if (kind.includes('step--voice')) {
+      await page.fill('#voice-field', 'رأي اختباري آلي')
+      await page.getByRole('button', { name: /التالي|مراجعة وإرسال/ }).click()
+    } else if (kind.includes('step--overall')) {
+      await page.locator('.verdict').first().click()
+    } else {
+      await page.locator('.answer').nth(guard % 3).click()
+    }
+    await page.waitForTimeout(320)
   }
+  await page.waitForSelector('.survey__cta:has-text("إرسال القياس")', { timeout: 20000 })
+  check('لم يبقَ سؤال مطلوب بلا إجابة', await page.locator('.gap').count() === 0)
 
-  await page.getByRole('button', { name: /إرسال الإجابات/ }).click()
-  await page.waitForSelector('.survey__done', { timeout: 20000 })
+  await page.getByRole('button', { name: 'إرسال القياس' }).click()
+  await page.waitForSelector('.cover--done', { timeout: 30000 })
   check('ظهرت شاشة تأكيد الاستلام', true)
 
   const after = (await db.collection('responses').count().get()).data().count

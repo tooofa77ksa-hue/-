@@ -3486,6 +3486,111 @@ th {
 .proof__hint { color: var(--text-muted); font-size: 11.5px; line-height: 1.7; }
 .proof--note { align-items: center; }
 
+/* ── الموضوعات المتكرّرة في صفحة الآراء ── */
+.repeat { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+
+.repeat__row { display: grid; gap: 6px; }
+
+.repeat__head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.repeat__name { font-size: 14px; font-weight: 700; }
+
+.repeat__count { font-size: 12.5px; color: var(--text-muted); }
+
+.repeat__bar {
+  block-size: 10px;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  overflow: hidden;
+}
+
+.repeat__fill {
+  display: block;
+  block-size: 100%;
+  min-inline-size: 3px;
+  border-radius: 999px;
+  background: var(--moe-purple);
+}
+
+.repeat__sample {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.85;
+  color: var(--text-muted);
+}
+
+/* ── آراء تشبهه: ترشيح يُراجَع بالعين قبل أن يُربط ── */
+.akin {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px dashed var(--moe-teal);
+  border-radius: var(--radius-sm);
+  background: var(--surface-tint);
+}
+
+.akin__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.akin__title {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.akin__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.akin__item {
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.akin__item.is-on { border-color: var(--moe-teal); box-shadow: inset 0 0 0 1px var(--moe-teal); }
+
+.akin__pick {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  gap: 4px 10px;
+  align-items: center;
+  cursor: pointer;
+}
+
+.akin__pick input { inline-size: 16px; block-size: 16px; }
+
+.akin__text { font-size: 13px; line-height: 1.8; }
+
+/* الكلمات التي جمعت الرأيين — سبب الترشيح معروضًا لا مخبوءًا */
+.akin__why { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; }
+
+.akin__word {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--surface-tint);
+  border: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .akin__pick { grid-template-columns: 18px minmax(0, 1fr); }
+  .akin__why { grid-column: 2; justify-content: flex-start; }
+}
+
 @media print {
   .improve { break-inside: avoid; }
   .proof__qr { border-color: #cfd8dc; }

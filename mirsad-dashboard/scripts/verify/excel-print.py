@@ -54,6 +54,29 @@ for path in sorted(glob.glob(sys.argv[1])):
     check('أرقام الخلايا مثبّتة لاتينيةً في الملف', not loose, '؛ '.join(loose[:3]))
     check('كل ورقة من اليمين إلى اليسار', not rtl_off, '؛ '.join(rtl_off[:3]))
 
+    # التسلسل «م» أول عمود، والورقة من اليمين: فيقع الرقم في أقصى اليمين
+    # ويتتابع ١، ٢، ٣ نزولًا كما تقرأ العين العربية
+    misplaced = []
+    for ws in wb.worksheets:
+        head = None
+        for row in ws.iter_rows(min_row=1, max_row=12):
+            values = [c.value for c in row]
+            if 'م' in values or '#' in values:
+                head = row[0].row
+                break
+        if head is None:
+            continue
+        first = ws.cell(row=head, column=1).value
+        if first not in ('م', '#'):
+            misplaced.append('%s: %r' % (ws.title, first))
+            continue
+        serial = [ws.cell(row=head + i, column=1).value for i in range(1, 4)]
+        serial = [v for v in serial if isinstance(v, int)]
+        if serial and serial != sorted(serial):
+            misplaced.append('%s: تسلسل غير مرتّب' % ws.title)
+    check('عمود التسلسل أوّل الأعمدة فيقع يمينًا ومرتّبًا',
+          not misplaced, '؛ '.join(misplaced[:3]))
+
     for ws in wb.worksheets:
         setup = ws.page_setup
         landscape = setup.orientation == 'landscape'

@@ -21,7 +21,7 @@
     "build:deploy": "npm run build && npm run verify:no-pii",
     "verify:all": "npm run verify && npm run test:rules && npm run test:excel && npm run test:qr && npm run test:dashboard && npm run test:improvement && npm run test:survey && npm run test:reports && npm run test:e2e",
     "test:e2e": "bash scripts/e2e/run.sh",
-    "test:reports": "npm run build:test && node scripts/e2e/reports.mjs && python3 scripts/verify/excel-print.py '.e2e-out/*.xlsx'",
+    "test:reports": "npm run build:test && node scripts/e2e/reports.mjs && python3 scripts/verify/excel-print.py '.e2e-out/*.xlsx' && python3 scripts/verify/excel-charts.py .e2e-out/student-voice-1448.xlsx",
     "test:survey": "npm run build:test && node scripts/e2e/survey-mobile.mjs",
     "build:test": "tsc -b && vite build --mode test",
     "test:excel": "vite-node scripts/verify/excel-charts.ts && python3 scripts/verify/excel-charts.py .tmp-excel/charts.xlsx",

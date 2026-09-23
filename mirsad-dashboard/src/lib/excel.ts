@@ -8,7 +8,8 @@ import {
 } from './excelCharts'
 import {
   nonRespondentRows, overallRows, questionRows, studentRows,
-  suggestionRows, summaryRows,
+  suggestionRows, summaryRows, voiceClusterRows, voiceGradeRows,
+  voiceStatusRows, voiceTopicRows,
 } from './reportRows'
 import type { SystemState } from '../domain/types'
 
@@ -88,6 +89,9 @@ function addHeaderRow(ws: ExcelJSNS.Worksheet, rowIndex: number, headers: string
  * الأرقام لاتينيةً في الملف نفسه، فلا تتغيّر باختلاف الجهاز.
  */
 const LATIN_NUMBER = '[$-409]General'
+
+/** نسبة مئوية برقم عشري واحد — رقمًا لا نصًّا، كي يقرأها الرسم البياني. */
+const round = (value: number) => Math.round(value * 10) / 10
 
 function styleBody(ws: ExcelJSNS.Worksheet, firstDataRow: number, columns: number) {
   for (let r = firstDataRow; r <= ws.rowCount; r += 1) {
@@ -431,15 +435,123 @@ export async function exportStudents(state: SystemState, scope: Scope) {
   await download(wb, `students-${state.meta.hijriYear}.xlsx`)
 }
 
+/**
+ * ملف «صوت طالباتنا».
+ *
+ * أوّل ورقةٍ فيه النصوص كما كتبتها الطالبات، وإلى جانب كل رأي جوابُ
+ * المدرسة وشاهده — فمن فتح الملف رأى الرأي وردّه في سطر واحد، ولم
+ * يحتج إلى ملف ثانٍ يطابقه به.
+ *
+ * ثم أوراق المؤشرات: الموضوعات المتكرّرة، والتصنيف، والصفوف، وحالة
+ * المعالجة. وتحت كل جدولٍ رسمه البياني في الملف نفسه — لا صورة
+ * ملصقة: رسمٌ أصليّ يقرأ خلايا الورقة، فإن صحّحت الإدارة رقمًا
+ * تحرّك الرسم معه.
+ */
 export async function exportSuggestions(state: SystemState, scope: Scope) {
   const wb = await newWorkbook(state)
+  const charts: ChartSpec[] = []
+
+  // ── ١) النصوص وجوابها ──
   buildSheet(wb, state, 'الآراء والمقترحات', scope,
-    ['م', 'نص الرأي كما كتبته الطالبة', 'الصف', 'الفصل', 'التصنيف', 'الحالة'],
+    ['م', 'نص الرأي كما كتبته الطالبة', 'الصف', 'الفصل', 'التصنيف', 'الحالة',
+      'إجراء المدرسة', 'المسؤولة', 'الشاهد'],
     suggestionRows(state, scope).map((r) => [
       r.index, r.text, r.grade, r.className, r.category, r.status,
+      r.action, r.owner, r.evidence,
     ]))
 
-  await download(wb, `student-voice-${state.meta.hijriYear}.xlsx`)
+  // ── ٢) الموضوعات المتكرّرة ──
+  const clusters = voiceClusterRows(state, scope)
+  const REPEATED = 'الموضوعات المتكرّرة'
+  if (clusters.length > 0) {
+    const c = buildSheet(wb, state, REPEATED, scope,
+      ['م', 'الموضوع', 'عدد الآراء', 'النسبة %', 'نموذج من نصّ الطالبات',
+        'المعالَج منها', 'الإجراء المتَّخذ', 'المسؤولة'],
+      clusters.map((r) => [
+        r.index, r.topic, r.count, round(r.percent), r.sample, r.covered, r.action, r.owner,
+      ]))
+
+    charts.push({
+      sheet: REPEATED,
+      title: 'أكثر ما تكرّر في آراء الطالبات (عدد الآراء)',
+      kind: 'bar',
+      categories: colRef(REPEATED, 2, c.firstDataRow, c.lastDataRow),
+      series: [{
+        name: cellRef(REPEATED, 3, c.headerRow),
+        values: colRef(REPEATED, 3, c.firstDataRow, c.lastDataRow),
+      }],
+      anchor: { col: 0, row: c.lastDataRow + 1, cols: 9, rows: Math.max(16, clusters.length * 2) },
+      dataLabels: true,
+    })
+  }
+
+  // ── ٣) التصنيف ──
+  const topics = voiceTopicRows(state, scope)
+  const TOPICS = 'تصنيف الآراء'
+  if (topics.length > 0) {
+    const t = buildSheet(wb, state, TOPICS, scope,
+      ['م', 'التصنيف', 'عدد الآراء', 'النسبة %'],
+      topics.map((r) => [r.index, r.name, r.count, round(r.percent)]))
+
+    charts.push({
+      sheet: TOPICS,
+      title: 'توزيع الآراء على التصنيفات',
+      kind: 'bar',
+      categories: colRef(TOPICS, 2, t.firstDataRow, t.lastDataRow),
+      series: [{
+        name: cellRef(TOPICS, 3, t.headerRow),
+        values: colRef(TOPICS, 3, t.firstDataRow, t.lastDataRow),
+      }],
+      anchor: { col: 0, row: t.lastDataRow + 1, cols: 8, rows: Math.max(16, topics.length * 2) },
+      dataLabels: true,
+    })
+  }
+
+  // ── ٤) الصفوف ──
+  const grades = voiceGradeRows(state, scope)
+  const GRADES = 'الآراء حسب الصف'
+  if (grades.length > 1) {
+    const g = buildSheet(wb, state, GRADES, scope,
+      ['م', 'الصف', 'عدد الآراء', 'النسبة %'],
+      grades.map((r) => [r.index, r.name, r.count, round(r.percent)]))
+
+    charts.push({
+      sheet: GRADES,
+      title: 'عدد الآراء في كل صف',
+      kind: 'col',
+      categories: colRef(GRADES, 2, g.firstDataRow, g.lastDataRow),
+      series: [{
+        name: cellRef(GRADES, 3, g.headerRow),
+        values: colRef(GRADES, 3, g.firstDataRow, g.lastDataRow),
+      }],
+      anchor: { col: 0, row: g.lastDataRow + 1, cols: 8, rows: 18 },
+      dataLabels: true,
+    })
+  }
+
+  // ── ٥) حالة المعالجة ──
+  const statuses = voiceStatusRows(state, scope)
+  const STATUSES = 'حالة المعالجة'
+  if (statuses.length > 0) {
+    const st = buildSheet(wb, state, STATUSES, scope,
+      ['م', 'الحالة', 'عدد الآراء', 'النسبة %'],
+      statuses.map((r) => [r.index, r.name, r.count, round(r.percent)]))
+
+    charts.push({
+      sheet: STATUSES,
+      title: 'أين وصلت معالجة الآراء',
+      kind: 'pie',
+      categories: colRef(STATUSES, 2, st.firstDataRow, st.lastDataRow),
+      series: [{
+        name: cellRef(STATUSES, 3, st.headerRow),
+        values: colRef(STATUSES, 3, st.firstDataRow, st.lastDataRow),
+      }],
+      anchor: { col: 0, row: st.lastDataRow + 1, cols: 7, rows: 18 },
+      varyColors: true,
+    })
+  }
+
+  await download(wb, `student-voice-${state.meta.hijriYear}.xlsx`, charts)
 }
 
 export async function exportActions(state: SystemState) {

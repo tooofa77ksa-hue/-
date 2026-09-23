@@ -11,6 +11,7 @@ import type { ImprovementAction } from '../../domain/types'
 import { normalizeArabic } from '../../lib/arabic'
 import { exportSuggestions } from '../../lib/excel'
 import { num, pct } from '../../lib/format'
+import { clusterVoices } from '../../lib/similar'
 import { useSystem } from '../../state/useSystem'
 
 const STATUS_LABELS = {
@@ -56,6 +57,28 @@ export function VoicePage() {
       .sort((a, b) => b.count - a.count)
   }, [all, state.categories])
 
+  /**
+   * الموضوعات المتكرّرة: الشكوى الواحدة مهما اختلفت عباراتها.
+   *
+   * التصنيف أعلاه يقول «المرافق»، وهذا يقول «تكييف الساحة» — وهو ما
+   * يُتَّخذ عليه إجراء فعلًا، وأول ما تسأل عنه الوزارة.
+   */
+  const repeated = useMemo(() => {
+    const top = clusterVoices(all).slice(0, 8)
+    const largest = top[0]?.members.length ?? 1
+    return top.map((c) => ({
+      id: c.head.id,
+      name: c.keywords.join('، ') || c.head.text.slice(0, 40),
+      sample: c.head.text,
+      count: c.members.length,
+      percent: all.length ? (c.members.length / all.length) * 100 : 0,
+      // عرض الشريط نسبةً إلى أكبر موضوع لا إلى الآراء كلها: الموازنة
+      // هنا بين الموضوعات بعضها ببعض، ولولاه لبدت كلها خيوطًا
+      share: (c.members.length / largest) * 100,
+      answered: c.members.filter((m) => answeredBy.has(m.id)).length,
+    }))
+  }, [all, answeredBy])
+
   const gradeById = new Map(state.grades.map((g) => [g.id, g]))
   const respById = new Map(state.responses.map((r) => [r.id, r]))
 
@@ -87,6 +110,31 @@ export function VoicePage() {
           </div>
         )}
       </section>
+
+      {repeated.length > 0 && (
+        <section className="panel panel--pad">
+          <SectionTitle note="الشكوى الواحدة وإن اختلفت عباراتها — تُجمع بالكلمات المشتركة">
+            الموضوعات المتكرّرة
+          </SectionTitle>
+          <ul className="repeat">
+            {repeated.map((r) => (
+              <li key={r.id} className="repeat__row">
+                <div className="repeat__head">
+                  <span className="repeat__name">{r.name}</span>
+                  <span className="repeat__count">{num(r.count)} رأيًا · {pct(r.percent)}</span>
+                  <span className={r.answered > 0 ? 'chip chip--linked' : 'chip'}>
+                    {r.answered > 0 ? `عولج منها ${num(r.answered)}` : 'بلا إجراء بعد'}
+                  </span>
+                </div>
+                <div className="repeat__bar">
+                  <span className="repeat__fill" style={{ inlineSize: `${r.share}%` }} />
+                </div>
+                <p className="repeat__sample">«{r.sample}»</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="toolbar no-print">
         <div className="field field--grow">
@@ -141,7 +189,13 @@ export function VoicePage() {
                       value={s.status}
                       onChange={(e) => replace(setSuggestionStatus(state, s.id, e.target.value as never))}
                     >
-                      {Object.entries(STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                      {Object.entries(STATUS_LABELS).map(([k, v]) => (
+                        // «مرتبط بإجراء» حالةٌ تتبع الربط لا تُختار بيد:
+                        // اختيارها هنا كان يُمحى عند أول تعديل إجراء
+                        <option key={k} value={k} disabled={k === 'linked' && s.status !== 'linked'}>
+                          {v}
+                        </option>
+                      ))}
                     </select>
                     <VoiceImprovement
                       voice={s}

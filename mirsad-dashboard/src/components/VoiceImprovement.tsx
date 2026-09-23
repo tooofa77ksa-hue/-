@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { EvidenceQr } from './EvidenceQr'
+import { SimilarVoices } from './SimilarVoices'
 import { addAction, updateAction, type ActionDraft } from '../domain/actions'
 import type { ImprovementAction, Suggestion, SystemState } from '../domain/types'
 import { dateOnly, num } from '../lib/format'
+import { similarTo } from '../lib/similar'
 
 const STATUS = { planned: 'مخطط', in_progress: 'جارٍ التنفيذ', completed: 'مكتمل' } as const
 const PRIORITY = { high: 'عالية', medium: 'متوسطة', low: 'منخفضة' } as const
@@ -44,19 +46,68 @@ export function VoiceImprovement({ voice, action, state, replace }: Props) {
   const [draft, setDraft] = useState<ActionDraft>(() => blankDraft(voice))
   const [proofLabel, setProofLabel] = useState('')
   const [proofUrl, setProofUrl] = useState('')
+  const [chosen, setChosen] = useState<Set<string>>(() => new Set())
 
   const others = action ? action.linkedSuggestionIds.filter((id) => id !== voice.id).length : 0
   const available = state.improvementActions
 
+  /**
+   * الآراء التي تشبه هذا الرأي ولمّا تُربط بعد.
+   *
+   * المربوطة تُستبعد: لها جوابها، وعرضها هنا يوهم أن عليها ربطًا آخر.
+   * والحساب على آراء المدرسة كلها لا على ما تصفّيه الشاشة، لأن الإجراء
+   * الواحد يغطّي الصفوف كلها.
+   */
+  const similar = useMemo(() => {
+    const linked = new Set<string>()
+    for (const a of state.improvementActions) {
+      for (const id of a.linkedSuggestionIds) linked.add(id)
+    }
+    return similarTo(voice, state.suggestions).filter((s) => !linked.has(s.voice.id))
+  }, [voice, state.suggestions, state.improvementActions])
+
+  /** المختار من المشابهات، مقصورًا على ما زال معروضًا. */
+  const picked = useMemo(
+    () => similar.filter((s) => chosen.has(s.voice.id)).map((s) => s.voice.id),
+    [similar, chosen],
+  )
+
+  function toggle(id: string) {
+    setChosen((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function toggleAll() {
+    setChosen((prev) => (prev.size === similar.length ? new Set() : new Set(similar.map((s) => s.voice.id))))
+  }
+
   function attachToExisting() {
     const target = state.improvementActions.find((a) => a.id === pick)
     if (!target) return
+    const ids = [...new Set([...target.linkedSuggestionIds, voice.id, ...picked])]
     replace(updateAction(state, target.id, {
       ...target,
-      mentions: Math.max(target.mentions, target.linkedSuggestionIds.length + 1),
-      linkedSuggestionIds: [...new Set([...target.linkedSuggestionIds, voice.id])],
+      mentions: Math.max(target.mentions, ids.length),
+      linkedSuggestionIds: ids,
     }))
+    setChosen(new Set())
     setOpen(false)
+  }
+
+  /** ضمّ المشابهات إلى إجراء قائم على هذا الرأي، بعد ربطه. */
+  function attachSimilarToCurrent() {
+    if (!action || picked.length === 0) return
+    const ids = [...new Set([...action.linkedSuggestionIds, ...picked])]
+    replace(updateAction(state, action.id, {
+      ...action,
+      mentions: Math.max(action.mentions, ids.length),
+      linkedSuggestionIds: ids,
+    }))
+    setChosen(new Set())
   }
 
   function createNew() {
@@ -69,9 +120,12 @@ export function VoiceImprovement({ voice, action, state, replace }: Props) {
           addedAt: new Date().toISOString(),
         }]
       : []
-    replace(addAction(state, { ...draft, evidence }))
+    const ids = [...new Set([voice.id, ...picked])]
+    replace(addAction(state, {
+      ...draft, evidence, linkedSuggestionIds: ids, mentions: ids.length,
+    }))
     setDraft(blankDraft(voice))
-    setProofLabel(''); setProofUrl('')
+    setProofLabel(''); setProofUrl(''); setChosen(new Set())
     setOpen(false)
   }
 
@@ -120,6 +174,21 @@ export function VoiceImprovement({ voice, action, state, replace }: Props) {
                 </Link>
               )}
 
+              <SimilarVoices
+                items={similar} chosen={chosen} toggle={toggle} toggleAll={toggleAll}
+                title="آراء تشبهه بلا إجراء"
+              />
+              {similar.length > 0 && (
+                <button
+                  type="button" className="button button--primary button--small no-print"
+                  disabled={picked.length === 0} onClick={attachSimilarToCurrent}
+                >
+                  {picked.length > 0
+                    ? `ضمّي ${num(picked.length)} رأيًا إلى هذا الإجراء`
+                    : 'اختاري ما يُضمّ إلى هذا الإجراء'}
+                </button>
+              )}
+
               <div className="row-btn no-print">
                 <Link className="button button--small" to="/admin/improvement">تعديل الإجراء</Link>
                 <button type="button" className="button button--small" onClick={unlink}>
@@ -160,7 +229,7 @@ export function VoiceImprovement({ voice, action, state, replace }: Props) {
                         type="button" className="button button--primary button--small"
                         disabled={!pick} onClick={attachToExisting}
                       >
-                        اربطي
+                        {picked.length > 0 ? `اربطي ${num(picked.length + 1)} آراء` : 'اربطي'}
                       </button>
                     </>
                   )}
@@ -259,10 +328,17 @@ export function VoiceImprovement({ voice, action, state, replace }: Props) {
                     type="button" className="button button--primary button--small"
                     disabled={!draft.title.trim()} onClick={createNew}
                   >
-                    حفظ الإجراء
+                    {picked.length > 0
+                      ? `حفظ الإجراء على ${num(picked.length + 1)} آراء`
+                      : 'حفظ الإجراء'}
                   </button>
                 </span>
               </label>
+
+              <SimilarVoices
+                items={similar} chosen={chosen} toggle={toggle} toggleAll={toggleAll}
+                title="آراء تشبهه، اربطيها معه"
+              />
             </div>
           )}
         </div>

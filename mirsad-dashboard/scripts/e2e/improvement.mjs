@@ -134,6 +134,80 @@ try {
   check('ولم يُنشأ إجراء ثانٍ للمشكلة نفسها', actions === 1, `${actions} إجراء`)
   await page.screenshot({ path: join(out, 'panel-shared.png') })
 
+  console.log('\n٥) الآراء المتشابهة تُربط دفعةً واحدة')
+  await page.goto(`http://127.0.0.1:${PORT}/#/admin/voice`, { waitUntil: 'domcontentloaded' })
+  await page.waitForSelector('.voice', { timeout: 20000 })
+  const total = await page.locator('.voice').count()
+
+  const repeat = page.locator('.repeat__row')
+  const topics = await repeat.count()
+  check('صفحة الآراء تعرض الموضوعات المتكرّرة', topics > 0, `${topics} موضوعًا`)
+  check('  ولكل موضوع عدده ونموذج من نصّ الطالبات',
+    (await repeat.first().locator('.repeat__count').innerText()).includes('رأيًا')
+    && (await repeat.first().locator('.repeat__sample').innerText()).length > 8)
+  await page.locator('.repeat').scrollIntoViewIfNeeded()
+  await page.locator('.repeat').screenshot({ path: join(out, 'repeated.png') })
+
+  // موضوع تكرّر في آراء القياس: تكييف الساحة
+  await page.locator('#v-search').fill('تكييف')
+  await page.waitForTimeout(600)
+  // أوّل رأي عن التكييف لم يُربط بعد: الأوّلان رُبطا في الفقرتين السابقتين
+  const hits = await page.locator('.voice').count()
+  let seed = null
+  for (let i = 0; i < hits; i += 1) {
+    const candidate = page.locator('.voice').nth(i)
+    if (await candidate.getByRole('button', { name: /لوح التحسين/ }).count()) {
+      seed = candidate
+      break
+    }
+  }
+  check('يوجد رأي عن الموضوع لم يُربط بعد', seed !== null, `${hits} رأيًا في التصفية`)
+  await seed.getByRole('button', { name: /لوح التحسين/ }).click()
+  await seed.locator('.improve').waitFor({ timeout: 10000 })
+
+  const akin = seed.locator('.akin')
+  check('اللوح يرشّح آراءً تشبهه', await akin.count() === 1)
+  const items = akin.locator('.akin__item')
+  const many = await items.count()
+  check('  الترشيح فيه أكثر من رأي', many >= 2, `${many} رأيًا`)
+  check('  ولا يرشّح الآراء كلها — ترشيحٌ لا تفريغ', many < total / 3,
+    `${many} من ${total}`)
+  check('  ويبيّن الكلمة التي جمعتهما', (await items.first().locator('.akin__why').count()) === 1,
+    (await items.first().locator('.akin__why').innerText()).trim())
+  check('  ولا يُختار شيء تلقائيًا', await items.locator('input:checked').count() === 0)
+  await akin.scrollIntoViewIfNeeded()
+  await akin.screenshot({ path: join(out, 'akin.png') })
+
+  await akin.getByRole('button', { name: 'اختاري الكل' }).click()
+  check('  «اختاري الكل» تختارها جميعًا',
+    await items.locator('input:checked').count() === many)
+
+  await seed.locator('.choice').nth(1).click()
+  await seed.locator('.mini input').first().fill('تجربة آلية: تبريد الساحة')
+  const saveLabel = (await seed.getByRole('button', { name: /حفظ الإجراء/ }).innerText()).trim()
+  check('  زرّ الحفظ يذكر عدد الآراء قبل الضغط',
+    saveLabel.includes(String(many + 1)), saveLabel)
+  await seed.getByRole('button', { name: /حفظ الإجراء/ }).click()
+  await page.waitForTimeout(600)
+
+  const after = await page.evaluate(() => {
+    const raw = window.localStorage.getItem('qiyas.state.v1')
+    const st = raw ? JSON.parse(raw) : { improvementActions: [] }
+    const a = st.improvementActions.find((x) => x.title === 'تجربة آلية: تبريد الساحة')
+    return { count: st.improvementActions.length, linked: a ? a.linkedSuggestionIds.length : 0 }
+  })
+  check('إجراء واحد يحمل الآراء كلها', after.linked === many + 1,
+    `${after.linked} رأيًا في إجراء واحد`)
+  check('ولم تُنشأ إجراءات بعدد الآراء', after.count === 2, `${after.count} إجراءين`)
+
+  // وردّ المدرسة صار تحت كل رأي منها، لا تحت الأول وحده
+  await page.locator('#v-search').fill('')
+  await page.waitForTimeout(600)
+  const answered = await page.locator('.voice .chip--linked').count()
+  check('وحالة «مرتبط بإجراء» ظهرت على الآراء المضمومة',
+    answered >= many + 1, `${answered} رأيًا`)
+  await page.screenshot({ path: join(out, 'akin-done.png') })
+
 } finally {
   await browser.close()
   server.close()

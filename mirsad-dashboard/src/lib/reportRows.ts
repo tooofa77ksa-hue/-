@@ -8,7 +8,8 @@ import {
   analyzeAllQuestions, nonRespondents, overallDistribution,
   participation, satisfactionIndex, studentsInScope, suggestionsInScope, type Scope,
 } from './analysis'
-import type { SystemState } from '../domain/types'
+import { clusterVoices } from './similar'
+import type { ImprovementAction, SystemState } from '../domain/types'
 
 export function nonRespondentRows(state: SystemState, scope: Scope) {
   const gradeById = new Map(state.grades.map((g) => [g.id, g]))
@@ -83,6 +84,7 @@ export function suggestionRows(state: SystemState, scope: Scope) {
   const catById = new Map(state.categories.map((c) => [c.id, c]))
   const respById = new Map(state.responses.map((r) => [r.id, r]))
   const labels = { new: 'جديد', reviewed: 'مُراجَع', linked: 'مرتبط بإجراء', closed: 'مغلق' }
+  const answered = answeredBy(state)
 
   return suggestionsInScope(state, scope).map((s, i) => {
     const gid = s.gradeId ?? respById.get(s.responseId)?.declaredGradeId ?? null
@@ -93,6 +95,91 @@ export function suggestionRows(state: SystemState, scope: Scope) {
       className: s.classId ? `فصل ${classById.get(s.classId)?.name}` : '',
       category: s.categoryId ? catById.get(s.categoryId)?.name ?? '' : 'بلا تصنيف',
       status: labels[s.status],
+      action: answered.get(s.id)?.action || '',
+      owner: answered.get(s.id)?.owner || '',
+      evidence: (answered.get(s.id)?.evidence ?? []).map((e) => `${e.label}: ${e.value}`).join(' | '),
+    }
+  })
+}
+
+/** الرأي ← الإجراء المتَّخذ عليه. */
+function answeredBy(state: SystemState): Map<string, ImprovementAction> {
+  const map = new Map<string, ImprovementAction>()
+  for (const action of state.improvementActions) {
+    for (const id of action.linkedSuggestionIds) map.set(id, action)
+  }
+  return map
+}
+
+/** عدّ ونسبة — قاعدة كل مؤشرات هذا الملف. */
+function tally(entries: [string, number][], total: number) {
+  return entries
+    .map(([name, count], i) => ({
+      index: i + 1, name, count, percent: total ? (count / total) * 100 : 0,
+    }))
+    .sort((a, b) => b.count - a.count)
+    .map((r, i) => ({ ...r, index: i + 1 }))
+}
+
+/** الآراء موزَّعةً على موضوعاتها. */
+export function voiceTopicRows(state: SystemState, scope: Scope) {
+  const all = suggestionsInScope(state, scope)
+  const catById = new Map(state.categories.map((c) => [c.id, c]))
+  const counts = new Map<string, number>()
+  for (const s of all) {
+    const name = s.categoryId ? catById.get(s.categoryId)?.name ?? 'بلا تصنيف' : 'بلا تصنيف'
+    counts.set(name, (counts.get(name) ?? 0) + 1)
+  }
+  return tally([...counts.entries()], all.length)
+}
+
+/** الآراء موزَّعةً على حالة معالجتها. */
+export function voiceStatusRows(state: SystemState, scope: Scope) {
+  const labels = { new: 'جديد', reviewed: 'مُراجَع', linked: 'مرتبط بإجراء', closed: 'مغلق' }
+  const all = suggestionsInScope(state, scope)
+  const counts = new Map<string, number>()
+  for (const key of Object.values(labels)) counts.set(key, 0)
+  for (const s of all) counts.set(labels[s.status], (counts.get(labels[s.status]) ?? 0) + 1)
+  return tally([...counts.entries()].filter(([, n]) => n > 0), all.length)
+}
+
+/** الآراء موزَّعةً على الصفوف — أيّ صفّ تكلّم أكثر. */
+export function voiceGradeRows(state: SystemState, scope: Scope) {
+  const gradeById = new Map(state.grades.map((g) => [g.id, g]))
+  const respById = new Map(state.responses.map((r) => [r.id, r]))
+  const all = suggestionsInScope(state, scope)
+  const counts = new Map<string, number>()
+  for (const g of state.grades) counts.set(g.name, 0)
+  for (const s of all) {
+    const gid = s.gradeId ?? respById.get(s.responseId)?.declaredGradeId ?? null
+    const name = gid ? gradeById.get(gid)?.name ?? 'صف غير محدد' : 'صف غير محدد'
+    counts.set(name, (counts.get(name) ?? 0) + 1)
+  }
+  return tally([...counts.entries()].filter(([, n]) => n > 0), all.length)
+}
+
+/**
+ * الموضوعات المتكرّرة: كل شكوى تكرّرت، وعدد من قالتها، وجوابها.
+ *
+ * هذا هو الجدول الذي تسأل عنه الوزارة أولًا: ما أكثر ما قالته
+ * الطالبات، وماذا فعلت المدرسة فيه. والعدّ على الآراء لا على
+ * الإجراءات، فعشرون رأيًا في موضوع واحد تظهر عشرين لا واحدًا.
+ */
+export function voiceClusterRows(state: SystemState, scope: Scope) {
+  const answered = answeredBy(state)
+  const all = suggestionsInScope(state, scope)
+  return clusterVoices(all).map((c, i) => {
+    const action = c.members.map((m) => answered.get(m.id)).find(Boolean) ?? null
+    const covered = c.members.filter((m) => answered.has(m.id)).length
+    return {
+      index: i + 1,
+      topic: c.keywords.join('، ') || c.head.text.slice(0, 40),
+      count: c.members.length,
+      percent: all.length ? (c.members.length / all.length) * 100 : 0,
+      sample: c.head.text,
+      covered,
+      action: action?.title ?? 'لم يُتَّخذ إجراء بعد',
+      owner: action?.owner ?? '',
     }
   })
 }

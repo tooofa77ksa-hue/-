@@ -251,6 +251,24 @@ export type ActionDraft = Omit<ImprovementAction, 'id' | 'createdAt' | 'updatedA
   evidence?: ImprovementAction['evidence']
 }
 
+/**
+ * حالة الرأي تتبع ارتباطه بإجراء، لا تُكتب بيدٍ منفصلة.
+ *
+ * وإلّا ربطت الإدارة رأيًا بإجراء وبقي مكتوبًا عليه «جديد»، فعدّته
+ * لوحة الصدر رأيًا بلا جواب وهو مُجاب. والعكس عند فكّ الربط: يعود
+ * «مُراجَعًا» لا «جديدًا»، لأن الإدارة قرأته فعلًا.
+ */
+function syncLinkedStatus(next: SystemState): void {
+  const linked = new Set<Id>()
+  for (const action of next.improvementActions) {
+    for (const sid of action.linkedSuggestionIds) linked.add(sid)
+  }
+  next.suggestions = next.suggestions.map((s) => {
+    if (linked.has(s.id)) return s.status === 'linked' ? s : { ...s, status: 'linked' }
+    return s.status === 'linked' ? { ...s, status: 'reviewed' } : s
+  })
+}
+
 export function addAction(state: SystemState, draft: ActionDraft): SystemState {
   const next = clone(state)
   const now = new Date().toISOString()
@@ -262,9 +280,7 @@ export function addAction(state: SystemState, draft: ActionDraft): SystemState {
     updatedAt: now,
   }
   next.improvementActions = [action, ...next.improvementActions]
-  next.suggestions = next.suggestions.map((s) =>
-    action.linkedSuggestionIds.includes(s.id) ? { ...s, status: 'linked' } : s,
-  )
+  syncLinkedStatus(next)
   audit(next, 'إضافة إجراء تحسين', 'action', action.id, action.title)
   return next
 }
@@ -276,6 +292,7 @@ export function updateAction(state: SystemState, id: Id, draft: ActionDraft): Sy
       ? { ...a, ...draft, evidence: draft.evidence ?? a.evidence, updatedAt: new Date().toISOString() }
       : a,
   )
+  syncLinkedStatus(next)
   audit(next, 'تعديل إجراء تحسين', 'action', id, draft.title)
   return next
 }
@@ -284,6 +301,7 @@ export function removeAction(state: SystemState, id: Id): SystemState {
   const next = clone(state)
   const action = next.improvementActions.find((a) => a.id === id)
   next.improvementActions = next.improvementActions.filter((a) => a.id !== id)
+  syncLinkedStatus(next)
   audit(next, 'حذف إجراء تحسين', 'action', id, action?.title ?? '')
   return next
 }
