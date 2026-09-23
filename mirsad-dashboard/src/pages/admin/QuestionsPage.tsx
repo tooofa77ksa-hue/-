@@ -9,6 +9,7 @@ import { OPTION_TONES } from '../../lib/tones'
 import { analyzeAllQuestions, type Scope } from '../../lib/analysis'
 import { avg, num, pct } from '../../lib/format'
 import { useSystem } from '../../state/useSystem'
+import { questionText } from '../../lib/labels'
 
 export function QuestionsPage() {
   const { state } = useSystem()
@@ -73,7 +74,7 @@ export function QuestionsPage() {
                 <tr key={r.question.id}>
                   <td className="table__num">{num(r.question.order)}</td>
                   <td>
-                    <span className="table__title">{r.question.text}</span>
+                    <span className="table__title">{questionText(r.question.text)}</span>
                     {r.question.direction === 'reverse' && (
                       <span className="table__notes">سؤال عكسي — {r.question.reverseNote}</span>
                     )}
@@ -100,7 +101,7 @@ export function QuestionsPage() {
             <article key={r.question.id} className="qlist__item">
               <header className="qlist__head">
                 <span className="qlist__text">
-                  {num(r.question.order)}. {r.question.text}
+                  {num(r.question.order)}. {questionText(r.question.text)}
                   {helpFor(r.question.id)?.plain && (
                     <span className="qlist__explain">
                       ما يراه وليّ الأمر: {helpFor(r.question.id)?.plain}

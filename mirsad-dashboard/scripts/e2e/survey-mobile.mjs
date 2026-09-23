@@ -14,6 +14,8 @@ import { dirname, extname, join, normalize, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium, devices } from 'playwright'
 
+import { misorderedNumbers, plain } from './bidi.mjs'
+
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const dist = join(root, 'dist')
 const shots = join(root, '.e2e-out', 'mobile')
@@ -55,7 +57,7 @@ async function answer(page, which = 0) {
 
 async function runFlow(page, { skipOne = false } = {}) {
   const n = Number(await page.locator('.survey__count').innerText()
-    .then((t) => t.replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).match(/من (\d+)/)?.[1] ?? 0))
+    .then((t) => plain(t).match(/من (\d+)/)?.[1] ?? 0))
   let skipped = null
   for (let i = 0; i < n; i += 1) {
     const kind = await page.locator('.step').getAttribute('class')
@@ -142,7 +144,7 @@ try {
   // ═════ ٢) الأسئلة ═════
   console.log('\n٢) الأسئلة')
   await page.waitForSelector('.survey__count')
-  const counter = await page.locator('.survey__count').innerText()
+  const counter = plain(await page.locator('.survey__count').innerText())
   check('مؤشّر التقدّم يعرض رقم السؤال', /السؤال .+ من .+/.test(counter), counter.trim())
   check('شريط التقدّم موجود', await page.locator('.progress__fill').isVisible())
 
@@ -159,6 +161,21 @@ try {
   const widths = await page.locator('.answer').evaluateAll(
     (els) => els.map((e) => Math.round(e.getBoundingClientRect().width)))
   check('الخيارات الثلاثة متساوية بلا ترجيح بصري', new Set(widths).size === 1, `${widths[0]}px`)
+
+  // الأرقام لاتينية في صفحة الطالبة أيضًا، والاتجاه يبقى من اليمين
+  const strayAr = await page.evaluate(() => {
+    const found = new Set()
+    const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
+    for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+      if (/[\u0660-\u0669\u06F0-\u06F9]/.test(n.nodeValue)) found.add(n.nodeValue.trim().slice(0, 40))
+    }
+    return [...found]
+  })
+  check('لا رقم عربي في صفحة الطالبة', strayAr.length === 0, strayAr.slice(0, 3).join(' | '))
+
+  const jumbledSurvey = await misorderedNumbers(page)
+  check('أرقام صفحة الطالبة بترتيبها', jumbledSurvey.length === 0,
+    jumbledSurvey.slice(0, 2).map((x) => `${x.kind}: «${x.part}»`).join(' | '))
 
   const explain = await page.locator('.survey__explain').count()
   check('تحت السؤال شرح مبسّط', explain === 1,
@@ -185,8 +202,7 @@ try {
   console.log('\n٢ب) العبارة المنفية')
   // السؤال السادس منفي: «لا تراعي المدرسة اختلاف القدرات»
   while (true) {
-    const at = (await page.locator('.survey__count').innerText())
-      .replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
+    const at = plain(await page.locator('.survey__count').innerText())
     if (at.includes('السؤال 6 ')) break
     await answer(page, 0)
   }
@@ -256,8 +272,7 @@ try {
   }
   await page.waitForSelector('.survey__cta:has-text("إرسال القياس")', { timeout: 15000 })
   check('بعد الإجابة لم يبقَ نقص', await page.locator('.gap').count() === 0)
-  const tally = (await page.locator('.survey__lead').innerText())
-    .replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
+  const tally = plain(await page.locator('.survey__lead').innerText())
     .match(/(\d+) من (\d+)/)
   check('كل المطلوب مُجاب عليه ولم تُمسح إجابة سابقة',
     tally !== null && tally[1] === tally[2], `${tally?.[1]} من ${tally?.[2]}`)
@@ -290,8 +305,8 @@ try {
   }
   await admin.waitForTimeout(1200)
   const overview = await admin.locator('.main').innerText()
-  const plain = overview.replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/,/g, '')
-  check('عدد الاستجابات ارتفع إلى ٢٧٥', plain.includes('275'))
+  const digitsOnly = plain(overview).replace(/,/g, '')
+  check('عدد الاستجابات ارتفع إلى 275', digitsOnly.includes('275'))
 
   await admin.goto(`http://127.0.0.1:${PORT}/#/admin/voice`, { waitUntil: 'domcontentloaded' })
   await admin.waitForTimeout(1200)

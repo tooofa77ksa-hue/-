@@ -51,7 +51,7 @@ function addTitle(
     state.meta.school,
     `${state.meta.surveyTitle} ${state.meta.hijriYear}هـ — ${sheetTitle}`,
     `النطاق: ${scopeLabel(state, scope)}`,
-    `تاريخ الاستخراج: ${new Intl.DateTimeFormat('ar-SA', { dateStyle: 'full', timeStyle: 'short' }).format(new Date())}`,
+    `تاريخ الاستخراج: ${new Intl.DateTimeFormat('ar-SA-u-nu-latn', { dateStyle: 'full', timeStyle: 'short' }).format(new Date())}`,
   ]
 
   lines.forEach((text, i) => {

@@ -1,5 +1,6 @@
 import type { QuestionAnalysis } from '../lib/analysis'
 import { avg, num } from '../lib/format'
+import { questionText } from '../lib/labels'
 
 interface RankedListProps {
   rows: QuestionAnalysis[]
@@ -20,7 +21,7 @@ export function RankedList({ rows, variant = 'strength' }: RankedListProps) {
       {rows.map((r) => (
         <li key={r.question.id}>
           <span className="ranked__text">
-            {r.question.text}
+            {questionText(r.question.text)}
             {r.question.direction === 'reverse' && (
               <span className="tag" title={r.question.reverseNote ?? undefined}>
                 عكسي — الدرجة مصحَّحة

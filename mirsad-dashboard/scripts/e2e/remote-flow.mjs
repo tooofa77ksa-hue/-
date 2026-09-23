@@ -150,8 +150,7 @@ try {
   check('الشريط يقول إن الحفظ في قاعدة البيانات', /قاعدة البيانات/.test(banner), banner.trim())
 
   const text = await admin.locator('.main').innerText()
-  const arabicToLatin = (s) => s.replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
-  const plain = arabicToLatin(text).replace(/,/g, '')
+  const plain = text.replace(/,/g, '')
   check('ظهر عدد الطالبات من قاعدة البيانات', plain.includes(String(studentCount)), `${studentCount}`)
 
   // الجدول يعرض ٨٠ صفًا في المرة، فنبحث عن الاستجابة بالاسم لا بالتصفّح

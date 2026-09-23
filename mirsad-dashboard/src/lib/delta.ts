@@ -1,4 +1,4 @@
-import { avg } from './format'
+import { avg, ltr } from './format'
 
 /**
  * الفارق عن مؤشر المدرسة بإشارته.
@@ -10,6 +10,7 @@ import { avg } from './format'
 export function delta(mean: number, school: number): string {
   const d = mean - school
   if (Math.abs(d) < 0.005) return '='
-  return `${d > 0 ? '+' : '−'}${avg(Math.abs(d))}`
+  // الإشارة تسبق الرقم ولا تنتمي إليه، فتُعزل معه وإلا قفزت إلى طرفه الآخر
+  return ltr(`${d > 0 ? '+' : '−'}${avg(Math.abs(d))}`)
 }
 

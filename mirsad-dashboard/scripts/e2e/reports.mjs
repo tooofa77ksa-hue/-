@@ -13,6 +13,8 @@ import { fileURLToPath } from 'node:url'
 import { chromium } from 'playwright'
 import ExcelJS from 'exceljs'
 
+import { misorderedNumbers } from './bidi.mjs'
+
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const dist = join(root, 'dist')
 const out = join(root, '.e2e-out')
@@ -163,7 +165,7 @@ try {
   check('ملخّص تنفيذي بأرقام محسوبة', findings >= 4, `${findings} نتيجة`)
   const firstFinding = await page.locator('.finding').first().innerText()
   check('الملخّص يحمل أرقام القياس لا عبارات عامة',
-    /[٠-٩]/.test(firstFinding), firstFinding.slice(0, 44) + '…')
+    /[0-9]/.test(firstFinding), firstFinding.slice(0, 44) + '…')
 
   check('قسم منهجية وقواعد الحساب', await page.locator('.method li').count() >= 5)
 
@@ -180,6 +182,14 @@ try {
   const coverBreak = await page.locator('.report__cover')
     .evaluate((el) => getComputedStyle(el).breakAfter)
   check('الغلاف ينفرد بصفحته', coverBreak === 'page')
+
+  // الأرقام في التقرير: لاتينية وبترتيبها
+  const arabicDigitsLeft = await page.evaluate(() =>
+    /[\u0660-\u0669]/.test(document.body.innerText))
+  check('لا رقم عربي في التقرير', !arabicDigitsLeft)
+  const jumbledReport = await misorderedNumbers(page)
+  check('أرقام التقرير بترتيبها لا مقلوبة', jumbledReport.length === 0,
+    jumbledReport.slice(0, 2).map((x) => `${x.kind}: «${x.part}» في «${x.text}»`).join(' | '))
 
   await page.emulateMedia({ media: 'screen' })
 

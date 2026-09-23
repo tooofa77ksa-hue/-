@@ -14,8 +14,8 @@ import {
   SCHOOL_SCOPE, overallDistribution, participation, satisfactionIndex,
   strengthsAndGaps, suggestionsInScope,
 } from '../../lib/analysis'
-import { avg, num, pct, arabicDigits } from '../../lib/format'
-import { orderedClasses, shortClass, shortGrade } from '../../lib/labels'
+import { avg, ltr, num, pct } from '../../lib/format'
+import { orderedClasses, questionText, shortClass, shortGrade } from '../../lib/labels'
 import { useSystem } from '../../state/useSystem'
 
 export function OverviewPage() {
@@ -59,7 +59,7 @@ export function OverviewPage() {
         n={index.n}
         responses={part.responsesReceived}
         receivedRate={part.receivedRate}
-        year={arabicDigits(state.meta.academicYear)}
+        year={ltr(state.meta.academicYear)}
         counts={[
           { to: '/admin/students', value: part.totalStudents, label: 'طالبة في الكشوف' },
           { to: '/admin/questions', value: part.responsesReceived, label: 'استجابة واردة' },
@@ -168,7 +168,7 @@ export function OverviewPage() {
           {gaps.map((g) => (
             <article key={g.question.id} className="qlist__item">
               <header className="qlist__head">
-                <span className="qlist__text">{g.question.text}</span>
+                <span className="qlist__text">{questionText(g.question.text)}</span>
                 <span className="qlist__meta">
                   المتوسط {avg(g.adjustedMean as number)} · ن = {num(g.n)}
                   {g.question.direction === 'reverse' && <span className="tag">سؤال عكسي</span>}

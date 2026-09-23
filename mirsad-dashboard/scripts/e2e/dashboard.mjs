@@ -12,6 +12,8 @@ import { dirname, extname, join, normalize, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium } from 'playwright'
 
+import { misorderedNumbers } from './bidi.mjs'
+
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const dist = join(root, 'dist')
 const out = join(root, '.e2e-out', 'dashboard')
@@ -76,7 +78,8 @@ try {
   // ═════ ٢) الصدر ═════
   console.log('\n٢) صدر اللوحة')
   const value = (await page.locator('.hero__value strong').innerText()).trim()
-  check('المؤشر معروض برقمه', /[٠-٩]/.test(value), value)
+  check('المؤشر معروض برقمه', /[0-9]/.test(value), value)
+  check('الأرقام لاتينية لا عربية', !/[٠-٩]/.test(value), value)
   check('أعداد القياس داخل الصدر', await page.locator('.hero__count').count() === 4)
 
   const fill = await page.locator('.hero__fill').evaluate((el) => el.style.width)
@@ -86,9 +89,9 @@ try {
   check('قاعدة الحساب مكتوبة تحت الرقم', basis.includes('إجابة'), basis.slice(0, 60) + '…')
 
   // النسبة مئوية لا كسرية: «٩٣٫٢٪» لا «٠٫٩٪»
-  const rate = basis.match(/([٠-٩][٠-٩٫]*)٪/)?.[1] ?? ''
-  const latin = Number(rate.replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace('٫', '.'))
-  check('نسبة من أجابت مئوية لا كسرية', latin > 1, `${rate}٪`)
+  const rate = basis.match(/([0-9][0-9.]*)%/)?.[1] ?? ''
+  check('نسبة من أجابت مئوية لا كسرية', Number(rate) > 1, `${rate}%`)
+  check('علامة النسبة لاتينية', basis.includes('%') && !basis.includes('٪'))
 
   // ═════ ٣) مسطرة الصفوف ═════
   console.log('\n٣) الصفوف على مسطرة القياس')
@@ -129,8 +132,33 @@ try {
   // الترتيب على رقم الصف لا على اسمه: الأبجدي يضع «الثالث» قبل «الثاني»
   const ORDER = ['أولى', 'أولى', 'ثانية', 'ثانية', 'ثالثة', 'ثالثة',
     'رابعة', 'رابعة', 'خامسة', 'خامسة', 'سادسة', 'سادسة']
-  check('الترتيب من أولى ١ إلى سادسة ٢',
+  check('الترتيب من أولى 1 إلى سادسة 2',
     roomNames.every((n, i) => n.startsWith(ORDER[i])))
+
+  // ═════ الأرقام لاتينية في كل الصفحة ═════
+  // فحص على الصفحة كلها لا على عنصر: رقمٌ عربي واحد ينجو في زاوية
+  // يكسر اتّساق اللوحة كلها أمام الوزارة.
+  const strayDigits = async (target) => target.evaluate(() => {
+    const found = new Set()
+    const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
+    for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+      const hit = n.nodeValue.match(/[\u0660-\u0669\u06F0-\u06F9]/g)
+      if (hit) found.add(n.nodeValue.trim().slice(0, 40))
+    }
+    return [...found]
+  })
+
+  const stray = await strayDigits(page)
+  check('لا رقم عربي في اللوحة كلها', stray.length === 0, stray.slice(0, 3).join(' | '))
+
+  const jumbled = await misorderedNumbers(page)
+  check('كل رقم يظهر بترتيبه لا مقلوبًا', jumbled.length === 0,
+    jumbled.slice(0, 2).map((x) => `${x.kind}: «${x.part}» في «${x.text}»`).join(' | '))
+
+  const dirOk = await page.evaluate(() =>
+    document.documentElement.dir === 'rtl'
+    || getComputedStyle(document.body).direction === 'rtl')
+  check('الاتجاه من اليمين إلى اليسار كما هو', dirOk)
 
   await page.screenshot({ path: join(out, 'laptop.png') })
 
@@ -171,7 +199,7 @@ try {
   check('مخرج واضح من العرض', await page.locator('.show__exit').isVisible())
 
   const big = (await page.locator('.show__big').innerText()).trim()
-  check('المؤشر بارز في صدر العرض', /[٠-٩]/.test(big), big.replace(/\s+/g, ' '))
+  check('المؤشر بارز في صدر العرض', /[0-9]/.test(big), big.replace(/\s+/g, ' '))
 
   // الأرقام نفسها في اللوحتين: لا نسخة ولا حساب ثانٍ
   const showRooms = await page.locator('.show__room-value').allInnerTexts()
@@ -179,6 +207,13 @@ try {
 
   const showIndex = big.split(/\s/)[0]
   check('رقم العرض هو رقم لوحة التعديل نفسه', showIndex === value, `${showIndex} = ${value}`)
+
+  const strayShow = await strayDigits(page)
+  check('لا رقم عربي في لوحة العرض', strayShow.length === 0, strayShow.slice(0, 3).join(' | '))
+
+  const jumbledShow = await misorderedNumbers(page)
+  check('أرقام لوحة العرض بترتيبها', jumbledShow.length === 0,
+    jumbledShow.slice(0, 2).map((x) => `${x.kind}: «${x.part}»`).join(' | '))
 
   await page.screenshot({ path: join(out, 'display.png') })
 

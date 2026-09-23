@@ -10,7 +10,7 @@ import type { Id, Question } from '../../domain/types'
 import { SCALE_HELP, helpFor, optionHint } from '../../data/questionHelp'
 import { ensureRespondent } from '../../firebase/auth'
 import { normalizeArabic } from '../../lib/arabic'
-import { arabicDigits, num } from '../../lib/format'
+import { num } from '../../lib/format'
 import { useSystem } from '../../state/useSystem'
 
 const ORG_LOGO = '/brand/moe-logo.png'
@@ -280,7 +280,7 @@ export function SurveyPage() {
   }
 
   const school = state.meta.school
-  const title = `${state.meta.surveyTitle} ${arabicDigits(state.meta.hijriYear)}هـ`
+  const title = `${state.meta.surveyTitle} ${state.meta.hijriYear}هـ`
 
   // ───────── حالات التحميل والخطأ ─────────
 

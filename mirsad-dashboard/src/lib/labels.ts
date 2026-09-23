@@ -1,4 +1,4 @@
-import { arabicDigits, num } from './format'
+import { ltr, num } from './format'
 import type { ClassRoom, Grade } from '../domain/types'
 
 /**
@@ -16,11 +16,11 @@ export function shortGrade(no: number): string {
 
 export function shortClass(grade: Grade | undefined, room: ClassRoom): string {
   const head = grade ? shortGrade(grade.no) : ''
-  return `${head} ${arabicDigits(String(room.name))}`.trim()
+  return `${head} ${room.name}`.trim()
 }
 
 export function fullClass(grade: Grade | undefined, room: ClassRoom): string {
-  return `${grade?.name ?? ''} — فصل ${arabicDigits(String(room.name))}`.trim()
+  return `${grade?.name ?? ''} — فصل ${room.name}`.trim()
 }
 
 /**
@@ -38,4 +38,20 @@ export function orderedClasses(grades: Grade[], classes: ClassRoom[]) {
       if (byGrade !== 0) return byGrade
       return String(a.room.name).localeCompare(String(b.room.name), 'ar', { numeric: true })
     })
+}
+
+/**
+ * نص السؤال كما ورد في المصدر، مع عزل ترقيمه لا حذفه.
+ *
+ * المصدر يبدأ أسئلته بـ «1_» و«12-»، والشرطة والشرطة السفلية محايدتان
+ * في خوارزمية الاتجاه فتقفزان إلى الطرف الآخر من الرقم: «12-» تظهر
+ * «-12» فتُقرأ سالبًا. العزل يعيدها إلى موضعها.
+ *
+ * ولا يُمسّ النص: المحرفان عازلان لا يُرسمان، والحروف والأرقام كما
+ * وردت حرفًا بحرف — الإدارة والوزارة تقرآن المصدر لا صياغةً له.
+ */
+const SOURCE_NUMBERING = /^\s*\d+\s*[-_]\s*/
+
+export function questionText(text: string): string {
+  return text.replace(SOURCE_NUMBERING, (m) => ltr(m))
 }

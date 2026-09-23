@@ -8,8 +8,8 @@ import {
   strengthsAndGaps,
 } from '../../lib/analysis'
 import { delta } from '../../lib/delta'
-import { avg, arabicDigits, hijriToday, num, pct } from '../../lib/format'
-import { orderedClasses, shortClass, shortGrade } from '../../lib/labels'
+import { avg, hijriToday, num, pct } from '../../lib/format'
+import { orderedClasses, questionText, shortClass, shortGrade } from '../../lib/labels'
 import { useSystem } from '../../state/useSystem'
 
 /**
@@ -61,7 +61,7 @@ export function DisplayPage() {
         <div className="show__id">
           <h1 className="show__school">{state.meta.school}</h1>
           <p className="show__survey">
-            {state.meta.surveyTitle} {arabicDigits(state.meta.hijriYear)}هـ
+            {state.meta.surveyTitle} {state.meta.hijriYear}هـ
             <span className="show__dot" aria-hidden="true">·</span>
             {ORGANIZATION.directorate}
           </p>
@@ -156,7 +156,7 @@ export function DisplayPage() {
           <ol className="show__list">
             {strengths.map((q) => (
               <li key={q.question.id}>
-                <span>{q.question.text}</span>
+                <span>{questionText(q.question.text)}</span>
                 <strong>{avg(q.adjustedMean as number)}</strong>
               </li>
             ))}
@@ -168,7 +168,7 @@ export function DisplayPage() {
           <ol className="show__list">
             {gaps.map((q) => (
               <li key={q.question.id}>
-                <span>{q.question.text}</span>
+                <span>{questionText(q.question.text)}</span>
                 <strong>{avg(q.adjustedMean as number)}</strong>
               </li>
             ))}

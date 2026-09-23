@@ -5,7 +5,7 @@ import {
   exportBackup, inspectBackup, resetToSource, restoreBackup, type BackupFile,
 } from '../../data/store'
 import { saveBlob } from '../../lib/excel'
-import { dateTime, num, arabicDigits } from '../../lib/format'
+import { dateTime, ltr, num } from '../../lib/format'
 import { useSystem } from '../../state/useSystem'
 import { DatabasePanel } from './DatabasePanel'
 
@@ -44,8 +44,8 @@ export function SettingsPage() {
         <dl className="action__grid">
           <div><dt>المدرسة</dt><dd>{state.meta.school}</dd></div>
           <div><dt>الجهة</dt><dd>{state.meta.directorate}</dd></div>
-          <div><dt>القياس</dt><dd>{state.meta.surveyTitle} {arabicDigits(state.meta.hijriYear)}هـ</dd></div>
-          <div><dt>العام الدراسي</dt><dd>{arabicDigits(state.meta.academicYear)}هـ</dd></div>
+          <div><dt>القياس</dt><dd>{state.meta.surveyTitle} {state.meta.hijriYear}هـ</dd></div>
+          <div><dt>العام الدراسي</dt><dd>{ltr(state.meta.academicYear)}هـ</dd></div>
           <div><dt>المقياس</dt><dd>من {num(state.meta.scale.min)} إلى {num(state.meta.scale.max)}</dd></div>
           <div><dt>تاريخ الاستيراد</dt><dd>{dateTime(state.meta.generatedAt)}</dd></div>
         </dl>

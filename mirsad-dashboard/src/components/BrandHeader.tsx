@@ -1,4 +1,3 @@
-import { arabicDigits } from '../lib/format'
 import { ORGANIZATION } from '../brand'
 import { useSystem } from '../state/useSystem'
 
@@ -28,7 +27,7 @@ export function BrandHeader({ actions, compact }: BrandHeaderProps) {
           <span className="header__divider" aria-hidden="true" />
           <div>
             <h1 className="header__title">
-              {meta.surveyTitle} {arabicDigits(meta.hijriYear)}هـ
+              {meta.surveyTitle} {meta.hijriYear}هـ
             </h1>
             <p className="header__subtitle">{meta.school}</p>
           </div>

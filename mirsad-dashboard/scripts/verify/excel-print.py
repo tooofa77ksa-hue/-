@@ -9,6 +9,8 @@
 import sys
 import glob
 
+import re
+
 import openpyxl
 
 results = []
@@ -19,10 +21,26 @@ def check(name, ok, detail=''):
     print(('  ✓ ' if ok else '  ✗ ') + name + (' — ' + detail if detail else ''))
 
 
+# الأرقام لاتينية داخل الملفات أيضًا: سطر تاريخ الاستخراج كان يفلت
+# من فحوص الصفحات لأنه لا يُعرض في المتصفّح إطلاقًا.
+ARABIC_INDIC = re.compile(r'[\u0660-\u0669\u06F0-\u06F9]')
+ISOLATES = re.compile(r'[\u2066-\u2069]')
+
+
 for path in sorted(glob.glob(sys.argv[1])):
     name = path.rsplit('/', 1)[-1]
     print('\n' + name)
     wb = openpyxl.load_workbook(path)
+    stray = []
+    for ws in wb.worksheets:
+        for row in ws.iter_rows():
+            for cell in row:
+                if not isinstance(cell.value, str):
+                    continue
+                if ARABIC_INDIC.search(cell.value) or ISOLATES.search(cell.value):
+                    stray.append('%s!%s' % (ws.title, cell.coordinate))
+    check('كل الأرقام لاتينية بلا محارف عزل', not stray, '؛ '.join(stray[:3]))
+
     for ws in wb.worksheets:
         setup = ws.page_setup
         landscape = setup.orientation == 'landscape'

@@ -14,8 +14,8 @@ import {
   satisfactionIndex, strengthsAndGaps, suggestionsInScope, type Scope,
 } from '../../lib/analysis'
 import { exportResults } from '../../lib/excel'
-import { avg, dateOnly, hijriToday, num, pct, arabicDigits } from '../../lib/format'
-import { fullClass, orderedClasses, shortClass, shortGrade } from '../../lib/labels'
+import { avg, dateOnly, hijriToday, ltr, num, pct } from '../../lib/format'
+import { fullClass, orderedClasses, questionText, shortClass, shortGrade } from '../../lib/labels'
 import { useSystem } from '../../state/useSystem'
 
 const STATUS = { planned: 'مخطط', in_progress: 'جارٍ التنفيذ', completed: 'مكتمل' } as const
@@ -66,13 +66,12 @@ export function ReportsPage() {
   const actions = state.improvementActions
   const classes = state.classes.filter((c) => gradeId === 'all' || c.gradeId === gradeId)
 
-  const reportTitle = `${state.meta.surveyTitle} ${arabicDigits(state.meta.hijriYear)}هـ`
+  const reportTitle = `${state.meta.surveyTitle} ${state.meta.hijriYear}هـ`
 
   /** رقم وثيقة ثابت للنسخة: يميّز نطاق التقرير وعامه عند الأرشفة. */
-  const docRef = arabicDigits(
-    `QT/${state.meta.hijriYear}/${classId !== 'all' ? classId : gradeId !== 'all' ? gradeId : 'ALL'}`
-      .toUpperCase(),
-  )
+  const docRef = `QT/${state.meta.hijriYear}/${
+    classId !== 'all' ? classId : gradeId !== 'all' ? gradeId : 'ALL'
+  }`.toUpperCase()
 
   /** مقارنة الصفوف: لا تُبنى إلا في نطاق المدرسة. */
   const byGrade = useMemo(() => {
@@ -195,12 +194,12 @@ export function ReportsPage() {
           <p className="report__org">{ORGANIZATION.ministry}</p>
           <p className="report__org">{ORGANIZATION.directorate}</p>
           <h1 className="report__title">
-            {state.meta.surveyTitle} {arabicDigits(state.meta.hijriYear)}هـ
+            {state.meta.surveyTitle} {state.meta.hijriYear}هـ
           </h1>
           <p className="report__school">{state.meta.school}</p>
           <p className="report__scope">{scopeName}</p>
           <dl className="report__facts">
-            <div><dt>العام الدراسي</dt><dd>{arabicDigits(state.meta.academicYear)}هـ</dd></div>
+            <div><dt>العام الدراسي</dt><dd>{ltr(state.meta.academicYear)}هـ</dd></div>
             <div><dt>تاريخ إصدار التقرير</dt><dd>{hijriToday()}</dd></div>
             <div><dt>مصادر البيانات</dt><dd>{num(state.meta.sources.length)} ملفًا</dd></div>
             <div><dt>رقم الوثيقة</dt><dd>{docRef}</dd></div>
@@ -418,7 +417,7 @@ export function ReportsPage() {
             {questions.map((q) => (
               <article key={q.question.id} className="qlist__item">
                 <header className="qlist__head">
-                  <span className="qlist__text">{num(q.question.order)}. {q.question.text}</span>
+                  <span className="qlist__text">{num(q.question.order)}. {questionText(q.question.text)}</span>
                   <span className="qlist__meta">
                     ن = {num(q.n)}{q.adjustedMean !== null && ` · ${avg(q.adjustedMean)}`}
                     {q.question.direction === 'reverse' && <span className="tag">عكسي</span>}
