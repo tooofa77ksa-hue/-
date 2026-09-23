@@ -36,7 +36,7 @@ service cloud.firestore {
      */
     function adminUids() {
       return [
-        'ADMIN_UID_PLACEHOLDER'
+        'dbwyjejbZKfNF6rQAA6vvui6MID2'
       ];
     }
 

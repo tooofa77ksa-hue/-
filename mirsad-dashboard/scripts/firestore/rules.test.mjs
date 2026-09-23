@@ -33,7 +33,7 @@ const env = await initializeTestEnvironment({
 })
 
 // الإدارة تُعرَّف بمعرّفها في القواعد، لا بادّعاء مخصّص
-const ADMIN_UID = 'ADMIN_UID_PLACEHOLDER'
+const ADMIN_UID = 'dbwyjejbZKfNF6rQAA6vvui6MID2'
 const admin = env.authenticatedContext(ADMIN_UID).firestore()
 const claimAdmin = env.authenticatedContext('legacy-claim-uid', { admin: true }).firestore()
 const signedIn = env.authenticatedContext('anon-uid').firestore()
