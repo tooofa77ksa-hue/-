@@ -51,10 +51,21 @@ export interface Participation {
   confirmedRespondents: number
   /** طالبات الكشف بلا استجابة مؤكّدة. */
   nonRespondents: number
-  /** نسبة الاستجابة المؤكّدة من طالبات الكشف. */
+  /** نسبة الاستجابة المؤكّدة من طالبات الكشف، مئويةً لا كسرًا. */
   rate: number
   /** كل الاستجابات المستلمة المنسوبة للنطاق، مؤكّدة كانت أو لا. */
   responsesReceived: number
+  /**
+   * نسبة من أجابت فعلًا من طالبات الكشف، مئويةً لا كسرًا.
+   *
+   * تُحسب هنا لا في الشاشات: حُسبت قبلُ في موضعين كسرًا (٠٫٩٣) ثم
+   * مُرّرت إلى دالّة تتوقّع مئوية، فعُرضت «٠٫٩٪» بدل «٩٣٪». وحسابها
+   * في مكان واحد يمنع تكرار ذلك.
+   *
+   * وقد تتجاوز المئة حين يصل من الصف استجابات أكثر مما في كشفه —
+   * وهو مؤشر على كشف يحتاج تحديثًا، لا خطأ في العدّ، فلا تُقصّ.
+   */
+  receivedRate: number
   /** استجابات بانتظار تأكيد المطابقة يدويًا. */
   awaitingReview: number
   /** استجابات لا يوجد لصفّها كشف رسمي، فيتعذّر التأكيد. */
@@ -76,6 +87,7 @@ export function participation(state: SystemState, scope: Scope): Participation {
     nonRespondents: students.length - confirmed,
     rate: students.length ? (confirmed / students.length) * 100 : 0,
     responsesReceived: responses.length,
+    receivedRate: students.length ? (responses.length / students.length) * 100 : 0,
     awaitingReview: responses.filter(
       (r) => r.matchStatus === 'POSSIBLE_MATCH' || r.matchStatus === 'NEW',
     ).length,

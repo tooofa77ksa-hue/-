@@ -403,13 +403,19 @@ th {
 
 .main {
   flex: 1;
-  width: min(1200px, 100%);
+  /* اللوحة تملأ عرض اللابتوب. النصوص داخلها محدودة بلوحاتها فلا يطول
+     السطر، ويستفيد الجدول ومسطرة الصفوف من العرض كاملًا بدل هامشين
+     فارغين على جانبي عمود ضيّق. */
+  width: min(1680px, 100%);
   margin: 0 auto;
-  padding: clamp(20px, 3vw, 34px) clamp(16px, 4vw, 40px) 56px;
+  padding: clamp(18px, 2.2vw, 28px) clamp(16px, 3vw, 40px) 56px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
+
+/* صفحة القياس تبقى عمودًا ضيّقًا: تُقرأ على جوال الطالبة لا على شاشة */
+.app--survey .main { width: auto; }
 
 /* عنوان القسم — حبّة التدرّج البيضاء العريضة من الدليل */
 .section-pill {
@@ -435,9 +441,12 @@ th {
   background: rgba(192, 57, 43, 0.08);
 }
 
+/* بطاقات الأرقام لا تتمدّد بعرض الشاشة: رقمٌ واحد في صندوق بعرض
+   أربعمئة بكسل صندوقٌ فارغ أكثره. تبقى بقياسها وتصطفّ من أول السطر. */
 .stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(210px, 280px));
+  justify-content: start;
   gap: 16px;
 }
 
@@ -1826,8 +1835,9 @@ th {
   .grid-2 { grid-template-columns: 1fr 1fr; gap: 12px; }
   .qlist { column-count: 2; column-gap: 16px; }
   .qlist__item { break-inside: avoid; }
-  .gauge { break-inside: avoid; }
-  .facts { grid-template-columns: repeat(4, 1fr); }
+  .hero { break-inside: avoid; }
+  .strip__grid { grid-template-columns: repeat(6, 1fr); }
+  .strip, .reading { break-inside: avoid; }
   .table { font-size: 9.5pt; }
 
   .qr-grid { grid-template-columns: repeat(4, 1fr); }
@@ -2514,51 +2524,72 @@ th {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   لوحة المؤشر — مسطرة القياس
+   صدر اللوحة ومسطرة الصفوف
 
    القياس مقياس من ١ إلى ٣، فأصدق تمثيل له مسطرة بمداه الحقيقي:
-   موضع المدرسة عليها، وعلامة لكل صف. هذه اللوحة هي السطح الداكن
-   الوحيد في الصفحة، فتُقرأ أداةً وما حولها ورقٌ هادئ.
+   موضع المدرسة في الصدر، وموضع كل صف تحته على المسطرة نفسها.
+   الصدر هو السطح الداكن الوحيد في الصفحة، فيُقرأ أداةً وما حوله
+   ورقٌ هادئ.
    ═══════════════════════════════════════════════════════════ */
 
-.gauge {
+/* ───────── صدر اللوحة: المؤشر وأعداده ───────── */
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.42fr);
   background: var(--moe-navy);
   color: #eaf4f6;
   border-radius: var(--radius);
-  padding: 26px clamp(20px, 4vw, 34px) 24px;
+  overflow: hidden;
+}
+
+:root[data-theme='dark'] .hero { background: #0c3346; border: 1px solid var(--border); }
+
+@media (max-width: 900px) { .hero { grid-template-columns: 1fr; } }
+
+.hero__meter {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
+  padding: clamp(20px, 2.2vw, 28px) clamp(20px, 2.6vw, 36px);
 }
 
-:root[data-theme='dark'] .gauge { background: #0c3346; border: 1px solid var(--border); }
+.hero__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+}
 
-.gauge__head { display: flex; flex-direction: column; gap: 3px; }
-.gauge__title { margin: 0; font-size: 17px; font-weight: 700; color: #ffffff; }
-.gauge__basis { margin: 0; font-size: 13px; color: #9fc2ce; line-height: 1.7; }
-.gauge__empty { margin: 0; color: #9fc2ce; }
+.hero__title { margin: 0; font-size: 17px; font-weight: 700; color: #ffffff; }
+.hero__year { margin: 0; font-size: 13px; color: #9fc2ce; }
+.hero__empty { margin: 0; color: #9fc2ce; }
 
-.gauge__value { display: flex; align-items: baseline; gap: 10px; }
-.gauge__value strong {
-  font-size: clamp(46px, 9vw, 68px);
+.hero__value { margin: 0; display: flex; align-items: baseline; gap: 10px; }
+
+.hero__value strong {
+  font-size: clamp(52px, 6.4vw, 82px);
   font-weight: 700;
-  line-height: 1;
+  line-height: 0.95;
   color: #ffffff;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -1px;
+  letter-spacing: -2px;
 }
-.gauge__value span { font-size: 15px; color: #9fc2ce; }
 
-.gauge__scale { display: flex; flex-direction: column; gap: 0; }
+.hero__value span { font-size: 15px; color: #9fc2ce; }
 
-.gauge__track {
+.hero__scale { display: flex; flex-direction: column; gap: 7px; }
+
+.hero__track {
   position: relative;
-  height: 10px;
+  display: block;
+  height: 12px;
   border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.13);
 }
 
-.gauge__fill {
+.hero__fill {
   position: absolute;
   inset-block: 0;
   inset-inline-start: 0;
@@ -2566,37 +2597,18 @@ th {
   background: var(--moe-teal);
 }
 
-.gauge__needle {
+.hero__needle {
   position: absolute;
-  top: -5px;
+  top: -6px;
   width: 4px;
-  height: 20px;
+  height: 24px;
   margin-inline-start: -2px;
   border-radius: 2px;
   background: #ffffff;
   box-shadow: 0 0 0 3px rgba(13, 169, 166, 0.45);
 }
 
-/* علامات الصفوف الستة على المسطرة نفسها */
-.gauge__grades { position: relative; height: 22px; margin-top: 6px; }
-
-.gauge__tick {
-  position: absolute;
-  top: 4px;
-  width: 11px;
-  height: 11px;
-  margin-inline-start: -5.5px;
-  border-radius: 50%;
-  background: var(--moe-sand);
-  border: 2px solid var(--moe-navy);
-  cursor: pointer;
-  transition: transform 140ms ease;
-}
-
-.gauge__tick:hover,
-.gauge__tick:focus-visible { transform: scale(1.5); outline: none; }
-
-.gauge__ruler {
+.hero__ruler {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
@@ -2604,53 +2616,227 @@ th {
   font-variant-numeric: tabular-nums;
 }
 
-.gauge__facts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 30px;
-  margin: 2px 0 0;
-  padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
+.hero__basis {
+  margin: 0;
+  max-width: 70ch;
+  font-size: 13px;
+  line-height: 1.85;
+  color: #9fc2ce;
 }
 
-.gauge__facts div { display: flex; flex-direction: column; gap: 1px; }
-.gauge__facts dt { font-size: 12px; color: #9fc2ce; }
-.gauge__facts dd { margin: 0; font-size: 15px; font-weight: 600; color: #ffffff; }
-
-/* ───── شريط الحقائق: أربعة أرقام لا ثمانية ───── */
-
-.facts {
+/* الأعداد داخل الصدر: عمود مفصول بخط شعري، لا بطاقات عائمة تحته */
+.hero__counts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 12px;
+  grid-template-rows: repeat(4, 1fr);
+  background: rgba(255, 255, 255, 0.05);
+  border-inline-start: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-.fact {
+.hero__counts li { display: flex; }
+.hero__counts li + li { border-block-start: 1px solid rgba(255, 255, 255, 0.1); }
+
+@media (max-width: 900px) {
+  .hero__counts {
+    grid-template-rows: none;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    border-inline-start: 0;
+    border-block-start: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .hero__counts li + li {
+    border-block-start: 0;
+    border-inline-start: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+.hero__count {
+  flex: 1;
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 15px 17px;
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  border: 1px solid var(--border);
+  align-items: baseline;
+  gap: 10px;
+  padding: 12px clamp(16px, 1.6vw, 22px);
   color: inherit;
   text-decoration: none;
-  transition: border-color 150ms ease;
+  transition: background-color 150ms ease;
 }
 
-.fact:hover { border-color: var(--moe-teal); }
-.fact:focus-visible { outline: 2px solid var(--moe-teal); outline-offset: 2px; }
+.hero__count:hover { background: rgba(255, 255, 255, 0.07); }
+.hero__count:focus-visible { outline: 2px solid var(--moe-teal); outline-offset: -2px; }
 
-.fact strong {
-  font-size: 26px;
+.hero__count strong {
+  font-size: clamp(22px, 2vw, 28px);
   font-weight: 700;
-  line-height: 1.25;
-  color: var(--text);
+  line-height: 1.1;
+  color: #ffffff;
   font-variant-numeric: tabular-nums;
 }
 
-.fact span { font-size: 12.5px; color: var(--text-muted); line-height: 1.6; }
+.hero__count span { font-size: 12.5px; color: #9fc2ce; line-height: 1.6; }
+
+/* ───────── الصفوف على مسطرة واحدة ───────── */
+
+.strip {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.strip__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  padding: 15px clamp(16px, 2vw, 22px) 13px;
+  border-block-end: 1px solid var(--border);
+}
+
+.strip__title { margin: 0; font-size: 16px; font-weight: 700; }
+
+.strip__legend {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.strip__legend-mark {
+  width: 2px;
+  height: 14px;
+  border-radius: 1px;
+  background: var(--moe-navy);
+}
+
+:root[data-theme='dark'] .strip__legend-mark { background: var(--moe-cyan-light); }
+
+/* لوحة واحدة مقسومة بخطوط شعرية، لا ستّ بطاقات عائمة */
+.strip__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+}
+
+.strip__cell { border-inline-start: 1px solid var(--border); }
+.strip__cell:first-child { border-inline-start: 0; }
+
+@media (max-width: 1240px) {
+  .strip__grid { grid-template-columns: repeat(3, 1fr); }
+  .strip__cell:nth-child(3n + 1) { border-inline-start: 0; }
+  .strip__cell:nth-child(n + 4) { border-block-start: 1px solid var(--border); }
+}
+
+@media (max-width: 680px) {
+  .strip__grid { grid-template-columns: repeat(2, 1fr); }
+  .strip__cell:nth-child(n) { border-inline-start: 1px solid var(--border); }
+  .strip__cell:nth-child(odd) { border-inline-start: 0; }
+  .strip__cell:nth-child(n + 3) { border-block-start: 1px solid var(--border); }
+}
+
+.reading {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 15px clamp(14px, 1.4vw, 18px);
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 150ms ease;
+}
+
+.reading:hover { background: var(--surface-tint); }
+.reading:focus-visible { outline: 2px solid var(--moe-teal); outline-offset: -2px; }
+
+.reading__name { font-size: 13px; color: var(--text-muted); }
+
+.reading__value {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: clamp(26px, 2.2vw, 33px);
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.reading__delta {
+  font-size: 13px;
+  font-weight: 700;
+  color: #8a6f2a;
+}
+
+.reading__delta.is-above { color: #0a6f6d; }
+
+:root[data-theme='dark'] .reading__delta { color: var(--moe-sand); }
+:root[data-theme='dark'] .reading__delta.is-above { color: var(--moe-teal); }
+
+.reading__scale { display: block; }
+
+.reading__track {
+  position: relative;
+  display: block;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+}
+
+.reading__bar {
+  position: absolute;
+  inset-block: -1px;
+  inset-inline-start: -1px;
+  border-radius: var(--radius-pill);
+  background: var(--moe-sand);
+}
+
+/* فوق مؤشر المدرسة أو دونه — اللون يقول ذلك قبل قراءة الرقم */
+.reading__bar.is-above { background: var(--moe-teal); }
+
+/* موضع مؤشر المدرسة: الخط نفسه في الصفوف الستة، فتُقرأ كلها منسوبةً إليه */
+.reading__school {
+  position: absolute;
+  inset-block: -5px;
+  width: 2px;
+  margin-inline-start: -1px;
+  border-radius: 1px;
+  background: var(--moe-navy);
+}
+
+:root[data-theme='dark'] .reading__school { background: var(--moe-cyan-light); }
+
+.reading__foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.reading__rate { font-weight: 700; color: var(--text); }
+
+/* ───────── لوحتان متجاورتان بعرض الصفحة ───────── */
+
+.spread {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+
+/* قائمة الأسئلة تستثمر العرض. القاعدة الأساس flex ولا تقبل الأعمدة،
+   فيُعاد العرض إلى block كي تسري. */
+.qlist--wide { display: block; columns: 2 420px; column-gap: 26px; }
+.qlist--wide .qlist__item { margin-block-end: 16px; break-inside: avoid; }
 
 @media (prefers-reduced-motion: reduce) {
-  .gauge__tick, .fact { transition: none; }
+  .hero__count, .reading { transition: none; }
 }

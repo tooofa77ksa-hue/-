@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 
 import { Legend } from '../../components/Legend'
 import { BarRow } from '../../components/BarRow'
+import { GradeStrip } from '../../components/GradeStrip'
 import { NoDataNotice } from '../../components/NoDataNotice'
 import { RankedList } from '../../components/RankedList'
 import { ReverseNote } from '../../components/ReverseNote'
@@ -25,11 +26,21 @@ export function OverviewPage() {
   const { strengths, gaps } = strengthsAndGaps(state, SCHOOL_SCOPE, 5)
   const voices = suggestionsInScope(state, SCHOOL_SCOPE)
   const actions = state.improvementActions
+  const done = actions.filter((a) => a.status === 'completed').length
+
+  // يُحسب مرة واحدة ويُستعمل في المسطرة وفي الجدول معًا
+  const readings = state.grades.map((g) => {
+    const p = participation(state, { gradeId: g.id })
+    return {
+      grade: g,
+      part: p,
+      index: satisfactionIndex(state, { gradeId: g.id }),
+      classCount: state.classes.filter((c) => c.gradeId === g.id).length,
+    }
+  })
 
   return (
     <>
-      <SectionTitle note={`العام الدراسي ${arabicDigits(state.meta.academicYear)}هـ`}>نظرة عامة</SectionTitle>
-
       {state.students.length === 0 && <NoDataNotice />}
 
       <IndexGauge
@@ -38,32 +49,21 @@ export function OverviewPage() {
         scaleMax={index.scaleMax}
         n={index.n}
         responses={part.responsesReceived}
-        students={part.totalStudents}
-        grades={state.grades.map((g) => ({
-          id: g.id,
-          name: g.name,
-          mean: satisfactionIndex(state, { gradeId: g.id }).mean,
-        }))}
+        receivedRate={part.receivedRate}
+        year={arabicDigits(state.meta.academicYear)}
+        counts={[
+          { to: '/admin/students', value: part.totalStudents, label: 'طالبة في الكشوف' },
+          { to: '/admin/questions', value: part.responsesReceived, label: 'استجابة واردة' },
+          { to: '/admin/voice', value: voices.length, label: 'رأيًا ومقترحًا' },
+          {
+            to: '/admin/improvement',
+            value: done,
+            label: actions.length > 0
+              ? `من ${num(actions.length)} إجراء تحسين`
+              : 'إجراء تحسين مكتمل',
+          },
+        ]}
       />
-
-      <section className="facts">
-        <Link className="fact" to="/admin/students">
-          <strong>{num(part.totalStudents)}</strong>
-          <span>طالبة في الكشوف</span>
-        </Link>
-        <Link className="fact" to="/admin/questions">
-          <strong>{num(part.responsesReceived)}</strong>
-          <span>استجابة واردة</span>
-        </Link>
-        <Link className="fact" to="/admin/voice">
-          <strong>{num(voices.length)}</strong>
-          <span>رأيًا ومقترحًا</span>
-        </Link>
-        <Link className="fact" to="/admin/improvement">
-          <strong>{num(actions.filter((a) => a.status === 'completed').length)}</strong>
-          <span>من {num(actions.length)} إجراء تحسين</span>
-        </Link>
-      </section>
 
       {(part.awaitingReview > 0 || part.withoutRoster > 0) && (
         <div className="alert alert--info no-print">
@@ -80,7 +80,7 @@ export function OverviewPage() {
             )}{' '}
             المؤكَّد مطابقتها حتى الآن <strong>{num(part.confirmedRespondents)}</strong> من{' '}
             {num(part.totalStudents)} — {pct(part.rate)}. وهذا رقم المطابقة الإدارية، لا نسبة
-            من أجابت: تلك {pct(part.totalStudents ? part.responsesReceived / part.totalStudents : 0)}.
+            من أجابت: تلك {pct(part.receivedRate)}.
           </span>
           <Link className="button button--small" to="/admin/match-review">
             مركز مراجعة المطابقة
@@ -88,50 +88,21 @@ export function OverviewPage() {
         </div>
       )}
 
-      <section className="panel">
-        <div className="panel__head">
-          <SectionTitle note="اضغطي على الصف لعرض فصوله">الصفوف</SectionTitle>
-        </div>
-        <div className="table-wrap">
-          <table className="table">
-            <thead>
-              <tr>
-                <th scope="col">الصف</th>
-                <th scope="col">الفصول</th>
-                <th scope="col" className="table__num">الطالبات</th>
-                <th scope="col" className="table__num">المستجيبات</th>
-                <th scope="col" className="table__num">غير المستجيبات</th>
-                <th scope="col" className="table__num">الاستجابات المستلمة</th>
-                <th scope="col" className="table__num">نسبة الاستجابة</th>
-                <th scope="col" className="table__num">المؤشر</th>
-              </tr>
-            </thead>
-            <tbody>
-              {state.grades.map((g) => {
-                const p = participation(state, { gradeId: g.id })
-                const idx = satisfactionIndex(state, { gradeId: g.id })
-                const classCount = state.classes.filter((c) => c.gradeId === g.id).length
-                return (
-                  <tr key={g.id}>
-                    <td>
-                      <Link className="link" to={`/admin/grades/${g.id}`}>{g.name}</Link>
-                    </td>
-                    <td>{classCount ? num(classCount) : <span className="muted">لا يوجد كشف</span>}</td>
-                    <td className="table__num">{num(p.totalStudents)}</td>
-                    <td className="table__num">{num(p.confirmedRespondents)}</td>
-                    <td className="table__num">{num(p.nonRespondents)}</td>
-                    <td className="table__num">{num(p.responsesReceived)}</td>
-                    <td className="table__num">{p.totalStudents ? pct(p.rate) : '—'}</td>
-                    <td className="table__num">{idx.mean === null ? '—' : avg(idx.mean)}</td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <GradeStrip
+        scaleMin={index.scaleMin}
+        scaleMax={index.scaleMax}
+        schoolMean={index.mean}
+        grades={readings.map((r) => ({
+          id: r.grade.id,
+          name: r.grade.name,
+          mean: r.index.mean,
+          rate: r.part.receivedRate,
+          students: r.part.totalStudents,
+          responses: r.part.responsesReceived,
+        }))}
+      />
 
-      <div className="grid-2">
+      <div className="spread">
         <section className="panel panel--pad">
           <SectionTitle note={`ن = ${num(overall.n)}`}>التقويم العام للمدرسة</SectionTitle>
           {overall.n === 0 ? (
@@ -164,7 +135,7 @@ export function OverviewPage() {
         <SectionTitle note="أدنى المتوسطات المصحَّحة — أولى بالتحسين">فرص التحسين</SectionTitle>
         <Legend items={state.options.map((o) => ({ label: o.label, tone: OPTION_TONES[o.id] }))} />
         <ReverseNote />
-        <div className="qlist">
+        <div className="qlist qlist--wide">
           {gaps.map((g) => (
             <article key={g.question.id} className="qlist__item">
               <header className="qlist__head">
@@ -182,6 +153,44 @@ export function OverviewPage() {
               />
             </article>
           ))}
+        </div>
+      </section>
+
+      <section className="panel">
+        <div className="panel__head">
+          <SectionTitle note="كل أرقام الصفوف في جدول واحد">تفصيل الصفوف</SectionTitle>
+        </div>
+        <div className="table-wrap">
+          <table className="table">
+            <thead>
+              <tr>
+                <th scope="col">الصف</th>
+                <th scope="col">الفصول</th>
+                <th scope="col" className="table__num">الطالبات</th>
+                <th scope="col" className="table__num">المستجيبات</th>
+                <th scope="col" className="table__num">غير المستجيبات</th>
+                <th scope="col" className="table__num">الاستجابات المستلمة</th>
+                <th scope="col" className="table__num">نسبة الاستجابة</th>
+                <th scope="col" className="table__num">المؤشر</th>
+              </tr>
+            </thead>
+            <tbody>
+              {readings.map(({ grade, part: p, index: idx, classCount }) => (
+                <tr key={grade.id}>
+                  <td>
+                    <Link className="link" to={`/admin/grades/${grade.id}`}>{grade.name}</Link>
+                  </td>
+                  <td>{classCount ? num(classCount) : <span className="muted">لا يوجد كشف</span>}</td>
+                  <td className="table__num">{num(p.totalStudents)}</td>
+                  <td className="table__num">{num(p.confirmedRespondents)}</td>
+                  <td className="table__num">{num(p.nonRespondents)}</td>
+                  <td className="table__num">{num(p.responsesReceived)}</td>
+                  <td className="table__num">{p.totalStudents ? pct(p.rate) : '—'}</td>
+                  <td className="table__num">{idx.mean === null ? '—' : avg(idx.mean)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
     </>

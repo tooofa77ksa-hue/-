@@ -76,6 +76,23 @@ describe('نِسَب الاستجابة', () => {
     const p = participation(state, { classId: 'لا-يوجد-فصل-بهذا-المعرّف' })
     expect(p.totalStudents).toBe(0)
     expect(p.rate).toBe(0)
+    expect(p.receivedRate).toBe(0)
+  })
+
+  // النسبتان مئويتان لا كسريتان. حُسبت نسبة من أجابت قبلُ كسرًا في
+  // الشاشات ثم عُرضت بدالّة تتوقّع مئوية، فظهرت «٠٫٩٪» بدل «٩٣٪».
+  it('تعطي النسبتين مئويةً لا كسرًا', () => {
+    const p = participation(state, SCHOOL_SCOPE)
+    expect(p.rate).toBeCloseTo((p.confirmedRespondents / p.totalStudents) * 100, 6)
+    expect(p.receivedRate).toBeCloseTo((p.responsesReceived / p.totalStudents) * 100, 6)
+    expect(p.receivedRate).toBeGreaterThan(1)
+  })
+
+  it('لا تقصّ نسبة من أجابت عند المئة: تجاوزها علامة على كشف يحتاج تحديثًا', () => {
+    const over = state.grades
+      .map((g) => participation(state, { gradeId: g.id }))
+      .filter((p) => p.responsesReceived > p.totalStudents)
+    for (const p of over) expect(p.receivedRate).toBeGreaterThan(100)
   })
 
   it('لم يعد أي صف بلا كشف رسمي بعد اكتمال المصادر', () => {
