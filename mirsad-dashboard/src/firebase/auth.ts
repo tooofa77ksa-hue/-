@@ -35,11 +35,22 @@ async function getAuthInstance(): Promise<Auth | null> {
   return cachedAuth
 }
 
+/**
+ * حسابات الإدارة كما تعرفها قواعد firestore.rules.
+ *
+ * القائمة هنا نسخة من القائمة هناك، والقواعد هي الحَكَم: هذه تُستخدم
+ * لعرض الواجهة الصحيحة فحسب، فلو تخلّفت عن القواعد لم يُكشف شيء —
+ * الخادم يرفض. تُضبط من VITE_MIRSAD_ADMIN_UIDS، مفصولة بفواصل.
+ */
+const ADMIN_UIDS = readEnv('VITE_MIRSAD_ADMIN_UIDS')
+  .split(',').map((s) => s.trim()).filter(Boolean)
+
 async function identify(user: User | null): Promise<Identity> {
   if (!user) return ANONYMOUS
   // force=true: الصلاحية قد تُمنح بعد إنشاء الحساب، فنقرأ رمزًا محدّثًا
   const token = await user.getIdTokenResult(true)
-  const isAdmin = token.claims.admin === true
+  // الادّعاء المخصّص أو المعرّف المعروف — أيّهما تحقّق، كما في القواعد
+  const isAdmin = token.claims.admin === true || ADMIN_UIDS.includes(user.uid)
   return { uid: user.uid, role: isAdmin ? 'admin' : 'respondent', email: user.email }
 }
 

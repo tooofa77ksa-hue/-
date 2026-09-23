@@ -6,7 +6,7 @@ import { NoDataNotice } from '../../components/NoDataNotice'
 import { RankedList } from '../../components/RankedList'
 import { ReverseNote } from '../../components/ReverseNote'
 import { SectionTitle } from '../../components/SectionTitle'
-import { StatCard } from '../../components/StatCard'
+import { IndexGauge } from '../../components/IndexGauge'
 import { StackedBar } from '../../components/StackedBar'
 import { OPTION_TONES } from '../../lib/tones'
 import {
@@ -14,7 +14,6 @@ import {
   strengthsAndGaps, suggestionsInScope,
 } from '../../lib/analysis'
 import { avg, num, pct, arabicDigits } from '../../lib/format'
-import { hasSchoolData } from '../../data/store'
 import { useSystem } from '../../state/useSystem'
 
 export function OverviewPage() {
@@ -31,65 +30,39 @@ export function OverviewPage() {
     <>
       <SectionTitle note={`العام الدراسي ${arabicDigits(state.meta.academicYear)}هـ`}>نظرة عامة</SectionTitle>
 
-      {!hasSchoolData && <NoDataNotice />}
+      {state.students.length === 0 && <NoDataNotice />}
 
-      <section className="stats">
-        <StatCard
-          tone="blue"
-          label="إجمالي الطالبات"
-          value={num(part.totalStudents)}
-          meta="من الكشوف الرسمية المرفوعة"
-        />
-        <StatCard
-          tone="green"
-          label="المستجيبات المؤكّدات"
-          value={num(part.confirmedRespondents)}
-          meta={`من ${num(part.totalStudents)} طالبة`}
-          progress={part.rate}
-        />
-        <StatCard
-          tone="sand"
-          label="غير المستجيبات"
-          value={num(part.nonRespondents)}
-          meta="طالبة في الكشف بلا استجابة مؤكّدة"
-        />
-        <StatCard
-          tone="purple"
-          label="نسبة الاستجابة المؤكّدة"
-          value={pct(part.rate)}
-          meta={`القاعدة: ${num(part.totalStudents)} طالبة`}
-        />
-      </section>
+      <IndexGauge
+        mean={index.mean}
+        scaleMin={index.scaleMin}
+        scaleMax={index.scaleMax}
+        n={index.n}
+        responses={part.responsesReceived}
+        students={part.totalStudents}
+        grades={state.grades.map((g) => ({
+          id: g.id,
+          name: g.name,
+          mean: satisfactionIndex(state, { gradeId: g.id }).mean,
+        }))}
+      />
 
-      <section className="stats">
-        <StatCard
-          tone="cyan"
-          label="الاستجابات المستلمة"
-          value={num(part.responsesReceived)}
-          meta="كل الاستجابات المستوردة والمُرسلة"
-        />
-        <StatCard
-          tone="navy"
-          label="مؤشر الاتجاه"
-          value={index.mean === null ? '—' : avg(index.mean)}
-          meta={
-            index.mean === null
-              ? 'لا توجد إجابات مقيسة'
-              : `${pct(index.percent as number)} من مدى المقياس (${num(index.scaleMin)}–${num(index.scaleMax)}) · ن = ${num(index.n)}`
-          }
-        />
-        <StatCard
-          tone="purple"
-          label="الآراء والمقترحات"
-          value={num(voices.length)}
-          meta="نصوص أصلية من الطالبات"
-        />
-        <StatCard
-          tone="green"
-          label="إجراءات التحسين المكتملة"
-          value={num(actions.filter((a) => a.status === 'completed').length)}
-          meta={`من ${num(actions.length)} إجراء`}
-        />
+      <section className="facts">
+        <Link className="fact" to="/admin/students">
+          <strong>{num(part.totalStudents)}</strong>
+          <span>طالبة في الكشوف</span>
+        </Link>
+        <Link className="fact" to="/admin/questions">
+          <strong>{num(part.responsesReceived)}</strong>
+          <span>استجابة واردة</span>
+        </Link>
+        <Link className="fact" to="/admin/voice">
+          <strong>{num(voices.length)}</strong>
+          <span>رأيًا ومقترحًا</span>
+        </Link>
+        <Link className="fact" to="/admin/improvement">
+          <strong>{num(actions.filter((a) => a.status === 'completed').length)}</strong>
+          <span>من {num(actions.length)} إجراء تحسين</span>
+        </Link>
       </section>
 
       {(part.awaitingReview > 0 || part.withoutRoster > 0) && (
@@ -105,7 +78,9 @@ export function OverviewPage() {
                 <strong>{num(part.withoutRoster)}</strong> استجابة لصفوف لم يُرفع كشفها الرسمي.
               </>
             )}{' '}
-            لا تُحتسب هذه الاستجابات ضمن «المستجيبات المؤكّدات» حتى تُراجَع.
+            المؤكَّد مطابقتها حتى الآن <strong>{num(part.confirmedRespondents)}</strong> من{' '}
+            {num(part.totalStudents)} — {pct(part.rate)}. وهذا رقم المطابقة الإدارية، لا نسبة
+            من أجابت: تلك {pct(part.totalStudents ? part.responsesReceived / part.totalStudents : 0)}.
           </span>
           <Link className="button button--small" to="/admin/match-review">
             مركز مراجعة المطابقة

@@ -28,3 +28,6 @@ src/data/dataset.json
 __pycache__/
 *.pyc
 .e2e-out/
+
+# بيئة الاختبار لا تحمل أسرارًا — قيمها فارغة عمدًا فتُحفظ مع المشروع
+!.env.test
