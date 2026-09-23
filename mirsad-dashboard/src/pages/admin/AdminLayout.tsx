@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom'
 
 import { BrandFooter } from '../../components/BrandFooter'
+import { LockToggle } from '../../components/LockToggle'
 import { BrandHeader } from '../../components/BrandHeader'
 import { AnthemPlayer } from '../../components/AnthemPlayer'
 import { LiveClock } from '../../components/LiveClock'
@@ -35,7 +36,7 @@ export function AdminLayout() {
         actions={
           <>
             <LiveClock />
-            <NavLink className="button button--small" to="/admin/display">وضع العرض</NavLink>
+            <LockToggle locked={false} />
             <AnthemPlayer />
             <button
               type="button"

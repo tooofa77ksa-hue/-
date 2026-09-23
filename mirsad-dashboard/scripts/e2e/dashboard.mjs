@@ -196,7 +196,15 @@ try {
   check('لا قوائم ولا أزرار تحرير في العرض',
     await page.locator('.admin-nav').count() === 0
     && await page.locator('.toolbar').count() === 0)
-  check('مخرج واضح من العرض', await page.locator('.show__exit').isVisible())
+  check('قفل مغلق في وضع العرض', await page.locator('.lock.is-locked').isVisible())
+  // اللوحة واحدة ووضعان: القفل يعيدها إلى التعديل ويعود منها
+  await page.locator('.lock.is-locked').click()
+  await page.waitForSelector('.admin-nav', { timeout: 20000 })
+  check('فتح القفل يعيد لوحة التعديل', await page.locator('.hero').isVisible())
+  check('والقفل مفتوح فيها', await page.locator('.lock:not(.is-locked)').isVisible())
+  await page.locator('.lock:not(.is-locked)').click()
+  await page.waitForSelector('.show', { timeout: 20000 })
+  check('وإقفاله يعيد وضع العرض', await page.locator('.show__big').isVisible())
 
   const big = (await page.locator('.show__big').innerText()).trim()
   check('المؤشر بارز في صدر العرض', /[0-9]/.test(big), big.replace(/\s+/g, ' '))

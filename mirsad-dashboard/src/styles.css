@@ -2975,22 +2975,7 @@ th {
 
 .show__survey { margin: 0; font-size: clamp(12px, 1.4vh, 15px); color: var(--text-muted); }
 
-/* زرّ الخروج واضح في السمتين: هو المخرج الوحيد من شاشة بلا قوائم */
-.show__exit {
-  margin-inline-start: auto;
-  flex: none;
-  padding: 8px 16px;
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--border-strong);
-  background: var(--surface);
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.show__exit:hover { border-color: var(--moe-teal); }
-.show__exit:focus-visible { outline: 2px solid var(--moe-teal); outline-offset: 2px; }
+.show__exit { margin-inline-start: auto; flex: none; }
 
 /* شريط المؤشر أسمك في العرض: يُقرأ من آخر القاعة لا من أمام الشاشة */
 .show__track { height: clamp(10px, 1.4vh, 18px); }
@@ -3233,3 +3218,57 @@ th {
 
 .show__survey { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .show__dot { color: var(--border-strong); }
+
+
+/* ───────── قفل وضع العرض ───────── */
+
+/* لوحة واحدة ووضعان: القفل مغلق فهي للعرض، ومفتوح فهي للتعديل. */
+.lock {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px 7px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+.lock:hover { border-color: var(--moe-teal); background: var(--surface-tint); }
+.lock:focus-visible { outline: 2px solid var(--moe-teal); outline-offset: 2px; }
+
+.lock__icon {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.lock__pin { fill: currentColor; stroke: none; }
+
+/* المقفلة تلبس لون الهوية: الحالة تُقرأ قبل النص */
+.lock.is-locked {
+  border-color: transparent;
+  background: var(--moe-navy);
+  color: #ffffff;
+}
+
+.lock.is-locked:hover { background: #1d5772; }
+
+:root[data-theme='dark'] .lock.is-locked { background: var(--moe-cyan); }
+:root[data-theme='dark'] .lock.is-locked:hover { background: var(--moe-cyan-light); color: var(--moe-navy); }
+
+@media (max-width: 680px) {
+  .lock__label { display: none; }
+  .lock { padding: 8px 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) { .lock { transition: none; } }

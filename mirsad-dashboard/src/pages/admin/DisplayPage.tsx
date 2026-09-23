@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
-import { Link } from 'react-router-dom'
 
+import { LockToggle } from '../../components/LockToggle'
 import { ShareChart } from '../../components/ShareChart'
 import { ORGANIZATION } from '../../brand'
 import {
@@ -66,7 +66,7 @@ export function DisplayPage() {
             {ORGANIZATION.directorate}
           </p>
         </div>
-        <Link className="show__exit no-print" to="/admin">إنهاء العرض</Link>
+        <div className="show__exit no-print"><LockToggle locked /></div>
       </header>
 
       <div className="show__body">
