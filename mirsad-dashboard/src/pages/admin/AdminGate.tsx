@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 
 import { BrandFooter } from '../../components/BrandFooter'
 import { BrandHeader } from '../../components/BrandHeader'
-import { signInAdmin } from '../../firebase/auth'
+import { sendResetLink, signInAdmin } from '../../firebase/auth'
 import { useSystem } from '../../state/useSystem'
 
 const SESSION_KEY = 'qiyas.admin.session'
@@ -46,8 +46,27 @@ function RemoteGate({ children }: { children: ReactNode }) {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [sent, setSent] = useState(false)
 
   if (identity.role === 'admin') return <>{children}</>
+
+  /** رابط إعادة التعيين يُولَّد لحظة الطلب فيصل طازجًا قبل أن تنتهي ساعته. */
+  async function resetPassword() {
+    if (!email.trim()) {
+      setError('اكتبي بريدك الإلكتروني أولًا ثم اطلبي الرابط')
+      return
+    }
+    setBusy(true)
+    setError('')
+    try {
+      await sendResetLink(email)
+      setSent(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setBusy(false)
+    }
+  }
 
   async function submit(event: React.FormEvent) {
     event.preventDefault()
@@ -85,6 +104,17 @@ function RemoteGate({ children }: { children: ReactNode }) {
           id="admin-password" className="input" type="password" autoComplete="current-password"
           value={password} onChange={(e) => { setPassword(e.target.value); setError('') }} required
         />
+
+        <button type="button" className="gate__link" onClick={resetPassword} disabled={busy}>
+          نسيتِ كلمة المرور؟
+        </button>
+
+        {sent && (
+          <p className="gate__sent" role="status">
+            أُرسل رابط إعادة التعيين إلى بريدك. افتحيه خلال ساعة — بعدها تنتهي صلاحيته
+            ويصلح لمرة واحدة، فاطلبي غيره من هنا متى شئتِ.
+          </p>
+        )}
 
         {error && <p className="field__error">{error}</p>}
         {identity.role === 'respondent' && !error && (

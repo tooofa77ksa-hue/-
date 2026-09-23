@@ -80,6 +80,15 @@ function addHeaderRow(ws: ExcelJSNS.Worksheet, rowIndex: number, headers: string
   return row
 }
 
+/**
+ * صيغة رقمية بأرقام لاتينية.
+ *
+ * Excel يرسم أرقام الخلية بأرقام اللغة المضبوطة في الجهاز، فيعرضها
+ * «١٢٣» على جهاز عربي مهما كان المكتوب. والبادئة [$-409] تثبّت
+ * الأرقام لاتينيةً في الملف نفسه، فلا تتغيّر باختلاف الجهاز.
+ */
+const LATIN_NUMBER = '[$-409]General'
+
 function styleBody(ws: ExcelJSNS.Worksheet, firstDataRow: number, columns: number) {
   for (let r = firstDataRow; r <= ws.rowCount; r += 1) {
     const row = ws.getRow(r)
@@ -87,6 +96,7 @@ function styleBody(ws: ExcelJSNS.Worksheet, firstDataRow: number, columns: numbe
       const cell = row.getCell(c)
       cell.alignment = { horizontal: c === 2 ? 'right' : 'center', vertical: 'middle', wrapText: true, readingOrder: 'rtl' }
       cell.font = { name: 'Arial', size: 11 }
+      if (typeof cell.value === 'number') cell.numFmt = LATIN_NUMBER
       if ((r - firstDataRow) % 2 === 1) {
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: BRAND_TINT } }
       }
@@ -181,6 +191,7 @@ function buildSheet(
     from: { row: headerRow, column: 1 },
     to: { row: headerRow + rows.length, column: headers.length },
   }
+  // الورقة من اليمين إلى اليسار: العمود «م» أوّلها فيقع إلى اليمين
   ws.views = [{ rightToLeft: true, state: 'frozen', ySplit: headerRow }]
   styleBody(ws, headerRow + 1, headers.length)
   autoWidth(ws)

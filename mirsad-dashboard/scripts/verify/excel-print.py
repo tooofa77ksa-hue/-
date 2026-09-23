@@ -41,6 +41,19 @@ for path in sorted(glob.glob(sys.argv[1])):
                     stray.append('%s!%s' % (ws.title, cell.coordinate))
     check('كل الأرقام لاتينية بلا محارف عزل', not stray, '؛ '.join(stray[:3]))
 
+    # Excel يرسم أرقام الخلية بأرقام لغة الجهاز ما لم تُثبَّت في الملف
+    loose = []
+    rtl_off = []
+    for ws in wb.worksheets:
+        if not ws.sheet_view.rightToLeft:
+            rtl_off.append(ws.title)
+        for row in ws.iter_rows():
+            for cell in row:
+                if isinstance(cell.value, (int, float)) and '[$-409]' not in (cell.number_format or ''):
+                    loose.append('%s!%s' % (ws.title, cell.coordinate))
+    check('أرقام الخلايا مثبّتة لاتينيةً في الملف', not loose, '؛ '.join(loose[:3]))
+    check('كل ورقة من اليمين إلى اليسار', not rtl_off, '؛ '.join(rtl_off[:3]))
+
     for ws in wb.worksheets:
         setup = ws.page_setup
         landscape = setup.orientation == 'landscape'

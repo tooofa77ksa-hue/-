@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 
 import { BarRow } from '../../components/BarRow'
 import { EmptyState } from '../../components/EmptyState'
@@ -6,6 +7,7 @@ import { SectionTitle } from '../../components/SectionTitle'
 import { StatCard } from '../../components/StatCard'
 import { categorizeSuggestion, setSuggestionStatus } from '../../domain/actions'
 import { suggestionsInScope, type Scope } from '../../lib/analysis'
+import type { ImprovementAction } from '../../domain/types'
 import { normalizeArabic } from '../../lib/arabic'
 import { exportSuggestions } from '../../lib/excel'
 import { num, pct } from '../../lib/format'
@@ -23,6 +25,15 @@ export function VoicePage() {
 
   const scope: Scope = gradeId === 'all' ? {} : { gradeId }
   const all = suggestionsInScope(state, scope)
+
+  /** الرأي ← الإجراء الذي اتُّخذ عليه، إن وُجد. */
+  const answeredBy = useMemo(() => {
+    const map = new Map<string, ImprovementAction>()
+    for (const action of state.improvementActions) {
+      for (const id of action.linkedSuggestionIds) map.set(id, action)
+    }
+    return map
+  }, [state.improvementActions])
 
   const rows = useMemo(() => {
     const needle = normalizeArabic(search)
@@ -115,6 +126,19 @@ export function VoicePage() {
                   <div className="voice__meta">
                     <span className="chip">{gid ? gradeById.get(gid)?.name ?? '—' : 'صف غير محدد'}</span>
                     <span className={`chip chip--${s.status}`}>{STATUS_LABELS[s.status]}</span>
+                    {answeredBy.get(s.id) ? (
+                      <Link className="chip chip--action" to="/admin/improvement">
+                        إجراء المدرسة: {answeredBy.get(s.id)?.title || 'بلا عنوان'}
+                      </Link>
+                    ) : (
+                      <Link
+                        className="button button--small no-print"
+                        to="/admin/improvement"
+                        state={{ fromSuggestion: s.id }}
+                      >
+                        أنشئي إجراء تحسين من هذا الرأي
+                      </Link>
+                    )}
                     <select
                       className="input input--inline no-print"
                       aria-label="تصنيف الرأي"

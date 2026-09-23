@@ -3284,3 +3284,77 @@ th {
 }
 
 @media (prefers-reduced-motion: reduce) { .lock { transition: none; } }
+
+/* رابط إعادة تعيين كلمة المرور داخل شاشة الدخول */
+.gate__link {
+  align-self: flex-start;
+  margin-block-start: -4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--moe-cyan);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.gate__link:hover { color: var(--moe-navy); }
+:root[data-theme='dark'] .gate__link:hover { color: var(--moe-cyan-light); }
+.gate__link:disabled { opacity: 0.6; cursor: default; }
+.gate__link:focus-visible { outline: 2px solid var(--moe-teal); outline-offset: 3px; }
+
+.gate__sent {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-tint);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text);
+}
+
+
+/* ───────── آراء الطالبات داخل بطاقة الإجراء ───────── */
+
+/* شاهد الإجراء بكلام الطالبة نفسه، لا بإعادة صياغته. */
+.action__voices {
+  margin-block-start: 4px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  border-inline-start: 3px solid var(--moe-teal);
+}
+
+.action__voices-head {
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.action__voices ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+
+.action__voices blockquote {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.85;
+  color: var(--text);
+}
+
+.action__voices blockquote::before { content: '«'; }
+.action__voices blockquote::after { content: '»'; }
+
+/* الرأي الذي عولج: يقود إلى إجراء المدرسة عليه.
+   الاسم «action» لا «linked»: «chip--linked» مأخوذ أصلًا لحالة الرأي،
+   فكان تسميتُه بها تصبغ شارة الحالة بلون هذا الرابط. */
+.chip--action {
+  background: var(--surface-tint);
+  border: 1px solid var(--moe-teal);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.chip--action:hover { background: var(--moe-teal); color: #ffffff; }

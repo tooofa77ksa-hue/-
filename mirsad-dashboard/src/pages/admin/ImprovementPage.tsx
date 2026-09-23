@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import { EmptyState } from '../../components/EmptyState'
 import { SectionTitle } from '../../components/SectionTitle'
@@ -30,7 +31,45 @@ export function ImprovementPage() {
   const { state, replace } = useSystem()
   const [editing, setEditing] = useState<ImprovementAction | null>(null)
   const [creating, setCreating] = useState(false)
+  const [seed, setSeed] = useState<ActionDraft | null>(null)
   const [filter, setFilter] = useState<'all' | keyof typeof STATUS>('all')
+
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  /**
+   * القدوم من رأي طالبة: يُفتح النموذج ونصّ الرأي في خانة المشكلة،
+   * والرأي مربوط بالإجراء من أول لحظة.
+   *
+   * النص يُنسخ كما كتبته الطالبة ولا يُحرَّر في مصدره: هذه الخانة صورة
+   * منه للعمل عليها، والأصل يبقى في «صوت طالباتنا» كما هو.
+   */
+  const incoming = (location.state as { fromSuggestion?: string } | null)?.fromSuggestion
+  useEffect(() => {
+    if (!incoming) return
+    const voice = state.suggestions.find((x) => x.id === incoming)
+    if (voice) {
+      const twins = state.suggestions.filter(
+        (x) => x.categoryId && x.categoryId === voice.categoryId,
+      ).length
+      setSeed({
+        ...emptyDraft(),
+        problem: voice.text,
+        categoryId: voice.categoryId,
+        mentions: voice.categoryId ? twins : 1,
+        linkedSuggestionIds: [voice.id],
+      })
+      setCreating(true)
+    }
+    // الحالة تُستهلك مرة واحدة: تحديث الصفحة بعدها لا يعيد فتح النموذج
+    navigate('.', { replace: true, state: null })
+  }, [incoming, state.suggestions, navigate])
+
+  /** نص كل رأي مربوط بإجراء — شاهد الإجراء بكلام الطالبة نفسه. */
+  const voiceOf = useMemo(
+    () => new Map(state.suggestions.map((x) => [x.id, x.text])),
+    [state.suggestions],
+  )
 
   const rows = useMemo(
     () => state.improvementActions.filter((a) => filter === 'all' || a.status === filter),
@@ -110,6 +149,20 @@ export function ImprovementPage() {
                   <div><dt>الأثر</dt><dd>{a.impact || '—'}</dd></div>
                   <div><dt>المتابعة</dt><dd>{a.followUp || '—'}</dd></div>
                 </dl>
+                {a.linkedSuggestionIds.length > 0 && (
+                  <div className="action__voices">
+                    <p className="action__voices-head">
+                      بُني على {num(a.linkedSuggestionIds.length)} من آراء الطالبات:
+                    </p>
+                    <ul>
+                      {a.linkedSuggestionIds.map((id) => (
+                        <li key={id}>
+                          <blockquote>{voiceOf.get(id) ?? 'رأي غير موجود'}</blockquote>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 {a.evidence.length > 0 && (
                   <ul className="action__evidence">
                     {a.evidence.map((e) => (
@@ -136,10 +189,11 @@ export function ImprovementPage() {
       {(creating || editing) && (
         <ActionForm
           action={editing}
-          onCancel={() => { setCreating(false); setEditing(null) }}
+          seed={seed}
+          onCancel={() => { setCreating(false); setEditing(null); setSeed(null) }}
           onSave={(draft) => {
             replace(editing ? updateAction(state, editing.id, draft) : addAction(state, draft))
-            setCreating(false); setEditing(null)
+            setCreating(false); setEditing(null); setSeed(null)
           }}
         />
       )}
@@ -147,13 +201,16 @@ export function ImprovementPage() {
   )
 }
 
-function ActionForm({ action, onSave, onCancel }: {
+function ActionForm({ action, seed, onSave, onCancel }: {
   action: ImprovementAction | null
+  seed?: ActionDraft | null
   onSave: (d: ActionDraft) => void
   onCancel: () => void
 }) {
   const { state } = useSystem()
-  const [d, setD] = useState<ActionDraft>(() => (action ? { ...action } : emptyDraft()))
+  const [d, setD] = useState<ActionDraft>(
+    () => (action ? { ...action } : seed ? { ...seed } : emptyDraft()),
+  )
   const [evidenceLabel, setEvidenceLabel] = useState('')
   const [evidenceValue, setEvidenceValue] = useState('')
   const [touched, setTouched] = useState(false)

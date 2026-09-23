@@ -82,6 +82,30 @@ export async function signInAdmin(email: string, password: string): Promise<Iden
   return identity
 }
 
+/**
+ * إرسال رابط إعادة تعيين كلمة المرور إلى بريد الإدارة.
+ *
+ * رابط Firebase يصلح ساعةً واحدةً ولمرة واحدة، فلو وُلِّد من خارج
+ * الشاشة انتهت صلاحيته قبل أن يُضغط غالبًا — وهو سبب تكرار «خطأ في
+ * الرابط». والزرّ هنا يولّده لحظة طلبه، فيصل طازجًا.
+ *
+ * ولا يُفصح عمّا إذا كان البريد مسجَّلًا أم لا: الرسالة نفسها في
+ * الحالتين، فلا تُستعمل الشاشة لكشف من له حساب.
+ */
+export async function sendResetLink(email: string): Promise<void> {
+  const auth = await getAuthInstance()
+  if (!auth) throw new Error('قاعدة البيانات غير مضبوطة')
+  const { sendPasswordResetEmail } = await import('firebase/auth')
+  try {
+    await sendPasswordResetEmail(auth, email.trim())
+  } catch (error) {
+    const code = error instanceof Error ? error.message : String(error)
+    // بريد غير مسجَّل أو غير مكتمل: لا يُميَّز عن النجاح في الواجهة
+    if (/user-not-found|invalid-email/.test(code)) return
+    throw error
+  }
+}
+
 export async function signOutCurrent(): Promise<void> {
   const auth = await getAuthInstance()
   if (!auth) return
