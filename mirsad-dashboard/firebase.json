@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "site": "mirsad-dashboard",
+    "site": "qiyas-165-1448",
     "public": "dist",
     "ignore": [
       "firebase.json",

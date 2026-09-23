@@ -32,7 +32,10 @@ const env = await initializeTestEnvironment({
   },
 })
 
-const admin = env.authenticatedContext('admin-uid', { admin: true }).firestore()
+// الإدارة تُعرَّف بمعرّفها في القواعد، لا بادّعاء مخصّص
+const ADMIN_UID = 'ADMIN_UID_PLACEHOLDER'
+const admin = env.authenticatedContext(ADMIN_UID).firestore()
+const claimAdmin = env.authenticatedContext('legacy-claim-uid', { admin: true }).firestore()
 const signedIn = env.authenticatedContext('anon-uid').firestore()
 const guest = env.unauthenticatedContext().firestore()
 
@@ -75,6 +78,15 @@ const cases = []
 const test = (name, fn) => cases.push({ name, fn })
 
 // ١) أسماء الطالبات: بيانات قاصرات
+test('الإدارة تُعرَّف بمعرّفها فتقرأ الطالبات', () =>
+  assertSucceeds(getDocs(collection(admin, 'students'))))
+
+test('حساب مصادَق بمعرّف آخر لا يُعدّ إدارة', () =>
+  assertFails(getDocs(collection(env.authenticatedContext('some-other-uid').firestore(), 'students'))))
+
+test('الادّعاء المخصّص ما زال مقبولًا للتوافق', () =>
+  assertSucceeds(getDocs(collection(claimAdmin, 'students'))))
+
 test('الزائر غير المصادَق لا يقرأ أي طالبة', () =>
   assertFails(getDoc(doc(guest, 'students/student-1'))))
 

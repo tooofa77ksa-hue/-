@@ -24,8 +24,25 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    /**
+     * حسابات الإدارة، بمعرّفاتها الثابتة من Firebase Authentication.
+     *
+     * اخترنا المعرّف بدل الادّعاء المخصّص (custom claim) عمدًا: منح
+     * الادّعاء يحتاج مفتاح خدمة سرّيًا يخرج من يد المدرسة، أما المعرّف
+     * فيُقرأ من لوحة Firebase علنًا ولا يصلح وحده للدخول — الدخول يبقى
+     * بالبريد وكلمة المرور، وكلمة المرور لا يعرفها إلا صاحبتها.
+     *
+     * لإضافة حساب إدارة: أضيفي معرّفه إلى هذه القائمة وأعيدي رفع القواعد.
+     */
+    function adminUids() {
+      return [
+        'ADMIN_UID_PLACEHOLDER'
+      ];
+    }
+
     function isAdmin() {
-      return signedIn() && request.auth.token.admin == true;
+      return signedIn()
+        && (request.auth.uid in adminUids() || request.auth.token.admin == true);
     }
 
     function unchanged(field) {
