@@ -93,7 +93,11 @@ try {
   check('القياس يطلب كتابة الاسم لا اختياره من قائمة', true)
 
   const marker = `اختبار آلي ${Date.now()}`
-  await page.fill('#survey-name', marker)
+  // حرفًا حرفًا لا دفعة واحدة: هكذا تكتب الطالبة، وهكذا يظهر أي فقد للتركيز
+  await page.locator('#survey-name').click()
+  await page.locator('#survey-name').pressSequentially(marker, { delay: 25 })
+  check('الاسم يُكتب كاملًا دون انقطاع التركيز',
+    (await page.inputValue('#survey-name')) === marker)
   await page.getByRole('button', { name: 'متابعة' }).click()
   await page.waitForSelector('.question', { timeout: 10000 })
 

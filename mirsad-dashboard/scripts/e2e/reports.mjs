@@ -142,6 +142,35 @@ try {
   check('قائمة التنقل لا تظهر في الطباعة', !navVisible)
   const coverVisible = await page.locator('.report__cover').first().isVisible()
   check('غلاف التقرير يظهر في الطباعة', coverVisible)
+
+  // ───── الشكل المؤسسي ─────
+  // الترويسة والتذييل يتكرّران عبر thead/tfoot، فلا تخرج ورقة بلا جهة
+  const head = await page.locator('.report-sheet__head').first()
+  check('ترويسة تتكرّر على كل صفحة',
+    (await head.evaluate((el) => getComputedStyle(el).display)) === 'table-header-group')
+  const foot = await page.locator('.report-sheet__foot').first()
+  check('تذييل يتكرّر على كل صفحة',
+    (await foot.evaluate((el) => getComputedStyle(el).display)) === 'table-footer-group')
+
+  const sections = await page.locator('.report__no').count()
+  check('أقسام التقرير مرقّمة', sections === 10, `${sections} قسمًا`)
+  const toc = await page.locator('.toc__row').count()
+  check('فهرس المحتويات يطابق عدد الأقسام', toc === sections, `${toc} سطرًا`)
+
+  const findings = await page.locator('.finding').count()
+  check('ملخّص تنفيذي بأرقام محسوبة', findings >= 4, `${findings} نتيجة`)
+  const firstFinding = await page.locator('.finding').first().innerText()
+  check('الملخّص يحمل أرقام القياس لا عبارات عامة',
+    /[٠-٩]/.test(firstFinding), firstFinding.slice(0, 44) + '…')
+
+  check('قسم منهجية وقواعد الحساب', await page.locator('.method li').count() >= 5)
+  check('خانات الاعتماد والتوقيع', await page.locator('.approval__box').count() === 3)
+
+  // الغلاف وحده على صفحته
+  const coverBreak = await page.locator('.report__cover')
+    .evaluate((el) => getComputedStyle(el).breakAfter)
+  check('الغلاف ينفرد بصفحته', coverBreak === 'page')
+
   await page.emulateMedia({ media: 'screen' })
 
   await page.screenshot({ path: join(out, 'reports-screen.png'), fullPage: false })

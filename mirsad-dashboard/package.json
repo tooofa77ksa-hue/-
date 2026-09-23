@@ -19,15 +19,18 @@
     "test:rules": "firebase emulators:exec --only firestore --project demo-qiyas-rules \"node scripts/firestore/rules.test.mjs\"",
     "verify:no-pii": "node scripts/verify/no-personal-data.mjs",
     "build:deploy": "npm run build && npm run verify:no-pii",
-    "verify:all": "npm run verify && npm run test:rules && npm run test:e2e",
+    "verify:all": "npm run verify && npm run test:rules && npm run test:excel && npm run test:qr && npm run test:e2e",
     "test:e2e": "bash scripts/e2e/run.sh",
     "test:reports": "npm run build:test && node scripts/e2e/reports.mjs",
     "test:survey": "npm run build:test && node scripts/e2e/survey-mobile.mjs",
-    "build:test": "tsc -b && vite build --mode test"
+    "build:test": "tsc -b && vite build --mode test",
+    "test:excel": "vite-node scripts/verify/excel-charts.ts && python3 scripts/verify/excel-charts.py .tmp-excel/charts.xlsx",
+    "test:qr": "vite-node scripts/verify/qr-scannable.ts && python3 scripts/verify/qr-scannable.py .tmp-excel/qr-cases.json"
   },
   "dependencies": {
     "exceljs": "^4.4.0",
     "firebase": "^10.12.2",
+    "jszip": "^3.10.2",
     "qrcode": "^1.5.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

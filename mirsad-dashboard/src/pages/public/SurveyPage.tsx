@@ -47,6 +47,22 @@ const prefersStill = () =>
   typeof window !== 'undefined'
   && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
 
+/**
+ * الإطار مكوّن مستقل على مستوى الملف لا داخل «SurveyPage».
+ *
+ * لو عُرّف داخلها لصار نوعه جديدًا مع كل إعادة رسم، فتفكّ React الشجرة
+ * كلها وتبنيها من جديد: يُفقد التركيز بعد كل حرف تكتبه الطالبة في حقل
+ * الاسم، ويُطالَب بإعادة وضع المؤشر عند كل ضغطة.
+ */
+function Frame({ children, wide }: { children: React.ReactNode; wide?: boolean }) {
+  return (
+    <div className="app app--survey">
+      <main className={wide ? 'survey survey--wide' : 'survey'}>{children}</main>
+      <BrandFooter />
+    </div>
+  )
+}
+
 export function SurveyPage() {
   const { classId: classFromLink } = useParams()
   const { state, replace, mode } = useSystem()
@@ -118,14 +134,20 @@ export function SurveyPage() {
     overallOptions: state.overallOptions,
   }), [remote, context, state])
 
-  const linkedClass = source.classes.find((c) => c.id === classFromLink) ?? null
+  const linkedClass = useMemo(
+    () => source.classes.find((c) => c.id === classFromLink) ?? null,
+    [source.classes, classFromLink],
+  )
 
-  // رابط فصل مباشر: يُطبَّق بعد وصول بيانات القياس لا قبلها
+  // رابط فصل مباشر: يُطبَّق بعد وصول بيانات القياس لا قبلها.
+  // التبعية معرّف الفصل لا كائنه، فلا يتكرر الضبط مع كل إعادة رسم.
+  const linkedClassId = linkedClass?.id ?? null
+  const linkedGradeId = linkedClass?.gradeId ?? null
   useEffect(() => {
-    if (!linkedClass) return
-    setGradeId(linkedClass.gradeId)
-    setClassId(linkedClass.id)
-  }, [linkedClass])
+    if (!linkedClassId || !linkedGradeId) return
+    setGradeId(linkedGradeId)
+    setClassId(linkedClassId)
+  }, [linkedClassId, linkedGradeId])
 
   /** خطوات القياس بترتيب المصدر — لا يُغيَّر نص ولا خيار ولا ترتيب. */
   const steps = useMemo(
@@ -259,15 +281,6 @@ export function SurveyPage() {
 
   const school = state.meta.school
   const title = `${state.meta.surveyTitle} ${arabicDigits(state.meta.hijriYear)}هـ`
-
-  function Frame({ children, wide }: { children: React.ReactNode; wide?: boolean }) {
-    return (
-      <div className="app app--survey">
-        <main className={wide ? 'survey survey--wide' : 'survey'}>{children}</main>
-        <BrandFooter />
-      </div>
-    )
-  }
 
   // ───────── حالات التحميل والخطأ ─────────
 

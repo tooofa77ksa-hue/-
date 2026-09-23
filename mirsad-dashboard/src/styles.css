@@ -1183,6 +1183,8 @@ th {
 }
 
 .qr-card {
+  position: relative;
+  overflow: hidden;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -1190,12 +1192,55 @@ th {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   box-shadow: var(--shadow);
   text-align: center;
 }
 
-.qr-card__title { margin: 0; font-size: 14px; font-weight: 700; }
+/* شريط بلون الصف: يميّز البطاقة على الشاشة وفي الورق المطبوع */
+.qr-card__band {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  height: 5px;
+  background: var(--qr, var(--moe-navy));
+}
+
+/* لون الصف في الشريط والباركود لا في النص: ألوان الصفوف داكنة،
+   ولو صُبغ بها العنوان لاختفى على خلفية السمة الداكنة. */
+.qr-card__title { margin: 4px 0 0; font-size: 14px; font-weight: 700; }
+.qr-card__subtitle { margin: 0; font-size: 12px; color: var(--text-muted); }
+
+/* ───────── شرح الباركود ───────── */
+
+.qr-guide {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-inline-start: 4px solid var(--moe-teal);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-block-end: 16px;
+}
+
+.qr-guide__title { margin: 0 0 8px; font-size: 16px; font-weight: 700; }
+.qr-guide__lead { margin: 0 0 10px; font-size: 14px; line-height: 1.8; }
+
+.qr-guide__steps {
+  margin: 0;
+  padding-inline-start: 20px;
+  display: grid;
+  gap: 8px;
+  font-size: 13.5px;
+  line-height: 1.8;
+}
+
+.qr-guide__steps strong { color: var(--moe-navy); }
+
+.qr-guide__note {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
 
 .qr-card__image,
 .qr-card__placeholder {
@@ -1287,6 +1332,8 @@ th {
   gap: 14px;
 }
 
+.report__h2--plain { padding-inline-start: 0; }
+
 .report__h2 {
   margin: 0;
   font-size: 18px;
@@ -1317,6 +1364,130 @@ th {
 .report__kpis strong { font-size: 22px; font-variant-numeric: tabular-nums; }
 
 .report__note { margin: 0; font-size: 12.5px; color: var(--text-muted); line-height: 1.8; }
+
+.report__h3 {
+  margin: 6px 0 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* رقم القسم في مربّع: يُقرأ الفهرس والعنوان بالرقم نفسه */
+.report__no {
+  display: inline-grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  margin-inline-end: 8px;
+  padding-inline: 6px;
+  border-radius: 8px;
+  background: var(--moe-navy);
+  color: #ffffff;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  vertical-align: middle;
+}
+
+.report__classification {
+  margin: 14px 0 0;
+  max-width: 62ch;
+  font-size: 12.5px;
+  line-height: 1.8;
+  color: var(--text-muted);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+}
+
+/* ───── فهرس المحتويات ───── */
+
+.toc { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+
+.toc__row {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 14px;
+  padding-block: 5px;
+  border-bottom: 1px dotted var(--border-strong);
+}
+
+.toc__no {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--moe-teal);
+}
+
+/* ───── الملخّص التنفيذي والمنهجية ───── */
+
+.findings { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+
+.finding {
+  position: relative;
+  padding-inline-start: 18px;
+  font-size: 14.5px;
+  line-height: 1.95;
+}
+
+.finding::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block-start: 11px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--moe-teal);
+}
+
+.method {
+  margin: 0;
+  padding-inline-start: 20px;
+  display: grid;
+  gap: 9px;
+  font-size: 13.5px;
+  line-height: 1.9;
+}
+
+.method strong { color: var(--moe-navy); }
+:root[data-theme='dark'] .method strong { color: var(--moe-cyan-light); }
+
+/* ───── الاعتماد ───── */
+
+.approval {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 26px;
+  padding-block: 10px;
+}
+
+.approval__box { display: flex; flex-direction: column; gap: 4px; }
+.approval__role { font-size: 13.5px; font-weight: 700; }
+
+.approval__line {
+  margin-block-start: 34px;
+  border-bottom: 1px solid var(--text-muted);
+}
+
+.approval__hint { font-size: 11.5px; color: var(--text-muted); }
+
+/* ───── ترويسة وتذييل الصفحات المطبوعة ───── */
+
+/* على الشاشة: الجدول كتل عادية، والترويسة والتذييل مخفيّان —
+   التقرير يُقرأ متدفّقًا بلا صفحات فلا معنى لترويسة صفحة. */
+.report-sheet,
+.report-sheet__head,
+.report-sheet__foot,
+.report-sheet__body,
+.report-sheet tr,
+.report-sheet td { display: block; width: 100%; }
+
+.report-sheet__head,
+.report-sheet__foot { display: none; }
+
+.report__running { display: none; }
+
 
 .report__footer {
   display: flex;
@@ -1587,12 +1758,10 @@ th {
     gap: 14px;
   }
 
-  .header {
-    position: static;
-    border-bottom: 2px solid var(--moe-teal);
-    padding: 0 0 8px;
-    background: #ffffff;
-  }
+  /* ترويسة التطبيق لا تُطبع: الترويسة المتكرّرة أعلى كل صفحة تحمل
+     الجهة والقياس، وترك الاثنتين كان يُنفق الصفحة الأولى على ترويسة
+     وحدها ويدفع الغلاف إلى الثانية. */
+  .header { display: none !important; }
 
   .panel,
   .stat-card,
@@ -1605,7 +1774,8 @@ th {
   }
 
   /* الغلاف صفحة كاملة، ثم يتدفّق التقرير بلا فراغات مهدَرة */
-  /* ارتفاع صفحة A4 الأفقية بعد الهوامش ≈ ١٨٦مم */
+  /* ارتفاع صفحة A4 الأفقية بعد الهوامش ≈ ١٨٦مم، تأخذ الترويسة
+     والتذييل المتكرّران نحو ٢٠مم منه. */
   .report__cover { min-height: 150mm; justify-content: center; break-after: page; }
 
   .page-break { break-before: page; }
@@ -1662,6 +1832,59 @@ th {
 
   .qr-grid { grid-template-columns: repeat(4, 1fr); }
   a[href]::after { content: ''; }
+
+  /* ───── ترويسة وتذييل على كل صفحة ─────
+     thead وtfoot يكرّرهما المتصفّح على كل صفحة من جدول ممتد، فلا
+     تخرج ورقة من التقرير بلا جهة ولا نطاق ولا تاريخ. */
+  .report-sheet { display: table; width: 100%; border-collapse: collapse; }
+  .report-sheet__head { display: table-header-group; }
+  .report-sheet__foot { display: table-footer-group; }
+  .report-sheet__body { display: table-row-group; }
+  .report-sheet tr { display: table-row; }
+  .report-sheet td { display: table-cell; padding: 0; }
+
+  .report__running {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 8.5pt;
+    color: #3f5c68;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .report__running--top {
+    border-bottom: 0.6pt solid #0da9a6;
+    padding-bottom: 2mm;
+    margin-bottom: 4mm;
+  }
+
+  .report__running--bottom {
+    justify-content: space-between;
+    border-top: 0.6pt solid #cfd8dc;
+    padding-top: 2mm;
+    margin-top: 4mm;
+  }
+
+  .report__running-logo { height: 7mm; width: auto; }
+  .report__running-org { font-weight: 700; }
+  .report__running-title { margin-inline-start: auto; }
+
+  .report__no {
+    background: #15445a !important;
+    color: #ffffff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* الفهرس والملخّص قصيران ويقرآن معًا: يُمنع كسرهما داخليًا كي لا
+     يبدأ أحدهما بعنوانه في آخر صفحة ويُكمل في التي تليها. */
+  .report__toc,
+  .report__summary { break-inside: avoid; }
+  .report__approval { break-inside: avoid; }
+  .approval__line { border-bottom: 0.8pt solid #000000; }
+  .method, .findings { break-inside: auto; }
+  .finding, .method li { break-inside: avoid; }
 }
 
 @media (max-width: 680px) {

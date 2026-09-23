@@ -1,6 +1,10 @@
 import type ExcelJSNS from 'exceljs'
 
 import type { Scope } from './analysis'
+import { participation, satisfactionIndex } from './analysis'
+import {
+  CHART_COLORS, cellRef, colRef, injectCharts, type ChartSpec,
+} from './excelCharts'
 import {
   nonRespondentRows, overallRows, questionRows, studentRows,
   suggestionRows, summaryRows,
@@ -119,8 +123,9 @@ export function saveBlob(blob: Blob, filename: string): void {
   window.setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
-async function download(wb: ExcelJSNS.Workbook, filename: string) {
-  const buffer = await wb.xlsx.writeBuffer()
+async function download(wb: ExcelJSNS.Workbook, filename: string, charts: ChartSpec[] = []) {
+  const written = await wb.xlsx.writeBuffer()
+  const buffer = await injectCharts(written as ArrayBuffer, charts)
   const blob = new Blob([buffer], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   })
@@ -143,7 +148,7 @@ function buildSheet(
   ws.views = [{ rightToLeft: true, state: 'frozen', ySplit: headerRow }]
   styleBody(ws, headerRow + 1, headers.length)
   autoWidth(ws)
-  return ws
+  return { ws, headerRow, firstDataRow: headerRow + 1, lastDataRow: headerRow + rows.length }
 }
 
 // ───────────────── التقارير ─────────────────
@@ -160,22 +165,142 @@ export async function exportNonRespondents(state: SystemState, scope: Scope) {
 
 export async function exportResults(state: SystemState, scope: Scope) {
   const wb = await newWorkbook(state)
+  const charts: ChartSpec[] = []
+  const { min, max } = state.meta.scale
+
+  // ── ١) ملخص القياس ──
   buildSheet(wb, state, 'ملخص القياس', scope,
     ['البند', 'القيمة', 'قاعدة الحساب'],
     summaryRows(state, scope).map((r) => [r.label, r.value, r.basis]))
 
-  buildSheet(wb, state, 'نتائج الأسئلة', scope,
+  // ── ٢) نتائج الأسئلة ──
+  const optionCount = state.options.length
+  const questions = questionRows(state, scope)
+  const QUESTIONS = 'نتائج الأسئلة'
+  const q = buildSheet(wb, state, QUESTIONS, scope,
     ['#', 'نص السؤال', 'الاتجاه', ...state.options.map((o) => o.label),
       ...state.options.map((o) => `${o.label} %`), 'ن', 'مفقود', 'المتوسط المصحَّح'],
-    questionRows(state, scope).map((r) => [
+    questions.map((r) => [
       r.order, r.text, r.direction, ...r.counts, ...r.percents, r.n, r.missing, r.adjustedMean,
     ]))
 
-  buildSheet(wb, state, 'التقويم العام', scope,
-    ['التقدير', 'العدد', 'النسبة %'],
-    overallRows(state, scope).map((r) => [r.value, r.count, r.percent]))
+  if (questions.length > 0) {
+    const meanCol = 3 + optionCount * 2 + 3      // آخر عمود: المتوسط المصحَّح
+    const firstPercent = 4 + optionCount          // أول عمود نسبة مئوية
+    const categories = colRef(QUESTIONS, 1, q.firstDataRow, q.lastDataRow)
 
-  await download(wb, `survey-results-${state.meta.hijriYear}.xlsx`)
+    // المتوسط لكل سؤال: أفقي كي يتّسع لخمسة وعشرين سؤالًا دون تزاحم
+    charts.push({
+      sheet: QUESTIONS,
+      title: `المتوسط المصحَّح لكل سؤال (مقياس ${min}–${max})`,
+      kind: 'bar',
+      categories,
+      series: [{
+        name: cellRef(QUESTIONS, meanCol, q.headerRow),
+        values: colRef(QUESTIONS, meanCol, q.firstDataRow, q.lastDataRow),
+      }],
+      anchor: { col: 0, row: q.lastDataRow + 1, cols: 9, rows: Math.max(20, questions.length) },
+      axis: { min, max },
+      dataLabels: true,
+    })
+
+    // توزيع الخيارات: سلسلة لكل خيار، بترتيب المصدر ولونٍ ثابت لكل منها
+    charts.push({
+      sheet: QUESTIONS,
+      title: 'توزيع الإجابات على الخيارات لكل سؤال (%)',
+      kind: 'col',
+      categories,
+      series: state.options.map((_option, i) => ({
+        name: cellRef(QUESTIONS, firstPercent + i, q.headerRow),
+        values: colRef(QUESTIONS, firstPercent + i, q.firstDataRow, q.lastDataRow),
+      })),
+      anchor: {
+        col: 0,
+        row: q.lastDataRow + 3 + Math.max(20, questions.length),
+        cols: 9,
+        rows: 22,
+      },
+      axis: { min: 0, max: 100 },
+    })
+  }
+
+  // ── ٣) التقويم العام ──
+  const overall = overallRows(state, scope)
+  const OVERALL = 'التقويم العام'
+  const o = buildSheet(wb, state, OVERALL, scope,
+    ['التقدير', 'العدد', 'النسبة %'],
+    overall.map((r) => [r.value, r.count, r.percent]))
+
+  if (overall.length > 0) {
+    charts.push({
+      sheet: OVERALL,
+      title: 'توزيع التقويم العام',
+      kind: 'pie',
+      categories: colRef(OVERALL, 1, o.firstDataRow, o.lastDataRow),
+      series: [{
+        name: cellRef(OVERALL, 2, o.headerRow),
+        values: colRef(OVERALL, 2, o.firstDataRow, o.lastDataRow),
+      }],
+      anchor: { col: 0, row: o.lastDataRow + 1, cols: 7, rows: 20 },
+      varyColors: true,
+    })
+  }
+
+  // ── ٤) مقارنة الصفوف ──
+  // لا تُبنى إلا في نطاق المدرسة: المقارنة بين الصفوف لا معنى لها داخل صف واحد
+  if (!scope.gradeId && !scope.classId) {
+    const GRADES = 'مقارنة الصفوف'
+    const perGrade = state.grades
+      .filter((g) => state.classes.some((c) => c.gradeId === g.id))
+      .sort((a, b) => a.no - b.no)
+      .map((g) => {
+        const gradeScope: Scope = { gradeId: g.id }
+        const p = participation(state, gradeScope)
+        const idx = satisfactionIndex(state, gradeScope)
+        return [
+          g.name, p.totalStudents, p.confirmedRespondents,
+          Number(p.rate.toFixed(1)),
+          idx.mean === null ? '' : Number(idx.mean.toFixed(2)),
+        ] as (string | number)[]
+      })
+
+    const gs = buildSheet(wb, state, GRADES, scope,
+      ['الصف', 'عدد الطالبات', 'المستجيبات المؤكّدات', 'نسبة الاستجابة %', 'مؤشر الاتجاه'],
+      perGrade)
+
+    if (perGrade.length > 0) {
+      const categories = colRef(GRADES, 1, gs.firstDataRow, gs.lastDataRow)
+      charts.push({
+        sheet: GRADES,
+        title: 'مؤشر الاتجاه حسب الصف',
+        kind: 'col',
+        categories,
+        series: [{
+          name: cellRef(GRADES, 5, gs.headerRow),
+          values: colRef(GRADES, 5, gs.firstDataRow, gs.lastDataRow),
+        }],
+        anchor: { col: 0, row: gs.lastDataRow + 1, cols: 6, rows: 20 },
+        axis: { min, max },
+        dataLabels: true,
+      })
+      charts.push({
+        sheet: GRADES,
+        title: 'نسبة الاستجابة المؤكّدة حسب الصف (%)',
+        kind: 'col',
+        categories,
+        series: [{
+          name: cellRef(GRADES, 4, gs.headerRow),
+          values: colRef(GRADES, 4, gs.firstDataRow, gs.lastDataRow),
+          color: CHART_COLORS[1],
+        }],
+        anchor: { col: 0, row: gs.lastDataRow + 23, cols: 6, rows: 20 },
+        axis: { min: 0, max: 100 },
+        dataLabels: true,
+      })
+    }
+  }
+
+  await download(wb, `survey-results-${state.meta.hijriYear}.xlsx`, charts)
 }
 
 export async function exportStudents(state: SystemState, scope: Scope) {

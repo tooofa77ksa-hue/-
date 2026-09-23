@@ -118,6 +118,16 @@ try {
   await page.waitForSelector('.names, #survey-name')
   await page.screenshot({ path: join(shots, '3-name.png') })
 
+  // الكتابة حرفًا حرفًا: التركيز يجب أن يبقى في الحقل حتى آخر حرف
+  const field = page.locator('input.field-line').first()
+  await field.click()
+  await field.pressSequentially('نورة', { delay: 40 })
+  const kept = await page.evaluate(() => document.activeElement?.className || '')
+  check('الكتابة في حقل الاسم لا تُقطع بعد حرف',
+    (await field.inputValue()) === 'نورة' && kept.includes('field-line'),
+    `«${await field.inputValue()}»`)
+  await field.fill('')
+
   const picker = await page.locator('.names .name').count()
   check('اختيار اسم الطالبة من كشف الفصل', picker > 0, `${picker} اسمًا`)
   const chosenName = await page.locator('.names .name').first().innerText()
