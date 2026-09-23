@@ -2,8 +2,9 @@ import type ExcelJSNS from 'exceljs'
 
 import type { Scope } from './analysis'
 import { participation, satisfactionIndex } from './analysis'
+import { fullClass, orderedClasses, shortClass, shortGrade } from './labels'
 import {
-  CHART_COLORS, cellRef, colRef, injectCharts, type ChartSpec,
+  CHART_COLORS, cellRef, colRef, columnLetter, injectCharts, type ChartSpec,
 } from './excelCharts'
 import {
   nonRespondentRows, overallRows, questionRows, studentRows,
@@ -93,6 +94,41 @@ function styleBody(ws: ExcelJSNS.Worksheet, firstDataRow: number, columns: numbe
   }
 }
 
+/**
+ * إعداد طباعة موحّد لكل ورقة.
+ *
+ * بدونه يطبع Excel الورقة عموديًا بلا ضبط، فتتناثر الأعمدة على صفحات
+ * زائدة ويخرج الجدول مقطوعًا. و«fitToWidth: 1» يضمن أن كل الأعمدة
+ * تسع صفحةً واحدة عرضًا مهما ضاقت الطابعة، و«fitToHeight: 0» يترك
+ * الطول يتمدّد على ما يلزم من صفحات بدل سحق الصفوف.
+ *
+ * وصف العناوين يتكرّر في أعلى كل صفحة مطبوعة، فلا تصل الوزارة صفحةٌ
+ * من الجدول لا يُعرف ما أعمدتها.
+ */
+function setupPrint(
+  ws: ExcelJSNS.Worksheet, state: SystemState, headerRow: number, columns: number,
+) {
+  ws.pageSetup = {
+    paperSize: 9,                 // A4
+    orientation: 'landscape',
+    fitToPage: true,
+    fitToWidth: 1,
+    fitToHeight: 0,
+    horizontalCentered: true,
+    printTitlesRow: `${headerRow}:${headerRow}`,
+    margins: {
+      left: 0.4, right: 0.4, top: 0.6, bottom: 0.6, header: 0.3, footer: 0.3,
+    },
+  }
+  ws.pageSetup.printArea = `A1:${columnLetter(Math.max(columns, 1))}${ws.rowCount}`
+  ws.headerFooter = {
+    differentFirst: false,
+    differentOddEven: false,
+    oddHeader: `&R&"Arial,Bold"&11${state.meta.school}&L&"Arial"&9${state.meta.directorate}`,
+    oddFooter: `&C&"Arial"&9صفحة &P من &N&R&"Arial"&9${state.meta.surveyTitle} ${state.meta.hijriYear}هـ`,
+  }
+}
+
 function autoWidth(ws: ExcelJSNS.Worksheet, minimum = 10, maximum = 60) {
   ws.columns.forEach((col) => {
     let width = minimum
@@ -148,6 +184,7 @@ function buildSheet(
   ws.views = [{ rightToLeft: true, state: 'frozen', ySplit: headerRow }]
   styleBody(ws, headerRow + 1, headers.length)
   autoWidth(ws)
+  setupPrint(ws, state, headerRow, headers.length)
   return { ws, headerRow, firstDataRow: headerRow + 1, lastDataRow: headerRow + rows.length }
 }
 
@@ -258,14 +295,15 @@ export async function exportResults(state: SystemState, scope: Scope) {
         const p = participation(state, gradeScope)
         const idx = satisfactionIndex(state, gradeScope)
         return [
-          g.name, p.totalStudents, p.confirmedRespondents,
-          Number(p.rate.toFixed(1)),
+          shortGrade(g.no), g.name, p.totalStudents, p.confirmedRespondents,
+          Number(p.rate.toFixed(1)), Number(p.receivedRate.toFixed(1)),
           idx.mean === null ? '' : Number(idx.mean.toFixed(2)),
         ] as (string | number)[]
       })
 
     const gs = buildSheet(wb, state, GRADES, scope,
-      ['الصف', 'عدد الطالبات', 'المستجيبات المؤكّدات', 'نسبة الاستجابة %', 'مؤشر الاتجاه'],
+      ['الصف', 'الاسم الكامل', 'عدد الطالبات', 'المستجيبات المؤكّدات',
+        'نسبة الاستجابة المؤكّدة %', 'نسبة من أجابت %', 'مؤشر الاتجاه'],
       perGrade)
 
     if (perGrade.length > 0) {
@@ -276,8 +314,8 @@ export async function exportResults(state: SystemState, scope: Scope) {
         kind: 'col',
         categories,
         series: [{
-          name: cellRef(GRADES, 5, gs.headerRow),
-          values: colRef(GRADES, 5, gs.firstDataRow, gs.lastDataRow),
+          name: cellRef(GRADES, 7, gs.headerRow),
+          values: colRef(GRADES, 7, gs.firstDataRow, gs.lastDataRow),
         }],
         anchor: { col: 0, row: gs.lastDataRow + 1, cols: 6, rows: 20 },
         axis: { min, max },
@@ -285,16 +323,84 @@ export async function exportResults(state: SystemState, scope: Scope) {
       })
       charts.push({
         sheet: GRADES,
-        title: 'نسبة الاستجابة المؤكّدة حسب الصف (%)',
+        title: 'نسبة من أجابت حسب الصف (%)',
         kind: 'col',
         categories,
         series: [{
-          name: cellRef(GRADES, 4, gs.headerRow),
-          values: colRef(GRADES, 4, gs.firstDataRow, gs.lastDataRow),
+          name: cellRef(GRADES, 6, gs.headerRow),
+          values: colRef(GRADES, 6, gs.firstDataRow, gs.lastDataRow),
           color: CHART_COLORS[1],
         }],
         anchor: { col: 0, row: gs.lastDataRow + 23, cols: 6, rows: 20 },
         axis: { min: 0, max: 100 },
+        dataLabels: true,
+      })
+    }
+  }
+
+  // ── ٥) الفصول، كل فصل على حدة ──
+  // بترتيب الصف ثم رقم الفصل: أولى ١، أولى ٢، ثانية ١ … لا ترتيبًا
+  // أبجديًا يضع «الثالث» قبل «الثاني».
+  if (!scope.classId) {
+    const ROOMS = 'الفصول'
+    const rooms = orderedClasses(state.grades, state.classes)
+      .filter(({ room }) => !scope.gradeId || room.gradeId === scope.gradeId)
+
+    const roomRows = rooms.map(({ room, grade }) => {
+      const roomScope: Scope = { classId: room.id }
+      const p = participation(state, roomScope)
+      const idx = satisfactionIndex(state, roomScope)
+      return [
+        grade?.name ?? '',
+        shortClass(grade, room),
+        fullClass(grade, room),
+        p.totalStudents,
+        p.confirmedRespondents,
+        p.responsesReceived,
+        Number(p.receivedRate.toFixed(1)),
+        idx.mean === null ? '' : Number(idx.mean.toFixed(2)),
+      ] as (string | number)[]
+    })
+
+    const rs = buildSheet(wb, state, ROOMS, scope,
+      ['الصف', 'الفصل', 'الاسم الكامل', 'عدد الطالبات', 'المستجيبات المؤكّدات',
+        'الاستجابات المستلمة', 'نسبة من أجابت %', 'مؤشر الاتجاه'],
+      roomRows)
+
+    if (roomRows.length > 0) {
+      // الفئات من عمود الاسم المختصر: «أولى ١» تسع محور الرسم، والاسم
+      // الكامل يبقى في عموده للجدول والتقارير
+      const categories = colRef(ROOMS, 2, rs.firstDataRow, rs.lastDataRow)
+      charts.push({
+        sheet: ROOMS,
+        title: `مؤشر الاتجاه لكل فصل (مقياس ${min}–${max})`,
+        kind: 'bar',
+        categories,
+        series: [{
+          name: cellRef(ROOMS, 8, rs.headerRow),
+          values: colRef(ROOMS, 8, rs.firstDataRow, rs.lastDataRow),
+        }],
+        anchor: { col: 0, row: rs.lastDataRow + 1, cols: 8, rows: Math.max(18, roomRows.length + 6) },
+        axis: { min, max },
+        dataLabels: true,
+      })
+      charts.push({
+        sheet: ROOMS,
+        title: 'نسبة من أجابت لكل فصل (%)',
+        kind: 'col',
+        categories,
+        series: [{
+          name: cellRef(ROOMS, 7, rs.headerRow),
+          values: colRef(ROOMS, 7, rs.firstDataRow, rs.lastDataRow),
+          color: CHART_COLORS[1],
+        }],
+        anchor: {
+          col: 0,
+          row: rs.lastDataRow + 3 + Math.max(18, roomRows.length + 6),
+          cols: 8,
+          rows: 20,
+        },
+        axis: { min: 0 },
         dataLabels: true,
       })
     }

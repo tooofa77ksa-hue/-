@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 
-import { BarRow } from '../../components/BarRow'
 import { ReportChrome } from '../../components/ReportChrome'
+import { ScaleChart } from '../../components/ScaleChart'
+import { ShareChart } from '../../components/ShareChart'
 import { Legend } from '../../components/Legend'
 import { RankedList } from '../../components/RankedList'
 import { ReverseNote } from '../../components/ReverseNote'
@@ -14,6 +15,7 @@ import {
 } from '../../lib/analysis'
 import { exportResults } from '../../lib/excel'
 import { avg, dateOnly, hijriToday, num, pct, arabicDigits } from '../../lib/format'
+import { fullClass, orderedClasses, shortClass, shortGrade } from '../../lib/labels'
 import { useSystem } from '../../state/useSystem'
 
 const STATUS = { planned: 'مخطط', in_progress: 'جارٍ التنفيذ', completed: 'مكتمل' } as const
@@ -25,6 +27,7 @@ const SECTIONS = [
   'معلومات القياس',
   'التقويم العام للمدرسة',
   'مقارنة الصفوف',
+  'الفصول',
   'نقاط القوة وفرص التحسين',
   'تحليل الأسئلة',
   'صوت طالباتنا',
@@ -85,6 +88,23 @@ export function ReportsPage() {
   }, [state, gradeId, classId])
 
   /**
+   * الفصول بترتيب الصف ثم رقم الفصل: أولى ١، أولى ٢، ثانية ١ …
+   *
+   * لا تُبنى داخل نطاق فصل واحد: تفصيل فصلٍ إلى نفسه لا يضيف شيئًا.
+   */
+  const byClass = useMemo(() => {
+    if (classId !== 'all') return []
+    return orderedClasses(state.grades, state.classes)
+      .filter(({ room }) => gradeId === 'all' || room.gradeId === gradeId)
+      .map(({ room, grade }) => ({
+        room,
+        grade,
+        part: participation(state, { classId: room.id }),
+        index: satisfactionIndex(state, { classId: room.id }),
+      }))
+  }, [state, gradeId, classId])
+
+  /**
    * الملخّص التنفيذي: جُمل مبنيّة من الأرقام المحسوبة وحدها.
    *
    * لا حكم ولا ترجيح ولا كلمة مدح: القارئ في الوزارة يقرأ ما تقوله
@@ -119,7 +139,7 @@ export function ReportsPage() {
     if (strengths.length > 0) {
       lines.push(
         `أعلى ثلاثة بنود بالمتوسط المصحَّح هي الأسئلة ${numbers(strengths)} `
-        + `(المتوسط الأعلى ${avg(strengths[0].adjustedMean as number)}) — نصّها في القسم ${num(6)}.`,
+        + `(المتوسط الأعلى ${avg(strengths[0].adjustedMean as number)}) — نصّها في القسم ${num(7)}.`,
       )
     }
     if (gaps.length > 0) {
@@ -277,17 +297,21 @@ export function ReportsPage() {
         <section className="report__section">
           <h2 className="report__h2"><span className="report__no">{num(4)}</span> التقويم العام للمدرسة</h2>
           {overall.n === 0 ? <p className="muted">لا توجد بيانات.</p> : (
-            <div className="bars">
-              {overall.rows.map((r, i) => (
-                <BarRow key={r.value} label={r.value} count={r.count} percent={r.percent}
-                  tone={i === 0 ? 'var(--moe-green)' : 'var(--moe-blue)'} />
-              ))}
-            </div>
+            <ShareChart
+              title="توزيع تقديرات التقويم العام"
+              n={overall.n}
+              shares={overall.rows.map((r, i) => ({
+                label: r.value,
+                count: r.count,
+                percent: r.percent,
+                tone: i === 0 ? 'var(--opt-agree)'
+                  : i === 1 ? 'var(--opt-middle)' : 'var(--opt-none)',
+              }))}
+            />
           )}
-          <p className="report__note">ن = {num(overall.n)} استجابة أجابت على التقويم العام.</p>
         </section>
 
-        {byGrade.length > 0 && (
+{byGrade.length > 0 && (
           <section className="report__section">
             <h2 className="report__h2"><span className="report__no">{num(5)}</span> مقارنة الصفوف</h2>
             <table className="table">
@@ -312,6 +336,17 @@ export function ReportsPage() {
                 ))}
               </tbody>
             </table>
+            <ScaleChart
+              title="مؤشر الاتجاه لكل صف"
+              min={index.scaleMin}
+              max={index.scaleMax}
+              reference={index.mean}
+              referenceLabel="المدرسة"
+              rows={byGrade.map((g) => ({
+                label: shortGrade(g.grade.no),
+                value: g.index.mean,
+              }))}
+            />
             <p className="report__note">
               نسبة الاستجابة هنا على الكشوف الرسمية للصف. وقد تتجاوز المئة في صفٍّ
               وصلت استجاباته المؤكّدة أكثر مما في كشفه، وهو مؤشر على كشف يحتاج تحديثًا
@@ -320,8 +355,55 @@ export function ReportsPage() {
           </section>
         )}
 
+        {byClass.length > 0 && (
+          <section className="report__section">
+            <h2 className="report__h2"><span className="report__no">{num(6)}</span> الفصول</h2>
+            <p className="report__note">
+              كل فصل على حدة، بترتيب الصف ثم رقم الفصل. ويُقرأ كل فصل منسوبًا إلى مؤشر
+              المدرسة ({index.mean === null ? '—' : avg(index.mean)}) المرسوم خطًّا في الرسم.
+            </p>
+
+            <ScaleChart
+              title="مؤشر الاتجاه لكل فصل"
+              min={index.scaleMin}
+              max={index.scaleMax}
+              reference={index.mean}
+              referenceLabel="المدرسة"
+              rows={byClass.map((c) => ({
+                label: shortClass(c.grade, c.room),
+                value: c.index.mean,
+              }))}
+            />
+
+            <table className="table">
+              <thead>
+                <tr>
+                  <th scope="col">الفصل</th>
+                  <th scope="col">عدد الطالبات</th>
+                  <th scope="col">المستجيبات المؤكّدات</th>
+                  <th scope="col">الاستجابات المستلمة</th>
+                  <th scope="col">نسبة من أجابت</th>
+                  <th scope="col">مؤشر الاتجاه</th>
+                </tr>
+              </thead>
+              <tbody>
+                {byClass.map((c) => (
+                  <tr key={c.room.id}>
+                    <td><span className="table__title">{fullClass(c.grade, c.room)}</span></td>
+                    <td>{num(c.part.totalStudents)}</td>
+                    <td>{num(c.part.confirmedRespondents)}</td>
+                    <td>{num(c.part.responsesReceived)}</td>
+                    <td>{c.part.totalStudents ? pct(c.part.receivedRate) : '—'}</td>
+                    <td>{c.index.mean === null ? '—' : avg(c.index.mean)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        )}
+
         <section className="report__section">
-          <h2 className="report__h2"><span className="report__no">{num(6)}</span> نقاط القوة وفرص التحسين</h2>
+          <h2 className="report__h2"><span className="report__no">{num(7)}</span> نقاط القوة وفرص التحسين</h2>
           <h3 className="report__h3">نقاط القوة</h3>
           <RankedList rows={strengths} />
           <h3 className="report__h3">فرص التحسين</h3>
@@ -329,7 +411,7 @@ export function ReportsPage() {
         </section>
 
         <section className="report__section">
-          <h2 className="report__h2"><span className="report__no">{num(7)}</span> تحليل الأسئلة</h2>
+          <h2 className="report__h2"><span className="report__no">{num(8)}</span> تحليل الأسئلة</h2>
           <Legend items={state.options.map((o) => ({ label: o.label, tone: OPTION_TONES[o.id] }))} />
           <ReverseNote />
           <div className="qlist">
@@ -351,7 +433,7 @@ export function ReportsPage() {
         </section>
 
         <section className="report__section">
-          <h2 className="report__h2"><span className="report__no">{num(8)}</span> صوت طالباتنا</h2>
+          <h2 className="report__h2"><span className="report__no">{num(9)}</span> صوت طالباتنا</h2>
           <p className="report__note">
             {num(voices.length)} رأيًا ومقترحًا، معروضة بنصّها الأصلي كما كتبته الطالبات.
           </p>
@@ -361,7 +443,7 @@ export function ReportsPage() {
         </section>
 
         <section className="report__section">
-          <h2 className="report__h2"><span className="report__no">{num(9)}</span> استجابة المدرسة — من الرأي إلى التحسين</h2>
+          <h2 className="report__h2"><span className="report__no">{num(10)}</span> استجابة المدرسة — من الرأي إلى التحسين</h2>
           {actions.length === 0 ? (
             <p className="muted">لم تُسجَّل إجراءات تحسين بعد.</p>
           ) : (
@@ -395,7 +477,7 @@ export function ReportsPage() {
         </section>
 
         <section className="report__section">
-          <h2 className="report__h2"><span className="report__no">{num(10)}</span> غير المستجيبات</h2>
+          <h2 className="report__h2"><span className="report__no">{num(11)}</span> غير المستجيبات</h2>
           <p className="report__note">{num(missing.length)} طالبة في الكشف بلا استجابة مؤكّدة.</p>
           {missing.length > 0 && (
             <ol className="names-grid">

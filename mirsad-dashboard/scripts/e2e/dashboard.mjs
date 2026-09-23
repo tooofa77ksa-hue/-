@@ -53,8 +53,8 @@ try {
   const page = await ctx.newPage()
 
   await page.goto(`http://127.0.0.1:${PORT}/#/admin`, { waitUntil: 'domcontentloaded' })
-  await page.waitForTimeout(1200)
   const gate = page.locator('button:has-text("دخول")')
+  await gate.first().waitFor({ state: 'visible', timeout: 20000 }).catch(() => {})
   if (await gate.count()) await gate.first().click()
   await page.waitForSelector('.hero', { timeout: 25000 })
 
@@ -69,7 +69,7 @@ try {
   check('لا تمرير أفقي', noScrollX)
 
   // الصدر والمسطرة يُرَيان دون تمرير: هما أول ما تنظر إليه الإدارة
-  const stripTop = await page.locator('.strip').evaluate((el) => el.getBoundingClientRect().top)
+  const stripTop = await page.locator('.strip').first().evaluate((el) => el.getBoundingClientRect().top)
   check('الصدر ومسطرة الصفوف في الشاشة الأولى', stripTop < LAPTOP.height,
     `المسطرة تبدأ عند ${Math.round(stripTop)} بكسل`)
 
@@ -92,14 +92,15 @@ try {
 
   // ═════ ٣) مسطرة الصفوف ═════
   console.log('\n٣) الصفوف على مسطرة القياس')
-  const cells = await page.locator('.strip__cell').count()
+  const cells = await page.locator('.strip').first().locator('.strip__cell').count()
   check('لكل صف خانته على المسطرة', cells === 6, `${cells} صفوف`)
 
-  const row = await page.locator('.strip__cell').first().evaluate((el) => el.getBoundingClientRect().top)
-  const last = await page.locator('.strip__cell').last().evaluate((el) => el.getBoundingClientRect().top)
+  const gradeCells = page.locator('.strip').first().locator('.strip__cell')
+  const row = await gradeCells.first().evaluate((el) => el.getBoundingClientRect().top)
+  const last = await gradeCells.last().evaluate((el) => el.getBoundingClientRect().top)
   check('الصفوف الستة في صف واحد بعرض الصفحة', Math.abs(row - last) < 2)
 
-  const deltas = await page.locator('.reading__delta').allInnerTexts()
+  const deltas = await page.locator('.strip').first().locator('.reading__delta').allInnerTexts()
   check('لكل صف فارقه عن مؤشر المدرسة', deltas.length === 6, deltas.join(' · '))
   check('الفوارق موقّعة بإشارتها', deltas.some((d) => d.includes('+')) && deltas.some((d) => d.includes('−')))
 
@@ -112,10 +113,29 @@ try {
   }))
   check('لون الشريط يوافق إشارة الفارق', agree)
 
+  // ═════ الفصول الاثنا عشر ═════
+  console.log('\n٤) الفصول على مسطرة القياس')
+  const strips = await page.locator('.strip').count()
+  check('للصفوف مسطرة وللفصول مسطرة', strips === 2, `${strips} مسطرة`)
+
+  const roomCells = await page.locator('.strip').nth(1).locator('.strip__cell').count()
+  check('كل فصل على حدة', roomCells === 12, `${roomCells} فصلًا`)
+
+  const roomNames = await page.locator('.strip').nth(1).locator('.reading__name').allInnerTexts()
+  check('أسماء الفصول مختصرة كما تنطقها الإدارة',
+    roomNames[0].startsWith('أولى') && roomNames[11].startsWith('سادسة'),
+    roomNames.join(' · '))
+
+  // الترتيب على رقم الصف لا على اسمه: الأبجدي يضع «الثالث» قبل «الثاني»
+  const ORDER = ['أولى', 'أولى', 'ثانية', 'ثانية', 'ثالثة', 'ثالثة',
+    'رابعة', 'رابعة', 'خامسة', 'خامسة', 'سادسة', 'سادسة']
+  check('الترتيب من أولى ١ إلى سادسة ٢',
+    roomNames.every((n, i) => n.startsWith(ORDER[i])))
+
   await page.screenshot({ path: join(out, 'laptop.png') })
 
-  // ═════ ٤) السمة الداكنة ═════
-  console.log('\n٤) السمة الداكنة')
+  // ═════ ٥) السمة الداكنة ═════
+  console.log('\n٥) السمة الداكنة')
   await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'dark'))
   await page.waitForTimeout(400)
   const readable = await page.locator('.reading__value').first().evaluate((el) => {
@@ -133,15 +153,49 @@ try {
   check('أرقام الصفوف مقروءة على الخلفية الداكنة', readable >= 4.5, `${readable.toFixed(1)}:1`)
   await page.screenshot({ path: join(out, 'laptop-dark.png') })
 
+  // ═════ لوحة العرض ═════
+  console.log('\n٦) لوحة العرض')
+  await page.goto(`http://127.0.0.1:${PORT}/#/admin/display`, { waitUntil: 'domcontentloaded' })
+  await page.waitForSelector('.show', { timeout: 25000 })
+  await page.waitForTimeout(600)
+
+  // شاشة عرض: تملأ الشاشة ولا تُمرَّر
+  const fits = await page.evaluate(() =>
+    document.documentElement.scrollHeight <= window.innerHeight + 2
+    && document.documentElement.scrollWidth <= window.innerWidth + 2)
+  check('لوحة العرض تملأ الشاشة بلا تمرير', fits)
+
+  check('لا قوائم ولا أزرار تحرير في العرض',
+    await page.locator('.admin-nav').count() === 0
+    && await page.locator('.toolbar').count() === 0)
+  check('مخرج واضح من العرض', await page.locator('.show__exit').isVisible())
+
+  const big = (await page.locator('.show__big').innerText()).trim()
+  check('المؤشر بارز في صدر العرض', /[٠-٩]/.test(big), big.replace(/\s+/g, ' '))
+
+  // الأرقام نفسها في اللوحتين: لا نسخة ولا حساب ثانٍ
+  const showRooms = await page.locator('.show__room-value').allInnerTexts()
+  check('الفصول الاثنا عشر في العرض', showRooms.length === 12)
+
+  const showIndex = big.split(/\s/)[0]
+  check('رقم العرض هو رقم لوحة التعديل نفسه', showIndex === value, `${showIndex} = ${value}`)
+
+  await page.screenshot({ path: join(out, 'display.png') })
+
+  await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'dark'))
+  await page.waitForTimeout(400)
+  await page.screenshot({ path: join(out, 'display-dark.png') })
+  await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'light'))
+
   await ctx.close()
 
-  // ═════ ٥) الشاشة الصغيرة ═════
-  console.log('\n٥) شاشة صغيرة')
+  // ═════ ٧) الشاشة الصغيرة ═════
+  console.log('\n٧) شاشة صغيرة')
   const small = await browser.newContext({ viewport: { width: 820, height: 900 } })
   const narrow = await small.newPage()
   await narrow.goto(`http://127.0.0.1:${PORT}/#/admin`, { waitUntil: 'domcontentloaded' })
-  await narrow.waitForTimeout(1200)
   const gate2 = narrow.locator('button:has-text("دخول")')
+  await gate2.first().waitFor({ state: 'visible', timeout: 20000 }).catch(() => {})
   if (await gate2.count()) await gate2.first().click()
   await narrow.waitForSelector('.hero', { timeout: 25000 })
   check('لا تمرير أفقي على شاشة ضيّقة', await narrow.evaluate(() =>

@@ -35,6 +35,7 @@ export function AdminLayout() {
         actions={
           <>
             <LiveClock />
+            <NavLink className="button button--small" to="/admin/display">وضع العرض</NavLink>
             <AnthemPlayer />
             <button
               type="button"

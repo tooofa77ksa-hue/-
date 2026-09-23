@@ -83,6 +83,12 @@
   --text: var(--moe-navy);
   --text-muted: #4a6b78;
   --text-on-brand: #ffffff;
+
+  /* درجات خيارات الإجابة — مفحوصة على هذا السطح */
+  --opt-agree: #07a869;
+  --opt-middle: #b8860b;
+  --opt-none: #566573;
+
   --shadow: 0 10px 30px rgba(21, 68, 90, 0.09);
   --shadow-lifted: 0 20px 48px rgba(21, 68, 90, 0.16);
 }
@@ -101,6 +107,11 @@
   --text-on-brand: #ffffff;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
   --shadow-lifted: 0 20px 48px rgba(0, 0, 0, 0.55);
+
+  /* الدرجات تُعاد خطوتها للسطح الداكن، لا تُقلب آليًا */
+  --opt-agree: #09a066;
+  --opt-middle: #b8880f;
+  --opt-none: #74818b;
 }
 
 *,
@@ -1735,7 +1746,10 @@ th {
 @media print {
   /* أفقي بطلب المدرسة: العرض الزائد يتيح ثلاثة أعمدة للمؤشرات
      وعمودين للأسئلة، فينقص عدد الصفحات ويتسع الجدول بلا انكماش. */
-  @page { size: A4 landscape; margin: 12mm 14mm; }
+  /* لا يُفرض اتجاه: فرض «landscape» يعطّل خيار الاتجاه في نافذة
+     الطباعة، فلا تستطيع المدرسة اختيار العمودي أصلًا. الحجم A4
+     والاتجاه للمستخدم، والتخطيط أدناه يصحّ في الاتجاهين. */
+  @page { size: A4; margin: 12mm 14mm; }
 
   html, body {
     background: #ffffff !important;
@@ -1783,9 +1797,7 @@ th {
   }
 
   /* الغلاف صفحة كاملة، ثم يتدفّق التقرير بلا فراغات مهدَرة */
-  /* ارتفاع صفحة A4 الأفقية بعد الهوامش ≈ ١٨٦مم، تأخذ الترويسة
-     والتذييل المتكرّران نحو ٢٠مم منه. */
-  .report__cover { min-height: 150mm; justify-content: center; break-after: page; }
+  .report__cover { justify-content: center; break-after: page; }
 
   .page-break { break-before: page; }
 
@@ -1830,14 +1842,34 @@ th {
   }
 
 
-  /* ───── الطباعة الأفقية: استثمار العرض ───── */
-  .report__kpis { grid-template-columns: repeat(6, 1fr); }
-  .grid-2 { grid-template-columns: 1fr 1fr; gap: 12px; }
-  .qlist { column-count: 2; column-gap: 16px; }
-  .qlist__item { break-inside: avoid; }
   .hero { break-inside: avoid; }
-  .strip__grid { grid-template-columns: repeat(6, 1fr); }
   .strip, .reading { break-inside: avoid; }
+  .chart, .chart__svg { break-inside: avoid; }
+  .chart__svg { border-color: #cfd8dc; }
+
+  /* ───── الطباعة الأفقية: استثمار العرض ───── */
+  @media (orientation: landscape) {
+    .report__kpis { grid-template-columns: repeat(6, 1fr); }
+    .grid-2 { grid-template-columns: 1fr 1fr; gap: 12px; }
+    .qlist { column-count: 2; column-gap: 16px; }
+    .qlist__item { break-inside: avoid; }
+    .strip__grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    .report__cover { min-height: 150mm; }
+  }
+
+  /* ───── الطباعة العمودية: تنطوي الشبكات بدل أن تُسحق ───── */
+  @media (orientation: portrait) {
+    .report__kpis { grid-template-columns: repeat(3, 1fr); }
+    .grid-2, .spread { grid-template-columns: 1fr; gap: 10px; }
+    .qlist, .qlist--wide { column-count: 1; columns: auto; display: flex; flex-direction: column; }
+    .strip__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .names-grid { columns: 2 140px; }
+    /* الجدول يلتفّ ولا يُقصّ عمودًا حين يضيق العرض */
+    .table th, .table td { white-space: normal; word-break: break-word; padding: 4px 5px; }
+    /* ارتفاع صفحة A4 العمودية بعد الهوامش ≈ ٢٧٣مم */
+    .report__cover { min-height: 225mm; }
+    .table { font-size: 8.5pt; }
+  }
   .table { font-size: 9.5pt; }
 
   .qr-grid { grid-template-columns: repeat(4, 1fr); }
@@ -2717,29 +2749,29 @@ th {
 :root[data-theme='dark'] .strip__legend-mark { background: var(--moe-cyan-light); }
 
 /* لوحة واحدة مقسومة بخطوط شعرية، لا ستّ بطاقات عائمة */
+/* عدد الأعمدة يأتي من المكوّن: ستة للصفوف، اثنا عشر للفصول. الخطوط
+   الفاصلة تُرسم على الخانة نفسها فتصحّ مع أي عدد وأي انكسار. */
 .strip__grid {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(var(--cols, 6), minmax(0, 1fr));
 }
 
-.strip__cell { border-inline-start: 1px solid var(--border); }
-.strip__cell:first-child { border-inline-start: 0; }
-
-@media (max-width: 1240px) {
-  .strip__grid { grid-template-columns: repeat(3, 1fr); }
-  .strip__cell:nth-child(3n + 1) { border-inline-start: 0; }
-  .strip__cell:nth-child(n + 4) { border-block-start: 1px solid var(--border); }
+.strip__cell {
+  border-inline-start: 1px solid var(--border);
+  border-block-start: 1px solid var(--border);
 }
 
-@media (max-width: 680px) {
-  .strip__grid { grid-template-columns: repeat(2, 1fr); }
-  .strip__cell:nth-child(n) { border-inline-start: 1px solid var(--border); }
-  .strip__cell:nth-child(odd) { border-inline-start: 0; }
-  .strip__cell:nth-child(n + 3) { border-block-start: 1px solid var(--border); }
-}
+/* الصف الأول بلا خط علوي، وأول خانة في كل سطر بلا خط جانبي */
+.strip__cell { margin-block-start: -1px; margin-inline-start: -1px; }
+.strip__grid { padding-block-start: 1px; padding-inline-start: 1px; }
+
+@media (max-width: 1400px) { .strip__grid { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+@media (max-width: 1080px) { .strip__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .strip__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .strip__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 .reading {
   display: flex;
@@ -2823,6 +2855,66 @@ th {
 
 .reading__rate { font-weight: 700; color: var(--text); }
 
+/* ───────── الرسوم البيانية ───────── */
+
+.chart {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chart__title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.chart__svg {
+  width: 100%;
+  height: auto;
+  /* الرسم على ورق أبيض دائمًا: درجاته مفحوصة على سطح فاتح */
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+}
+
+.chart__svg--share { height: 46px; padding: 0; border-radius: 6px; overflow: hidden; }
+
+.chart__key {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  font-size: 12.5px;
+}
+
+.chart__key li { display: flex; align-items: center; gap: 7px; }
+
+.chart__swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex: none;
+}
+
+.chart__key-label { color: var(--text); }
+
+/* كل رقم في عزلة اتجاهية: رقمان متجاوران في سياق من اليمين إلى اليسار
+   يلتحمان فيُقرآن رقمًا واحدًا («٢٢٤ · ٨٣٫٦٪» تصير «٨٣٫٦٠٢٢٤»). */
+.chart__key-value {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  unicode-bidi: isolate;
+}
+
+.chart__key-sep { color: var(--border-strong); }
+
+.chart__note { margin: 0; font-size: 12px; color: var(--text-muted); }
+
 /* ───────── لوحتان متجاورتان بعرض الصفحة ───────── */
 
 .spread {
@@ -2840,3 +2932,304 @@ th {
 @media (prefers-reduced-motion: reduce) {
   .hero__count, .reading { transition: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   لوحة العرض
+
+   شاشة تُعرض على الإدارة لا صفحة تُقرأ عن قرب: الأرقام أكبر،
+   والحشو أقلّ، والصفحة كلها في شاشة واحدة بلا تمرير. نفس البيانات
+   ونفس الحسابات — الفرق في الحجم والترتيب لا في الأرقام.
+   ═══════════════════════════════════════════════════════════ */
+
+/* العرض يملأ الشاشة تمامًا: ارتفاع لا حدّ أدنى، فلا يفيض سطرٌ تحت
+   حافة الشاشة أثناء العرض على الإدارة. */
+.show {
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(10px, 1.2vh, 18px);
+  padding: clamp(12px, 1.6vh, 22px) clamp(14px, 1.6vw, 28px);
+  background: var(--bg);
+}
+
+.show__top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-block-end: clamp(8px, 1vh, 14px);
+  border-block-end: 2px solid var(--moe-teal);
+}
+
+.show__logo { height: clamp(38px, 5vh, 58px); width: auto; }
+.show__id { display: flex; flex-direction: column; gap: 2px; }
+
+.show__school {
+  margin: 0;
+  font-size: clamp(18px, 2.2vh, 26px);
+  font-weight: 700;
+  color: var(--moe-navy);
+}
+
+:root[data-theme='dark'] .show__school { color: var(--moe-cyan-light); }
+
+.show__survey { margin: 0; font-size: clamp(12px, 1.4vh, 15px); color: var(--text-muted); }
+
+/* زرّ الخروج واضح في السمتين: هو المخرج الوحيد من شاشة بلا قوائم */
+.show__exit {
+  margin-inline-start: auto;
+  flex: none;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.show__exit:hover { border-color: var(--moe-teal); }
+.show__exit:focus-visible { outline: 2px solid var(--moe-teal); outline-offset: 2px; }
+
+/* شريط المؤشر أسمك في العرض: يُقرأ من آخر القاعة لا من أمام الشاشة */
+.show__track { height: clamp(10px, 1.4vh, 18px); }
+
+/* ستة ألواح في ثلاثة صفوف تملأ ما بقي من الشاشة.
+   الشبكة ستة أعمدة لا ثلاثة: يتيح ذلك نصفين في الصف الأخير وثلاثة
+   أثلاث في الأول، فلا تبقى خانة فارغة في زاوية الشاشة. */
+.show__body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 0.85fr);
+  gap: clamp(10px, 1.2vw, 18px);
+  min-height: 0;
+}
+
+.show__index { grid-column: span 2; }
+.show__panel { grid-column: span 2; }
+.show__panel--wide { grid-column: span 6; }
+.show__panel--half { grid-column: span 3; }
+
+.show__index,
+.show__panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: clamp(12px, 1.6vh, 20px) clamp(14px, 1.4vw, 22px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 0.9vh, 12px);
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* لوح المؤشر هو الوحيد الداكن: يُقرأ أداةً وما حوله ورقٌ هادئ */
+.show__index {
+  background: var(--moe-navy);
+  border-color: transparent;
+  color: #eaf4f6;
+  justify-content: center;
+}
+
+:root[data-theme='dark'] .show__index { background: #0c3346; border-color: var(--border); }
+
+.show__label { margin: 0; font-size: clamp(12px, 1.5vh, 16px); color: #9fc2ce; }
+
+.show__big {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: clamp(56px, 11vh, 120px);
+  font-weight: 700;
+  line-height: 0.92;
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -3px;
+}
+
+.show__big span {
+  font-size: clamp(13px, 1.6vh, 18px);
+  font-weight: 400;
+  color: #9fc2ce;
+  letter-spacing: 0;
+}
+
+.show__track {
+  height: clamp(8px, 1.1vh, 14px);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.13);
+  overflow: hidden;
+}
+
+.show__fill { display: block; height: 100%; background: var(--moe-teal); }
+
+.show__facts {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding-block-start: clamp(6px, 1vh, 12px);
+  border-block-start: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.show__facts div { display: flex; flex-direction: column; gap: 1px; }
+.show__facts dt { font-size: clamp(10px, 1.2vh, 13px); color: #9fc2ce; }
+
+.show__facts dd {
+  margin: 0;
+  font-size: clamp(16px, 2.4vh, 26px);
+  font-weight: 700;
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+}
+
+.show__h2 {
+  margin: 0;
+  font-size: clamp(13px, 1.7vh, 17px);
+  font-weight: 700;
+  color: var(--moe-navy);
+}
+
+:root[data-theme='dark'] .show__h2 { color: var(--moe-cyan-light); }
+
+/* ───── أشرطة الصفوف ───── */
+
+.show__bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: clamp(4px, 0.7vh, 9px);
+  min-height: 0;
+}
+
+.show__bars li {
+  display: grid;
+  grid-template-columns: 4.5ch 1fr 5ch;
+  align-items: center;
+  gap: 10px;
+  font-size: clamp(11px, 1.4vh, 14px);
+}
+
+.show__bar-name { color: var(--text-muted); }
+
+.show__bar-track {
+  height: clamp(8px, 1.2vh, 14px);
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.show__bar { display: block; height: 100%; background: var(--opt-middle); }
+.show__bar.is-above { background: var(--moe-teal); }
+
+.show__bar-value {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: start;
+}
+
+/* ───── شبكة الفصول ───── */
+
+.show__rooms {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: clamp(5px, 0.7vw, 10px);
+  min-height: 0;
+}
+
+.show__room {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: clamp(5px, 0.8vh, 10px) 4px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+}
+
+.show__room-name { font-size: clamp(9.5px, 1.2vh, 12px); color: var(--text-muted); }
+
+.show__room-value {
+  font-size: clamp(16px, 2.4vh, 26px);
+  font-weight: 700;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+
+.show__room-delta { font-size: clamp(9px, 1.1vh, 11.5px); font-weight: 700; color: #8a6f2a; }
+.show__room-delta.is-above { color: #0a6f6d; }
+
+:root[data-theme='dark'] .show__room-delta { color: var(--moe-sand); }
+:root[data-theme='dark'] .show__room-delta.is-above { color: var(--moe-teal); }
+
+.show__room-rate { font-size: clamp(9px, 1.1vh, 11.5px); color: var(--text-muted); }
+
+/* ───── قوائم البنود ───── */
+
+.show__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: clamp(4px, 0.8vh, 10px);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.show__list li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: clamp(10.5px, 1.35vh, 13.5px);
+  line-height: 1.55;
+}
+
+.show__list strong { font-variant-numeric: tabular-nums; flex: none; }
+
+.show__foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: clamp(10px, 1.2vh, 12.5px);
+  color: var(--text-muted);
+  padding-block-start: clamp(6px, 0.8vh, 10px);
+  border-block-start: 1px solid var(--border);
+}
+
+/* شاشة صغيرة: تنطوي الألواح ويعود التمرير */
+/* الشاشة الصغيرة ليست شاشة عرض: يعود الارتفاع طبيعيًا والتمرير معه */
+@media (max-width: 1100px) {
+  .show { height: auto; min-height: 100vh; overflow: visible; }
+
+  .show__body {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: none;
+    grid-auto-rows: auto;
+  }
+
+  .show__index,
+  .show__panel,
+  .show__panel--half { grid-column: span 1; }
+  .show__panel--wide { grid-column: span 2; }
+  .show__rooms { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@media (max-width: 680px) {
+  .show__body { grid-template-columns: 1fr; }
+  .show__panel--wide { grid-column: span 1; }
+  .show__rooms { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.show__survey { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.show__dot { color: var(--border-strong); }

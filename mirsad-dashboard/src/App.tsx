@@ -22,6 +22,7 @@ const MatchReviewPage = lazy(() => import('./pages/admin/MatchReviewPage').then(
 const LinksPage = lazy(() => import('./pages/admin/LinksPage').then((m) => ({ default: m.LinksPage })))
 const ReviewQueuePage = lazy(() => import('./pages/admin/ReviewQueuePage').then((m) => ({ default: m.ReviewQueuePage })))
 const ReportsPage = lazy(() => import('./pages/admin/ReportsPage').then((m) => ({ default: m.ReportsPage })))
+const DisplayPage = lazy(() => import('./pages/admin/DisplayPage').then((m) => ({ default: m.DisplayPage })))
 const SettingsPage = lazy(() => import('./pages/admin/SettingsPage').then((m) => ({ default: m.SettingsPage })))
 
 function Loading() {
@@ -38,6 +39,16 @@ export default function App() {
             <Route path="/" element={<Navigate to="/survey" replace />} />
             <Route path="/survey" element={<SurveyRoute />} />
             <Route path="/survey/:classId" element={<SurveyRoute />} />
+
+            {/* لوحة العرض — خلف البوابة نفسها، وبلا إطار لوحة التعديل */}
+            <Route
+              path="/admin/display"
+              element={
+                <AdminGate>
+                  <DisplayPage />
+                </AdminGate>
+              }
+            />
 
             {/* الإدارة — خلف بوابة دخول */}
             <Route

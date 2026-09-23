@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 
 import { Legend } from '../../components/Legend'
 import { BarRow } from '../../components/BarRow'
-import { GradeStrip } from '../../components/GradeStrip'
+import { ScaleStrip } from '../../components/ScaleStrip'
 import { NoDataNotice } from '../../components/NoDataNotice'
 import { RankedList } from '../../components/RankedList'
 import { ReverseNote } from '../../components/ReverseNote'
@@ -15,6 +15,7 @@ import {
   strengthsAndGaps, suggestionsInScope,
 } from '../../lib/analysis'
 import { avg, num, pct, arabicDigits } from '../../lib/format'
+import { orderedClasses, shortClass, shortGrade } from '../../lib/labels'
 import { useSystem } from '../../state/useSystem'
 
 export function OverviewPage() {
@@ -38,6 +39,14 @@ export function OverviewPage() {
       classCount: state.classes.filter((c) => c.gradeId === g.id).length,
     }
   })
+
+  /** الفصول الاثنا عشر بترتيب الصف ثم رقم الفصل: أولى ١، أولى ٢، ثانية ١ … */
+  const classReadings = orderedClasses(state.grades, state.classes).map(({ room, grade }) => ({
+    room,
+    grade,
+    part: participation(state, { classId: room.id }),
+    index: satisfactionIndex(state, { classId: room.id }),
+  }))
 
   return (
     <>
@@ -88,13 +97,33 @@ export function OverviewPage() {
         </div>
       )}
 
-      <GradeStrip
+      <ScaleStrip
+        title="الصفوف على مسطرة القياس"
+        columns={6}
         scaleMin={index.scaleMin}
         scaleMax={index.scaleMax}
         schoolMean={index.mean}
-        grades={readings.map((r) => ({
+        readings={readings.map((r) => ({
           id: r.grade.id,
-          name: r.grade.name,
+          name: shortGrade(r.grade.no),
+          to: `/admin/grades/${r.grade.id}`,
+          mean: r.index.mean,
+          rate: r.part.receivedRate,
+          students: r.part.totalStudents,
+          responses: r.part.responsesReceived,
+        }))}
+      />
+
+      <ScaleStrip
+        title="الفصول على مسطرة القياس"
+        columns={12}
+        scaleMin={index.scaleMin}
+        scaleMax={index.scaleMax}
+        schoolMean={index.mean}
+        readings={classReadings.map((r) => ({
+          id: r.room.id,
+          name: shortClass(r.grade, r.room),
+          to: `/admin/classes/${r.room.id}`,
           mean: r.index.mean,
           rate: r.part.receivedRate,
           students: r.part.totalStudents,

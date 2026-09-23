@@ -64,7 +64,9 @@ try {
 
   await page.goto(`http://127.0.0.1:${PORT}/#/admin`, { waitUntil: 'domcontentloaded' })
   // الوضع المحلي: بوابة الرمز فقط
+  // البوابة تظهر بعد إقلاع التطبيق لا مع أول رسم للصفحة
   const gate = page.locator('button:has-text("دخول")')
+  await gate.first().waitFor({ state: 'visible', timeout: 20000 }).catch(() => {})
   if (await gate.count()) await gate.first().click()
   await page.waitForSelector('.admin-nav', { timeout: 20000 })
 
@@ -153,7 +155,7 @@ try {
     (await foot.evaluate((el) => getComputedStyle(el).display)) === 'table-footer-group')
 
   const sections = await page.locator('.report__no').count()
-  check('أقسام التقرير مرقّمة', sections === 10, `${sections} قسمًا`)
+  check('أقسام التقرير مرقّمة', sections === 11, `${sections} قسمًا`)
   const toc = await page.locator('.toc__row').count()
   check('فهرس المحتويات يطابق عدد الأقسام', toc === sections, `${toc} سطرًا`)
 
@@ -164,6 +166,14 @@ try {
     /[٠-٩]/.test(firstFinding), firstFinding.slice(0, 44) + '…')
 
   check('قسم منهجية وقواعد الحساب', await page.locator('.method li').count() >= 5)
+
+  // الفصول الاثنا عشر لها قسمها ورسمها
+  const classRows = await page.locator('.report__section table tbody tr').count()
+  check('قسم الفصول مبنيّ', classRows >= 12, `${classRows} صفًا في جداول التقرير`)
+  const charts = await page.locator('.chart__svg').count()
+  check('التقرير يحمل رسومًا بيانية', charts >= 3, `${charts} رسمًا`)
+  const chartText = await page.locator('.chart').first().innerText()
+  check('كل رسم يذكر أساس محوره', /المقياس|ن = /.test(chartText))
   check('خانات الاعتماد والتوقيع', await page.locator('.approval__box').count() === 3)
 
   // الغلاف وحده على صفحته
