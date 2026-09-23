@@ -2777,7 +2777,8 @@ th {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 15px clamp(14px, 1.4vw, 18px);
+  padding: 15px clamp(9px, 1.1vw, 18px);
+  min-width: 0;
   height: 100%;
   color: inherit;
   text-decoration: none;
@@ -2787,22 +2788,32 @@ th {
 .reading:hover { background: var(--surface-tint); }
 .reading:focus-visible { outline: 2px solid var(--moe-teal); outline-offset: -2px; }
 
-.reading__name { font-size: 13px; color: var(--text-muted); }
+.reading__name {
+  font-size: clamp(11px, calc(84px / var(--cols, 6)), 13px);
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
+/* حجم الخانة يتبع عدد الأعمدة: ستة للصفوف واثنا عشر للفصول في العرض
+   نفسه، فما يتّسع لستة يُقصّ في اثني عشر. */
 .reading__value {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  font-size: clamp(26px, 2.2vw, 33px);
+  gap: 6px;
+  font-size: clamp(19px, calc(230px / var(--cols, 6)), 33px);
   font-weight: 700;
   line-height: 1;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .reading__delta {
-  font-size: 13px;
+  font-size: clamp(10.5px, calc(90px / var(--cols, 6)), 13px);
   font-weight: 700;
   color: #8a6f2a;
+  white-space: nowrap;
 }
 
 .reading__delta.is-above { color: #0a6f6d; }
@@ -2848,9 +2859,10 @@ th {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 8px;
-  font-size: 12px;
+  gap: 6px;
+  font-size: clamp(10px, calc(76px / var(--cols, 6)), 12px);
   color: var(--text-muted);
+  white-space: nowrap;
 }
 
 .reading__rate { font-weight: 700; color: var(--text); }
@@ -3093,7 +3105,7 @@ th {
 
 .show__bars li {
   display: grid;
-  grid-template-columns: 4.5ch 1fr 5ch;
+  grid-template-columns: 9ch 1fr 5ch;
   align-items: center;
   gap: 10px;
   font-size: clamp(11px, 1.4vh, 14px);
