@@ -2,11 +2,23 @@
    مرصد — نظام تنسيق مبني على دليل الهوية البصرية لوزارة التعليم
    الإدارة العامة للتعليم بمحافظة جدة
 
-   الخط   : Helvetica Neue W23 for SKY — Bold للعناوين العريضة،
-            Regular للعناوين الفرعية والنصوص (الوزنان الوحيدان في الخط،
-            فلا يُستخدم أي وزن آخر تفاديًا للتغليظ الصناعي).
+   الخط   : Baloo Bhaijaan 2 — خط متغيّر من ٤٠٠ إلى ٨٠٠، اختارته
+            المدرسة. يحمل الأرقام العربية ٠-٩ فتظهر الأرقام بخط النص
+            نفسه. ويبقى Helvetica Neue W23 for SKY خطًا احتياطيًا
+            لأي محرف لا يغطّيه.
    الألوان: جميعها منقولة حرفيًا من الدليل، بلا أي لون مُستحدث.
    ═══════════════════════════════════════════════════════════════ */
+
+/* خط المدرسة المعتمد — ملف واحد متغيّر يغطي الأوزان كلها */
+@font-face {
+  font-family: 'Baloo Bhaijaan 2';
+  src:
+    url('/fonts/BalooBhaijaan2-Variable.woff2') format('woff2-variations'),
+    url('/fonts/BalooBhaijaan2-Variable.ttf') format('truetype-variations');
+  font-weight: 400 800;
+  font-style: normal;
+  font-display: swap;
+}
 
 @font-face {
   font-family: 'Helvetica Neue W23 SKY';
@@ -112,7 +124,7 @@ body {
   background-size: 620px 620px, 460px 460px;
   background-attachment: fixed;
   color: var(--text);
-  font-family: 'Helvetica Neue W23 SKY', 'Segoe UI', system-ui, sans-serif;
+  font-family: 'Baloo Bhaijaan 2', 'Helvetica Neue W23 SKY', 'Segoe UI', system-ui, sans-serif;
   font-size: 15px;
   font-weight: 400;
   line-height: 1.7;
