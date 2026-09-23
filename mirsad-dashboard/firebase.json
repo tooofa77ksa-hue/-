@@ -2,6 +2,9 @@
   "hosting": {
     "site": "qiyas-165-1448",
     "public": "dist",
+    "predeploy": [
+      "npm run build:deploy"
+    ],
     "ignore": [
       "firebase.json",
       "**/.*",
