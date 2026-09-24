@@ -227,18 +227,44 @@ service cloud.firestore {
       allow delete: if izCanEditStudent(resource.data.studentId);
     }
 
+    /** حدود القيم: نجوم ١–٥، وشارة منطقية، وحالة من ثلاث. */
+    function izEvalFields(d) {
+      return d.stars is int && d.stars >= 1 && d.stars <= 5
+        && d.badge is bool
+        && d.status in ['excellent', 'complete', 'needs-revision'];
+    }
+
+    /** التقييم باسم صاحبته هي لا باسم زميلتها. */
+    function izEvalIsMine(d) {
+      return izTeaches(d.subjectId)
+        && d.teacherId == izUser().get('teacherId', request.auth.uid);
+    }
+
     match /apps/injazi/evaluations/{evaluationId} {
       // التقييم يظهر في ملف الطالبة العام، فقراءته عامة.
       allow read: if true;
-      // المعلمة تكتب تقييم مادتها فقط، وباسمها هي لا باسم زميلتها.
-      allow create, update: if izIsAdmin()
-        || (izTeaches(request.resource.data.subjectId)
-            && request.resource.data.teacherId == izUser().get('teacherId', request.auth.uid)
-            && request.resource.data.stars is int
-            && request.resource.data.stars >= 1
-            && request.resource.data.stars <= 5
-            && request.resource.data.badge is bool
-            && request.resource.data.status in ['excellent', 'complete', 'needs-revision']);
+
+      allow create: if izIsAdmin()
+        || (izEvalIsMine(request.resource.data) && izEvalFields(request.resource.data));
+
+      /*
+        التعديل يُفحَص على المستند القائم لا على القادم.
+        ------------------------------------------------------------
+        كان الشرط يقرأ request.resource.data وحدها، فتكتب معلمةٌ فوق
+        تقييم زميلتها بأن تضع في الكتابة الجديدة مادتها هي ومعرّفها هي:
+        تمرّ القاعدة لأن الوافد سليم، ويُمحى تقييم الزميلة. ومعرّفات
+        التقييمات مكشوفة (القراءة عامة)، فلا حاجة لتخمين.
+        ولذلك تُفحص ملكية المستند الموجود أولًا، ثم تُثبَّت المفاتيح
+        الأربعة فلا يُنقَل تقييمٌ إلى مشروع أو طالبة أو مادة أخرى.
+      */
+      allow update: if izIsAdmin()
+        || (izEvalIsMine(resource.data)
+            && request.resource.data.subjectId == resource.data.subjectId
+            && request.resource.data.teacherId == resource.data.teacherId
+            && request.resource.data.get('projectId', null) == resource.data.get('projectId', null)
+            && request.resource.data.get('studentId', null) == resource.data.get('studentId', null)
+            && izEvalFields(request.resource.data));
+
       allow delete: if izIsAdmin();
     }
 
@@ -251,7 +277,21 @@ service cloud.firestore {
       // السجل للإدارة وحدها قراءةً؛ الكتابة لأي حساب فعّال لأنه أثر جانبي
       // لعملية مسموح بها أصلًا. لا تعديل ولا حذف: سجل لا يُزوَّر.
       allow read: if izIsAdmin();
-      allow create: if izActive();
+
+      /*
+        الكاتبة تُوقّع باسمها هي.
+        ------------------------------------------------------------
+        كان الشرط izActive() وحده، والحقلان actorName وactorRole نصًّا
+        حرًّا يأتي من العميل. فتستطيع حاملة رابط طالبة أن تكتب سطرًا
+        يقول إن «المشرفة» حذفت الملفات — في السجل نفسه الذي تقرؤه
+        الإدارة وتبني عليه حكمها. الأثر الذي يُزوَّر ليس أثرًا.
+        الاسم والدور يُقرآن الآن من ملف الصلاحيات على الخادم، فلا
+        يكتب أحدٌ إلا باسمه.
+      */
+      allow create: if izActive()
+        && request.resource.data.get('actorRole', '') == izRole()
+        && request.resource.data.get('actorName', '') == izUser().get('name', '');
+
       allow update, delete: if false;
     }
 
