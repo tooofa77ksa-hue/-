@@ -53,10 +53,36 @@ export function coreTokens(name: string): string[] {
   return out
 }
 
+/**
+ * فكّ الكلمة الملتصقة إذا كان فكّها يوافق الطرف الآخر.
+ *
+ * طالبة كتبت اسمها «سماعبدالله العلوي» بلا مسافة بين «سما» و«عبدالله»،
+ * واسمها في الكشف «سما عبدالله بن عتيق العلوي». فلا الكلمة تساوي
+ * «سما» ولا «عبدالله»، ولا يلتقيان. فإن كانت الكلمة تبدأ بكلمةٍ عند
+ * الطرف الآخر وبقيّتها كلمةٌ عنده أيضًا، فهي كلمتان التصقتا.
+ *
+ * والشرط مزدوج عمدًا — الصدر والبقيّة كلاهما عند الطرف الآخر — كي لا
+ * تُفكّ كلمةٌ بمجرّد أنها تبدأ بحروف اسمٍ آخر.
+ */
+function unglue(tokens: string[], other: string[]): string[] {
+  const out: string[] = []
+  for (const token of tokens) {
+    if (token.length >= 6 && !other.includes(token)) {
+      const head = other.find((o) => o.length >= 2 && token.startsWith(o)
+        && other.includes(token.slice(o.length)))
+      if (head) { out.push(head, token.slice(head.length)); continue }
+    }
+    out.push(token)
+  }
+  return out
+}
+
 /** هل يحتمل أن يكون الاسمان لشخص واحد؟ للمساعدة فقط، لا للدمج التلقائي. */
 export function isNameCandidate(a: string, b: string): boolean {
-  const x = coreTokens(a)
-  const y = coreTokens(b)
+  const ax = coreTokens(a)
+  const by = coreTokens(b)
+  const x = unglue(ax, by)
+  const y = unglue(by, x)
   if (!x.length || !y.length || x[0] !== y[0]) return false
   const sx = new Set(x)
   const sy = new Set(y)
