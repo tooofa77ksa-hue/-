@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>لوحة موافقات التصوير</title>
+<script>document.documentElement.setAttribute("dir","rtl");document.documentElement.setAttribute("lang","ar");</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#f3f6f5; --surface:#ffffff; --surface-2:#eef3f1; --line:#dde5e2;
+  --ink:#16302a; --muted:#5b716b; --brand:#0f6b50; --brand-ink:#ffffff;
+  --ok:#12894a; --ok-bg:#e3f4ea; --no:#c43d3d; --no-bg:#fbe8e8;
+  --track:#e4e9e8; --lock:#8a5a00; --lock-bg:#fff4dc; --shadow:0 1px 2px rgba(15,50,40,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0f1715; --surface:#16211e; --surface-2:#1c2a26; --line:#2a3a35;
+    --ink:#e4efeb; --muted:#9bb0a9; --brand:#3fb68b; --brand-ink:#08130f;
+    --ok:#4cc585; --ok-bg:#16352a; --no:#ee7b7b; --no-bg:#3a1f1f;
+    --track:#26332f; --lock:#f0c060; --lock-bg:#3a2e14; --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0f1715; --surface:#16211e; --surface-2:#1c2a26; --line:#2a3a35;
+  --ink:#e4efeb; --muted:#9bb0a9; --brand:#3fb68b; --brand-ink:#08130f;
+  --ok:#4cc585; --ok-bg:#16352a; --no:#ee7b7b; --no-bg:#3a1f1f;
+  --track:#26332f; --lock:#f0c060; --lock-bg:#3a2e14; --shadow:none;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{direction:rtl;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans Arabic",Tahoma,"Segoe UI",sans-serif;font-size:15px;line-height:1.6}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+
+/* الشريط العلوي */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.topbar-in{max-width:1180px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;margin-inline-end:auto;min-width:0}
+.brand-mark{width:36px;height:36px;border-radius:10px;background:var(--brand);color:var(--brand-ink);display:grid;place-items:center;font-weight:700;flex:none}
+.brand-name{font-weight:700;font-size:15px}
+.brand-sub{font-size:12px;color:var(--muted)}
+.mode{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--lock-bg);color:var(--lock)}
+.iconbtn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:7px 12px;font-weight:600;font-size:14px}
+.iconbtn svg{width:20px;height:20px;flex:none}
+.iconbtn.lock{background:var(--lock-bg);border-color:transparent;color:var(--lock)}
+.iconbtn.playing{background:var(--brand);color:var(--brand-ink);border-color:transparent}
+
+main{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:20px 48px;display:grid;gap:16px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;font-weight:600;font-size:14px}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:transparent}
+
+.hero{display:grid;gap:4px}
+.eyebrow{font-size:12px;color:var(--muted);letter-spacing:.02em;margin:0}
+h1{font-size:24px;margin:0;text-wrap:balance}
+h2{font-size:17px;margin:0}
+.lead{color:var(--muted);margin:0;max-width:65ch}
+.live{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ok);font-weight:600;margin-top:4px}
+.live i{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;justify-content:space-between;gap:8px;box-shadow:var(--shadow)}
+.stat-label{font-size:13px;color:var(--muted)}
+.stat-value{font-size:28px;font-weight:700;line-height:1.2}
+.stat-icon{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-weight:700;background:var(--surface-2);flex:none}
+.stat.ok .stat-icon{background:var(--ok-bg);color:var(--ok)}
+.stat.no .stat-icon{background:var(--no-bg);color:var(--no)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow);min-width:0}
+.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.row2{display:grid;grid-template-columns:1fr 1.4fr;gap:16px}
+.btn{border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:7px 14px;font-weight:600;font-size:14px}
+.btn.solid{background:var(--brand);color:var(--brand-ink);border-color:transparent}
+.btn.small{padding:3px 10px;font-size:13px}
+.btn.danger{color:var(--no)}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+
+.filters{display:flex;gap:10px;flex-wrap:wrap}
+.filters input,.filters select{border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:10px;padding:8px 12px;font:inherit;min-width:0}
+.filters input{flex:1 1 220px}
+
+.donut{display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:center}
+.legend{display:grid;gap:6px;font-size:14px}
+.legend span{display:flex;align-items:center;gap:8px}
+.legend i{width:10px;height:10px;border-radius:3px}
+
+.bars{display:grid;grid-template-columns:repeat(12,1fr);gap:6px;align-items:end;height:170px;border-bottom:1px solid var(--line);position:relative}
+.bar{background:var(--brand);border-radius:6px 6px 0 0;position:relative;min-width:0}
+.bar.low{background:var(--no)}
+.bar b{position:absolute;top:-20px;inset-inline:0;text-align:center;font-size:11px;font-weight:600;color:var(--muted)}
+.barlabels{display:grid;grid-template-columns:repeat(12,1fr);gap:6px;font-size:11px;color:var(--muted);text-align:center;margin-top:6px}
+.chartwrap{overflow-x:auto;padding-top:22px}
+.chartwrap>div{min-width:520px}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.mini{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface-2);display:grid;gap:6px}
+.mini-head{display:flex;justify-content:space-between;font-weight:700}
+.mini-row{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.mini-row b{display:block;color:var(--ink);font-size:14px}
+.meter{height:6px;border-radius:99px;background:var(--track);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--ok)}
+
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:680px;font-size:14px}
+th{text-align:start;font-size:12px;color:var(--muted);font-weight:600;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+.pill{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:600}
+.pill.ok{background:var(--ok-bg);color:var(--ok)}
+.pill.no{background:var(--no-bg);color:var(--no)}
+.note{font-size:12px;color:var(--muted);margin:10px 0 0}
+
+/* صفحة ولي الأمر */
+.parent{max-width:560px;margin:0 auto;width:100%;display:grid;gap:14px}
+.field{display:grid;gap:4px}
+.field label{font-size:13px;color:var(--muted)}
+.field .fake{border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:9px 12px}
+.choice{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.choice .btn{padding:12px;font-size:15px}
+.choice .yes{background:var(--ok-bg);color:var(--ok);border-color:transparent}
+.choice .nope{background:var(--no-bg);color:var(--no);border-color:transparent}
+
+/* التنبيه */
+.toast{position:fixed;inset-inline:16px;bottom:calc(20px + env(safe-area-inset-bottom,0px));margin:0 auto;max-width:420px;background:var(--ink);color:var(--bg);border-radius:14px;padding:12px 16px;display:flex;gap:12px;align-items:center;box-shadow:0 8px 30px rgba(0,0,0,.25);z-index:50;transform:translateY(0);transition:opacity .2s,transform .2s}
+.toast.hide{opacity:0;transform:translateY(12px);pointer-events:none}
+.toast svg{width:24px;height:24px;flex:none;color:var(--lock-bg)}
+.toast b{display:block}
+.toast span{font-size:13px;opacity:.85}
+
+/* نافذة القفل */
+.overlay{position:fixed;inset:0;background:rgba(10,20,17,.55);display:grid;place-items:center;padding:16px;z-index:60}
+.dialog{background:var(--surface);border-radius:18px;padding:22px;width:100%;max-width:380px;display:grid;gap:14px;border:1px solid var(--line)}
+.dialog .head{display:flex;align-items:center;gap:10px}
+.dialog .head svg{width:28px;height:28px;color:var(--lock)}
+.dialog input{width:100%;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:10px;padding:9px 12px;font:inherit}
+.msg{font-size:13px;color:var(--no);background:var(--no-bg);border-radius:10px;padding:8px 12px;margin:0}
+
+@media (max-width:860px){.stats{grid-template-columns:repeat(2,1fr)}.row2{grid-template-columns:1fr}}
+@media (max-width:420px){.stat-value{font-size:22px}.brand-sub{display:none}}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+</head>
+<body>
+
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-lock" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M7 11V8a5 5 0 0 1 10 0v3"/><rect x="4.5" y="11" width="15" height="10" rx="2.5" fill="currentColor"/><circle cx="12" cy="16" r="1.6" fill="var(--lock-bg)"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path fill="currentColor" d="M3 10v4a1 1 0 0 0 1 1h3l4 4V5L7 9H4a1 1 0 0 0-1 1Z"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M15 9a4 4 0 0 1 0 6M17.5 6.5a7.5 7.5 0 0 1 0 11"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor"/></symbol>
+</svg>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand">
+      <span class="brand-mark">١٦٥</span>
+      <div>
+        <div class="brand-name">موافقات التصوير</div>
+        <div class="brand-sub">الابتدائية الخامسة والستون بعد المائة بجدة</div>
+      </div>
+    </div>
+    <span class="mode">عرض فقط</span>
+    <button class="iconbtn" id="anthemBtn" type="button" aria-pressed="false">
+      <svg><use href="#i-play"/></svg><span id="anthemLabel">السلام الملكي</span>
+    </button>
+    <button class="iconbtn lock" id="lockBtn" type="button" aria-label="القفل: اضغط لفتح التعديل">
+      <svg><use href="#i-lock"/></svg><span>مقفل</span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="tab-admin" aria-selected="true" aria-controls="view-admin">لوحة المتابعة</button>
+    <button class="tab" role="tab" id="tab-parent" aria-selected="false" aria-controls="view-parent">صفحة ولي الأمر</button>
+  </div>
+
+  <section id="view-admin" role="tabpanel" aria-labelledby="tab-admin" style="display:grid;gap:16px">
+    <div class="hero">
+      <p class="eyebrow">الإدارة العامة للتعليم بمحافظة جدة</p>
+      <h1>لوحة متابعة موافقات التصوير</h1>
+      <p class="lead">متابعة استجابات أولياء الأمور بشأن تصوير الطالبات لأغراض التوثيق الإعلامي للفعاليات والبرامج المدرسية.</p>
+      <span class="live"><i></i>نسخة عرض ببيانات تجريبية، والأسماء مستبدلة</span>
+    </div>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="card">
+      <div class="card-head">
+        <div><p class="eyebrow">تصفية فورية</p><h2>البحث والفلاتر</h2></div>
+        <div class="btns">
+          <button class="btn" type="button" data-locked>+ إضافة استجابة</button>
+          <button class="btn solid" type="button" data-locked>استخراج Excel مرتب</button>
+        </div>
+      </div>
+      <div class="filters">
+        <input id="q" type="search" placeholder="اكتبي اسم الطالبة" aria-label="البحث باسم الطالبة">
+        <select id="fClass" aria-label="الفصل"></select>
+        <select id="fStatus" aria-label="حالة الموافقة">
+          <option value="">كل الحالات</option><option value="ok">موافقة</option><option value="no">غير موافقة</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="card">
+        <div class="card-head"><div><p class="eyebrow">توزيع الحالات</p><h2>الموافقون وغير الموافقين</h2></div></div>
+        <div class="donut">
+          <svg viewBox="0 0 42 42" width="160" height="160" role="img" aria-label="١٦١ موافقة و١١ غير موافقة">
+            <circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--no)" stroke-width="6"/>
+            <circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--ok)" stroke-width="6" stroke-dasharray="93.6 6.4" stroke-dashoffset="25"/>
+            <text x="21" y="21" text-anchor="middle" font-size="7" font-weight="700" fill="var(--ink)">١٧٢</text>
+            <text x="21" y="27" text-anchor="middle" font-size="3.4" fill="var(--muted)">استجابة</text>
+          </svg>
+          <div class="legend">
+            <span><i style="background:var(--ok)"></i>موافقة: <b class="num">١٦١</b></span>
+            <span><i style="background:var(--no)"></i>غير موافقة: <b class="num">١١</b></span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div><p class="eyebrow">مقارنة الفصول</p><h2>نسبة الموافقة لكل فصل</h2></div></div>
+        <div class="chartwrap"><div><div class="bars" id="bars"></div><div class="barlabels" id="barlabels"></div></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div><p class="eyebrow">عرض تفصيلي</p><h2>الفصول الدراسية</h2></div></div>
+      <div class="grid" id="classes"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>استجابات الطالبات</h2>
+        <span class="pill ok num" id="count"></span>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th scope="col">اسم الطالبة</th><th scope="col">الفصل</th><th scope="col">حالة الموافقة</th><th scope="col">تاريخ الاستجابة</th><th scope="col">الوقت</th><th scope="col">إجراءات</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <p class="note">يُعرض هنا جزء من الاستجابات للتوضيح.</p>
+    </div>
+  </section>
+
+  <section id="view-parent" role="tabpanel" aria-labelledby="tab-parent" hidden>
+    <div class="parent">
+      <div class="card" style="display:grid;gap:14px">
+        <div>
+          <p class="eyebrow">نموذج إقرار ولي الأمر</p>
+          <h2>الموافقة على تصوير الطالبة</h2>
+          <p class="lead" style="margin-top:6px">تقوم المدرسة بتوثيق الفعاليات والبرامج المدرسية بالصور والمقاطع. نأمل تحديد موافقتكم على ظهور ابنتكم فيها.</p>
+        </div>
+        <div class="field"><label>اسم الطالبة</label><div class="fake">طالبة ١</div></div>
+        <div class="field"><label>الفصل</label><div class="fake">أول ١</div></div>
+        <div class="choice">
+          <button class="btn yes" type="button" data-locked>✓ أوافق على التصوير</button>
+          <button class="btn nope" type="button" data-locked>✕ لا أوافق</button>
+        </div>
+        <p class="note" style="margin:0">هذه معاينة للاطلاع فقط، ولا تُرسل منها أي إجابة.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="toast hide" id="toast" role="status" aria-live="polite">
+  <svg><use href="#i-lock"/></svg>
+  <div><b>هذه لوحة عرض فقط</b><span id="toastText">افتح القفل للتعديل.</span></div>
+</div>
+
+<div class="overlay" id="lockDialog" hidden>
+  <form class="dialog" id="lockForm" autocomplete="off">
+    <div class="head"><svg><use href="#i-lock"/></svg><h2>فتح القفل</h2></div>
+    <p class="lead" style="font-size:14px">أدخل بيانات الإدارة لفتح التعديل.</p>
+    <div class="field"><label for="u">اسم المستخدم</label><input id="u" required></div>
+    <div class="field"><label for="p">الرقم السري</label><input id="p" type="password" required></div>
+    <p class="msg" id="lockMsg" hidden>هذه نسخة عرض عامة، والتعديل غير متاح فيها لأي أحد. التعديل يكون من النسخة الأصلية فقط.</p>
+    <div class="btns">
+      <button class="btn solid" type="submit">فتح</button>
+      <button class="btn" type="button" id="lockCancel">إغلاق</button>
+    </div>
+  </form>
+</div>
+
+<audio id="anthem" preload="none" src="royal-anthem.mp3"></audio>
+
+<script>
+(function(){
+  var AR = function(v){ return String(v).replace(/\d/g,function(d){return '٠١٢٣٤٥٦٧٨٩'[d];}).replace('.', '٫'); };
+
+  var CLASSES = [
+    ['أول ١',23,21],['أول ٢',22,21],['ثاني ١',14,14],['ثاني ٢',14,14],['ثالث ١',10,10],['ثالث ٢',15,15],
+    ['رابع ١',14,14],['رابع ٢',16,16],['خامس ١',10,9],['خامس ٢',10,7],['سادس ١',14,12],['سادس ٢',10,8]
+  ];
+  var ROWS = [
+    ['طالبة ١','أول ١',1,'١٤٤٨/٠٣/٠٣','٠٣:٢٢ م'],['طالبة ٢','أول ١',1,'١٤٤٨/٠٣/٠٤','٠٨:٢١ ص'],
+    ['طالبة ٣','أول ١',1,'١٤٤٨/٠٣/٠٣','١٠:٣٧ م'],['طالبة ٤','أول ٢',0,'١٤٤٨/٠٣/٠٣','٠٣:٢١ م'],
+    ['طالبة ٥','ثاني ١',1,'١٤٤٨/٠٣/٠٤','٠٩:١٠ ص'],['طالبة ٦','ثالث ٢',1,'١٤٤٨/٠٣/٠٤','٠٧:٤٥ م'],
+    ['طالبة ٧','رابع ١',1,'١٤٤٨/٠٣/٠٥','١١:٠٢ ص'],['طالبة ٨','خامس ٢',1,'١٤٤٨/٠٣/٠٥','٠٣:٠٥ م'],
+    ['طالبة ٩','خامس ٢',0,'١٤٤٨/٠٣/٠٦','٠٤:٤٠ م'],['طالبة ١٠','سادس ١',0,'١٤٤٨/٠٣/٠٩','٠٦:١٨ م'],
+    ['طالبة ١١','سادس ٢',1,'١٤٤٨/٠٣/٠٩','٠٨:٥٥ م'],['طالبة ١٢','رابع ٢',1,'١٤٤٨/٠٣/١٠','١٠:١٢ ص']
+  ];
+
+  var total=0, yes=0;
+  CLASSES.forEach(function(c){ total+=c[1]; yes+=c[2]; });
+  var stats = [
+    ['إجمالي الاستجابات', AR(total), 'استجابة مسجلة', 'Σ', ''],
+    ['الموافقات', AR(yes), 'موافقة على التصوير', '✓', 'ok'],
+    ['غير الموافقات', AR(total-yes), 'عدم موافقة', '✕', 'no'],
+    ['نسبة الموافقة', AR((yes/total*100).toFixed(1))+'٪', 'من إجمالي الاستجابات', '٪', 'ok']
+  ];
+  document.getElementById('stats').innerHTML = stats.map(function(s){
+    return '<div class="stat '+s[4]+'"><div><div class="stat-label">'+s[0]+'</div><div class="stat-value num">'+s[1]+'</div><div class="stat-label">'+s[2]+'</div></div><span class="stat-icon" aria-hidden="true">'+s[3]+'</span></div>';
+  }).join('');
+
+  document.getElementById('bars').innerHTML = CLASSES.map(function(c){
+    var r = c[2]/c[1]*100;
+    return '<div class="bar'+(r<85?' low':'')+'" style="height:'+r+'%"><b class="num">'+AR(Math.round(r))+'٪</b></div>';
+  }).join('');
+  document.getElementById('barlabels').innerHTML = CLASSES.map(function(c){ return '<span>'+c[0]+'</span>'; }).join('');
+
+  document.getElementById('classes').innerHTML = CLASSES.map(function(c){
+    var r = c[2]/c[1]*100;
+    return '<div class="mini"><div class="mini-head"><span>'+c[0]+'</span><span class="num">'+AR(c[1])+'</span></div>'+
+      '<div class="meter"><i style="width:'+r+'%"></i></div>'+
+      '<div class="mini-row"><span>موافقة<b class="num">'+AR(c[2])+'</b></span><span>غير موافقة<b class="num">'+AR(c[1]-c[2])+'</b></span><span>النسبة<b class="num">'+AR(r.toFixed(1)).replace('٫0','').replace('٫٠','')+'٪</b></span></div></div>';
+  }).join('');
+
+  var fClass = document.getElementById('fClass');
+  fClass.innerHTML = '<option value="">كل الفصول</option>' + CLASSES.map(function(c){ return '<option>'+c[0]+'</option>'; }).join('');
+
+  function renderRows(){
+    var q = document.getElementById('q').value.trim(), fc = fClass.value, fs = document.getElementById('fStatus').value;
+    var list = ROWS.filter(function(r){
+      return (!q || r[0].indexOf(q)>-1) && (!fc || r[1]===fc) && (!fs || (fs==='ok') === !!r[2]);
+    });
+    document.getElementById('rows').innerHTML = list.map(function(r){
+      return '<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td><span class="pill '+(r[2]?'ok':'no')+'">'+(r[2]?'✓ موافقة':'✕ غير موافقة')+'</span></td><td class="num">'+r[3]+'</td><td class="num">'+r[4]+'</td>'+
+        '<td><div class="btns"><button class="btn small" type="button" data-locked>تعديل</button><button class="btn small danger" type="button" data-locked>حذف</button></div></td></tr>';
+    }).join('') || '<tr><td colspan="6" style="color:var(--muted)">لا توجد نتائج مطابقة.</td></tr>';
+    document.getElementById('count').textContent = AR(list.length) + ' نتيجة';
+  }
+  ['q','fClass','fStatus'].forEach(function(id){ document.getElementById(id).addEventListener('input', renderRows); });
+  renderRows();
+
+  // التبويبات
+  var tabs = [['tab-admin','view-admin'],['tab-parent','view-parent']];
+  tabs.forEach(function(t){
+    document.getElementById(t[0]).addEventListener('click', function(){
+      tabs.forEach(function(o){
+        var on = o[0]===t[0];
+        document.getElementById(o[0]).setAttribute('aria-selected', on);
+        document.getElementById(o[1]).hidden = !on;
+      });
+    });
+  });
+
+  // التنبيه: أي زر تعديل أو إضافة أو حفظ
+  var toast = document.getElementById('toast'), timer;
+  function warn(){
+    toast.classList.remove('hide');
+    clearTimeout(timer);
+    timer = setTimeout(function(){ toast.classList.add('hide'); }, 2600);
+  }
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('[data-locked]');
+    if (b){ e.preventDefault(); warn(); }
+  });
+
+  // القفل
+  var dlg = document.getElementById('lockDialog'), msg = document.getElementById('lockMsg');
+  document.getElementById('lockBtn').addEventListener('click', function(){
+    msg.hidden = true; dlg.hidden = false; document.getElementById('u').focus();
+  });
+  function closeDlg(){ dlg.hidden = true; document.getElementById('lockForm').reset(); }
+  document.getElementById('lockCancel').addEventListener('click', closeDlg);
+  dlg.addEventListener('click', function(e){ if (e.target===dlg) closeDlg(); });
+  document.addEventListener('keydown', function(e){ if (e.key==='Escape' && !dlg.hidden) closeDlg(); });
+  document.getElementById('lockForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    document.getElementById('p').value = '';
+    msg.hidden = false;
+  });
+
+  // السلام الملكي
+  var audio = document.getElementById('anthem'), ab = document.getElementById('anthemBtn'), al = document.getElementById('anthemLabel');
+  function sync(){
+    var on = !audio.paused;
+    ab.classList.toggle('playing', on);
+    ab.setAttribute('aria-pressed', on);
+    ab.querySelector('use').setAttribute('href', on ? '#i-pause' : '#i-play');
+    al.textContent = on ? 'إيقاف السلام الملكي' : 'السلام الملكي';
+  }
+  ab.addEventListener('click', function(){
+    if (audio.paused){ var p = audio.play(); if (p && p.catch) p.catch(function(){}); }
+    else audio.pause();
+  });
+  ['play','pause','ended'].forEach(function(ev){ audio.addEventListener(ev, sync); });
+})();
+</script>
+
+</body>
+</html>
