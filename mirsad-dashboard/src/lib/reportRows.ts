@@ -5,16 +5,24 @@
  * فيستحيل أن تختلف الأرقام بين قاعدة البيانات واللوحة والتصدير.
  */
 import {
-  analyzeAllQuestions, nonRespondents, overallDistribution,
+  analyzeAllQuestions, overallDistribution,
   participation, satisfactionIndex, studentsInScope, suggestionsInScope, type Scope,
 } from './analysis'
+import { nonParticipants } from './attendance'
 import { clusterVoices } from './similar'
 import type { ImprovementAction, SystemState } from '../domain/types'
 
+/**
+ * كشف من لم تشارك — لا «من ليس لها استجابة مؤكَّدة».
+ *
+ * الفرق بينهما مئتان: الثانية تعدّ غائبةً كل طالبة تنتظر استجابتُها
+ * تأكيد اسمها في المراجعة، وأكثرهن شاركن. وهذا الكشف يُرفع ويُسأل
+ * عن أساسه، فبُني على من لا أثر لها إطلاقًا.
+ */
 export function nonRespondentRows(state: SystemState, scope: Scope) {
   const gradeById = new Map(state.grades.map((g) => [g.id, g]))
   const classById = new Map(state.classes.map((c) => [c.id, c]))
-  return nonRespondents(state, scope).map((s, i) => ({
+  return nonParticipants(state, scope).map((s, i) => ({
     index: i + 1,
     name: s.name,
     grade: gradeById.get(s.gradeId)?.name ?? '',
@@ -29,7 +37,12 @@ export function summaryRows(state: SystemState, scope: Scope) {
   return [
     { label: 'إجمالي الطالبات', value: p.totalStudents, basis: 'الكشوف الرسمية المرفوعة' },
     { label: 'المستجيبات المؤكّدات', value: p.confirmedRespondents, basis: 'استجابة مرتبطة بطالبة مؤكّدة' },
-    { label: 'غير المستجيبات', value: p.nonRespondents, basis: 'طالبات الكشف بلا استجابة مؤكّدة' },
+    { label: 'بلا استجابة مؤكّدة', value: p.nonRespondents, basis: 'تنتظر تأكيد الاسم في مراجعة المطابقة' },
+    {
+      label: 'لم تشارك إطلاقًا',
+      value: nonParticipants(state, scope).length,
+      basis: 'لا استجابة مؤكّدة ولا مرشّحة ولا باسم يشبه اسمها',
+    },
     { label: 'نسبة الاستجابة المؤكّدة', value: `${p.rate.toFixed(1)}%`, basis: `من ${p.totalStudents} طالبة` },
     { label: 'الاستجابات المستلمة', value: p.responsesReceived, basis: 'كل الاستجابات المنسوبة للنطاق' },
     { label: 'بانتظار مراجعة المطابقة', value: p.awaitingReview, basis: 'لم تُربط بعد بطالبة' },

@@ -208,7 +208,7 @@ function buildSheet(
 export async function exportNonRespondents(state: SystemState, scope: Scope) {
   const wb = await newWorkbook(state)
 
-  buildSheet(wb, state, 'غير المستجيبات', scope,
+  buildSheet(wb, state, 'من لم تشارك', scope,
     ['م', 'اسم الطالبة', 'الصف', 'الفصل', 'رقم الكشف'],
     nonRespondentRows(state, scope).map((r) => [r.index, r.name, r.grade, r.className, r.rosterNo]))
 

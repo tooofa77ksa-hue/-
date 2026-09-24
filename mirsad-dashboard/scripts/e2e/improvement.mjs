@@ -208,6 +208,81 @@ try {
     answered >= many + 1, `${answered} رأيًا`)
   await page.screenshot({ path: join(out, 'akin-done.png') })
 
+  console.log('\n٦) أبواب الآراء: ما يحتاج عملًا وحده')
+  await page.goto(`http://127.0.0.1:${PORT}/#/admin/voice`, { waitUntil: 'domcontentloaded' })
+  await page.waitForSelector('.kinds', { timeout: 20000 })
+  const tabs = await page.locator('.kind').count()
+  check('ثلاثة أبواب للآراء', tabs === 3, `${tabs} بابًا`)
+
+  const labels = await page.locator('.kind__t').allInnerTexts()
+  check('  الأول «تحتاج تحسين» وهو المفتوح', labels[0].includes('تحتاج تحسين')
+    && (await page.locator('.kind').first().getAttribute('aria-pressed')) === 'true')
+
+  const plain = (t) => t.replace(/[\u2066-\u2069\u200e\u200f]/g, '')
+  const counts = (await page.locator('.kind__n').allInnerTexts()).map((t) => Number(plain(t)))
+  const shown = await page.locator('.voice').count()
+  check('  عدد الباب يطابق ما يُعرض فيه', shown === counts[0], `${shown} = ${counts[0]}`)
+  check('  والشكر في بابه لا في باب التحسين', counts[1] > 0 && counts[1] < counts[0],
+    `تحسين ${counts[0]} · شكر ${counts[1]} · بلا مضمون ${counts[2]}`)
+  check('  ومجموع الأبواب هو كل الآراء',
+    counts[0] + counts[1] + counts[2] === 113, `${counts[0] + counts[1] + counts[2]}`)
+
+  // باب الشكر: لا أدوات تصنيف ولا لوح تحسين — لا يُردّ عليه
+  await page.locator('.kind--positive').click()
+  await page.waitForTimeout(500)
+  const praiseRow = page.locator('.voice').first()
+  check('  باب الشكر بلا أدوات معالجة',
+    (await praiseRow.locator('select').count()) === 0
+    && (await praiseRow.getByRole('button', { name: /لوح التحسين/ }).count()) === 0)
+  check('  وفيه زرّ نقلٍ إن أخطأ الفرز',
+    (await praiseRow.getByRole('button', { name: /انقليه/ }).count()) === 1)
+  await page.locator('.kinds').scrollIntoViewIfNeeded()
+  await page.screenshot({ path: join(out, 'kinds.png') })
+
+  console.log('\n٧) استبعاد رأي يُسجَّل ولا يُمحى')
+  await page.locator('.kind--improve').click()
+  await page.waitForTimeout(500)
+  const beforeCount = await page.locator('.voice').count()
+  const victim = (await page.locator('.voice__text').first().innerText()).trim()
+  page.once('dialog', (d) => d.accept('اسم شخصي في النص'))
+  await page.locator('.voice').first().getByRole('button', { name: 'استبعاد' }).click()
+  await page.waitForTimeout(700)
+  check('الرأي المستبعَد يخرج من العرض',
+    (await page.locator('.voice').count()) === beforeCount - 1)
+  const gone = page.locator('.gone__row')
+  check('  ويظهر في «آراء مستبعَدة» بنصّه', (await gone.count()) === 1
+    && (await gone.first().locator('.gone__text').innerText()).trim() === victim)
+  check('  ومعه سببه', (await gone.first().locator('.gone__why').innerText()).includes('اسم شخصي'))
+  check('  وسطر في أسفل الصفحة يذكر عددها',
+    (await page.locator('.basis-note').innerText()).includes('استُبعد'))
+
+  await gone.first().getByRole('button', { name: /أعيديه/ }).click()
+  await page.waitForTimeout(700)
+  check('  وإعادته تُرجعه كما كان',
+    (await page.locator('.voice').count()) === beforeCount
+    && (await page.locator('.gone__row').count()) === 0)
+
+  console.log('\n٨) كشف من لم تشارك، وفيه الأرشفة والحذف')
+  await page.goto(`http://127.0.0.1:${PORT}/#/admin/non-respondents`, { waitUntil: 'domcontentloaded' })
+  await page.waitForSelector('.table', { timeout: 20000 })
+  const listed = await page.locator('.table tbody tr').count()
+  const stats = (await page.locator('.stats').innerText()).replace(/[\u2066-\u2069]/g, '')
+  check('الكشف يعرض من لا أثر لها', listed > 0 && listed < 60, `${listed} طالبة`)
+  check('  وليس «بلا استجابة مؤكَّدة» وهنّ مئات',
+    (await page.locator('.basis-note').innerText()).includes('258'), stats.split('\n')[0])
+  check('  ولكل صفّ زرّا أرشفة وحذف',
+    (await page.locator('.table tbody tr').first().getByRole('button', { name: 'أرشفة' }).count()) === 1
+    && (await page.locator('.table tbody tr').first().getByRole('button', { name: 'حذف' }).count()) === 1)
+
+  const firstName = (await page.locator('.table tbody tr').first().locator('.table__title').innerText()).trim()
+  page.once('dialog', (d) => d.accept())
+  await page.locator('.table tbody tr').first().getByRole('button', { name: 'أرشفة' }).click()
+  await page.waitForTimeout(700)
+  check('  والأرشفة تُخرجها من الكشف',
+    (await page.locator('.table tbody tr').count()) === listed - 1
+    && !(await page.locator('.table').innerText()).includes(firstName))
+  await page.screenshot({ path: join(out, 'non-participants.png') })
+
 } finally {
   await browser.close()
   server.close()

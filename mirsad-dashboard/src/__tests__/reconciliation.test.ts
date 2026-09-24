@@ -14,6 +14,7 @@ import {
   participation, responsesInScope, satisfactionIndex, studentsInScope,
   suggestionsInScope, type Scope,
 } from '../lib/analysis'
+import { nonParticipants } from '../lib/attendance'
 import {
   nonRespondentRows, overallRows, questionRows, studentRows,
   suggestionRows, summaryRows,
@@ -30,6 +31,19 @@ const SCOPES: { name: string; scope: Scope }[] = [
   { name: 'الثالث فصل ١', scope: { classId: 'g3-c1' } },
 ]
 
+
+/**
+ * قراءة بند من الملخّص بعنوانه لا بموضعه.
+ *
+ * كانت الفحوص تقرأ «summaryRows[2]»، فلمّا أُضيف بند إلى الملخّص
+ * انزاحت المواضع وسقطت فحوصٌ لا علاقة لها بالتغيير.
+ */
+function summaryValue(rows: { label: string; value: string | number }[], label: string) {
+  const row = rows.find((r) => r.label === label)
+  if (!row) throw new Error(`لا يوجد بند «${label}» في الملخّص`)
+  return row.value
+}
+
 describe('التطابق بين قاعدة البيانات واللوحة والتصدير', () => {
   for (const { name, scope } of SCOPES) {
     describe(name, () => {
@@ -44,22 +58,28 @@ describe('التطابق بين قاعدة البيانات واللوحة وا�
         expect(studentsInScope(state, scope)).toHaveLength(db)
         expect(participation(state, scope).totalStudents).toBe(db)
         expect(studentRows(state, scope)).toHaveLength(db)
-        expect(Number(summaryRows(state, scope)[0].value)).toBe(db)
+        expect(Number(summaryValue(summaryRows(state, scope), 'إجمالي الطالبات'))).toBe(db)
       })
 
       it('المستجيبات + غير المستجيبات = إجمالي الطالبات', () => {
         const p = participation(state, scope)
         expect(p.confirmedRespondents + p.nonRespondents).toBe(p.totalStudents)
-        expect(Number(summaryRows(state, scope)[1].value)
-             + Number(summaryRows(state, scope)[2].value)).toBe(p.totalStudents)
+        const rows = summaryRows(state, scope)
+        expect(Number(summaryValue(rows, 'المستجيبات المؤكّدات'))
+             + Number(summaryValue(rows, 'بلا استجابة مؤكّدة'))).toBe(p.totalStudents)
       })
 
-      it('قائمة غير المستجيبات في اللوحة وExcel متطابقة اسمًا وعددًا', () => {
-        const dash = nonRespondents(state, scope)
+      it('كشف من لم تشارك في اللوحة وExcel متطابق اسمًا وعددًا', () => {
+        const dash = nonParticipants(state, scope)
         const excel = nonRespondentRows(state, scope)
         expect(excel).toHaveLength(dash.length)
         expect(excel.map((r) => r.name)).toEqual(dash.map((s) => s.name))
-        expect(Number(summaryRows(state, scope)[2].value)).toBe(dash.length)
+        expect(Number(summaryValue(summaryRows(state, scope), 'لم تشارك إطلاقًا'))).toBe(dash.length)
+      })
+
+      it('ومن لم تشارك أقلّ ممن بلا استجابة مؤكّدة — والفرق منتظِرو التأكيد', () => {
+        const p = participation(state, scope)
+        expect(nonParticipants(state, scope).length).toBeLessThanOrEqual(p.nonRespondents)
       })
 
       it('عدد المستجيبات يطابق الطالبات ذوات الاستجابة المرتبطة', () => {
@@ -97,14 +117,14 @@ describe('التطابق بين قاعدة البيانات واللوحة وا�
       })
 
       it('الاستجابات المستلمة في الملخّص تطابق ما ينسبه النطاق', () => {
-        expect(Number(summaryRows(state, scope)[4].value))
+        expect(Number(summaryValue(summaryRows(state, scope), 'الاستجابات المستلمة')))
           .toBe(responsesInScope(state, scope).length)
       })
 
       it('المؤشر في الملخّص يطابق حساب اللوحة', () => {
         const idx = satisfactionIndex(state, scope)
-        const row = summaryRows(state, scope)[7]
-        expect(row.value).toBe(idx.mean === null ? '—' : idx.mean.toFixed(2))
+        const value = summaryValue(summaryRows(state, scope), 'مؤشر الاتجاه')
+        expect(value).toBe(idx.mean === null ? '—' : idx.mean.toFixed(2))
       })
     })
   }
@@ -125,8 +145,9 @@ describe('التطابق بعد تسجيل استجابة جديدة', () => {
 
     const p = participation(next, scope)
     expect(p.confirmedRespondents + p.nonRespondents).toBe(p.totalStudents)
-    expect(nonRespondentRows(next, scope)).toHaveLength(p.nonRespondents)
-    expect(Number(summaryRows(next, scope)[1].value)).toBe(p.confirmedRespondents)
+    expect(nonRespondentRows(next, scope)).toHaveLength(nonParticipants(next, scope).length)
+    expect(Number(summaryValue(summaryRows(next, scope), 'المستجيبات المؤكّدات')))
+      .toBe(p.confirmedRespondents)
     expect(studentRows(next, scope).filter((r) => r.responded === 'نعم')).toHaveLength(p.confirmedRespondents)
 
     // ترتفع قاعدة الحساب لكل سؤال بمقدار الاستجابة الواحدة

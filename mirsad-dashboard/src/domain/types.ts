@@ -107,6 +107,22 @@ export interface Answer {
 
 export type SuggestionStatus = 'new' | 'reviewed' | 'linked' | 'closed'
 
+/**
+ * نوع الرأي من جهة ما يُطلب من المدرسة.
+ *
+ * «improve» ما فيه مطلب أو ملحوظة — وهو وحده ما يُردّ عليه بإجراء.
+ * «positive» شكر وثناء يُعرض ولا يُطلب له جواب. «empty» ما لا مضمون
+ * فيه («لا يوجد»، نقاط، فراغ).
+ */
+export type VoiceKind = 'improve' | 'positive' | 'empty'
+
+/** استبعاد رأي من العرض والتقرير، بسببٍ مكتوب ولا يُمحى النص. */
+export interface VoiceExclusion {
+  reason: string
+  at: string
+  by: string
+}
+
 export interface Suggestion {
   id: Id
   responseId: Id
@@ -117,6 +133,15 @@ export interface Suggestion {
   text: string
   categoryId: Id | null
   status: SuggestionStatus
+  /**
+   * تصنيف الإدارة للرأي إن صحّحت التصنيف الآلي.
+   *
+   * التصنيف بالكلمات يخطئ، فإذا نقلت الإدارة رأيًا إلى بابه الصحيح
+   * حُفظ قرارها هنا وغلب على الآلة، فلا يعود الخطأ نفسه كل مرة.
+   */
+  kind?: VoiceKind | null
+  /** مستبعد من العرض والتقرير — والنص باقٍ لا يُمحى. */
+  excluded?: VoiceExclusion | null
   sourceFile?: string
   sourceRow?: number
 }

@@ -1,7 +1,7 @@
 import { audit, newId } from '../data/store'
 import { normalizeArabic } from '../lib/arabic'
 import type {
-  Id, ImprovementAction, Student, SuggestionStatus, SystemState,
+  Id, ImprovementAction, Student, SuggestionStatus, SystemState, VoiceKind,
 } from './types'
 
 /** كل دالة هنا تُعيد حالة جديدة ولا تُعدّل الحالة الممرَّرة. */
@@ -245,6 +245,62 @@ export function setSuggestionStatus(
   return next
 }
 
+/**
+ * نقل رأي إلى بابه الصحيح.
+ *
+ * الفرز الآلي بالكلمات يخطئ، وقرار الإدارة يغلب عليه ويُحفظ — فلا
+ * يعود الرأي إلى الباب الخطأ في كل مرة تُفتح فيها الشاشة.
+ */
+export function setVoiceKind(
+  state: SystemState,
+  suggestionId: Id,
+  kind: VoiceKind | null,
+): SystemState {
+  const next = clone(state)
+  next.suggestions = next.suggestions.map((s) =>
+    s.id === suggestionId ? { ...s, kind } : s,
+  )
+  audit(next, 'نقل رأي إلى باب آخر', 'suggestion', suggestionId, kind ?? 'الفرز الآلي')
+  return next
+}
+
+/**
+ * استبعاد رأي من العرض والتقرير.
+ *
+ * لا يُمحى النص ولا يُحذف الرأي: يُرفع عن الشاشة والتقرير ويُسجَّل
+ * سببه وتاريخه. فالحذف يُنقص العدد بلا تفسير، ويُسأل عن الفرق ولا
+ * جواب؛ والاستبعاد المسجَّل يُجاب عنه بسطر واحد.
+ *
+ * ويبقى الرأي في عدّ الآراء كلها، ويُذكر عدد المستبعَد في التقرير.
+ */
+export function excludeSuggestion(
+  state: SystemState,
+  suggestionId: Id,
+  reason: string,
+  by = 'الإدارة',
+): SystemState {
+  const next = clone(state)
+  const trimmed = reason.trim()
+  if (!trimmed) return state
+  next.suggestions = next.suggestions.map((s) =>
+    s.id === suggestionId
+      ? { ...s, excluded: { reason: trimmed, at: new Date().toISOString(), by } }
+      : s,
+  )
+  audit(next, 'استبعاد رأي من التقرير', 'suggestion', suggestionId, trimmed)
+  return next
+}
+
+/** إعادة رأي مستبعَد إلى العرض. */
+export function restoreSuggestion(state: SystemState, suggestionId: Id): SystemState {
+  const next = clone(state)
+  next.suggestions = next.suggestions.map((s) =>
+    s.id === suggestionId ? { ...s, excluded: null } : s,
+  )
+  audit(next, 'إعادة رأي مستبعَد', 'suggestion', suggestionId, '')
+  return next
+}
+
 // ───────────────── إجراءات التحسين ─────────────────
 
 export type ActionDraft = Omit<ImprovementAction, 'id' | 'createdAt' | 'updatedAt' | 'evidence'> & {
@@ -294,6 +350,26 @@ export function updateAction(state: SystemState, id: Id, draft: ActionDraft): Sy
   )
   syncLinkedStatus(next)
   audit(next, 'تعديل إجراء تحسين', 'action', id, draft.title)
+  return next
+}
+
+/**
+ * حذف طالبة حذفًا نهائيًا — لاسمٍ دخل بالخطأ ولا وجود له.
+ *
+ * الأرشفة هي الأصل لكل من غادرت المدرسة، لأن استجابتها جزء من تاريخ
+ * القياس. أما هذا فلاسمٍ مكرّر أو مكتوب سهوًا: يُحذف هو واستجاباته
+ * وآراؤه، فلا تبقى استجابة معلّقة بلا صاحبة.
+ */
+export function deleteStudent(state: SystemState, id: Id): SystemState {
+  const next = clone(state)
+  const student = next.students.find((s) => s.id === id)
+  const responseIds = new Set(next.responses.filter((r) => r.studentId === id).map((r) => r.id))
+  next.students = next.students.filter((s) => s.id !== id)
+  next.responses = next.responses.filter((r) => r.studentId !== id)
+  next.answers = next.answers.filter((a) => !responseIds.has(a.responseId))
+  next.suggestions = next.suggestions.filter((s) => !responseIds.has(s.responseId))
+  audit(next, 'حذف طالبة نهائيًا', 'student', id,
+    `${student?.name ?? ''} ومعها ${responseIds.size} استجابة`)
   return next
 }
 

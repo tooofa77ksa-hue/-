@@ -5,12 +5,15 @@ import { EmptyState } from '../../components/EmptyState'
 import { VoiceImprovement } from '../../components/VoiceImprovement'
 import { SectionTitle } from '../../components/SectionTitle'
 import { StatCard } from '../../components/StatCard'
-import { categorizeSuggestion, setSuggestionStatus } from '../../domain/actions'
-import { suggestionsInScope, type Scope } from '../../lib/analysis'
-import type { ImprovementAction } from '../../domain/types'
+import {
+  categorizeSuggestion, excludeSuggestion, restoreSuggestion, setSuggestionStatus, setVoiceKind,
+} from '../../domain/actions'
+import { excludedInScope, suggestionsInScope, type Scope } from '../../lib/analysis'
+import type { ImprovementAction, VoiceKind } from '../../domain/types'
+import { KIND_LABELS, KIND_NOTES, voiceKind } from '../../lib/voiceKind'
 import { normalizeArabic } from '../../lib/arabic'
 import { exportSuggestions } from '../../lib/excel'
-import { num, pct } from '../../lib/format'
+import { dateOnly, num, pct } from '../../lib/format'
 import { clusterVoices } from '../../lib/similar'
 import { useSystem } from '../../state/useSystem'
 
@@ -24,8 +27,21 @@ export function VoicePage() {
   const [categoryId, setCategoryId] = useState('all')
   const [search, setSearch] = useState('')
 
+  const [kind, setKind] = useState<VoiceKind>('improve')
+
   const scope: Scope = gradeId === 'all' ? {} : { gradeId }
   const all = suggestionsInScope(state, scope)
+  const excluded = excludedInScope(state, scope)
+
+  /** الآراء موزَّعةً على أبوابها الثلاثة. */
+  const byKind = useMemo(() => {
+    const out: Record<VoiceKind, typeof all> = { improve: [], positive: [], empty: [] }
+    for (const s of all) out[voiceKind(s)].push(s)
+    return out
+  }, [all])
+
+  /** الباب المعروض وحده هو مجال البحث والتصفية والتصدير. */
+  const inKind = byKind[kind]
 
   /** الرأي ← الإجراء الذي اتُّخذ عليه، إن وُجد. */
   const answeredBy = useMemo(() => {
@@ -38,24 +54,27 @@ export function VoicePage() {
 
   const rows = useMemo(() => {
     const needle = normalizeArabic(search)
-    return all
+    return inKind
       .filter((s) => categoryId === 'all'
         || (categoryId === 'none' ? !s.categoryId : s.categoryId === categoryId))
       .filter((s) => !needle || normalizeArabic(s.text).includes(needle))
-  }, [all, categoryId, search])
+  }, [inKind, categoryId, search])
+
+  /** المؤشّرات على ما يحتاج تحسينًا وحده: الشكر لا يُصنَّف ولا يُعالَج. */
+  const needWork = byKind.improve
 
   const byCategory = useMemo(() => {
     const tally = new Map<string, number>()
-    for (const s of all) tally.set(s.categoryId ?? 'none', (tally.get(s.categoryId ?? 'none') ?? 0) + 1)
+    for (const s of needWork) tally.set(s.categoryId ?? 'none', (tally.get(s.categoryId ?? 'none') ?? 0) + 1)
     return [...tally.entries()]
       .map(([id, count]) => ({
         id,
         name: id === 'none' ? 'بلا تصنيف' : state.categories.find((c) => c.id === id)?.name ?? id,
         count,
-        percent: all.length ? (count / all.length) * 100 : 0,
+        percent: needWork.length ? (count / needWork.length) * 100 : 0,
       }))
       .sort((a, b) => b.count - a.count)
-  }, [all, state.categories])
+  }, [needWork, state.categories])
 
   /**
    * الموضوعات المتكرّرة: الشكوى الواحدة مهما اختلفت عباراتها.
@@ -64,20 +83,20 @@ export function VoicePage() {
    * يُتَّخذ عليه إجراء فعلًا، وأول ما تسأل عنه الوزارة.
    */
   const repeated = useMemo(() => {
-    const top = clusterVoices(all).slice(0, 8)
+    const top = clusterVoices(needWork).slice(0, 8)
     const largest = top[0]?.members.length ?? 1
     return top.map((c) => ({
       id: c.head.id,
       name: c.keywords.join('، ') || c.head.text.slice(0, 40),
       sample: c.head.text,
       count: c.members.length,
-      percent: all.length ? (c.members.length / all.length) * 100 : 0,
+      percent: needWork.length ? (c.members.length / needWork.length) * 100 : 0,
       // عرض الشريط نسبةً إلى أكبر موضوع لا إلى الآراء كلها: الموازنة
       // هنا بين الموضوعات بعضها ببعض، ولولاه لبدت كلها خيوطًا
       share: (c.members.length / largest) * 100,
       answered: c.members.filter((m) => answeredBy.has(m.id)).length,
     }))
-  }, [all, answeredBy])
+  }, [needWork, answeredBy])
 
   const gradeById = new Map(state.grades.map((g) => [g.id, g]))
   const respById = new Map(state.responses.map((r) => [r.id, r]))
@@ -89,18 +108,21 @@ export function VoicePage() {
       </SectionTitle>
 
       <section className="stats">
-        <StatCard tone="purple" label="إجمالي الآراء" value={num(all.length)} />
+        <StatCard tone="purple" label="تحتاج تحسين" value={num(needWork.length)}
+          meta={`من ${num(all.length)} رأيًا`} />
         <StatCard tone="blue" label="أكثر موضوع تكرارًا"
           value={byCategory[0]?.name ?? '—'}
           meta={byCategory[0] ? `${num(byCategory[0].count)} رأيًا` : undefined} />
         <StatCard tone="sand" label="بانتظار التصنيف"
-          value={num(all.filter((s) => !s.categoryId).length)} />
-        <StatCard tone="green" label="مرتبطة بإجراء تحسين"
-          value={num(all.filter((s) => s.status === 'linked').length)} />
+          value={num(needWork.filter((s) => !s.categoryId).length)} />
+        <StatCard tone="green" label="عليها إجراء تحسين"
+          value={num(needWork.filter((s) => s.status === 'linked').length)} />
       </section>
 
       <section className="panel panel--pad">
-        <SectionTitle note={`القاعدة: ${num(all.length)} رأيًا`}>الموضوعات الأكثر تكرارًا</SectionTitle>
+        <SectionTitle note={`القاعدة: ${num(needWork.length)} رأيًا مما يحتاج تحسينًا`}>
+          الموضوعات الأكثر تكرارًا
+        </SectionTitle>
         {byCategory.length === 0 ? <p className="muted">لا توجد آراء.</p> : (
           <div className="bars">
             {byCategory.map((c) => (
@@ -135,6 +157,21 @@ export function VoicePage() {
           </ul>
         </section>
       )}
+
+      <nav className="kinds no-print" aria-label="أبواب الآراء">
+        {(['improve', 'positive', 'empty'] as VoiceKind[]).map((k) => (
+          <button
+            key={k} type="button"
+            className={k === kind ? `kind kind--${k} is-on` : `kind kind--${k}`}
+            aria-pressed={k === kind}
+            onClick={() => { setKind(k); setCategoryId('all'); setSearch('') }}
+          >
+            <span className="kind__n">{num(byKind[k].length)}</span>
+            <span className="kind__t">{KIND_LABELS[k]}</span>
+          </button>
+        ))}
+      </nav>
+      <p className="kinds__note no-print">{KIND_NOTES[kind]}</p>
 
       <section className="toolbar no-print">
         <div className="field field--grow">
@@ -173,36 +210,81 @@ export function VoicePage() {
                   <blockquote className="voice__text">{s.text}</blockquote>
                   <div className="voice__meta">
                     <span className="chip">{gid ? gradeById.get(gid)?.name ?? '—' : 'صف غير محدد'}</span>
-                    <span className={`chip chip--${s.status}`}>{STATUS_LABELS[s.status]}</span>
-                    <select
-                      className="input input--inline no-print"
-                      aria-label="تصنيف الرأي"
-                      value={s.categoryId ?? ''}
-                      onChange={(e) => replace(categorizeSuggestion(state, s.id, e.target.value || null))}
+
+                    {kind === 'improve' ? (
+                      <>
+                        <span className={`chip chip--${s.status}`}>{STATUS_LABELS[s.status]}</span>
+                        <select
+                          className="input input--inline no-print"
+                          aria-label="تصنيف الرأي"
+                          value={s.categoryId ?? ''}
+                          onChange={(e) => replace(categorizeSuggestion(state, s.id, e.target.value || null))}
+                        >
+                          <option value="">بلا تصنيف</option>
+                          {state.categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                        </select>
+                        <select
+                          className="input input--inline no-print"
+                          aria-label="حالة المعالجة"
+                          value={s.status}
+                          onChange={(e) => replace(setSuggestionStatus(state, s.id, e.target.value as never))}
+                        >
+                          {Object.entries(STATUS_LABELS).map(([k, v]) => (
+                            // «مرتبط بإجراء» حالةٌ تتبع الربط لا تُختار بيد:
+                            // اختيارها هنا كان يُمحى عند أول تعديل إجراء
+                            <option key={k} value={k} disabled={k === 'linked' && s.status !== 'linked'}>
+                              {v}
+                            </option>
+                          ))}
+                        </select>
+                      </>
+                    ) : (
+                      // الشكر وما لا مضمون فيه لا يُصنَّف ولا يُتَّخذ عليه إجراء،
+                      // فلا تُعرض أدواته — ويبقى النقل متاحًا إن أخطأ الفرز
+                      <button
+                        type="button" className="button button--small no-print"
+                        onClick={() => replace(setVoiceKind(state, s.id, 'improve'))}
+                      >
+                        انقليه إلى «تحتاج تحسين»
+                      </button>
+                    )}
+
+                    {kind === 'improve' && (
+                      <select
+                        className="input input--inline no-print"
+                        aria-label="نقل الرأي إلى باب آخر"
+                        value=""
+                        onChange={(e) => {
+                          const target = e.target.value as VoiceKind | ''
+                          if (target) replace(setVoiceKind(state, s.id, target))
+                        }}
+                      >
+                        <option value="">انقليه إلى…</option>
+                        <option value="positive">شكر وثناء</option>
+                        <option value="empty">بلا مضمون</option>
+                      </select>
+                    )}
+
+                    <button
+                      type="button" className="button button--small button--quiet no-print"
+                      onClick={() => {
+                        const reason = window.prompt(
+                          'سبب استبعاد هذا الرأي من العرض والتقرير؟\nالنص لا يُمحى، ويُسجَّل السبب والتاريخ.',
+                        )
+                        if (reason && reason.trim()) replace(excludeSuggestion(state, s.id, reason))
+                      }}
                     >
-                      <option value="">بلا تصنيف</option>
-                      {state.categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                    </select>
-                    <select
-                      className="input input--inline no-print"
-                      aria-label="حالة المعالجة"
-                      value={s.status}
-                      onChange={(e) => replace(setSuggestionStatus(state, s.id, e.target.value as never))}
-                    >
-                      {Object.entries(STATUS_LABELS).map(([k, v]) => (
-                        // «مرتبط بإجراء» حالةٌ تتبع الربط لا تُختار بيد:
-                        // اختيارها هنا كان يُمحى عند أول تعديل إجراء
-                        <option key={k} value={k} disabled={k === 'linked' && s.status !== 'linked'}>
-                          {v}
-                        </option>
-                      ))}
-                    </select>
-                    <VoiceImprovement
-                      voice={s}
-                      action={answeredBy.get(s.id) ?? null}
-                      state={state}
-                      replace={replace}
-                    />
+                      استبعاد
+                    </button>
+
+                    {kind === 'improve' && (
+                      <VoiceImprovement
+                        voice={s}
+                        action={answeredBy.get(s.id) ?? null}
+                        state={state}
+                        replace={replace}
+                      />
+                    )}
                   </div>
                 </li>
               )
@@ -210,8 +292,32 @@ export function VoicePage() {
           </ul>
         )}
       </section>
+      {excluded.length > 0 && (
+        <section className="panel panel--pad no-print">
+          <SectionTitle note="مرفوعة عن العرض والتقرير — ونصّها محفوظ ويمكن إعادتها">
+            آراء مستبعَدة ({num(excluded.length)})
+          </SectionTitle>
+          <ul className="gone">
+            {excluded.map((s) => (
+              <li key={s.id} className="gone__row">
+                <blockquote className="gone__text">{s.text}</blockquote>
+                <p className="gone__why">
+                  السبب: {s.excluded?.reason} — {dateOnly(s.excluded?.at ?? null)}
+                </p>
+                <button type="button" className="button button--small"
+                  onClick={() => replace(restoreSuggestion(state, s.id))}>
+                  أعيديه إلى العرض
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <p className="basis-note">
-        نسبة الآراء المصنّفة: {pct(all.length ? (all.filter((s) => s.categoryId).length / all.length) * 100 : 0)}
+        نسبة الآراء المصنّفة: {pct(needWork.length
+          ? (needWork.filter((s) => s.categoryId).length / needWork.length) * 100 : 0)}
+        {excluded.length > 0 && <> · استُبعد {num(excluded.length)} رأيًا من العرض والتقرير</>}
       </p>
     </>
   )

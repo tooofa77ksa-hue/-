@@ -274,7 +274,20 @@ export function strengthsAndGaps(state: SystemState, scope: Scope, take = 5) {
   return { strengths: rows.slice(0, take), gaps: rows.slice(-take).reverse() }
 }
 
+/**
+ * آراء النطاق المعروضة — دون المستبعَد منها.
+ *
+ * الاستبعاد قرار إدارة مسجَّل بسببه، وأثره واحد في كل مكان: لا يظهر
+ * الرأي في شاشة ولا تقرير ولا تصدير. ولو رُشِّح الاستبعاد في الشاشة
+ * وحدها لخرج النص في ملف Excel بعد أن رُفع عن الشاشة.
+ */
 export function suggestionsInScope(state: SystemState, scope: Scope) {
   const responseIds = new Set(responsesInScope(state, scope).map((r) => r.id))
-  return state.suggestions.filter((s) => responseIds.has(s.responseId))
+  return state.suggestions.filter((s) => responseIds.has(s.responseId) && !s.excluded)
+}
+
+/** الآراء المستبعَدة في النطاق — تُعدّ ولا تُعرض. */
+export function excludedInScope(state: SystemState, scope: Scope) {
+  const responseIds = new Set(responsesInScope(state, scope).map((r) => r.id))
+  return state.suggestions.filter((s) => responseIds.has(s.responseId) && !!s.excluded)
 }

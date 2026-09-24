@@ -9,8 +9,9 @@ import { ReverseNote } from '../../components/ReverseNote'
 import { StackedBar } from '../../components/StackedBar'
 import { OPTION_TONES } from '../../lib/tones'
 import { ORGANIZATION } from '../../brand'
+import { nonParticipants } from '../../lib/attendance'
 import {
-  analyzeAllQuestions, nonRespondents, overallDistribution, participation,
+  analyzeAllQuestions, overallDistribution, participation,
   satisfactionIndex, strengthsAndGaps, suggestionsInScope, type Scope,
 } from '../../lib/analysis'
 import { exportResults } from '../../lib/excel'
@@ -62,7 +63,8 @@ export function ReportsPage() {
   const questions = analyzeAllQuestions(state, scope)
   const { strengths, gaps } = strengthsAndGaps(state, scope, 5)
   const voices = suggestionsInScope(state, scope)
-  const missing = nonRespondents(state, scope)
+  // من لا أثر لها إطلاقًا، لا من تنتظر استجابتُها تأكيد الاسم
+  const missing = nonParticipants(state, scope)
   const actions = state.improvementActions
   const classes = state.classes.filter((c) => gradeId === 'all' || c.gradeId === gradeId)
 
@@ -477,7 +479,10 @@ export function ReportsPage() {
 
         <section className="report__section">
           <h2 className="report__h2"><span className="report__no">{num(11)}</span> غير المستجيبات</h2>
-          <p className="report__note">{num(missing.length)} طالبة في الكشف بلا استجابة مؤكّدة.</p>
+          <p className="report__note">
+            {num(missing.length)} طالبة لا يقابلها في القياس استجابةٌ مؤكَّدة ولا مرشَّحة ولا
+            باسمٍ يشبه اسمها.
+          </p>
           {missing.length > 0 && (
             <ol className="names-grid">
               {missing.map((s) => <li key={s.id}>{s.name}</li>)}
