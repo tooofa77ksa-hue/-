@@ -61,7 +61,7 @@ try {
   const text = (await voice.locator('.voice__text').innerText()).trim()
 
   check('اللوح مغلق حتى يُطلب', await voice.locator('.improve').count() === 0)
-  await voice.getByRole('button', { name: /لوح التحسين/ }).click()
+  await voice.getByRole('button', { name: /سجّلي التحسين/ }).click()
   await voice.locator('.improve').waitFor({ timeout: 10000 })
   check('اللوح يُفتح تحت الرأي نفسه بلا انتقال',
     page.url().includes('/admin/voice'))
@@ -77,8 +77,9 @@ try {
   await voice.getByRole('button', { name: 'حفظ الإجراء' }).click()
 
   console.log('\n٣) ردّ المدرسة يظهر تحت الرأي')
-  await voice.getByRole('button', { name: /إجراء المدرسة/ }).click()
+  // اللوح يُفتح من نفسه على الرأي الذي عليه إجراء — لا ضغطة
   await voice.locator('.done').waitFor({ timeout: 10000 })
+  check('اللوح يُفتح وحده على الرأي الذي عليه إجراء', true)
   const done = await voice.locator('.done').innerText()
   check('عنوان الإجراء تحت الرأي', done.includes('تجربة آلية: تنظيم الخروج'))
   check('وما فعلته المدرسة', done.includes('نظّمت المدرسة خروج الصفوف'))
@@ -108,7 +109,7 @@ try {
   console.log('\n٤) رأي آخر يُربط بالإجراء نفسه لا بإجراء جديد')
   const second = texts.findIndex((t, i) => i !== index && t.trim().replace(/[.\s]/g, '').length >= 12)
   const other = page.locator('.voice').nth(second)
-  await other.getByRole('button', { name: /لوح التحسين/ }).click()
+  await other.getByRole('button', { name: /سجّلي التحسين/ }).click()
   await other.locator('.improve').waitFor({ timeout: 10000 })
   // القائمة الأولى وحدها هي قائمة الإجراءات؛ ما بعدها تصنيف وأولوية وحالة
   const picker = other.locator('.choice').first().locator('select')
@@ -120,7 +121,6 @@ try {
   await other.getByRole('button', { name: 'اربطي' }).click()
   await other.locator('.improve').waitFor({ state: 'detached', timeout: 10000 }).catch(() => {})
 
-  await other.getByRole('button', { name: /إجراء المدرسة/ }).click()
   await other.locator('.done').waitFor({ timeout: 10000 })
   check('الرأي الثاني يعرض الإجراء نفسه',
     (await other.locator('.done__title').innerText()).includes('تجربة آلية: تنظيم الخروج'))
@@ -156,13 +156,13 @@ try {
   let seed = null
   for (let i = 0; i < hits; i += 1) {
     const candidate = page.locator('.voice').nth(i)
-    if (await candidate.getByRole('button', { name: /لوح التحسين/ }).count()) {
+    if (await candidate.getByRole('button', { name: /سجّلي التحسين/ }).count()) {
       seed = candidate
       break
     }
   }
   check('يوجد رأي عن الموضوع لم يُربط بعد', seed !== null, `${hits} رأيًا في التصفية`)
-  await seed.getByRole('button', { name: /لوح التحسين/ }).click()
+  await seed.getByRole('button', { name: /سجّلي التحسين/ }).click()
   await seed.locator('.improve').waitFor({ timeout: 10000 })
 
   const akin = seed.locator('.akin')
@@ -230,12 +230,16 @@ try {
   // باب الشكر: لا أدوات تصنيف ولا لوح تحسين — لا يُردّ عليه
   await page.locator('.kind--positive').click()
   await page.waitForTimeout(500)
-  const praiseRow = page.locator('.voice').first()
-  check('  باب الشكر بلا أدوات معالجة',
-    (await praiseRow.locator('select').count()) === 0
-    && (await praiseRow.getByRole('button', { name: /لوح التحسين/ }).count()) === 0)
-  check('  وفيه زرّ نقلٍ إن أخطأ الفرز',
-    (await praiseRow.getByRole('button', { name: /انقليه/ }).count()) === 1)
+  await page.waitForSelector('.praise', { timeout: 10000 })
+  const cards = await page.locator('.card').count()
+  check('  باب الشكر بطاقات ملوّنة لا صفوفًا', cards === counts[1], `${cards} بطاقة`)
+  check('  وفوقها نسبة الثناء من كل الآراء',
+    (await page.locator('.praise__big').innerText()).includes('%'),
+    plain(await page.locator('.praise__big').innerText()))
+  check('  وموضوعات الثناء مصنّفة', (await page.locator('.praise__chip').count()) > 0,
+    (await page.locator('.praise__themes').innerText()).replace(/\s+/g, ' '))
+  check('  ولكل بطاقة زرّ نقلٍ إن أخطأ الفرز',
+    (await page.locator('.card__move').count()) === cards)
   await page.locator('.kinds').scrollIntoViewIfNeeded()
   await page.screenshot({ path: join(out, 'kinds.png') })
 

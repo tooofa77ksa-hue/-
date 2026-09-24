@@ -77,8 +77,68 @@ function unglue(tokens: string[], other: string[]): string[] {
   return out
 }
 
+
+/**
+ * هيكل الاسم الصامت — جسرٌ بين الحرف العربي واللاتيني.
+ *
+ * في الكشوف أسماء مكتوبة بالإنجليزية، والطالبة تكتب اسمها بالعربية
+ * في القياس. فلا يلتقيان حرفًا بحرف وهما اسم واحد:
+ * «SEBA HASSAN ABDALLAH» و«صبا حسن عبدالله».
+ *
+ * فيُردّ كلٌّ منهما إلى هيكله الصامت: تُنقل الحروف العربية إلى ما
+ * يقابلها لاتينيًّا، ثم تُطرح الحركات (a e i o u) ويُدمج المكرّر.
+ * فيصير الاسمان «sb hsn bdllh» كلاهما.
+ *
+ * وهو تقريبٌ لا تحقيق: غايته أن يُرشَّح الاسمان للإدارة فتنظر،
+ * لا أن يُدمجا تلقائيًّا.
+ */
+const TO_LATIN: Record<string, string> = {
+  ا: 'a', أ: 'a', إ: 'a', آ: 'a', ب: 'b', ت: 't', ث: 't', ج: 'j', ح: 'h', خ: 'k',
+  د: 'd', ذ: 'd', ر: 'r', ز: 'z', س: 's', ش: 's', ص: 's', ض: 'd', ط: 't', ظ: 'z',
+  ع: '', غ: 'g', ف: 'f', ق: 'q', ك: 'k', ل: 'l', م: 'm', ن: 'n', ه: 'h', ة: 'h',
+  و: 'w', ي: 'y', ى: 'y', ئ: 'y', ؤ: 'w', ء: '',
+}
+
+const VOWELS = /[aeiou]/g
+
+/** هل في النص حرف لاتيني؟ */
+export function isLatinScript(text: string): boolean {
+  return /[A-Za-z]{2,}/.test(text ?? '')
+}
+
+export function consonantKey(name: string): string {
+  const letters = [...(name ?? '').toLowerCase()]
+    .map((ch) => (TO_LATIN[ch] !== undefined ? TO_LATIN[ch] : ch))
+    .join('')
+  return letters
+    .replace(/[^a-z\s]/g, ' ')
+    .replace(VOWELS, '')
+    // الواو والياء في وسط الكلمة حرفا مدٍّ لا صامتان: «كونغرات» تُكتب
+    // «KONGRAT» بلا واو. وأوّل الكلمة يبقى، فهو صامت: «وفاء»، «يارا»
+    .replace(/(?<=\S)[wy]/g, '')
+    .replace(/(.)\1+/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+/**
+ * هل الاسمان واحد وإن اختلف حرفهما؟
+ *
+ * لا يُسأل عنه إلا حين يختلف الخطّان، فلا يُضعف المقارنة العربية.
+ */
+export function isTransliterationOf(a: string, b: string): boolean {
+  if (isLatinScript(a) === isLatinScript(b)) return false
+  const x = consonantKey(a).split(' ').filter(Boolean)
+  const y = consonantKey(b).split(' ').filter(Boolean)
+  if (x.length < 2 || y.length < 2) return false
+  if (x[0] !== y[0]) return false
+  const shared = y.filter((t) => x.includes(t)).length
+  return shared >= Math.min(x.length, y.length)
+}
+
 /** هل يحتمل أن يكون الاسمان لشخص واحد؟ للمساعدة فقط، لا للدمج التلقائي. */
 export function isNameCandidate(a: string, b: string): boolean {
+  if (isTransliterationOf(a, b)) return true
   const ax = coreTokens(a)
   const by = coreTokens(b)
   const x = unglue(ax, by)

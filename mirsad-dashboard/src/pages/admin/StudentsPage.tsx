@@ -4,7 +4,7 @@ import { EmptyState } from '../../components/EmptyState'
 import { SectionTitle } from '../../components/SectionTitle'
 import { StatCard } from '../../components/StatCard'
 import {
-  addStudent, archiveStudent, restoreStudent, updateStudent, type StudentDraft,
+  addStudent, archiveStudent, deleteStudent, restoreStudent, updateStudent, type StudentDraft,
 } from '../../domain/actions'
 import type { Student } from '../../domain/types'
 import { normalizeArabic } from '../../lib/arabic'
@@ -132,6 +132,14 @@ export function StudentsPage() {
                       <div className="table__actions no-print">
                         <button type="button" className="button button--small"
                           onClick={() => setEditing(s)}>تعديل</button>
+                        <button type="button" className="button button--small button--danger"
+                          onClick={() => {
+                            const linked = state.responses.filter((r) => r.studentId === s.id).length
+                            const warn = linked > 0 ? `\n\nومعها ${linked} استجابة ستُحذف كذلك.` : ''
+                            if (window.confirm(`حذف «${s.name}» نهائيًا؟${warn}\n\nالحذف لا يُتراجَع عنه. للطالبة المنقولة الأرشفة أصحّ.`)) {
+                              replace(deleteStudent(state, s.id))
+                            }
+                          }}>حذف</button>
                         {s.status === 'active' ? (
                           <button type="button" className="button button--small button--danger"
                             onClick={() => replace(archiveStudent(state, s.id))}>أرشفة</button>

@@ -36,6 +36,17 @@ export function AdminLayout() {
         actions={
           <>
             <LiveClock />
+            {/* الطباعة من أي صفحة: زرٌّ واحد في الترويسة يطبع ما بين يديك
+                — والمتصفّح يعرض فيه خيار «حفظ PDF» */}
+            <button
+              type="button"
+              className="button button--ghost button--icon"
+              onClick={() => window.print()}
+              aria-label="طباعة هذه الصفحة أو حفظها PDF"
+              title="طباعة أو حفظ PDF"
+            >
+              ⎙
+            </button>
             <LockToggle locked={false} />
             <AnthemPlayer />
             <button

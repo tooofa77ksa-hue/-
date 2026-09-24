@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { EvidenceQr } from './EvidenceQr'
@@ -40,7 +40,15 @@ interface Props {
  * الوزارة عشرين مشكلة.
  */
 export function VoiceImprovement({ voice, action, state, replace }: Props) {
-  const [open, setOpen] = useState(false)
+  // الرأي الذي عليه إجراء يُفتح لوحه من نفسه: التحسين والشاهد يظهران
+  // تحت الرأي بلا ضغطة، فهذا هو المقصود من «من الرأي إلى التحسين»
+  const [open, setOpen] = useState(!!action)
+
+  // ولحظة ربطه بإجراء يُفتح كذلك، فترى الإدارة أثر ما سجّلته فورًا
+  const actionId = action?.id ?? null
+  useEffect(() => {
+    if (actionId) setOpen(true)
+  }, [actionId])
   const [mode, setMode] = useState<'link' | 'new'>('link')
   const [pick, setPick] = useState('')
   const [draft, setDraft] = useState<ActionDraft>(() => blankDraft(voice))
@@ -140,7 +148,7 @@ export function VoiceImprovement({ voice, action, state, replace }: Props) {
   return (
     <>
       <button type="button" className="button button--small no-print" onClick={() => setOpen(!open)}>
-        {open ? '▴ إغلاق' : action ? '▾ إجراء المدرسة' : '▾ لوح التحسين'}
+        {open ? '▴ إغلاق' : action ? '▾ إجراء المدرسة' : '▾ سجّلي التحسين والشاهد'}
       </button>
 
       {open && (

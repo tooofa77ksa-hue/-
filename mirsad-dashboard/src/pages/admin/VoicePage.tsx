@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 
 import { BarRow } from '../../components/BarRow'
 import { EmptyState } from '../../components/EmptyState'
+import { PraiseCards } from '../../components/PraiseCards'
 import { VoiceImprovement } from '../../components/VoiceImprovement'
 import { SectionTitle } from '../../components/SectionTitle'
 import { StatCard } from '../../components/StatCard'
@@ -200,6 +201,22 @@ export function VoicePage() {
         <p className="toolbar__count">{num(rows.length)} رأيًا</p>
       </section>
 
+      {kind === 'positive' && (
+        <section className="panel panel--pad">
+          <PraiseCards
+            voices={rows}
+            total={all.length}
+            impact={{
+              actions: state.improvementActions.length,
+              answered: needWork.filter((v) => answeredBy.has(v.id)).length,
+              needWork: needWork.length,
+            }}
+            onMove={(id) => replace(setVoiceKind(state, id, 'improve'))}
+          />
+        </section>
+      )}
+
+      {kind !== 'positive' && (
       <section className="panel">
         {rows.length === 0 ? <EmptyState title="لا توجد آراء مطابقة" /> : (
           <ul className="voice-list">
@@ -292,6 +309,8 @@ export function VoicePage() {
           </ul>
         )}
       </section>
+      )}
+
       {excluded.length > 0 && (
         <section className="panel panel--pad no-print">
           <SectionTitle note="مرفوعة عن العرض والتقرير — ونصّها محفوظ ويمكن إعادتها">

@@ -48,6 +48,17 @@ describe('ترشيح الاسم للمطابقة', () => {
     expect(isNameCandidate('نورةعبدالله الزيد', 'نورة عبد الله سعيد الزيد')).toBe(true)
   })
 
+  it('ويعبر بين الاسم بالعربية والاسم بالإنجليزية', () => {
+    // في كشوف الفصول أسماء مكتوبة بالإنجليزية، والطالبة تكتبه بالعربية
+    expect(isNameCandidate('سارة حسن عبدالله', 'SARAH HASSAN ABDALLAH')).toBe(true)
+    expect(isNameCandidate('لمى كرمان', 'LAMA KARMAN')).toBe(true)
+  })
+
+  it('ولا يخلط اسمين مختلفين لمجرّد اختلاف الخطّ', () => {
+    expect(isNameCandidate('لمى حسن عنبر', 'LAMA KARMAN')).toBe(false)
+    expect(isNameCandidate('هند محمد', 'SARAH HASSAN ABDALLAH')).toBe(false)
+  })
+
   it('ولا يفكّ كلمةً لمجرّد أنها تبدأ بحروف اسمٍ آخر', () => {
     // «سماح» تبدأ بحروف «سما» لكن بقيّتها ليست اسمًا عند الطرف الآخر
     expect(isNameCandidate('سماح الغامدي', 'سما ح الغامدي')).toBe(false)

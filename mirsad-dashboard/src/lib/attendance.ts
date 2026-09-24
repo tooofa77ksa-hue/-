@@ -14,7 +14,7 @@
  * و«ريفال بندر محمد المطيري» أختان، واسمٌ واحد في الاستجابات لا
  * يكفيهما معًا — يذهب إلى أقربهما، وتبقى الأخرى غائبة.
  */
-import { coreTokens, isNameCandidate, normalizeArabic } from './arabic'
+import { consonantKey, coreTokens, isLatinScript, isNameCandidate, normalizeArabic } from './arabic'
 import { responsesInScope, studentsInScope, type Scope } from './analysis'
 import type { Id, Student, SurveyResponse, SystemState } from '../domain/types'
 
@@ -41,9 +41,13 @@ function similarity(a: string, b: string): number {
  * يقرّه الترشيح، فقد يكون الاسم الأول التصق بما بعده («سماعبدالله»).
  */
 export function nameFit(studentName: string, rawName: string): number {
-  const student = coreTokens(studentName)
-  const raw = coreTokens(rawName)
-  if (!student.length || !raw.length) return 0
+  // اسمٌ في الكشف بالإنجليزية واستجابةٌ بالعربية: تُقارَن هياكلها
+  // الصامتة. ولولا ذلك لذهبت «صبا حسن عبدالله» إلى صبا أخرى عربية
+  // الاسم لمجرّد أن حروفها تُقرأ، وبقيت صاحبتها غائبةً وقد شاركت
+  const crossScript = isLatinScript(studentName) !== isLatinScript(rawName)
+  const student = crossScript ? consonantKey(studentName).split(' ') : coreTokens(studentName)
+  const raw = crossScript ? consonantKey(rawName).split(' ') : coreTokens(rawName)
+  if (!student[0] || !raw[0]) return 0
 
   const candidate = isNameCandidate(rawName, studentName)
   let first = similarity(student[0], raw[0])
@@ -51,7 +55,9 @@ export function nameFit(studentName: string, rawName: string): number {
   if (first < 0.7) first = 0.7
 
   const shared = raw.filter((t) => student.includes(t)).length
-  const whole = similarity(normalizeArabic(studentName), normalizeArabic(rawName))
+  const whole = crossScript
+    ? similarity(consonantKey(studentName), consonantKey(rawName))
+    : similarity(normalizeArabic(studentName), normalizeArabic(rawName))
   return first * 2 + shared + whole + (candidate ? 1 : 0)
 }
 

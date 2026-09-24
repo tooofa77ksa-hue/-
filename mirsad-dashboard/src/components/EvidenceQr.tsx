@@ -38,12 +38,13 @@ export function EvidenceQr({ evidence }: { evidence: Evidence }) {
   }
 
   return (
-    <div className="proof">
+    <figure className="proof">
+      {/* الاسم فوق الباركود: من يراه يعرف ما الشاهد قبل أن يمسحه */}
+      <figcaption className="proof__name">{evidence.label || 'شاهد التنفيذ'}</figcaption>
       {src
         ? <img className="proof__qr" src={src} alt={`باركود ${evidence.label || 'الشاهد'}`} />
         : <span className="proof__qr proof__qr--empty" aria-hidden="true" />}
       <div className="proof__txt">
-        <strong>{evidence.label || 'شاهد'}</strong>
         <a className="proof__value" href={evidence.value} target="_blank" rel="noreferrer noopener">
           {evidence.value}
         </a>
@@ -51,6 +52,6 @@ export function EvidenceQr({ evidence }: { evidence: Evidence }) {
           امسحيه بالجوال ليفتح الشاهد. تأكّدي أن الرابط مفتوح لمن يمسحه.
         </span>
       </div>
-    </div>
+    </figure>
   )
 }

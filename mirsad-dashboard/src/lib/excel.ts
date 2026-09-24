@@ -203,16 +203,75 @@ function buildSheet(
   return { ws, headerRow, firstDataRow: headerRow + 1, lastDataRow: headerRow + rows.length }
 }
 
+
+/**
+ * تلوين عمود النسبة بتدرّج يُقرأ بالعين قبل الرقم.
+ *
+ * الورقة التي تُطبع وتُمرَّر في اجتماع تُقرأ بالنظرة الأولى، والرقم
+ * وحده لا يُنبئ. فالنسبة العالية خضراء والمتوسطة رملية والمنخفضة
+ * رمادية — واللون مساندٌ للرقم لا بديلٌ عنه، فالرقم مكتوب.
+ */
+function tintPercent(
+  ws: ExcelJSNS.Worksheet, column: number, firstRow: number, lastRow: number,
+) {
+  for (let r = firstRow; r <= lastRow; r += 1) {
+    const cell = ws.getRow(r).getCell(column)
+    const value = typeof cell.value === 'number' ? cell.value : null
+    if (value === null) continue
+    const fill = value >= 50 ? 'FFD8F0E4' : value >= 20 ? 'FFF6EFDC' : 'FFECEFF1'
+    const font = value >= 50 ? 'FF07683F' : value >= 20 ? 'FF6A5619' : 'FF44565F'
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: fill } }
+    cell.font = { name: 'Arial', size: 11, bold: true, color: { argb: font } }
+  }
+}
+
+/** عدّ ونسبة لكل مفتاح، مرتّبًا بالأكثر. */
+function tallyRows(entries: [string, number][], total: number) {
+  return entries
+    .filter(([, n]) => n > 0)
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, count], i) => [i + 1, name, count, round(total ? (count / total) * 100 : 0)])
+}
+
 // ───────────────── التقارير ─────────────────
 
 export async function exportNonRespondents(state: SystemState, scope: Scope) {
   const wb = await newWorkbook(state)
+  const charts: ChartSpec[] = []
+  const rows = nonRespondentRows(state, scope)
 
   buildSheet(wb, state, 'من لم تشارك', scope,
     ['م', 'اسم الطالبة', 'الصف', 'الفصل', 'رقم الكشف'],
-    nonRespondentRows(state, scope).map((r) => [r.index, r.name, r.grade, r.className, r.rosterNo]))
+    rows.map((r) => [r.index, r.name, r.grade, r.className, r.rosterNo]))
 
-  await download(wb, `non-respondents-${state.meta.hijriYear}.xlsx`)
+  // ── توزيعهن على الفصول: أين الغياب أكثر ──
+  const byClass = new Map<string, number>()
+  for (const r of rows) {
+    const key = `${r.grade} ${r.className}`.trim() || 'غير محدد'
+    byClass.set(key, (byClass.get(key) ?? 0) + 1)
+  }
+  const BY_CLASS = 'الغياب حسب الفصل'
+  const data = tallyRows([...byClass.entries()], rows.length)
+  if (data.length > 0) {
+    const sheet = buildSheet(wb, state, BY_CLASS, scope,
+      ['م', 'الفصل', 'عدد من لم تشارك', 'النسبة من الغائبات %'], data)
+    tintPercent(sheet.ws, 4, sheet.firstDataRow, sheet.lastDataRow)
+
+    charts.push({
+      sheet: BY_CLASS,
+      title: 'من لم تشارك في القياس — موزّعات على الفصول',
+      kind: 'bar',
+      categories: colRef(BY_CLASS, 2, sheet.firstDataRow, sheet.lastDataRow),
+      series: [{
+        name: cellRef(BY_CLASS, 3, sheet.headerRow),
+        values: colRef(BY_CLASS, 3, sheet.firstDataRow, sheet.lastDataRow),
+      }],
+      anchor: { col: 0, row: sheet.lastDataRow + 1, cols: 8, rows: Math.max(16, data.length * 2) },
+      dataLabels: true,
+    })
+  }
+
+  await download(wb, `non-respondents-${state.meta.hijriYear}.xlsx`, charts)
 }
 
 export async function exportResults(state: SystemState, scope: Scope) {
@@ -426,13 +485,48 @@ export async function exportResults(state: SystemState, scope: Scope) {
 
 export async function exportStudents(state: SystemState, scope: Scope) {
   const wb = await newWorkbook(state)
+  const charts: ChartSpec[] = []
+  const rows = studentRows(state, scope)
+
   buildSheet(wb, state, 'الطالبات', scope,
     ['م', 'اسم الطالبة', 'الصف', 'الفصل', 'رقم الكشف', 'الحالة', 'استجابت'],
-    studentRows(state, scope).map((r) => [
+    rows.map((r) => [
       r.index, r.name, r.grade, r.className, r.rosterNo, r.status, r.responded,
     ]))
 
-  await download(wb, `students-${state.meta.hijriYear}.xlsx`)
+  // ── المشاركة في كل صف: نسبة تُقرأ بالعين ──
+  const perGrade = new Map<string, { all: number; yes: number }>()
+  for (const r of rows) {
+    const key = r.grade || 'غير محدد'
+    const cur = perGrade.get(key) ?? { all: 0, yes: 0 }
+    cur.all += 1
+    if (r.responded === 'نعم') cur.yes += 1
+    perGrade.set(key, cur)
+  }
+  const BY_GRADE = 'المشاركة حسب الصف'
+  const data = [...perGrade.entries()]
+    .map(([name, v], i) => [i + 1, name, v.all, v.yes, round(v.all ? (v.yes / v.all) * 100 : 0)])
+  if (data.length > 0) {
+    const sheet = buildSheet(wb, state, BY_GRADE, scope,
+      ['م', 'الصف', 'عدد الطالبات', 'استجابت', 'نسبة المشاركة %'], data)
+    tintPercent(sheet.ws, 5, sheet.firstDataRow, sheet.lastDataRow)
+
+    charts.push({
+      sheet: BY_GRADE,
+      title: 'نسبة المشاركة المؤكَّدة في كل صف (%)',
+      kind: 'col',
+      categories: colRef(BY_GRADE, 2, sheet.firstDataRow, sheet.lastDataRow),
+      series: [{
+        name: cellRef(BY_GRADE, 5, sheet.headerRow),
+        values: colRef(BY_GRADE, 5, sheet.firstDataRow, sheet.lastDataRow),
+      }],
+      anchor: { col: 0, row: sheet.lastDataRow + 1, cols: 8, rows: 18 },
+      axis: { min: 0, max: 100 },
+      dataLabels: true,
+    })
+  }
+
+  await download(wb, `students-${state.meta.hijriYear}.xlsx`, charts)
 }
 
 /**
@@ -556,6 +650,7 @@ export async function exportSuggestions(state: SystemState, scope: Scope) {
 
 export async function exportActions(state: SystemState) {
   const wb = await newWorkbook(state)
+  const charts: ChartSpec[] = []
   const catById = new Map(state.categories.map((c) => [c.id, c]))
   const labels = { planned: 'مخطط', in_progress: 'جارٍ التنفيذ', completed: 'مكتمل' }
   const priorities = { high: 'عالية', medium: 'متوسطة', low: 'منخفضة' }
@@ -571,5 +666,31 @@ export async function exportActions(state: SystemState) {
       a.impact, a.followUp, a.evidence.map((e) => `${e.label}: ${e.value}`).join(' | '), a.notes,
     ]))
 
-  await download(wb, `improvement-actions-${state.meta.hijriYear}.xlsx`)
+  // ── حالة الإجراءات: ما أُنجز وما هو جارٍ ──
+  const STATUS = 'حالة الإجراءات'
+  const tally = new Map<string, number>()
+  for (const a of state.improvementActions) {
+    tally.set(labels[a.status], (tally.get(labels[a.status]) ?? 0) + 1)
+  }
+  const data = tallyRows([...tally.entries()], state.improvementActions.length)
+  if (data.length > 0) {
+    const sheet = buildSheet(wb, state, STATUS, {},
+      ['م', 'الحالة', 'عدد الإجراءات', 'النسبة %'], data)
+    tintPercent(sheet.ws, 4, sheet.firstDataRow, sheet.lastDataRow)
+
+    charts.push({
+      sheet: STATUS,
+      title: 'أين وصلت إجراءات التحسين',
+      kind: 'pie',
+      categories: colRef(STATUS, 2, sheet.firstDataRow, sheet.lastDataRow),
+      series: [{
+        name: cellRef(STATUS, 3, sheet.headerRow),
+        values: colRef(STATUS, 3, sheet.firstDataRow, sheet.lastDataRow),
+      }],
+      anchor: { col: 0, row: sheet.lastDataRow + 1, cols: 7, rows: 18 },
+      varyColors: true,
+    })
+  }
+
+  await download(wb, `improvement-actions-${state.meta.hijriYear}.xlsx`, charts)
 }
