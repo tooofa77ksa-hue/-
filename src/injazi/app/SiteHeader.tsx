@@ -9,7 +9,7 @@ import { Media } from "@/injazi/ui/Media";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, LogIn, LogOut, Menu, Shield, User, X } from "lucide-react";
+import { LayoutDashboard, Lock, LogIn, LogOut, Menu, Shield, User, X } from "lucide-react";
 import { ClayObject } from "@/injazi/components/ClayObject";
 import { MusicPlayer } from "@/injazi/ui/MusicPlayer";
 import { signOutUser } from "@/injazi/services/auth";
@@ -63,10 +63,22 @@ export function SiteHeader() {
             خروج
           </button>
         ) : (
-          <NavLink to="/login" className="iz-header__link">
-            <LogIn size={16} strokeWidth={2.4} aria-hidden="true" />
-            دخول
-          </NavLink>
+          <>
+            <NavLink to="/login" className="iz-header__link">
+              <LogIn size={16} strokeWidth={2.4} aria-hidden="true" />
+              دخول
+            </NavLink>
+            {/*
+              القفل: الصفحة الرئيسية هي لوحة عرض مفتوحة تُرى فيها ملفات
+              الطالبات وتُسمَع الأنشودة، فيكفي رابطٌ واحد للجميع. ومن
+              تريد السجلّ والإدارة تضغط القفل فتُطلب منها كلمة المرور —
+              فلا يُرسَل رابطٌ ثانٍ ولا تُشرح طريقٌ خفيّة.
+            */}
+            <NavLink to="/admin/login" className="iz-header__link iz-header__link--lock" title="دخول الإدارة">
+              <Lock size={16} strokeWidth={2.6} aria-hidden="true" />
+              الإدارة
+            </NavLink>
+          </>
         )}
       </nav>
 
@@ -121,10 +133,16 @@ export function SiteHeader() {
                   تسجيل الخروج
                 </button>
               ) : (
-                <NavLink to="/login" className="iz-menu__link" onClick={() => setMenu(false)}>
-                  <LogIn size={18} strokeWidth={2.4} aria-hidden="true" />
-                  دخول
-                </NavLink>
+                <>
+                  <NavLink to="/login" className="iz-menu__link" onClick={() => setMenu(false)}>
+                    <LogIn size={18} strokeWidth={2.4} aria-hidden="true" />
+                    دخول
+                  </NavLink>
+                  <NavLink to="/admin/login" className="iz-menu__link" onClick={() => setMenu(false)}>
+                    <Lock size={18} strokeWidth={2.6} aria-hidden="true" />
+                    الإدارة
+                  </NavLink>
+                </>
               )}
             </motion.div>
           </div>

@@ -239,6 +239,20 @@
   color: var(--iz-on-accent);
 }
 
+/*
+  قفل الإدارة: حدٌّ خفيف يفصله عن روابط التصفّح فيُقرأ بابًا مغلقًا لا
+  صفحةً أخرى، ولونٌ ذهبيّ لأن الإدارة في هذه المنصة تاجٌ لا نجمة.
+*/
+.iz-header__link--lock {
+  border: 1px solid var(--iz-line);
+  color: var(--iz-gold);
+}
+
+.iz-header__link--lock:hover {
+  border-color: var(--iz-gold-deep);
+  background: var(--iz-surface-sunk);
+}
+
 .iz-header__side {
   display: flex;
   align-items: center;
