@@ -23,14 +23,14 @@ beforeEach(() => {
 })
 
 describe('اشتقاق الحالات المميَّزة', () => {
-  it('يميّز ٤٠ حالة موزّعة على الأسباب المطلوبة', () => {
+  it('يميّز ٣٥ حالة موزّعة على الأسباب المطلوبة', () => {
     const c = flagCounts(state)
-    expect(c.total).toBe(40)
-    expect(c.pending).toBe(40)
+    expect(c.total).toBe(35)
+    expect(c.pending).toBe(35)
     expect(c.reviewed).toBe(0)
     expect(c.byReason.no_roster_match).toBe(16)
-    expect(c.byReason.grade_mismatch).toBe(14)
-    expect(c.byReason.duplicate_name).toBe(15)
+    expect(c.byReason.grade_mismatch).toBe(13)
+    expect(c.byReason.duplicate_name).toBe(9)
     expect(c.byReason.incomplete_name).toBe(3)
     // «ترف» وحدها: اسمٌ واحد في الرابع وفيه ترفان — تنتظر قرار الإدارة
     expect(c.byReason.ambiguous_candidates).toBe(1)
@@ -48,15 +48,17 @@ describe('اشتقاق الحالات المميَّزة', () => {
     const flagged = state.responses.filter(
       (r) => reasonsFor(r).some((x) => x.code === 'grade_mismatch'),
     )
-    expect(flagged).toHaveLength(14)
+    expect(flagged).toHaveLength(13)
   })
 
   it('يميّز طرفَي كل مجموعة أسماء متكرّرة', () => {
     const flagged = state.responses.filter(
       (r) => reasonsFor(r).some((x) => x.code === 'duplicate_name'),
     )
-    expect(state.duplicateGroups.length).toBeGreaterThanOrEqual(6)
-    expect(flagged).toHaveLength(15)
+    // تشابه الأسماء الحقيقي يبقى مميَّزًا؛ وإعادة الإرسال تُطوى عند
+    // الاستيراد فلا تُعدّ تكرارًا في الاسم
+    expect(state.duplicateGroups.length).toBeGreaterThanOrEqual(4)
+    expect(flagged).toHaveLength(9)
   })
 
   it('يميّز الاسم غير المكتمل', () => {
@@ -68,7 +70,7 @@ describe('اشتقاق الحالات المميَّزة', () => {
 
   it('لا يميّز الاستجابات السليمة', () => {
     const clean = state.responses.filter((r) => reasonsFor(r).length === 0)
-    expect(clean.length).toBe(state.responses.length - 40)
+    expect(clean.length).toBe(state.responses.length - 35)
     for (const r of clean) expect(needsReview(state, r.id)).toBe(false)
   })
 
@@ -141,10 +143,10 @@ describe('«تمت المراجعة ✓» ثم إعادة التمييز', () =>
     let s = state
     for (const c of flaggedCases(state)) s = markReviewed(s, c.responseId)
     expect(flagCounts(s).pending).toBe(0)
-    expect(flagCounts(s).reviewed).toBe(40)
+    expect(flagCounts(s).reviewed).toBe(35)
 
     for (const c of flaggedCases(s)) s = unmarkReviewed(s, c.responseId)
-    expect(flagCounts(s).pending).toBe(40)
+    expect(flagCounts(s).pending).toBe(35)
     expect(s.responses).toEqual(state.responses)
     expect(s.answers).toEqual(state.answers)
   })

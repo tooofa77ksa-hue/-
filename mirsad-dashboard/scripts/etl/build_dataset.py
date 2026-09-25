@@ -77,7 +77,7 @@ def read_workbooks():
         # تُحدَّد الأعمدة بترويستها لا بموضعها: بعض الملفات تبدأ بعمود
         # «طابع زمني» إضافي، فأي افتراض بموضع ثابت يزيح البيانات كلها.
         q_cols, overall_col, text_col = [], None, None
-        name_col = grade_col = None
+        name_col = grade_col = stamp_col = None
         for idx, h in enumerate(header, start=1):
             label = str(h).strip() if h else ''
             if not label:
@@ -92,6 +92,8 @@ def read_workbooks():
                 name_col = idx
             elif label == 'الصف' and grade_col is None:
                 grade_col = idx
+            elif 'طابع زمني' in label and stamp_col is None:
+                stamp_col = idx
         if name_col is None or grade_col is None:
             raise SystemExit(f'تعذّر تحديد عمودَي الاسم والصف في {path}')
 
@@ -106,9 +108,12 @@ def read_workbooks():
             grade = ws.cell(r, grade_col).value
             if not name or not str(name).strip():
                 continue
+            stamp = ws.cell(r, stamp_col).value if stamp_col else None
             rows.append({
                 'sourceFile': os.path.basename(path),
                 'sourceRow': r,
+                'submittedAt': stamp.isoformat() if hasattr(stamp, 'isoformat') else (
+                    str(stamp).strip() if stamp else None),
                 'rawName': str(name).strip(),
                 'gradeNo': _grade_no(grade),
                 'answers': [(col, label, ws.cell(r, col).value) for col, label in q_cols],
@@ -162,6 +167,52 @@ def match_response(row, roster_by_grade):
         if tiers[level]:
             return 'POSSIBLE_MATCH', None, [s['id'] for s in tiers[level]]
     return 'NEW', None, []
+
+
+def drop_resubmissions(rows):
+    """يطوي إعادة الإرسال ولا يطوي تشابه الأسماء.
+
+    الطالبة ترسل القياس ثم تعيده لتصحّح إجابة، فتصل استجابتان باسمها
+    من الملف نفسه. وفي المدرسة كذلك طالبتان تحملان الاسم نفسه فعلًا،
+    وهاتان استجابتان صحيحتان لا تُطويان.
+
+    والفاصل بينهما في الإجابات لا في الاسم: قِيس على بيانات هذا
+    القياس فإذا الفرق قاطع — إعادة الإرسال تتفق في ٢٢ أو ٢٣ إجابة من
+    ٢٣، والطالبتان المختلفتان لا تتجاوزان ١٤. واتفاق ثلاثٍ وعشرين
+    إجابة مصادفةً احتمالُه واحد من مليارات.
+
+    ويُبقى على الأحدث طابعًا زمنيًّا: هي التصحيح.
+    """
+    groups = defaultdict(list)
+    for row in rows:
+        groups[(row['sourceFile'], normalize(row['rawName']), row['gradeNo'])].append(row)
+
+    keep, dropped = [], []
+    for group in groups.values():
+        if len(group) == 1:
+            keep.extend(group)
+            continue
+        # تُقارن الإجابات المقيسة وحدها: التقويم العام والاقتراح نصّان
+        def scored(row):
+            return tuple(canonical(str(v).strip() if v is not None else None)[0]
+                         for _c, _l, v in row['answers'])
+
+        group.sort(key=lambda r: (r.get('submittedAt') or '', r['sourceRow']))
+        survivors = []
+        for row in group:
+            twin = next((s for s in survivors
+                         if sum(a == b for a, b in zip(scored(s), scored(row)))
+                         >= len(row['answers']) - 1), None)
+            if twin is None:
+                survivors.append(row)
+            else:
+                # الأحدث يحلّ محلّ الأقدم، فالتصحيح هو الذي يبقى
+                survivors[survivors.index(twin)] = row
+                dropped.append(twin)
+        keep.extend(survivors)
+
+    keep.sort(key=lambda r: (r['sourceFile'], r['sourceRow']))
+    return keep, dropped
 
 
 # ───────────────────────── BUILD ─────────────────────────
@@ -230,6 +281,8 @@ def build():
                       if r['overall'] is not None and str(r['overall']).strip()]
     overall_options = sorted(set(overall_values), key=lambda v: -overall_values.count(v))
 
+    response_rows, resubmissions = drop_resubmissions(response_rows)
+
     # ---- الاستجابات والإجابات ----
     responses, answers, suggestions, unknown_answers = [], [], [], Counter()
     for row in response_rows:
@@ -246,7 +299,7 @@ def build():
             'classId': student['classId'] if student else None,
             'matchStatus': status, 'candidateStudentIds': candidates,
             'source': 'import', 'sourceFile': row['sourceFile'], 'sourceRow': row['sourceRow'],
-            'submittedAt': None,                      # غير موجود في المصدر
+            'submittedAt': row.get('submittedAt'),     # من عمود «طابع زمني» إن وُجد
             'reviewedAt': None, 'reviewedBy': None,
         })
 
@@ -333,6 +386,7 @@ def build():
         'unknownAnswerValues': dict(unknown_answers),
         'answerVariantsMapped': len(VARIANTS),
         'suggestions': len(suggestions),
+        'resubmissions': len(resubmissions),
         'overallOptions': dict(Counter(overall_values)),
         'duplicateGroups': duplicate_groups,
         'reverseScored': {str(k): v for k, v in REVERSE_SCORED.items()},

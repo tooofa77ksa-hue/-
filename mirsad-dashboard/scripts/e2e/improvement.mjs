@@ -225,7 +225,7 @@ try {
   check('  والشكر في بابه لا في باب التحسين', counts[1] > 0 && counts[1] < counts[0],
     `تحسين ${counts[0]} · شكر ${counts[1]} · بلا مضمون ${counts[2]}`)
   check('  ومجموع الأبواب هو كل الآراء',
-    counts[0] + counts[1] + counts[2] === 117, `${counts[0] + counts[1] + counts[2]}`)
+    counts[0] + counts[1] + counts[2] === 116, `${counts[0] + counts[1] + counts[2]}`)
 
   // باب الشكر: لا أدوات تصنيف ولا لوح تحسين — لا يُردّ عليه
   await page.locator('.kind--positive').click()
