@@ -72,23 +72,24 @@ describe('سلامة مجموعة البيانات المستوردة', () => {
     }
   })
 
-  it('تستورد ٢٧٤ استجابة من ملفات Excel الستة', () => {
-    expect(state.responses).toHaveLength(274)
+  it('تستورد ٢٨٤ استجابة من ملفات Excel الستة', () => {
+    expect(state.responses).toHaveLength(284)
     const byGrade = state.grades.map(
       (g) => state.responses.filter((r) => r.declaredGradeId === g.id).length,
     )
-    expect(byGrade).toEqual([45, 44, 50, 46, 43, 46])
-    expect(byGrade.reduce((a, b) => a + b, 0)).toBe(274)
+    expect(byGrade).toEqual([45, 47, 51, 50, 43, 48])
+    expect(byGrade.reduce((a, b) => a + b, 0)).toBe(284)
   })
 
   it('تُبقي الاستجابة على صفّها المعلن ولو خالف ملف مصدرها', () => {
-    // أربع طالبات كُتب صفّهن خطأً عند الإدخال. لا يُصحَّح ذلك تلقائيًا:
-    // التصحيح قرار إداري يجري في مركز مراجعة المطابقة.
+    // طالبات كُتب صفّهن خطأً عند الإدخال — بعضهن كتبن رقم فصلهن مكان
+    // صفّهن. لا يُصحَّح ذلك تلقائيًا: التصحيح قرار إداري يجري في مركز
+    // مراجعة المطابقة.
     const mismatched = state.responses.filter((r) => {
       const fromFile = `g${r.sourceFile?.replace('responses-grade', '').replace('.xlsx', '')}`
       return r.declaredGradeId !== fromFile
     })
-    expect(mismatched).toHaveLength(4)
+    expect(mismatched).toHaveLength(14)
     // ولم تُحذف ولا فُقدت إجاباتها
     for (const r of mismatched) {
       expect(state.answers.filter((a) => a.responseId === r.id).length).toBeGreaterThan(0)
@@ -121,7 +122,7 @@ describe('سلامة مجموعة البيانات المستوردة', () => {
 
   it('تخصّص خانة إجابة لكل سؤال مقيس في كل استجابة', () => {
     const likert = state.answers.filter((a) => /^q\d+$/.test(a.questionId))
-    expect(likert).toHaveLength(274 * 23)
+    expect(likert).toHaveLength(284 * 23)
   })
 
   it('توحّد كل صيغ الإجابات المكتوبة بأخطاء إملائية إلى الخيارات الثلاثة', () => {
@@ -129,12 +130,12 @@ describe('سلامة مجموعة البيانات المستوردة', () => {
     const unrecognized = state.answers.filter(
       (a) => a.rawValue !== null && a.optionId === null && /^q\d+$/.test(a.questionId),
     )
-    expect(recognized.length).toBe(6200)
+    expect(recognized.length).toBe(6429)
     expect(unrecognized).toHaveLength(0)
   })
 
-  it('تحفظ ١١٣ رأيًا بنصّها الأصلي', () => {
-    expect(state.suggestions).toHaveLength(113)
+  it('تحفظ ١١٧ رأيًا بنصّها الأصلي', () => {
+    expect(state.suggestions).toHaveLength(117)
     for (const s of state.suggestions) expect(s.text.trim().length).toBeGreaterThan(0)
   })
 

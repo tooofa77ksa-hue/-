@@ -306,7 +306,12 @@ try {
   await admin.waitForTimeout(1200)
   const overview = await admin.locator('.main').innerText()
   const digitsOnly = plain(overview).replace(/,/g, '')
-  check('عدد الاستجابات ارتفع إلى 275', digitsOnly.includes('275'))
+  // العدد يُقرأ من مجموعة البيانات لا يُكتب رقمًا: كل دفعة استجابات
+  // جديدة تُغيّره، وفحصٌ يحمل رقمًا محفوظًا يسقط لتغيّر البيانات لا لعطل
+  const base = JSON.parse(readFileSync(join(root, 'src', 'data', 'school-data.json'), 'utf8'))
+    .responses.length
+  check(`عدد الاستجابات ارتفع إلى ${base + 1}`, digitsOnly.includes(String(base + 1)),
+    `القاعدة ${base}`)
 
   await admin.goto(`http://127.0.0.1:${PORT}/#/admin/voice`, { waitUntil: 'domcontentloaded' })
   await admin.waitForTimeout(1200)

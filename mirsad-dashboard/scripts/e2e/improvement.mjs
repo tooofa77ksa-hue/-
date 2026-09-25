@@ -225,7 +225,7 @@ try {
   check('  والشكر في بابه لا في باب التحسين', counts[1] > 0 && counts[1] < counts[0],
     `تحسين ${counts[0]} · شكر ${counts[1]} · بلا مضمون ${counts[2]}`)
   check('  ومجموع الأبواب هو كل الآراء',
-    counts[0] + counts[1] + counts[2] === 113, `${counts[0] + counts[1] + counts[2]}`)
+    counts[0] + counts[1] + counts[2] === 117, `${counts[0] + counts[1] + counts[2]}`)
 
   // باب الشكر: لا أدوات تصنيف ولا لوح تحسين — لا يُردّ عليه
   await page.locator('.kind--positive').click()
@@ -272,8 +272,11 @@ try {
   const listed = await page.locator('.table tbody tr').count()
   const stats = (await page.locator('.stats').innerText()).replace(/[\u2066-\u2069]/g, '')
   check('الكشف يعرض من لا أثر لها', listed > 0 && listed < 60, `${listed} طالبة`)
-  check('  وليس «بلا استجابة مؤكَّدة» وهنّ مئات',
-    (await page.locator('.basis-note').innerText()).includes('258'), stats.split('\n')[0])
+  // الرقم يتغيّر مع كل دفعة استجابات، فالمقارنة بالمعنى لا بقيمة محفوظة
+  const note = plain(await page.locator('.basis-note').innerText())
+  const strict = Number(note.match(/وعددهن\s*(\d+)/)?.[1] ?? 0)
+  check('  وليس «بلا استجابة مؤكَّدة» وهنّ أضعافه',
+    strict > listed * 3, `${listed} مقابل ${strict}`)
   check('  ولكل صفّ زرّا أرشفة وحذف',
     (await page.locator('.table tbody tr').first().getByRole('button', { name: 'أرشفة' }).count()) === 1
     && (await page.locator('.table tbody tr').first().getByRole('button', { name: 'حذف' }).count()) === 1)

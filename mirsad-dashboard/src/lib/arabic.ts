@@ -50,7 +50,9 @@ export function coreTokens(name: string): string[] {
     }
     out.push(token)
   }
-  return out
+  // «ال» التعريف تُنزع بعد الوصل لا قبله: «العسيري» و«عسيري» أسرة
+  // واحدة، ولو نُزعت قبله لصار «عبد الله» ← «عبد» + «له»
+  return out.map((t) => (t.startsWith('ال') && t.length >= 5 ? t.slice(2) : t))
 }
 
 /**
