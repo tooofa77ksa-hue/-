@@ -28,24 +28,32 @@ import {
  * الصوت الحقيقي (public/audio/school-stats/org-stats-line.mp3، نفس صوت
  * "Layla")، طوله الفعلي 41.404 ثانية = 1243 فريمًا (ceil) - لم يُقصَّ أو
  * يُسرَّع لإجباره على مدة أقصر (نفس قاعدة "عدم التلاعب بالصوت" في كل
- * المشروع). هذا الصوت الآن يبدأ بعد مقدمة "تصنيف المعلمات" الجديدة
- * (CLASS_BLOCK_FRAMES) بدل الصفر مباشرة.
+ * المشروع). هذا الصوت مقسَّم الآن إلى جزأين حول فجوة صامتة مؤقتة
+ * (CLASS_GAP_FRAMES) عند نقطة "الطالبات" (SPLIT_FRAME)، باستخدام
+ * trimBefore بدل تقطيع ملف mp3 فعليًا - الجزء الأول يشغّل الصوت من بدايته
+ * حتى SPLIT_FRAME (المشرفات/المعلمات/الرخصة)، والجزء الثاني يشغّل بقية
+ * الصوت (من الطالبات فصاعدًا) بعد الفجوة مباشرة، فتبقى كل الأزمنة الداخلية
+ * لكل جزء صحيحة دون أي قص حقيقي للصوت.
  *
- * ⚠️ إضافتان جديدتان (تصنيف المعلمات في المقدمة، وموهبة/إعاقة/صعوبات تعلم
- * بعد الحالة الصحية) ليس لهما تسجيل صوتي بعد - مدتاهما (CLASS_BLOCK_FRAMES
- * و HEALTH_EXTRA_BLOCK_FRAMES) تقدير مؤقت (Placeholder) بانتظار تسجيل صوتي
- * جديد يغطيهما، بنفس منهجية بقية المشروع: بمجرد وصول الصوت، قيسي طوله
- * وحدّدي سكتاته الحقيقية ثم استبدلي هذين الرقمين بالسكتات الفعلية.
+ * ⚠️ إضافتان جديدتان (تصنيف المعلمات - ضمن الفجوة الوسطى تحت بطاقة
+ * المعلمات مباشرة، وموهبة/إعاقة/صعوبات تعلم بعد الحالة الصحية) ليس لهما
+ * تسجيل صوتي بعد - مدتاهما (CLASS_GAP_FRAMES و HEALTH_EXTRA_BLOCK_FRAMES)
+ * تقدير مؤقت (Placeholder) بانتظار تسجيل صوتي جديد يغطيهما، بنفس منهجية
+ * بقية المشروع: بمجرد وصول الصوت، قيسي طوله وحدّدي سكتاته الحقيقية ثم
+ * استبدلي هذين الرقمين بالسكتات الفعلية (وعندها يمكن التخلص من التقسيم
+ * trimBefore والعودة لملف صوتي واحد متصل، أو ضبط SPLIT_FRAME على مكانه
+ * الجديد).
  */
 const REVEAL_DURATION = 18; // ~0.6s icon->label->count entrance
 const COUNT_DURATION = 20; // ~0.67s count-up
 const AUDIO_SRC = "audio/school-stats/org-stats-line.mp3";
 
-const CLASS_BLOCK_FRAMES = 200; // مقدمة "تصنيف المعلمات" الصامتة مؤقتًا (بانتظار التسجيل الجديد)
 const ORIGINAL_ORG_STATS_DURATION = 1243; // ceil(41.404s * 30fps) - طول الصوت الحقيقي المسجَّل، دون تغيير
+const SPLIT_FRAME = 613; // نقطة "الطالبات" داخل الصوت الأصلي (ITEM_START.students سابقًا) - هنا تُفتح الفجوة
+const CLASS_GAP_FRAMES = 220; // فجوة صامتة مؤقتة لعرض تصنيف المعلمات (بانتظار التسجيل الجديد)
 const HEALTH_EXTRA_BLOCK_FRAMES = 130; // إضافة موهبة/إعاقة/صعوبات تعلم الصامتة مؤقتًا (بانتظار التسجيل الجديد)
 
-export const ORG_STATS_DURATION = CLASS_BLOCK_FRAMES + ORIGINAL_ORG_STATS_DURATION + HEALTH_EXTRA_BLOCK_FRAMES;
+export const ORG_STATS_DURATION = ORIGINAL_ORG_STATS_DURATION + CLASS_GAP_FRAMES + HEALTH_EXTRA_BLOCK_FRAMES;
 
 /**
  * ملاحظة: التسجيل الفعلي يذكر "الإداريات" قبل "المعلمات" (عكس ترتيب نص
@@ -54,43 +62,43 @@ export const ORG_STATS_DURATION = CLASS_BLOCK_FRAMES + ORIGINAL_ORG_STATS_DURATI
  * فعليًا، دون تغيير ترتيب أي مجموعة أخرى.
  */
 const ITEM_START = {
-  // تصنيف المعلمات - مقدمة جديدة صامتة مؤقتًا، تسبق الصوت الحقيقي
-  classExpert: 20,
-  classAdvanced: 60,
-  classPractitioner: 100,
-  classAssistant: 140,
-  // من هنا فصاعدًا: كل رقم = القيمة الأصلية + CLASS_BLOCK_FRAMES (200) دون أي تغيير آخر
-  groupTitle: 0 + CLASS_BLOCK_FRAMES,
-  director: 129 + CLASS_BLOCK_FRAMES,
-  deputy: 172 + CLASS_BLOCK_FRAMES,
-  guidance: 215 + CLASS_BLOCK_FRAMES,
-  admins: 258 + CLASS_BLOCK_FRAMES,
-  teachers: 323 + CLASS_BLOCK_FRAMES,
-  licensed: 420 + CLASS_BLOCK_FRAMES,
-  notLicensed: 532 + CLASS_BLOCK_FRAMES,
-  students: 613 + CLASS_BLOCK_FRAMES,
-  classes: 742 + CLASS_BLOCK_FRAMES,
-  economic: 839 + CLASS_BLOCK_FRAMES,
-  social: 952 + CLASS_BLOCK_FRAMES,
-  health: 1033 + CLASS_BLOCK_FRAMES,
-  sugar: 1130 + CLASS_BLOCK_FRAMES,
-  epilepsy: 1195 + CLASS_BLOCK_FRAMES,
-  // موهبة/إعاقة/صعوبات تعلم - إضافة جديدة صامتة مؤقتًا، بعد نهاية الصوت الحقيقي
-  gifted: CLASS_BLOCK_FRAMES + ORIGINAL_ORG_STATS_DURATION + 15,
-  disability: CLASS_BLOCK_FRAMES + ORIGINAL_ORG_STATS_DURATION + 55,
-  learningDifficulty: CLASS_BLOCK_FRAMES + ORIGINAL_ORG_STATS_DURATION + 95,
+  // هذه القيم كما في الصوت الأصلي تمامًا (بلا أي إزاحة) - كلها قبل SPLIT_FRAME
+  groupTitle: 0,
+  director: 129,
+  deputy: 172,
+  guidance: 215,
+  admins: 258,
+  teachers: 323,
+  licensed: 420,
+  notLicensed: 532,
+  // تصنيف المعلمات - يظهر داخل الفجوة الصامتة، مباشرة تحت شارتي الرخصة، قبل استئناف الصوت عند "الطالبات"
+  classExpert: 620,
+  classAdvanced: 660,
+  classPractitioner: 700,
+  classAssistant: 740,
+  // من هنا فصاعدًا: كل رقم = القيمة الأصلية + CLASS_GAP_FRAMES (220)، لأن الصوت (الجزء الثاني) استأنف بعد الفجوة
+  students: 613 + CLASS_GAP_FRAMES,
+  classes: 742 + CLASS_GAP_FRAMES,
+  economic: 839 + CLASS_GAP_FRAMES,
+  social: 952 + CLASS_GAP_FRAMES,
+  health: 1033 + CLASS_GAP_FRAMES,
+  sugar: 1130 + CLASS_GAP_FRAMES,
+  epilepsy: 1195 + CLASS_GAP_FRAMES,
+  // موهبة/إعاقة/صعوبات تعلم - إضافة جديدة صامتة مؤقتًا، بعد نهاية الصوت الحقيقي (بجزأيه)
+  gifted: ORIGINAL_ORG_STATS_DURATION + CLASS_GAP_FRAMES + 15,
+  disability: ORIGINAL_ORG_STATS_DURATION + CLASS_GAP_FRAMES + 55,
+  learningDifficulty: ORIGINAL_ORG_STATS_DURATION + CLASS_GAP_FRAMES + 95,
 } as const;
 
 // ---- Layout (1920x1080, chrome header=118 / footer=64) ----
-const SPINE_TOP = 270;
-const SPINE_BOTTOM = 1000;
-const ROW_CLASSIFICATION_Y = 148;
-const ROW_TITLE_Y = 230;
-const ROW_ROLES_Y = 300;
-const ROW_TEACH_ADMIN_Y = 400;
-const ROW_STUDENTS_Y = 590;
-const ROW_ECON_SOCIAL_Y = 740;
-const ROW_HEALTH_Y = 840;
+const SPINE_TOP = 195;
+const SPINE_BOTTOM = 995;
+const ROW_TITLE_Y = 150;
+const ROW_ROLES_Y = 215;
+const ROW_TEACH_ADMIN_Y = 305;
+const ROW_STUDENTS_Y = 610;
+const ROW_ECON_SOCIAL_Y = 730;
+const ROW_HEALTH_Y = 860;
 
 // ---- Icons: unified single-color line icons, same visual language as FacilitiesScene ----
 const IC = brand.primary;
@@ -180,7 +188,7 @@ const GroupTitle: React.FC = () => {
 /** Central spine, growing continuously with overall scene progress. */
 const Spine: React.FC = () => {
   const frame = useCurrentFrame();
-  const draw = interpolate(frame, [CLASS_BLOCK_FRAMES + 10, ORG_STATS_DURATION - 40], [0, 1], {
+  const draw = interpolate(frame, [10, ORG_STATS_DURATION - 40], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: Easing.out(Easing.cubic),
@@ -344,15 +352,13 @@ export const OrgStatsScene: React.FC = () => {
   return (
     <AbsoluteFill style={{ background: brand.paper }}>
       <StatsSceneChrome sectionTitle="الهيكل الإشرافي والإحصاءات العامة" />
-      <Sequence from={CLASS_BLOCK_FRAMES} layout="none">
+      <Sequence from={0} durationInFrames={SPLIT_FRAME} layout="none">
         <Audio src={staticFile(AUDIO_SRC)} />
       </Sequence>
+      <Sequence from={SPLIT_FRAME + CLASS_GAP_FRAMES} layout="none">
+        <Audio src={staticFile(AUDIO_SRC)} trimBefore={SPLIT_FRAME} />
+      </Sequence>
       <Sfx kind="whoosh" at={0} volume={0.4} />
-
-      <Pill label={`معلم خبير: ${teacherClassification.expert}`} x={960 + 480} y={ROW_CLASSIFICATION_Y} from={ITEM_START.classExpert} icon={<RankBadgeIcon />} />
-      <Pill label={`معلم متقدم: ${teacherClassification.advanced}`} x={960 + 160} y={ROW_CLASSIFICATION_Y} from={ITEM_START.classAdvanced} icon={<RankBadgeIcon />} />
-      <Pill label={`معلم ممارس: ${teacherClassification.practitioner}`} x={960 - 160} y={ROW_CLASSIFICATION_Y} from={ITEM_START.classPractitioner} icon={<RankBadgeIcon />} />
-      <Pill label={`مساعد معلم: ${teacherClassification.assistant}`} x={960 - 480} y={ROW_CLASSIFICATION_Y} from={ITEM_START.classAssistant} icon={<RankBadgeIcon />} />
 
       <Spine />
       <GroupTitle />
@@ -394,6 +400,36 @@ export const OrgStatsScene: React.FC = () => {
         from={ITEM_START.notLicensed}
         icon={<NoLicenseIcon />}
         muted
+      />
+
+      {/* تصنيف المعلمات - شبكة 2×2 مباشرة تحت شارتي الرخصة، ضمن نفس عمود بطاقة "المعلمات" */}
+      <SubBadge
+        label={`معلم خبير: ${teacherClassification.expert}`}
+        x={960 - 260 + 130}
+        y={ROW_TEACH_ADMIN_Y + 175}
+        from={ITEM_START.classExpert}
+        icon={<RankBadgeIcon />}
+      />
+      <SubBadge
+        label={`معلم متقدم: ${teacherClassification.advanced}`}
+        x={960 - 260 - 130}
+        y={ROW_TEACH_ADMIN_Y + 175}
+        from={ITEM_START.classAdvanced}
+        icon={<RankBadgeIcon />}
+      />
+      <SubBadge
+        label={`معلم ممارس: ${teacherClassification.practitioner}`}
+        x={960 - 260 + 130}
+        y={ROW_TEACH_ADMIN_Y + 222}
+        from={ITEM_START.classPractitioner}
+        icon={<RankBadgeIcon />}
+      />
+      <SubBadge
+        label={`مساعد معلم: ${teacherClassification.assistant}`}
+        x={960 - 260 - 130}
+        y={ROW_TEACH_ADMIN_Y + 222}
+        from={ITEM_START.classAssistant}
+        icon={<RankBadgeIcon />}
       />
 
       <StatCard
