@@ -5,7 +5,16 @@ import { StatsSceneChrome } from "../components/StatsSceneChrome";
 import { CountUpNumber } from "../components/CountUpNumber";
 import { Sfx } from "../components/Sfx";
 import { headlineStats } from "../data/schoolStats";
-import { adminsCount, economicCasesCount, healthCases, socialCasesCount, supervisoryRoles, teacherLicense } from "../data/orgStats";
+import {
+  adminsCount,
+  economicCasesCount,
+  healthCases,
+  socialCasesCount,
+  specialNeedsCases,
+  supervisoryRoles,
+  teacherClassification,
+  teacherLicense,
+} from "../data/orgStats";
 
 /**
  * "الخريطة التنظيمية والإحصائية" - أول مشهد في هذا الفيديو (يحل محل
@@ -15,21 +24,28 @@ import { adminsCount, economicCasesCount, healthCases, socialCasesCount, supervi
  * المعلمات+الإداريات، ثم الطالبات+الفصول، ثم الاقتصادية+الاجتماعية، ثم
  * الصحية+السكر+الصرع.
  *
- * التوقيت: مبني على الصوت الحقيقي (public/audio/school-stats/org-stats-line
- * .mp3، نفس صوت "Layla" المستخدم في بقية المشروع)، طوله الفعلي 41.404
- * ثانية = 1243 فريمًا (ceil). هذا أطول من الهدف المبدئي (18-25 ثانية) الذي
- * ذكرته المستخدمة - لم يُقصَّ أو يُسرَّع الصوت لإجباره على مدة أقصر (نفس
- * قاعدة "عدم التلاعب بالصوت" المتبعة في كل المشروع)، بل استُخدم طوله
- * الحقيقي كما هو وأُعيد توزيع ظهور العناصر بالتناسب مع مواضع الكلمات في كل
- * جملة من النص (نفس منهجية عدد الكلمات في NARRATION-TIMING.md لكن مُطبَّقة
- * مباشرة على طول الصوت الحقيقي بدل تقدير أولي). لا يوجد أي مهلة صامتة
- * إضافية بعد نهاية الصوت - مدة المشهد بالكامل = مدة الصوت بالضبط.
+ * التوقيت: الجزء الأصلي (الهيئة الإشرافية وحتى الحالة الصحية) مبني على
+ * الصوت الحقيقي (public/audio/school-stats/org-stats-line.mp3، نفس صوت
+ * "Layla")، طوله الفعلي 41.404 ثانية = 1243 فريمًا (ceil) - لم يُقصَّ أو
+ * يُسرَّع لإجباره على مدة أقصر (نفس قاعدة "عدم التلاعب بالصوت" في كل
+ * المشروع). هذا الصوت الآن يبدأ بعد مقدمة "تصنيف المعلمات" الجديدة
+ * (CLASS_BLOCK_FRAMES) بدل الصفر مباشرة.
+ *
+ * ⚠️ إضافتان جديدتان (تصنيف المعلمات في المقدمة، وموهبة/إعاقة/صعوبات تعلم
+ * بعد الحالة الصحية) ليس لهما تسجيل صوتي بعد - مدتاهما (CLASS_BLOCK_FRAMES
+ * و HEALTH_EXTRA_BLOCK_FRAMES) تقدير مؤقت (Placeholder) بانتظار تسجيل صوتي
+ * جديد يغطيهما، بنفس منهجية بقية المشروع: بمجرد وصول الصوت، قيسي طوله
+ * وحدّدي سكتاته الحقيقية ثم استبدلي هذين الرقمين بالسكتات الفعلية.
  */
 const REVEAL_DURATION = 18; // ~0.6s icon->label->count entrance
 const COUNT_DURATION = 20; // ~0.67s count-up
 const AUDIO_SRC = "audio/school-stats/org-stats-line.mp3";
 
-export const ORG_STATS_DURATION = 1243; // ceil(41.404s * 30fps), the narration's exact length
+const CLASS_BLOCK_FRAMES = 200; // مقدمة "تصنيف المعلمات" الصامتة مؤقتًا (بانتظار التسجيل الجديد)
+const ORIGINAL_ORG_STATS_DURATION = 1243; // ceil(41.404s * 30fps) - طول الصوت الحقيقي المسجَّل، دون تغيير
+const HEALTH_EXTRA_BLOCK_FRAMES = 130; // إضافة موهبة/إعاقة/صعوبات تعلم الصامتة مؤقتًا (بانتظار التسجيل الجديد)
+
+export const ORG_STATS_DURATION = CLASS_BLOCK_FRAMES + ORIGINAL_ORG_STATS_DURATION + HEALTH_EXTRA_BLOCK_FRAMES;
 
 /**
  * ملاحظة: التسجيل الفعلي يذكر "الإداريات" قبل "المعلمات" (عكس ترتيب نص
@@ -38,32 +54,43 @@ export const ORG_STATS_DURATION = 1243; // ceil(41.404s * 30fps), the narration'
  * فعليًا، دون تغيير ترتيب أي مجموعة أخرى.
  */
 const ITEM_START = {
-  groupTitle: 0,
-  director: 129,
-  deputy: 172,
-  guidance: 215,
-  admins: 258,
-  teachers: 323,
-  licensed: 420,
-  notLicensed: 532,
-  students: 613,
-  classes: 742,
-  economic: 839,
-  social: 952,
-  health: 1033,
-  sugar: 1130,
-  epilepsy: 1195,
+  // تصنيف المعلمات - مقدمة جديدة صامتة مؤقتًا، تسبق الصوت الحقيقي
+  classExpert: 20,
+  classAdvanced: 60,
+  classPractitioner: 100,
+  classAssistant: 140,
+  // من هنا فصاعدًا: كل رقم = القيمة الأصلية + CLASS_BLOCK_FRAMES (200) دون أي تغيير آخر
+  groupTitle: 0 + CLASS_BLOCK_FRAMES,
+  director: 129 + CLASS_BLOCK_FRAMES,
+  deputy: 172 + CLASS_BLOCK_FRAMES,
+  guidance: 215 + CLASS_BLOCK_FRAMES,
+  admins: 258 + CLASS_BLOCK_FRAMES,
+  teachers: 323 + CLASS_BLOCK_FRAMES,
+  licensed: 420 + CLASS_BLOCK_FRAMES,
+  notLicensed: 532 + CLASS_BLOCK_FRAMES,
+  students: 613 + CLASS_BLOCK_FRAMES,
+  classes: 742 + CLASS_BLOCK_FRAMES,
+  economic: 839 + CLASS_BLOCK_FRAMES,
+  social: 952 + CLASS_BLOCK_FRAMES,
+  health: 1033 + CLASS_BLOCK_FRAMES,
+  sugar: 1130 + CLASS_BLOCK_FRAMES,
+  epilepsy: 1195 + CLASS_BLOCK_FRAMES,
+  // موهبة/إعاقة/صعوبات تعلم - إضافة جديدة صامتة مؤقتًا، بعد نهاية الصوت الحقيقي
+  gifted: CLASS_BLOCK_FRAMES + ORIGINAL_ORG_STATS_DURATION + 15,
+  disability: CLASS_BLOCK_FRAMES + ORIGINAL_ORG_STATS_DURATION + 55,
+  learningDifficulty: CLASS_BLOCK_FRAMES + ORIGINAL_ORG_STATS_DURATION + 95,
 } as const;
 
 // ---- Layout (1920x1080, chrome header=118 / footer=64) ----
-const SPINE_TOP = 210;
-const SPINE_BOTTOM = 960;
-const ROW_TITLE_Y = 160;
-const ROW_ROLES_Y = 245;
-const ROW_TEACH_ADMIN_Y = 375;
-const ROW_STUDENTS_Y = 555;
-const ROW_ECON_SOCIAL_Y = 705;
-const ROW_HEALTH_Y = 855;
+const SPINE_TOP = 270;
+const SPINE_BOTTOM = 1000;
+const ROW_CLASSIFICATION_Y = 148;
+const ROW_TITLE_Y = 230;
+const ROW_ROLES_Y = 300;
+const ROW_TEACH_ADMIN_Y = 400;
+const ROW_STUDENTS_Y = 590;
+const ROW_ECON_SOCIAL_Y = 740;
+const ROW_HEALTH_Y = 840;
 
 // ---- Icons: unified single-color line icons, same visual language as FacilitiesScene ----
 const IC = brand.primary;
@@ -111,6 +138,18 @@ const SugarIcon = () => (
 const EpilepsyIcon = () => (
   <svg width={22} height={22} viewBox="0 0 48 48" fill="none" stroke={IC} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"><path d="M4 26h8l4-12 8 22 4-16 4 6h12" /></svg>
 );
+const RankBadgeIcon = () => (
+  <svg {...iconProps}><circle cx="24" cy="18" r="11" /><path d="M15 27l-4 15 13-6 13 6-4-15" /></svg>
+);
+const GiftedIcon = () => (
+  <svg width={22} height={22} viewBox="0 0 48 48" fill="none" stroke={IC} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"><path d="M24 6l4.5 9.5L38 18l-7 7 1.7 10-8.7-5-8.7 5L17 25l-7-7 9.5-2.5L24 6Z" /></svg>
+);
+const DisabilityIcon = () => (
+  <svg width={22} height={22} viewBox="0 0 48 48" fill="none" stroke={brand.muted} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"><circle cx="20" cy="10" r="4" /><path d="M20 16v10l-9 14M20 26h14M20 20l9 6 7-4" /></svg>
+);
+const LearningDifficultyIcon = () => (
+  <svg width={22} height={22} viewBox="0 0 48 48" fill="none" stroke={brand.muted} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"><path d="M8 14h24v26H8zM32 20h8v20h-8z" /><path d="M14 22h12M14 28h12M14 34h8" /></svg>
+);
 
 const GroupTitle: React.FC = () => {
   const frame = useCurrentFrame();
@@ -128,7 +167,7 @@ const GroupTitle: React.FC = () => {
         textAlign: "center",
         fontFamily,
         fontWeight: 800,
-        fontSize: 32,
+        fontSize: 36,
         color: brand.primaryDark,
         opacity: t,
       }}
@@ -141,7 +180,7 @@ const GroupTitle: React.FC = () => {
 /** Central spine, growing continuously with overall scene progress. */
 const Spine: React.FC = () => {
   const frame = useCurrentFrame();
-  const draw = interpolate(frame, [10, 1200], [0, 1], {
+  const draw = interpolate(frame, [CLASS_BLOCK_FRAMES + 10, ORG_STATS_DURATION - 40], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: Easing.out(Easing.cubic),
@@ -199,7 +238,7 @@ const Pill: React.FC<{ label: string; x: number; y: number; from: number; icon: 
         }}
       >
         {icon}
-        <span style={{ fontFamily, fontWeight: 800, fontSize: 20, color: brand.primaryDark }}>{label}</span>
+        <span style={{ fontFamily, fontWeight: 800, fontSize: 23, color: brand.primaryDark }}>{label}</span>
       </div>
     </div>
   );
@@ -237,7 +276,7 @@ const SubBadge: React.FC<{ label: string; x: number; y: number; from: number; ic
     >
       <Sfx kind="tick" at={from} volume={0.15} />
       {icon}
-      <span style={{ fontFamily, fontWeight: 700, fontSize: 16, color: muted ? brand.muted : brand.primaryDark }}>{label}</span>
+      <span style={{ fontFamily, fontWeight: 700, fontSize: 18, color: muted ? brand.muted : brand.primaryDark }}>{label}</span>
     </div>
   );
 };
@@ -291,8 +330,8 @@ const StatCard: React.FC<{
           {icon}
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <div style={{ fontFamily, fontWeight: 700, fontSize: 19, color: brand.muted }}>{label}</div>
-          <div style={{ fontFamily, fontWeight: 900, fontSize: 42, color: brand.primary }}>
+          <div style={{ fontFamily, fontWeight: 700, fontSize: 21, color: brand.muted }}>{label}</div>
+          <div style={{ fontFamily, fontWeight: 900, fontSize: 44, color: brand.primary }}>
             <CountUpNumber value={value} decimals={0} from={from} durationInFrames={COUNT_DURATION} />
           </div>
         </div>
@@ -305,10 +344,15 @@ export const OrgStatsScene: React.FC = () => {
   return (
     <AbsoluteFill style={{ background: brand.paper }}>
       <StatsSceneChrome sectionTitle="الهيكل الإشرافي والإحصاءات العامة" />
-      <Sequence from={0} layout="none">
+      <Sequence from={CLASS_BLOCK_FRAMES} layout="none">
         <Audio src={staticFile(AUDIO_SRC)} />
       </Sequence>
       <Sfx kind="whoosh" at={0} volume={0.4} />
+
+      <Pill label={`معلم خبير: ${teacherClassification.expert}`} x={960 + 480} y={ROW_CLASSIFICATION_Y} from={ITEM_START.classExpert} icon={<RankBadgeIcon />} />
+      <Pill label={`معلم متقدم: ${teacherClassification.advanced}`} x={960 + 160} y={ROW_CLASSIFICATION_Y} from={ITEM_START.classAdvanced} icon={<RankBadgeIcon />} />
+      <Pill label={`معلم ممارس: ${teacherClassification.practitioner}`} x={960 - 160} y={ROW_CLASSIFICATION_Y} from={ITEM_START.classPractitioner} icon={<RankBadgeIcon />} />
+      <Pill label={`مساعد معلم: ${teacherClassification.assistant}`} x={960 - 480} y={ROW_CLASSIFICATION_Y} from={ITEM_START.classAssistant} icon={<RankBadgeIcon />} />
 
       <Spine />
       <GroupTitle />
@@ -401,17 +445,40 @@ export const OrgStatsScene: React.FC = () => {
       />
       <SubBadge
         label={`${healthCases.sugar} سكر`}
-        x={960 + 90}
+        x={960 + 360}
         y={ROW_HEALTH_Y + 110}
         from={ITEM_START.sugar}
         icon={<SugarIcon />}
       />
       <SubBadge
         label={`${healthCases.epilepsy} صرع`}
-        x={960 - 90}
+        x={960 + 180}
         y={ROW_HEALTH_Y + 110}
         from={ITEM_START.epilepsy}
         icon={<EpilepsyIcon />}
+      />
+      <SubBadge
+        label={`${specialNeedsCases.gifted} موهبة`}
+        x={960}
+        y={ROW_HEALTH_Y + 110}
+        from={ITEM_START.gifted}
+        icon={<GiftedIcon />}
+      />
+      <SubBadge
+        label={`${specialNeedsCases.disability} إعاقة`}
+        x={960 - 180}
+        y={ROW_HEALTH_Y + 110}
+        from={ITEM_START.disability}
+        icon={<DisabilityIcon />}
+        muted
+      />
+      <SubBadge
+        label={`${specialNeedsCases.learningDifficulty} صعوبات تعلم`}
+        x={960 - 360}
+        y={ROW_HEALTH_Y + 110}
+        from={ITEM_START.learningDifficulty}
+        icon={<LearningDifficultyIcon />}
+        muted
       />
     </AbsoluteFill>
   );

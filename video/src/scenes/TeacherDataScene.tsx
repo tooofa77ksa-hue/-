@@ -83,7 +83,7 @@ const TeacherSlide: React.FC<{ rows: (typeof teachers[number])[]; pageLabel: str
           opacity: headerAppear,
         }}
       >
-        <div style={{ fontFamily, fontSize: 20, color: brand.muted, textAlign: "left", marginBottom: 6 }}>
+        <div style={{ fontFamily, fontSize: 22, color: brand.muted, textAlign: "left", marginBottom: 6 }}>
           {pageLabel}
         </div>
         <div
@@ -92,7 +92,7 @@ const TeacherSlide: React.FC<{ rows: (typeof teachers[number])[]; pageLabel: str
             gridTemplateColumns: "2fr 1fr 1fr 1.6fr",
             fontFamily,
             fontWeight: 800,
-            fontSize: 24,
+            fontSize: 26,
             color: brand.paper,
             background: brand.primaryDark,
             borderRadius: 12,
@@ -121,7 +121,7 @@ const TeacherSlide: React.FC<{ rows: (typeof teachers[number])[]; pageLabel: str
                   display: "grid",
                   gridTemplateColumns: "2fr 1fr 1fr 1.6fr",
                   fontFamily,
-                  fontSize: 22,
+                  fontSize: 24,
                   color: brand.ink,
                   background: i % 2 === 0 ? "#ffffff" : "#f7faf9",
                   opacity: appear,

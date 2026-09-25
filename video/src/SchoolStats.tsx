@@ -3,7 +3,6 @@ import { fontFamily } from "./brand/tokens";
 import { FadeWrapper } from "./components/FadeWrapper";
 import { OrgStatsScene, ORG_STATS_DURATION } from "./scenes/OrgStatsScene";
 import { StudentDistributionScene, STUDENT_DISTRIBUTION_DURATION } from "./scenes/StudentDistributionScene";
-import { SmartScheduleScene, SMART_SCHEDULE_DURATION } from "./scenes/SmartScheduleScene";
 import { TeacherDataScene, TEACHER_DATA_DURATION } from "./scenes/TeacherDataScene";
 import { FacilitiesScene, FACILITIES_DURATION } from "./scenes/FacilitiesScene";
 
@@ -22,17 +21,18 @@ import { FacilitiesScene, FACILITIES_DURATION } from "./scenes/FacilitiesScene";
  * section only speaks at isolated points, so each real ElevenLabs line
  * (public/audio/school-stats/*.mp3, same voice as grade-3/6) is wired
  * directly inside its own scene/beat as a local <Audio> - see the
- * TransitionBeat in StudentDistributionScene.tsx (line4), SmartScheduleScene
- * .tsx (line5), TeacherDataScene.tsx (line6). OrgStatsScene's narration is
- * still pending (user is recording it); its duration is a provisional
- * word-count estimate until that audio arrives - see the comment at the top
- * of OrgStatsScene.tsx. Each scene's *_DURATION is derived from its line's
- * real measured length once recorded.
+ * TransitionBeat in StudentDistributionScene.tsx (line4) and
+ * TeacherDataScene.tsx (line6). Each scene's *_DURATION is derived from its
+ * line's real measured length once recorded.
+ *
+ * SmartScheduleScene.tsx (the 12-class-timetable "الجدول الذكي" section) was
+ * removed from this timeline per explicit user request - the file itself is
+ * left untouched on disk, just unregistered here, per the project's
+ * non-destructive convention.
  */
 const introFrom = 0;
 const distributionFrom = introFrom + ORG_STATS_DURATION;
-const scheduleFrom = distributionFrom + STUDENT_DISTRIBUTION_DURATION;
-const teachersFrom = scheduleFrom + SMART_SCHEDULE_DURATION;
+const teachersFrom = distributionFrom + STUDENT_DISTRIBUTION_DURATION;
 const facilitiesFrom = teachersFrom + TEACHER_DATA_DURATION;
 
 export const schoolStatsTotalDuration = facilitiesFrom + FACILITIES_DURATION;
@@ -54,12 +54,6 @@ export const SchoolStats: React.FC = () => {
       >
         <FadeWrapper durationInFrames={STUDENT_DISTRIBUTION_DURATION}>
           <StudentDistributionScene />
-        </FadeWrapper>
-      </Sequence>
-
-      <Sequence from={scheduleFrom} durationInFrames={SMART_SCHEDULE_DURATION} layout="absolute-fill" name="SmartSchedule">
-        <FadeWrapper durationInFrames={SMART_SCHEDULE_DURATION}>
-          <SmartScheduleScene />
         </FadeWrapper>
       </Sequence>
 

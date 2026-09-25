@@ -13,6 +13,14 @@
  */
 export const supervisoryRoles = ["مديرة", "وكيلة", "توجيه طلابي"] as const;
 
+/** تصنيف المعلمات المهني - بيانات مختلفة تمامًا عن رخصة المعلم أدناه (لا علاقة بينهما، أكّدته المستخدمة صراحة). */
+export const teacherClassification = {
+  expert: 0, // معلم خبير
+  advanced: 0, // معلم متقدم
+  practitioner: 21, // معلم ممارس
+  assistant: 1, // مساعد معلم
+} as const;
+
 export const teacherLicense = {
   total: 22,
   licensed: 20,
@@ -28,4 +36,11 @@ export const healthCases = {
   total: 5,
   sugar: 4,
   epilepsy: 1,
+} as const;
+
+/** تُعرض مباشرة بعد بطاقة "الحالة الصحية" - بنود منفصلة، وليست جزءًا من إجمالي healthCases. */
+export const specialNeedsCases = {
+  gifted: 44, // موهبة
+  disability: 0, // إعاقة
+  learningDifficulty: 0, // صعوبات تعلم
 } as const;
