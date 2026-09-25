@@ -13,7 +13,7 @@ describe('تصدير النسخة الاحتياطية', () => {
     const file = JSON.parse(exportBackup(state))
     expect(file.format).toBe('qiyas-backup')
     expect(file.summary.students).toBe(294)
-    expect(file.summary.responses).toBe(281)
+    expect(file.summary.responses).toBe(280)
     expect(file.summary.answers).toBe(state.answers.length)
     expect(file.state.students).toHaveLength(294)
     expect(file.checksum).toMatch(/^[0-9a-f]{8}$/)

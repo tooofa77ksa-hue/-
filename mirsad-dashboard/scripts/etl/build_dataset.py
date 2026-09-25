@@ -169,6 +169,22 @@ def match_response(row, roster_by_grade):
     return 'NEW', None, []
 
 
+def read_excluded():
+    """استجابات قرّرت المدرسة استبعادها، بموضعها في ملف المصدر.
+
+    قرار الاستبعاد إداري ويُسجَّل في ملف يُرفع مع الشيفرة، لا يُحذف
+    الصفّ من المصدر: لو حُذف من المصدر لم يُعرف بعد شهر ماذا نقص ولا
+    لماذا، ولعاد ما استُبعد لو أُعيد إرسال الملف.
+
+    ولا اسم في الملف: الموضع يكفي لتمييز الصفّ، والاسم بيانات شخصية.
+    """
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'excluded.json')
+    if not os.path.exists(path):
+        return []
+    with open(path, encoding='utf-8') as fh:
+        return json.load(fh).get('excluded', [])
+
+
 def drop_resubmissions(rows):
     """يطوي إعادة الإرسال ولا يطوي تشابه الأسماء.
 
@@ -281,6 +297,14 @@ def build():
                       if r['overall'] is not None and str(r['overall']).strip()]
     overall_options = sorted(set(overall_values), key=lambda v: -overall_values.count(v))
 
+    excluded = read_excluded()
+    skip = {(e['sourceFile'], e['sourceRow']) for e in excluded}
+    kept = [r for r in response_rows if (r['sourceFile'], r['sourceRow']) not in skip]
+    excluded_hit = len(response_rows) - len(kept)
+    if excluded_hit != len(skip):
+        raise SystemExit(f'ملف الاستبعاد يشير إلى صفوف غير موجودة: {len(skip)} مطلوبة، {excluded_hit} وُجدت')
+    response_rows = kept
+
     response_rows, resubmissions = drop_resubmissions(response_rows)
 
     # ---- الاستجابات والإجابات ----
@@ -387,6 +411,7 @@ def build():
         'answerVariantsMapped': len(VARIANTS),
         'suggestions': len(suggestions),
         'resubmissions': len(resubmissions),
+        'excludedBySchool': excluded_hit,
         'overallOptions': dict(Counter(overall_values)),
         'duplicateGroups': duplicate_groups,
         'reverseScored': {str(k): v for k, v in REVERSE_SCORED.items()},

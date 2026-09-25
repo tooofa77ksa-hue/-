@@ -41,7 +41,7 @@ describe('نطاق التحليل', () => {
   })
 
   it('ينسب كل الاستجابات إلى نطاق المدرسة', () => {
-    expect(responsesInScope(state, SCHOOL_SCOPE)).toHaveLength(281)
+    expect(responsesInScope(state, SCHOOL_SCOPE)).toHaveLength(280)
   })
 
   it('لا ينسب إلى الفصل إلا الاستجابات المرتبطة بطالبة مؤكّدة', () => {
@@ -178,7 +178,7 @@ describe('مؤشر الاتجاه', () => {
 describe('التقويم العام والآراء', () => {
   it('يوزّع التقويم العام بقيم المصدر ونسب مجموعها ١٠٠٪', () => {
     const d = overallDistribution(state, SCHOOL_SCOPE)
-    expect(d.n).toBe(275)
+    expect(d.n).toBe(274)
     expect(d.rows.map((r) => r.value)).toEqual(['ممتاز', 'جيد'])
     expect(d.rows.reduce((s, r) => s + r.percent, 0)).toBeCloseTo(100, 6)
     expect(d.rows.reduce((s, r) => s + r.count, 0)).toBe(d.n)

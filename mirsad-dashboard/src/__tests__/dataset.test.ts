@@ -72,13 +72,13 @@ describe('سلامة مجموعة البيانات المستوردة', () => {
     }
   })
 
-  it('تستورد ٢٨١ استجابة من ملفات Excel الستة', () => {
-    expect(state.responses).toHaveLength(281)
+  it('تستورد ٢٨٠ استجابة من ملفات Excel الستة', () => {
+    expect(state.responses).toHaveLength(280)
     const byGrade = state.grades.map(
       (g) => state.responses.filter((r) => r.declaredGradeId === g.id).length,
     )
-    expect(byGrade).toEqual([45, 47, 51, 49, 43, 46])
-    expect(byGrade.reduce((a, b) => a + b, 0)).toBe(281)
+    expect(byGrade).toEqual([45, 47, 51, 48, 43, 46])
+    expect(byGrade.reduce((a, b) => a + b, 0)).toBe(280)
   })
 
   it('تُبقي الاستجابة على صفّها المعلن ولو خالف ملف مصدرها', () => {
@@ -89,7 +89,7 @@ describe('سلامة مجموعة البيانات المستوردة', () => {
       const fromFile = `g${r.sourceFile?.replace('responses-grade', '').replace('.xlsx', '')}`
       return r.declaredGradeId !== fromFile
     })
-    expect(mismatched).toHaveLength(13)
+    expect(mismatched).toHaveLength(12)
     // ولم تُحذف ولا فُقدت إجاباتها
     for (const r of mismatched) {
       expect(state.answers.filter((a) => a.responseId === r.id).length).toBeGreaterThan(0)
@@ -122,7 +122,7 @@ describe('سلامة مجموعة البيانات المستوردة', () => {
 
   it('تخصّص خانة إجابة لكل سؤال مقيس في كل استجابة', () => {
     const likert = state.answers.filter((a) => /^q\d+$/.test(a.questionId))
-    expect(likert).toHaveLength(281 * 23)
+    expect(likert).toHaveLength(280 * 23)
   })
 
   it('توحّد كل صيغ الإجابات المكتوبة بأخطاء إملائية إلى الخيارات الثلاثة', () => {
@@ -130,7 +130,7 @@ describe('سلامة مجموعة البيانات المستوردة', () => {
     const unrecognized = state.answers.filter(
       (a) => a.rawValue !== null && a.optionId === null && /^q\d+$/.test(a.questionId),
     )
-    expect(recognized.length).toBe(6360)
+    expect(recognized.length).toBe(6337)
     expect(unrecognized).toHaveLength(0)
   })
 

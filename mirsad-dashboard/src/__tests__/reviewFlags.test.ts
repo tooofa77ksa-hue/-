@@ -23,17 +23,18 @@ beforeEach(() => {
 })
 
 describe('اشتقاق الحالات المميَّزة', () => {
-  it('يميّز ٣٥ حالة موزّعة على الأسباب المطلوبة', () => {
+  it('يميّز ٣٤ حالة موزّعة على الأسباب المطلوبة', () => {
     const c = flagCounts(state)
-    expect(c.total).toBe(35)
-    expect(c.pending).toBe(35)
+    expect(c.total).toBe(34)
+    expect(c.pending).toBe(34)
     expect(c.reviewed).toBe(0)
     expect(c.byReason.no_roster_match).toBe(16)
-    expect(c.byReason.grade_mismatch).toBe(13)
+    expect(c.byReason.grade_mismatch).toBe(12)
     expect(c.byReason.duplicate_name).toBe(9)
-    expect(c.byReason.incomplete_name).toBe(3)
-    // «ترف» وحدها: اسمٌ واحد في الرابع وفيه ترفان — تنتظر قرار الإدارة
-    expect(c.byReason.ambiguous_candidates).toBe(1)
+    expect(c.byReason.incomplete_name).toBe(2)
+    // لا حالة ملتبسة: الاستجابة الوحيدة التي كانت كذلك استبعدتها
+    // المدرسة، لأن اسمها كلمة واحدة تحملها طالبتان
+    expect(c.byReason.ambiguous_candidates ?? 0).toBe(0)
   })
 
   it('يميّز كل استجابة NEW غير مرتبطة بطالبة', () => {
@@ -48,7 +49,7 @@ describe('اشتقاق الحالات المميَّزة', () => {
     const flagged = state.responses.filter(
       (r) => reasonsFor(r).some((x) => x.code === 'grade_mismatch'),
     )
-    expect(flagged).toHaveLength(13)
+    expect(flagged).toHaveLength(12)
   })
 
   it('يميّز طرفَي كل مجموعة أسماء متكرّرة', () => {
@@ -65,12 +66,12 @@ describe('اشتقاق الحالات المميَّزة', () => {
     const flagged = state.responses.filter(
       (r) => reasonsFor(r).some((x) => x.code === 'incomplete_name'),
     )
-    expect(flagged).toHaveLength(3)
+    expect(flagged).toHaveLength(2)
   })
 
   it('لا يميّز الاستجابات السليمة', () => {
     const clean = state.responses.filter((r) => reasonsFor(r).length === 0)
-    expect(clean.length).toBe(state.responses.length - 35)
+    expect(clean.length).toBe(state.responses.length - 34)
     for (const r of clean) expect(needsReview(state, r.id)).toBe(false)
   })
 
@@ -143,10 +144,10 @@ describe('«تمت المراجعة ✓» ثم إعادة التمييز', () =>
     let s = state
     for (const c of flaggedCases(state)) s = markReviewed(s, c.responseId)
     expect(flagCounts(s).pending).toBe(0)
-    expect(flagCounts(s).reviewed).toBe(35)
+    expect(flagCounts(s).reviewed).toBe(34)
 
     for (const c of flaggedCases(s)) s = unmarkReviewed(s, c.responseId)
-    expect(flagCounts(s).pending).toBe(35)
+    expect(flagCounts(s).pending).toBe(34)
     expect(s.responses).toEqual(state.responses)
     expect(s.answers).toEqual(state.answers)
   })
