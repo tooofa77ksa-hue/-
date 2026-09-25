@@ -24,70 +24,46 @@ import {
  * المعلمات+الإداريات، ثم الطالبات+الفصول، ثم الاقتصادية+الاجتماعية، ثم
  * الصحية+السكر+الصرع.
  *
- * التوقيت: الجزء الأصلي (الهيئة الإشرافية وحتى الحالة الصحية) مبني على
- * الصوت الحقيقي (public/audio/school-stats/org-stats-line.mp3، نفس صوت
- * "Layla")، طوله الفعلي 41.404 ثانية = 1243 فريمًا (ceil) - لم يُقصَّ أو
- * يُسرَّع لإجباره على مدة أقصر (نفس قاعدة "عدم التلاعب بالصوت" في كل
- * المشروع). هذا الصوت مقسَّم الآن إلى جزأين حول فجوة صامتة مؤقتة
- * (CLASS_GAP_FRAMES) عند نقطة "الطالبات" (SPLIT_FRAME)، باستخدام
- * trimBefore بدل تقطيع ملف mp3 فعليًا - الجزء الأول يشغّل الصوت من بدايته
- * حتى SPLIT_FRAME (المشرفات/المعلمات/الرخصة)، والجزء الثاني يشغّل بقية
- * الصوت (من الطالبات فصاعدًا) بعد الفجوة مباشرة، فتبقى كل الأزمنة الداخلية
- * لكل جزء صحيحة دون أي قص حقيقي للصوت.
- *
- * ⚠️ إضافتان جديدتان (تصنيف المعلمات - ضمن الفجوة الوسطى تحت بطاقة
- * المعلمات مباشرة، وموهبة/إعاقة/صعوبات تعلم بعد الحالة الصحية) ليس لهما
- * تسجيل صوتي بعد - مدتاهما (CLASS_GAP_FRAMES و HEALTH_EXTRA_BLOCK_FRAMES)
- * تقدير مؤقت (Placeholder) بانتظار تسجيل صوتي جديد يغطيهما، بنفس منهجية
- * بقية المشروع: بمجرد وصول الصوت، قيسي طوله وحدّدي سكتاته الحقيقية ثم
- * استبدلي هذين الرقمين بالسكتات الفعلية (وعندها يمكن التخلص من التقسيم
- * trimBefore والعودة لملف صوتي واحد متصل، أو ضبط SPLIT_FRAME على مكانه
- * الجديد).
+ * التوقيت: مبني بالكامل على التسجيل الصوتي الحقيقي الثاني
+ * (public/audio/school-stats/org-stats-line.mp3، صوت "Layla"، 59.35 ثانية)
+ * الذي يغطي كل شيء الآن - بما فيها تصنيف المعلمات وموهبة/إعاقة/صعوبات
+ * التعلّم، فلا حاجة بعد اليوم لأي فجوة صامتة أو تقسيم صوتي. المنهجية:
+ * النص الفعلي قُسّم إلى 22 مقطعًا مطابقًا لكل عنصر يظهر على الشاشة، حُسب
+ * عدد كلمات كل مقطع، استُخدمت النسبة التراكمية لتقدير زمن البداية، ثم
+ * طوبق كل تقدير مع أقرب سكتة صمت حقيقية من
+ * `ffmpeg -af silencedetect=noise=-30dB:d=0.25`، مع فرض حد أدنى 22 إطارًا
+ * بين أي عنصرين متتاليين (أطول قليلًا من REVEAL_DURATION) حتى لا يتداخل
+ * ظهور عنصر مع سابقه.
  */
 const REVEAL_DURATION = 18; // ~0.6s icon->label->count entrance
 const COUNT_DURATION = 20; // ~0.67s count-up
 const AUDIO_SRC = "audio/school-stats/org-stats-line.mp3";
 
-const ORIGINAL_ORG_STATS_DURATION = 1243; // ceil(41.404s * 30fps) - طول الصوت الحقيقي المسجَّل، دون تغيير
-const SPLIT_FRAME = 613; // نقطة "الطالبات" داخل الصوت الأصلي (ITEM_START.students سابقًا) - هنا تُفتح الفجوة
-const CLASS_GAP_FRAMES = 220; // فجوة صامتة مؤقتة لعرض تصنيف المعلمات (بانتظار التسجيل الجديد)
-const HEALTH_EXTRA_BLOCK_FRAMES = 130; // إضافة موهبة/إعاقة/صعوبات تعلم الصامتة مؤقتًا (بانتظار التسجيل الجديد)
+export const ORG_STATS_DURATION = 1832; // آخر عنصر (learningDifficulty=1774) + مدة ظهوره + مهلة هدوء قصيرة قبل الانتقال
 
-export const ORG_STATS_DURATION = ORIGINAL_ORG_STATS_DURATION + CLASS_GAP_FRAMES + HEALTH_EXTRA_BLOCK_FRAMES;
-
-/**
- * ملاحظة: التسجيل الفعلي يذكر "الإداريات" قبل "المعلمات" (عكس ترتيب نص
- * السرد الأصلي) - صححته المستخدمة مباشرة بعد سماع تجاوز الأيقونة للكلام،
- * فأُعيد ترتيب ظهور هذين العنصرين (وموضعهما الأفقي RTL) ليطابق ما تُنطق
- * فعليًا، دون تغيير ترتيب أي مجموعة أخرى.
- */
 const ITEM_START = {
-  // هذه القيم كما في الصوت الأصلي تمامًا (بلا أي إزاحة) - كلها قبل SPLIT_FRAME
-  groupTitle: 0,
-  director: 129,
-  deputy: 172,
-  guidance: 215,
-  admins: 258,
-  teachers: 323,
-  licensed: 420,
-  notLicensed: 532,
-  // تصنيف المعلمات - يظهر داخل الفجوة الصامتة، مباشرة تحت شارتي الرخصة، قبل استئناف الصوت عند "الطالبات"
-  classExpert: 620,
-  classAdvanced: 660,
-  classPractitioner: 700,
-  classAssistant: 740,
-  // من هنا فصاعدًا: كل رقم = القيمة الأصلية + CLASS_GAP_FRAMES (220)، لأن الصوت (الجزء الثاني) استأنف بعد الفجوة
-  students: 613 + CLASS_GAP_FRAMES,
-  classes: 742 + CLASS_GAP_FRAMES,
-  economic: 839 + CLASS_GAP_FRAMES,
-  social: 952 + CLASS_GAP_FRAMES,
-  health: 1033 + CLASS_GAP_FRAMES,
-  sugar: 1130 + CLASS_GAP_FRAMES,
-  epilepsy: 1195 + CLASS_GAP_FRAMES,
-  // موهبة/إعاقة/صعوبات تعلم - إضافة جديدة صامتة مؤقتًا، بعد نهاية الصوت الحقيقي (بجزأيه)
-  gifted: ORIGINAL_ORG_STATS_DURATION + CLASS_GAP_FRAMES + 15,
-  disability: ORIGINAL_ORG_STATS_DURATION + CLASS_GAP_FRAMES + 55,
-  learningDifficulty: ORIGINAL_ORG_STATS_DURATION + CLASS_GAP_FRAMES + 95,
+  groupTitle: 81,
+  director: 108,
+  deputy: 186,
+  guidance: 208,
+  admins: 230,
+  teachers: 343,
+  licensed: 433,
+  notLicensed: 482,
+  classExpert: 509,
+  classAdvanced: 680,
+  classPractitioner: 742,
+  classAssistant: 858,
+  students: 880,
+  classes: 928,
+  economic: 1044,
+  social: 1212,
+  health: 1304,
+  sugar: 1452,
+  epilepsy: 1474,
+  gifted: 1550,
+  disability: 1686,
+  learningDifficulty: 1774,
 } as const;
 
 // ---- Layout (1920x1080, chrome header=118 / footer=64) ----
@@ -352,11 +328,8 @@ export const OrgStatsScene: React.FC = () => {
   return (
     <AbsoluteFill style={{ background: brand.paper }}>
       <StatsSceneChrome sectionTitle="الهيكل الإشرافي والإحصاءات العامة" />
-      <Sequence from={0} durationInFrames={SPLIT_FRAME} layout="none">
+      <Sequence from={0} layout="none">
         <Audio src={staticFile(AUDIO_SRC)} />
-      </Sequence>
-      <Sequence from={SPLIT_FRAME + CLASS_GAP_FRAMES} layout="none">
-        <Audio src={staticFile(AUDIO_SRC)} trimBefore={SPLIT_FRAME} />
       </Sequence>
       <Sfx kind="whoosh" at={0} volume={0.4} />
 
