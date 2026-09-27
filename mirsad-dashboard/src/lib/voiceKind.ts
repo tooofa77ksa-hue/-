@@ -33,6 +33,9 @@ const PRAISE = [
   'احترام', 'مجهود', 'جهودكم', 'اشكر', 'محبه', 'سعيده', 'راضيه',
 ]
 
+/** دعوةٌ إلى الاستمرار لا مطلبَ فيها، إن جاءت وحدها مع ثناء. */
+const CONTINUE = new Set(['استمرار', 'الاستمرار'])
+
 /** أقلّ عدد حروف عربية أو لاتينية حتى يُعدّ النص رأيًا أصلًا. */
 const MIN_LETTERS = 6
 
@@ -57,7 +60,15 @@ export function classifyVoice(text: string): VoiceKind {
   if (/^(لا|ما)\s?(يوجد|توجد|شي|شيء|اعرف|اعلم|عندي|املك|ابي|اريد)/.test(normal)) return 'empty'
   if (/^(لايوجد|لاشي|لاشيء|ولايوجد|مافي|مايوجد)/.test(normal)) return 'empty'
 
-  if (has(normal, ASKS)) return 'improve'
+  // نفيُ النقص ثناءٌ لا شكوى: «لا ينقص شيء فيها»، «كل شيء متوفر»
+  if (/^(لا|ما)\s?(ينقص|تنقص|يعوز)/.test(normal)) return 'positive'
+  if (/(كل\s?شي|كل\s?شيء)\s?(متوفر|متووفر|موجود|تمام)/.test(normal)) return 'positive'
+
+  const asks = ASKS.filter((w) => normal.includes(w))
+  // «الاستمرار في هذا المستوى الرائع» ثناءٌ لا مطلب: لفظُ الطلب الوحيد
+  // فيه دعوةٌ إلى الاستمرار، ومعه ثناء صريح
+  const onlyContinue = asks.length > 0 && asks.every((w) => CONTINUE.has(w))
+  if (asks.length > 0 && !(onlyContinue && has(normal, PRAISE))) return 'improve'
   if (has(normal, PRAISE)) return 'positive'
   return 'improve'
 }
