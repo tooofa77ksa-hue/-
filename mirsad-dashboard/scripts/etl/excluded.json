@@ -10,6 +10,16 @@
       "sourceFile": "responses-grade1.xlsx",
       "sourceRow": 92,
       "reason": "الاسم كلمة واحدة، وفي الصف الرابع طالبتان تحملانها — لا تُنسب إلى واحدة بعينها"
+    },
+    {
+      "sourceFile": "responses-grade4.xlsx",
+      "sourceRow": 40,
+      "reason": "الطالبة نُقلت من المدرسة — قرار الإدارة بحذف استجابتها كاملة"
+    },
+    {
+      "sourceFile": "responses-grade3.xlsx",
+      "sourceRow": 12,
+      "reason": "الطالبة نُقلت من المدرسة — قرار الإدارة بحذف استجابتها كاملة"
     }
   ]
 }

@@ -23,12 +23,12 @@ beforeEach(() => {
 })
 
 describe('اشتقاق الحالات المميَّزة', () => {
-  it('يميّز ٣٤ حالة موزّعة على الأسباب المطلوبة', () => {
+  it('يميّز ٣٢ حالة موزّعة على الأسباب المطلوبة', () => {
     const c = flagCounts(state)
-    expect(c.total).toBe(34)
-    expect(c.pending).toBe(34)
+    expect(c.total).toBe(32)
+    expect(c.pending).toBe(32)
     expect(c.reviewed).toBe(0)
-    expect(c.byReason.no_roster_match).toBe(16)
+    expect(c.byReason.no_roster_match).toBe(14)
     expect(c.byReason.grade_mismatch).toBe(12)
     expect(c.byReason.duplicate_name).toBe(9)
     expect(c.byReason.incomplete_name).toBe(2)
@@ -39,7 +39,7 @@ describe('اشتقاق الحالات المميَّزة', () => {
 
   it('يميّز كل استجابة NEW غير مرتبطة بطالبة', () => {
     const news = state.responses.filter((r) => r.matchStatus === 'NEW' && !r.studentId)
-    expect(news).toHaveLength(16)
+    expect(news).toHaveLength(14)
     for (const r of news) {
       expect(reasonsFor(r).some((x) => x.code === 'no_roster_match')).toBe(true)
     }
@@ -71,7 +71,7 @@ describe('اشتقاق الحالات المميَّزة', () => {
 
   it('لا يميّز الاستجابات السليمة', () => {
     const clean = state.responses.filter((r) => reasonsFor(r).length === 0)
-    expect(clean.length).toBe(state.responses.length - 34)
+    expect(clean.length).toBe(state.responses.length - 32)
     for (const r of clean) expect(needsReview(state, r.id)).toBe(false)
   })
 
@@ -144,10 +144,10 @@ describe('«تمت المراجعة ✓» ثم إعادة التمييز', () =>
     let s = state
     for (const c of flaggedCases(state)) s = markReviewed(s, c.responseId)
     expect(flagCounts(s).pending).toBe(0)
-    expect(flagCounts(s).reviewed).toBe(34)
+    expect(flagCounts(s).reviewed).toBe(32)
 
     for (const c of flaggedCases(s)) s = unmarkReviewed(s, c.responseId)
-    expect(flagCounts(s).pending).toBe(34)
+    expect(flagCounts(s).pending).toBe(32)
     expect(s.responses).toEqual(state.responses)
     expect(s.answers).toEqual(state.answers)
   })

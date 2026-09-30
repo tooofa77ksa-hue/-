@@ -41,7 +41,7 @@ describe('نطاق التحليل', () => {
   })
 
   it('ينسب كل الاستجابات إلى نطاق المدرسة', () => {
-    expect(responsesInScope(state, SCHOOL_SCOPE)).toHaveLength(280)
+    expect(responsesInScope(state, SCHOOL_SCOPE)).toHaveLength(278)
   })
 
   it('لا ينسب إلى الفصل إلا الاستجابات المرتبطة بطالبة مؤكّدة', () => {
@@ -178,21 +178,21 @@ describe('مؤشر الاتجاه', () => {
 describe('التقويم العام والآراء', () => {
   it('يوزّع التقويم العام بقيم المصدر ونسب مجموعها ١٠٠٪', () => {
     const d = overallDistribution(state, SCHOOL_SCOPE)
-    expect(d.n).toBe(274)
+    expect(d.n).toBe(272)
     expect(d.rows.map((r) => r.value)).toEqual(['ممتاز', 'جيد'])
     expect(d.rows.reduce((s, r) => s + r.percent, 0)).toBeCloseTo(100, 6)
     expect(d.rows.reduce((s, r) => s + r.count, 0)).toBe(d.n)
   })
 
   it('يحصر الآراء داخل النطاق المطلوب', () => {
-    expect(suggestionsInScope(state, SCHOOL_SCOPE)).toHaveLength(116)
+    expect(suggestionsInScope(state, SCHOOL_SCOPE)).toHaveLength(115)
     const g6 = suggestionsInScope(state, { gradeId: 'g6' })
-    expect(g6.length).toBeLessThan(116)
+    expect(g6.length).toBeLessThan(115)
     // مجموع الآراء عبر الصفوف = مجموعها على مستوى المدرسة
     const sum = state.grades.reduce(
       (n, g) => n + suggestionsInScope(state, { gradeId: g.id }).length, 0,
     )
-    expect(sum).toBe(116)
+    expect(sum).toBe(115)
   })
 
   it('يرتّب نقاط القوة تنازليًا وفرص التحسين تصاعديًا', () => {
