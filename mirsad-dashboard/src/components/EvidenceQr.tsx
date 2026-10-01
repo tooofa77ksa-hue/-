@@ -44,12 +44,13 @@ export function EvidenceQr({ evidence }: { evidence: Evidence }) {
       {src
         ? <img className="proof__qr" src={src} alt={`باركود ${evidence.label || 'الشاهد'}`} />
         : <span className="proof__qr proof__qr--empty" aria-hidden="true" />}
+      <span className="proof__scan">امسحيه بالجوال</span>
       <div className="proof__txt">
         <a className="proof__value" href={evidence.value} target="_blank" rel="noreferrer noopener">
           {evidence.value}
         </a>
         <span className="proof__hint">
-          امسحيه بالجوال ليفتح الشاهد. تأكّدي أن الرابط مفتوح لمن يمسحه.
+          تأكّدي أن الرابط مفتوح لمن يمسحه.
         </span>
       </div>
     </figure>

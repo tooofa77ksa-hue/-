@@ -3471,35 +3471,51 @@ th {
 /* ───── شاهد الإجراء بباركوده ───── */
 
 /* الشاهد: اسمه فوقه، ثم الباركود، ثم رابطه — يُقرأ من أعلى لأسفل */
+/* برواز الشاهد: بطاقة تُعرض على زائر، لا سطرٌ في جدول */
 .proof {
   display: grid;
   justify-items: center;
-  gap: 8px;
+  gap: 10px;
   margin: 0;
-  padding: 14px 16px;
+  padding: 18px 16px 14px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border-radius: 14px;
   background: var(--surface);
   text-align: center;
   max-inline-size: 280px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgb(21 68 90 / 7%), 0 8px 22px -14px rgb(21 68 90 / 35%);
+}
+
+/* شريط الهوية أعلى البرواز */
+.proof::before {
+  content: '';
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  block-size: 4px;
+  background: linear-gradient(90deg, var(--moe-green), var(--moe-sand), var(--moe-cyan));
 }
 
 .proof__name {
   font-size: 13.5px;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--text);
-  line-height: 1.7;
+  line-height: 1.65;
 }
 
 .proof__qr {
-  width: 74px;
-  height: 74px;
+  width: 108px;
+  height: 108px;
   flex: none;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  /* الباركود على أبيض دائمًا: درجاته مفحوصة على سطح فاتح */
+  border-radius: 10px;
+  /* البرواز الداخلي: إطارٌ ذهبي رفيع يفصل الباركود عن الورق فيسهل مسحه */
+  border: 1px solid var(--moe-sand);
+  outline: 4px solid #ffffff;
+  outline-offset: -4px;
   background: #ffffff;
-  padding: 3px;
+  padding: 7px;
 }
 
 .proof__qr--empty { background: var(--surface-tint); }
@@ -3515,7 +3531,19 @@ th {
 }
 
 .proof__hint { color: var(--text-muted); font-size: 11.5px; line-height: 1.7; }
+
+/* «امسحيني» تحت الباركود: الزائر لا يعرف أنه يُمسح ما لم يُقَل له */
+.proof__scan {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .2px;
+  color: var(--moe-green);
+  background: color-mix(in srgb, var(--moe-green) 10%, transparent);
+  border-radius: 20px;
+  padding: 3px 12px;
+}
 .proof--note { grid-template-columns: auto 1fr; justify-items: start; text-align: start; }
+.proof--note::before { display: none; }
 
 /* ── لوحة الثناء: ما قالته الطالبات في مدرستهن ── */
 .praise { display: grid; gap: 18px; }
