@@ -376,12 +376,21 @@ h2 { font-family: "Baloo", "Readex", sans-serif; font-weight: 800; font-size: cl
 
   // ---------------- sounds (Web Audio, made on the device; nothing plays before the first tap) ----------------
   var ac = null, soundOn = true;
-  function ctx() { if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume(); return ac; }
+  var out = null;
+  // every sound goes through a soft master level and a limiter, so nothing is ever harsh in a classroom
+  function ctx() {
+    if (!ac) {
+      ac = new (window.AudioContext || window.webkitAudioContext)();
+      var lim = ac.createDynamicsCompressor(); lim.threshold.value = -14; lim.knee.value = 10; lim.ratio.value = 8; lim.attack.value = .004; lim.release.value = .25;
+      out = ac.createGain(); out.gain.value = .8; out.connect(lim); lim.connect(ac.destination);
+    }
+    if (ac.state === 'suspended') ac.resume(); return ac;
+  }
   function tone(f, t0, dur, type, vol, f2) {
     var c = ctx(), o = c.createOscillator(), g = c.createGain(), t = c.currentTime + t0;
     o.type = type || 'sine'; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol || .15, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
-    o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + dur + .05);
+    o.connect(g); g.connect(out); o.start(t); o.stop(t + dur + .05);
   }
   function noise(t0, dur, vol, freq, q, sweepTo) {
     var c = ctx(), n = Math.floor(c.sampleRate * dur), buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0);
@@ -389,14 +398,80 @@ h2 { font-family: "Baloo", "Readex", sans-serif; font-weight: 800; font-size: cl
     var s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(), t = c.currentTime + t0;
     s.buffer = buf; f.type = 'bandpass'; f.frequency.setValueAtTime(freq, t); f.Q.value = q || 1; if (sweepTo) f.frequency.exponentialRampToValueAtTime(sweepTo, t + dur);
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .05); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
-    s.connect(f); f.connect(g); g.connect(c.destination); s.start(t); s.stop(t + dur);
+    s.connect(f); f.connect(g); g.connect(out); s.start(t); s.stop(t + dur);
+  }
+
+  // ---------- recorded-like sounds, synthesised once per device into stereo buffers ----------
+  var bufs = {};
+  function stereo(sec) { var c = ctx(); return c.createBuffer(2, Math.floor(c.sampleRate * sec), c.sampleRate); }
+  function normalize(b, peak) {
+    var m = 0, ch, i, d;
+    for (ch = 0; ch < 2; ch++) { d = b.getChannelData(ch); for (i = 0; i < d.length; i++) if (Math.abs(d[i]) > m) m = Math.abs(d[i]); }
+    var k = m ? peak / m : 1;
+    for (ch = 0; ch < 2; ch++) { d = b.getChannelData(ch); for (i = 0; i < d.length; i++) d[i] *= k; }
+    return b;
+  }
+  // rocket: deep rumble + turbulent roar + the crackle real engines make, swelling at ignition and fading as it climbs away
+  function rocketBuf() {
+    if (bufs.rocket) return bufs.rocket;
+    var b = stereo(5.2), sr = b.sampleRate, n = b.length;
+    for (var ch = 0; ch < 2; ch++) {
+      var d = b.getChannelData(ch), brown = 0, lpR = 0, lpC = 0, hp = 0, prev = 0, crack = 0, mod = 0, modT = 0;
+      for (var i = 0; i < n; i++) {
+        var t = i / sr, w = Math.random() * 2 - 1;
+        brown = (brown + .02 * w) / 1.02;                                   // rumble
+        var cut = t < 3 ? .06 : .06 * Math.exp(-(t - 3) * .7);             // roar darkens as it flies away
+        lpR += cut * (w - lpR);
+        if (i % 600 === 0) modT = .55 + Math.random() * .45; mod += (modT - mod) * .002;   // turbulence
+        if (Math.random() < 90 / sr) crack = (Math.random() * .8 + .2) * (Math.random() < .5 ? -1 : 1);
+        crack *= .92; hp = .7 * (hp + crack - prev); prev = crack;          // crackle, high-passed
+        lpC += .25 * (hp - lpC);
+        var env = t < .7 ? Math.pow(t / .7, 1.6) : t < 3 ? 1 : Math.exp(-(t - 3) * 1.25);
+        var far = t < 3 ? 1 : Math.exp(-(t - 3) * 1.6);
+        d[i] = env * (brown * 5 + lpR * 2.6 * mod + lpC * 1.5 * far);
+      }
+    }
+    return (bufs.rocket = normalize(b, .55));
+  }
+  // applause: a classroom of individual clappers, each with her own pace, hand tone and place in the room
+  function applauseBuf() {
+    if (bufs.clap) return bufs.clap;
+    var dur = 3, b = stereo(dur), sr = b.sampleRate, L = b.getChannelData(0), R = b.getChannelData(1);
+    for (var p = 0; p < 26; p++) {
+      var rate = 3.6 + Math.random() * 1.8, t = Math.random() * .35, pan = Math.random(), decay = sr * (.005 + Math.random() * .007), stop = dur - .5 - Math.random() * .6;
+      // each pair of hands rings at its own pitch (a resonant band-pass around 0.8 to 2.4 kHz)
+      var fc = 800 + Math.random() * 1600, wq = 2 * Math.PI * fc / sr, al = Math.sin(wq) / (2 * 1.3), a0 = 1 + al,
+          bb0 = al / a0, aa1 = -2 * Math.cos(wq) / a0, aa2 = (1 - al) / a0;
+      while (t < stop) {
+        var s0 = Math.floor(t * sr), len = Math.floor(decay * 7), x1 = 0, x2 = 0, y1 = 0, y2 = 0, vol = .5 + Math.random() * .5;
+        for (var k = 0; k < len && s0 + k < L.length; k++) {
+          var w = (Math.random() * 2 - 1) * Math.exp(-k / decay);
+          var y = bb0 * w - bb0 * x2 - aa1 * y1 - aa2 * y2; x2 = x1; x1 = w; y2 = y1; y1 = y;
+          var v = (y * 2.2 + w * .12) * vol;
+          L[s0 + k] += v * (1 - pan * .7); R[s0 + k] += v * (.3 + pan * .7);
+        }
+        t += (1 / rate) * (.85 + Math.random() * .3);
+      }
+    }
+    // a little room echo and a gentle swell / fade
+    var dl = Math.floor(sr * .045), dr = Math.floor(sr * .061);
+    for (var i = L.length - 1; i >= 0; i--) {
+      var tt = i / sr, env = Math.min(1, tt / .35) * (tt > dur - 1.1 ? Math.max(0, (dur - tt) / 1.1) : 1);
+      var l = L[i] + (i >= dr ? R[i - dr] * .25 : 0), r = R[i] + (i >= dl ? L[i - dl] * .25 : 0);
+      L[i] = l * env; R[i] = r * env;
+    }
+    return (bufs.clap = normalize(b, .5));
+  }
+  function playBuf(b, vol) {
+    var c = ctx(), s = c.createBufferSource(), g = c.createGain();
+    s.buffer = b; g.gain.value = vol || 1; s.connect(g); g.connect(out); s.start();
   }
   var SFX = {
     beep: function () { tone(880, 0, .18, 'sine', .14); },
     go: function () { tone(1320, 0, .4, 'sine', .16); },
-    launch: function () { noise(0, 3.2, .5, 180, .7, 900); noise(.2, 2.8, .25, 600, .5, 2400); tone(70, 0, 3, 'sawtooth', .07, 140); },
+    launch: function () { playBuf(rocketBuf()); },
     star: function () { tone(1568, 0, .2, 'sine', .12); tone(2093, .07, .3, 'sine', .1); },
-    clap: function () { for (var i = 0; i < 26; i++) noise(i * .055 + Math.random() * .03, .07, .35 * Math.random() + .15, 1500 + Math.random() * 1500, 1.4); },
+    clap: function () { playBuf(applauseBuf(), 1); },
     correct: function () { tone(784, 0, .16); tone(988, .09, .16); tone(1319, .18, .32, 'sine', .14); },
     wrong: function () { tone(330, 0, .16, 'triangle', .1); tone(262, .12, .22, 'triangle', .08); },
     place: function () { tone(660, 0, .12, 'sine', .12); tone(990, .06, .18, 'sine', .1); },
@@ -440,7 +515,7 @@ h2 { font-family: "Baloo", "Readex", sans-serif; font-weight: 800; font-size: cl
   // ---------------- 0: countdown + launch ----------------
   var launching = false;
   $('launch').addEventListener('click', function () {
-    if (launching) return; launching = true; $('launch').hidden = true;
+    if (launching) return; launching = true; $('launch').hidden = true; if (soundOn) try { ctx(); rocketBuf(); applauseBuf(); } catch (e) {}
     var cd = $('countdown'), n = 3;
     (function tick() {
       cd.className = 'countdown'; void cd.offsetWidth;
@@ -591,7 +666,7 @@ h2 { font-family: "Baloo", "Readex", sans-serif; font-weight: 800; font-size: cl
   });
 
   setSound(true); go('s-start');
-  window.__space = { go: go, startEarth: startEarth, startHeroes: startHeroes, startPlanets: startPlanets, startQuiz: startQuiz, QUIZ: QUIZ, ORDER: ORDER };
+  window.__space = { go: go, startEarth: startEarth, startHeroes: startHeroes, startPlanets: startPlanets, startQuiz: startQuiz, QUIZ: QUIZ, ORDER: ORDER, sound: function (k) { var b = k === 'launch' ? rocketBuf() : applauseBuf(); return [b.sampleRate, Array.from(b.getChannelData(0)), Array.from(b.getChannelData(1))]; } };
 })();
 </script>
 </body>
