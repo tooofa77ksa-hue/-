@@ -61,6 +61,28 @@ export function VoicePage() {
       .filter((s) => !needle || normalizeArabic(s.text).includes(needle))
   }, [inKind, categoryId, search])
 
+  /**
+   * البنود المعروضة: الشكوى الواحدة بندٌ واحد مهما تعدّدت عباراتها.
+   *
+   * «تكييف الساحة» وصلت بسبع عبارات. ولو عُرضت سبعة بنود لسجّلت
+   * الإدارة عليها سبعة إجراءات وسبعة باركودات لمشكلة واحدة — فتقرؤها
+   * الوزارة سبع مشكلات، ويُعاد العمل نفسه سبع مرّات. فتُجمع هنا في
+   * بند واحد، ويقع عليه إجراء واحد وشاهد واحد.
+   *
+   * والنصوص لا تُمحى: كلها معروضة داخل البند كما كتبتها صاحبتها.
+   * وهذا في باب «تحتاج تحسين» وحده — الشكر لا يُجمع، فكل كلمة شكر
+   * تخصّ قائلتها.
+   */
+  const items = useMemo(() => {
+    if (kind !== 'improve') return rows.map((s) => [s])
+    const clusters = clusterVoices(rows)
+    const seen = new Set(clusters.flatMap((c) => c.members.map((m) => m.id)))
+    return [
+      ...clusters.map((c) => c.members),
+      ...rows.filter((s) => !seen.has(s.id)).map((s) => [s]),
+    ].sort((a, b) => b.length - a.length)
+  }, [rows, kind])
+
   /** المؤشّرات على ما يحتاج تحسينًا وحده: الشكر لا يُصنَّف ولا يُعالَج. */
   const needWork = byKind.improve
 
@@ -198,7 +220,11 @@ export function VoicePage() {
         <button type="button" className="button button--small" onClick={() => exportSuggestions(state, scope)}>
           تصدير Excel
         </button>
-        <p className="toolbar__count">{num(rows.length)} رأيًا</p>
+        <p className="toolbar__count">
+          {kind === 'improve'
+            ? `${num(items.length)} بندًا · ${num(rows.length)} رأيًا`
+            : `${num(rows.length)} رأيًا`}
+        </p>
       </section>
 
       {kind === 'positive' && (
@@ -220,13 +246,24 @@ export function VoicePage() {
       <section className="panel">
         {rows.length === 0 ? <EmptyState title="لا توجد آراء مطابقة" /> : (
           <ul className="voice-list">
-            {rows.map((s) => {
-              const gid = s.gradeId ?? respById.get(s.responseId)?.declaredGradeId ?? null
+            {items.map((members) => {
+              const s = members[0]
+              const grades = [...new Set(members.map((m) => {
+                const gid = m.gradeId ?? respById.get(m.responseId)?.declaredGradeId ?? null
+                return gid ? gradeById.get(gid)?.name ?? '—' : 'صف غير محدد'
+              }))]
               return (
                 <li key={s.id} className="voice">
-                  <blockquote className="voice__text">{s.text}</blockquote>
+                  {members.length > 1 && (
+                    <p className="voice__rep">
+                      شكوى واحدة قالتها {num(members.length)} — إجراء واحد يكفيها
+                    </p>
+                  )}
+                  {members.map((m) => (
+                    <blockquote key={m.id} className="voice__text">{m.text}</blockquote>
+                  ))}
                   <div className="voice__meta">
-                    <span className="chip">{gid ? gradeById.get(gid)?.name ?? '—' : 'صف غير محدد'}</span>
+                    {grades.map((g) => <span key={g} className="chip">{g}</span>)}
 
                     {kind === 'improve' ? (
                       <>
@@ -235,7 +272,9 @@ export function VoicePage() {
                           className="input input--inline no-print"
                           aria-label="تصنيف الرأي"
                           value={s.categoryId ?? ''}
-                          onChange={(e) => replace(categorizeSuggestion(state, s.id, e.target.value || null))}
+                          onChange={(e) => replace(members.reduce(
+  (acc, m) => categorizeSuggestion(acc, m.id, e.target.value || null), state,
+))}
                         >
                           <option value="">بلا تصنيف</option>
                           {state.categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -244,7 +283,9 @@ export function VoicePage() {
                           className="input input--inline no-print"
                           aria-label="حالة المعالجة"
                           value={s.status}
-                          onChange={(e) => replace(setSuggestionStatus(state, s.id, e.target.value as never))}
+                          onChange={(e) => replace(members.reduce(
+  (acc, m) => setSuggestionStatus(acc, m.id, e.target.value as never), state,
+))}
                         >
                           {Object.entries(STATUS_LABELS).map(([k, v]) => (
                             // «مرتبط بإجراء» حالةٌ تتبع الربط لا تُختار بيد:
@@ -273,7 +314,9 @@ export function VoicePage() {
                         value=""
                         onChange={(e) => {
                           const target = e.target.value as VoiceKind | ''
-                          if (target) replace(setVoiceKind(state, s.id, target))
+                          if (target) {
+                            replace(members.reduce((acc, m) => setVoiceKind(acc, m.id, target), state))
+                          }
                         }}
                       >
                         <option value="">انقليه إلى…</option>
@@ -288,7 +331,9 @@ export function VoicePage() {
                         const reason = window.prompt(
                           'سبب استبعاد هذا الرأي من العرض والتقرير؟\nالنص لا يُمحى، ويُسجَّل السبب والتاريخ.',
                         )
-                        if (reason && reason.trim()) replace(excludeSuggestion(state, s.id, reason))
+                        if (reason && reason.trim()) {
+                          replace(members.reduce((acc, m) => excludeSuggestion(acc, m.id, reason), state))
+                        }
                       }}
                     >
                       استبعاد
@@ -297,6 +342,7 @@ export function VoicePage() {
                     {kind === 'improve' && (
                       <VoiceImprovement
                         voice={s}
+                        group={members}
                         action={answeredBy.get(s.id) ?? null}
                         state={state}
                         replace={replace}

@@ -11,18 +11,28 @@ import { similarTo } from '../lib/similar'
 const STATUS = { planned: 'مخطط', in_progress: 'جارٍ التنفيذ', completed: 'مكتمل' } as const
 const PRIORITY = { high: 'عالية', medium: 'متوسطة', low: 'منخفضة' } as const
 
-function blankDraft(voice: Suggestion): ActionDraft {
+function blankDraft(members: Suggestion[]): ActionDraft {
+  const head = members[0]
   return {
-    title: '', problem: voice.text, categoryId: voice.categoryId,
-    sourceNote: 'آراء الطالبات في قياس الاتجاه', mentions: 1, priority: 'medium',
+    title: '', problem: members.map((m) => m.text).join(' • '), categoryId: head.categoryId,
+    sourceNote: 'آراء الطالبات في قياس الاتجاه', mentions: members.length, priority: 'medium',
     action: '', owner: '', startDate: null, dueDate: null, doneDate: null,
     status: 'planned', notes: '', impact: '', followUp: '',
-    linkedSuggestionIds: [voice.id], evidence: [],
+    linkedSuggestionIds: members.map((m) => m.id), evidence: [],
   }
 }
 
 interface Props {
   voice: Suggestion
+  /**
+   * الآراء التي يغطّيها هذا اللوح كلها — رأسها «voice».
+   *
+   * الشكوى الواحدة تَرِد بعبارات شتّى («تكييف الساحة»، «الحوش حر»)،
+   * والمدرسة تضع مكيّفًا واحدًا. فلو رُبط كل نصّ على حدة لصار على
+   * المشكلة الواحدة سبعة إجراءات وسبعة باركودات — وهو ما تقرؤه
+   * الوزارة سبع مشكلات. فالربط يقع على المجموعة دفعةً واحدة.
+   */
+  group?: Suggestion[]
   action: ImprovementAction | null
   state: SystemState
   replace: (next: SystemState) => void
@@ -39,7 +49,9 @@ interface Props {
  * هذا الخيار لأنشأت الإدارة عشرين إجراءً لمشكلة واحدة، وقرأتها
  * الوزارة عشرين مشكلة.
  */
-export function VoiceImprovement({ voice, action, state, replace }: Props) {
+export function VoiceImprovement({ voice, group, action, state, replace }: Props) {
+  const members = useMemo(() => (group?.length ? group : [voice]), [group, voice])
+  const memberIds = useMemo(() => members.map((m) => m.id), [members])
   // الرأي الذي عليه إجراء يُفتح لوحه من نفسه: التحسين والشاهد يظهران
   // تحت الرأي بلا ضغطة، فهذا هو المقصود من «من الرأي إلى التحسين»
   const [open, setOpen] = useState(!!action)
@@ -51,12 +63,14 @@ export function VoiceImprovement({ voice, action, state, replace }: Props) {
   }, [actionId])
   const [mode, setMode] = useState<'link' | 'new'>('link')
   const [pick, setPick] = useState('')
-  const [draft, setDraft] = useState<ActionDraft>(() => blankDraft(voice))
+  const [draft, setDraft] = useState<ActionDraft>(() => blankDraft(members))
   const [proofLabel, setProofLabel] = useState('')
   const [proofUrl, setProofUrl] = useState('')
   const [chosen, setChosen] = useState<Set<string>>(() => new Set())
 
-  const others = action ? action.linkedSuggestionIds.filter((id) => id !== voice.id).length : 0
+  const others = action
+    ? action.linkedSuggestionIds.filter((id) => !memberIds.includes(id)).length
+    : 0
   const available = state.improvementActions
 
   /**
@@ -71,8 +85,9 @@ export function VoiceImprovement({ voice, action, state, replace }: Props) {
     for (const a of state.improvementActions) {
       for (const id of a.linkedSuggestionIds) linked.add(id)
     }
-    return similarTo(voice, state.suggestions).filter((s) => !linked.has(s.voice.id))
-  }, [voice, state.suggestions, state.improvementActions])
+    return similarTo(voice, state.suggestions)
+      .filter((s) => !linked.has(s.voice.id) && !memberIds.includes(s.voice.id))
+  }, [voice, memberIds, state.suggestions, state.improvementActions])
 
   /** المختار من المشابهات، مقصورًا على ما زال معروضًا. */
   const picked = useMemo(
@@ -96,7 +111,7 @@ export function VoiceImprovement({ voice, action, state, replace }: Props) {
   function attachToExisting() {
     const target = state.improvementActions.find((a) => a.id === pick)
     if (!target) return
-    const ids = [...new Set([...target.linkedSuggestionIds, voice.id, ...picked])]
+    const ids = [...new Set([...target.linkedSuggestionIds, ...memberIds, ...picked])]
     replace(updateAction(state, target.id, {
       ...target,
       mentions: Math.max(target.mentions, ids.length),
@@ -128,11 +143,11 @@ export function VoiceImprovement({ voice, action, state, replace }: Props) {
           addedAt: new Date().toISOString(),
         }]
       : []
-    const ids = [...new Set([voice.id, ...picked])]
+    const ids = [...new Set([...memberIds, ...picked])]
     replace(addAction(state, {
       ...draft, evidence, linkedSuggestionIds: ids, mentions: ids.length,
     }))
-    setDraft(blankDraft(voice))
+    setDraft(blankDraft(members))
     setProofLabel(''); setProofUrl(''); setChosen(new Set())
     setOpen(false)
   }
@@ -141,7 +156,7 @@ export function VoiceImprovement({ voice, action, state, replace }: Props) {
     if (!action) return
     replace(updateAction(state, action.id, {
       ...action,
-      linkedSuggestionIds: action.linkedSuggestionIds.filter((id) => id !== voice.id),
+      linkedSuggestionIds: action.linkedSuggestionIds.filter((id) => !memberIds.includes(id)),
     }))
   }
 
@@ -336,8 +351,8 @@ export function VoiceImprovement({ voice, action, state, replace }: Props) {
                     type="button" className="button button--primary button--small"
                     disabled={!draft.title.trim()} onClick={createNew}
                   >
-                    {picked.length > 0
-                      ? `حفظ الإجراء على ${num(picked.length + 1)} آراء`
+                    {picked.length + members.length > 1
+                      ? `حفظ الإجراء على ${num(picked.length + members.length)} آراء`
                       : 'حفظ الإجراء'}
                   </button>
                 </span>

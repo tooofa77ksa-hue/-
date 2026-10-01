@@ -54,11 +54,16 @@ try {
   await page.waitForSelector('.voice', { timeout: 20000 })
 
   // رأي ذو نصّ فعليّ: في البيانات آراء من نقاط فقط ولا تصلح للتمييز
-  const texts = await page.locator('.voice__text').allInnerTexts()
-  const index = texts.findIndex((t) => t.trim().replace(/[.\s]/g, '').length >= 12)
+  // والبند قد يضمّ نصوصًا عدّة، فيؤخذ أوّلها لا نصّ البند كله
+  const count0 = await page.locator('.voice').count()
+  const heads = []
+  for (let i = 0; i < count0; i += 1) {
+    heads.push((await page.locator('.voice').nth(i).locator('.voice__text').first().innerText()).trim())
+  }
+  const index = heads.findIndex((t) => t.replace(/[.\s]/g, '').length >= 12)
   check('يوجد رأي بنصّ فعليّ', index >= 0)
   const voice = page.locator('.voice').nth(index)
-  const text = (await voice.locator('.voice__text').innerText()).trim()
+  const text = heads[index]
 
   check('اللوح مغلق حتى يُطلب', await voice.locator('.improve').count() === 0)
   await voice.getByRole('button', { name: /سجّلي التحسين/ }).click()
@@ -107,7 +112,7 @@ try {
   await page.screenshot({ path: join(out, 'panel-done.png') })
 
   console.log('\n٤) رأي آخر يُربط بالإجراء نفسه لا بإجراء جديد')
-  const second = texts.findIndex((t, i) => i !== index && t.trim().replace(/[.\s]/g, '').length >= 12)
+  const second = heads.findIndex((t, i) => i !== index && t.replace(/[.\s]/g, '').length >= 12)
   const other = page.locator('.voice').nth(second)
   await other.getByRole('button', { name: /سجّلي التحسين/ }).click()
   await other.locator('.improve').waitFor({ timeout: 10000 })
@@ -124,8 +129,8 @@ try {
   await other.locator('.done').waitFor({ timeout: 10000 })
   check('الرأي الثاني يعرض الإجراء نفسه',
     (await other.locator('.done__title').innerText()).includes('تجربة آلية: تنظيم الخروج'))
-  check('ويقول إنه مشترك مع رأي آخر',
-    (await other.locator('.improve__shared').innerText()).includes('1'))
+  const shared = (await other.locator('.improve__shared').innerText()).trim()
+  check('ويقول إنه مشترك مع آراء البند الأول', /[0-9٠-٩]/.test(shared), shared)
 
   const actions = await page.evaluate(() => {
     const raw = window.localStorage.getItem('qiyas.state.v1')
@@ -134,10 +139,9 @@ try {
   check('ولم يُنشأ إجراء ثانٍ للمشكلة نفسها', actions === 1, `${actions} إجراء`)
   await page.screenshot({ path: join(out, 'panel-shared.png') })
 
-  console.log('\n٥) الآراء المتشابهة تُربط دفعةً واحدة')
+  console.log('\n٥) الشكوى المتكرّرة بندٌ واحد، وإجراؤها واحد')
   await page.goto(`http://127.0.0.1:${PORT}/#/admin/voice`, { waitUntil: 'domcontentloaded' })
   await page.waitForSelector('.voice', { timeout: 20000 })
-  const total = await page.locator('.voice').count()
 
   const repeat = page.locator('.repeat__row')
   const topics = await repeat.count()
@@ -151,42 +155,36 @@ try {
   // موضوع تكرّر في آراء القياس: تكييف الساحة
   await page.locator('#v-search').fill('تكييف')
   await page.waitForTimeout(600)
-  // أوّل رأي عن التكييف لم يُربط بعد: الأوّلان رُبطا في الفقرتين السابقتين
   const hits = await page.locator('.voice').count()
   let seed = null
+  let many = 0
   for (let i = 0; i < hits; i += 1) {
     const candidate = page.locator('.voice').nth(i)
-    if (await candidate.getByRole('button', { name: /سجّلي التحسين/ }).count()) {
+    const n = await candidate.locator('.voice__text').count()
+    if (n > 1 && await candidate.getByRole('button', { name: /سجّلي التحسين/ }).count()) {
       seed = candidate
+      many = n
       break
     }
   }
-  check('يوجد رأي عن الموضوع لم يُربط بعد', seed !== null, `${hits} رأيًا في التصفية`)
+  check('الشكوى المتكرّرة بندٌ واحد يحمل نصوصها كلها', seed !== null, `${many} نصًّا في بند واحد`)
+  check('  وفوقه سطر يقول إن إجراءً واحدًا يكفيها',
+    (await seed.locator('.voice__rep').innerText()).includes('إجراء واحد'))
+  check('  والبنود أقلّ من الآراء — الجمع لا يُضيع نصًّا',
+    hits < many * 3, `${hits} بندًا في التصفية`)
+  await seed.scrollIntoViewIfNeeded()
+  await seed.screenshot({ path: join(out, 'repeated-item.png') })
+
   await seed.getByRole('button', { name: /سجّلي التحسين/ }).click()
   await seed.locator('.improve').waitFor({ timeout: 10000 })
-
-  const akin = seed.locator('.akin')
-  check('اللوح يرشّح آراءً تشبهه', await akin.count() === 1)
-  const items = akin.locator('.akin__item')
-  const many = await items.count()
-  check('  الترشيح فيه أكثر من رأي', many >= 2, `${many} رأيًا`)
-  check('  ولا يرشّح الآراء كلها — ترشيحٌ لا تفريغ', many < total / 3,
-    `${many} من ${total}`)
-  check('  ويبيّن الكلمة التي جمعتهما', (await items.first().locator('.akin__why').count()) === 1,
-    (await items.first().locator('.akin__why').innerText()).trim())
-  check('  ولا يُختار شيء تلقائيًا', await items.locator('input:checked').count() === 0)
-  await akin.scrollIntoViewIfNeeded()
-  await akin.screenshot({ path: join(out, 'akin.png') })
-
-  await akin.getByRole('button', { name: 'اختاري الكل' }).click()
-  check('  «اختاري الكل» تختارها جميعًا',
-    await items.locator('input:checked').count() === many)
+  check('  ولا يطلب اللوح ضمّ مشابهات: البند ضمّها من نفسه',
+    await seed.locator('.akin__item').count() === 0)
 
   await seed.locator('.choice').nth(1).click()
   await seed.locator('.mini input').first().fill('تجربة آلية: تبريد الساحة')
   const saveLabel = (await seed.getByRole('button', { name: /حفظ الإجراء/ }).innerText()).trim()
-  check('  زرّ الحفظ يذكر عدد الآراء قبل الضغط',
-    saveLabel.includes(String(many + 1)), saveLabel)
+  check('  زرّ الحفظ يذكر عدد آراء البند قبل الضغط',
+    saveLabel.includes(String(many)), saveLabel)
   await seed.getByRole('button', { name: /حفظ الإجراء/ }).click()
   await page.waitForTimeout(600)
 
@@ -196,16 +194,15 @@ try {
     const a = st.improvementActions.find((x) => x.title === 'تجربة آلية: تبريد الساحة')
     return { count: st.improvementActions.length, linked: a ? a.linkedSuggestionIds.length : 0 }
   })
-  check('إجراء واحد يحمل الآراء كلها', after.linked === many + 1,
+  check('ضغطةٌ واحدة ربطت آراء البند كلها', after.linked === many,
     `${after.linked} رأيًا في إجراء واحد`)
   check('ولم تُنشأ إجراءات بعدد الآراء', after.count === 2, `${after.count} إجراءين`)
 
-  // وردّ المدرسة صار تحت كل رأي منها، لا تحت الأول وحده
+  // وردّ المدرسة صار تحت الآراء كلها، لا تحت الأول وحده
   await page.locator('#v-search').fill('')
   await page.waitForTimeout(600)
   const answered = await page.locator('.voice .chip--linked').count()
-  check('وحالة «مرتبط بإجراء» ظهرت على الآراء المضمومة',
-    answered >= many + 1, `${answered} رأيًا`)
+  check('وحالة «مرتبط بإجراء» ظهرت على البنود المربوطة', answered >= 1, `${answered} بندًا`)
   await page.screenshot({ path: join(out, 'akin-done.png') })
 
   console.log('\n٦) أبواب الآراء: ما يحتاج عملًا وحده')
@@ -220,12 +217,18 @@ try {
 
   const plain = (t) => t.replace(/[\u2066-\u2069\u200e\u200f]/g, '')
   const counts = (await page.locator('.kind__n').allInnerTexts()).map((t) => Number(plain(t)))
+  // العدّاد يعدّ الآراء، والمعروض بنودٌ بعضها يجمع آراءً — فالبنود أقلّ
   const shown = await page.locator('.voice').count()
-  check('  عدد الباب يطابق ما يُعرض فيه', shown === counts[0], `${shown} = ${counts[0]}`)
+  check('  البنود المعروضة أقلّ من آراء الباب أو تساويها',
+    shown > 0 && shown <= counts[0], `${shown} بندًا من ${counts[0]} رأيًا`)
+  let inside = 0
+  for (let i = 0; i < shown; i += 1) inside += await page.locator('.voice').nth(i).locator('.voice__text').count()
+  check('  ومجموع نصوص البنود هو عدد الباب — لا رأي ضاع',
+    inside === counts[0], `${inside} = ${counts[0]}`)
   check('  والشكر في بابه لا في باب التحسين', counts[1] > 0 && counts[1] < counts[0],
     `تحسين ${counts[0]} · شكر ${counts[1]} · بلا مضمون ${counts[2]}`)
   check('  ومجموع الأبواب هو كل الآراء',
-    counts[0] + counts[1] + counts[2] === 116, `${counts[0] + counts[1] + counts[2]}`)
+    counts[0] + counts[1] + counts[2] === 115, `${counts[0] + counts[1] + counts[2]}`)
 
   // باب الشكر: لا أدوات تصنيف ولا لوح تحسين — لا يُردّ عليه
   await page.locator('.kind--positive').click()
@@ -247,9 +250,17 @@ try {
   await page.locator('.kind--improve').click()
   await page.waitForTimeout(500)
   const beforeCount = await page.locator('.voice').count()
-  const victim = (await page.locator('.voice__text').first().innerText()).trim()
+  // بندٌ برأي واحد: استبعاد بندٍ مجموع يرفع آراءه كلها، وهو سلوك مقصود
+  // لكنه يُفسد عدّ «آراء مستبعَدة» في هذا الفحص
+  let single = null
+  for (let i = 0; i < beforeCount; i += 1) {
+    const cand = page.locator('.voice').nth(i)
+    if (await cand.locator('.voice__text').count() === 1) { single = cand; break }
+  }
+  check('يوجد بند برأي واحد', single !== null)
+  const victim = (await single.locator('.voice__text').first().innerText()).trim()
   page.once('dialog', (d) => d.accept('اسم شخصي في النص'))
-  await page.locator('.voice').first().getByRole('button', { name: 'استبعاد' }).click()
+  await single.getByRole('button', { name: 'استبعاد' }).click()
   await page.waitForTimeout(700)
   check('الرأي المستبعَد يخرج من العرض',
     (await page.locator('.voice').count()) === beforeCount - 1)

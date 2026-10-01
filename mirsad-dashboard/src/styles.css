@@ -1075,6 +1075,18 @@ th {
   padding-inline-start: 14px;
 }
 
+/* عنوان البند المتكرّر: يُعلم الإدارة أن إجراءً واحدًا يكفي السبع */
+.voice__rep {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--moe-navy);
+  background: var(--moe-sand-wash, #f6f3e9);
+  border-inline-start: 4px solid var(--moe-sand);
+  padding: 6px 12px;
+  border-radius: 0 8px 8px 0;
+}
+
 .voice__meta { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 
 .input--inline { width: auto; min-width: 150px; padding: 5px 10px; font-size: 13px; }
