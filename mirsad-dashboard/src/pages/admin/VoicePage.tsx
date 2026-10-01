@@ -75,13 +75,29 @@ export function VoicePage() {
    */
   const items = useMemo(() => {
     if (kind !== 'improve') return rows.map((s) => [s])
-    const clusters = clusterVoices(rows)
+
+    // الإجراء الواحد يجمع آراءه مهما تباعدت عباراتها: «تكييف الساحة»
+    // و«الحوش حر» و«مراوح في الفناء» ردُّها واحد، فبندها واحد. وقرارُ
+    // الإدارة بالربط أصدقُ من تشابه الكلمات
+    const byAction = new Map<string, typeof rows>()
+    const loose: typeof rows = []
+    for (const s of rows) {
+      const action = answeredBy.get(s.id)
+      if (!action) { loose.push(s); continue }
+      const bucket = byAction.get(action.id)
+      if (bucket) bucket.push(s)
+      else byAction.set(action.id, [s])
+    }
+
+    // وما لم يُربط بعد يُجمع بالكلمات المشتركة كما كان
+    const clusters = clusterVoices(loose)
     const seen = new Set(clusters.flatMap((c) => c.members.map((m) => m.id)))
     return [
+      ...byAction.values(),
       ...clusters.map((c) => c.members),
-      ...rows.filter((s) => !seen.has(s.id)).map((s) => [s]),
+      ...loose.filter((s) => !seen.has(s.id)).map((s) => [s]),
     ].sort((a, b) => b.length - a.length)
-  }, [rows, kind])
+  }, [rows, kind, answeredBy])
 
   /** المؤشّرات على ما يحتاج تحسينًا وحده: الشكر لا يُصنَّف ولا يُعالَج. */
   const needWork = byKind.improve
@@ -256,7 +272,9 @@ export function VoicePage() {
                 <li key={s.id} className="voice">
                   {members.length > 1 && (
                     <p className="voice__rep">
-                      شكوى واحدة قالتها {num(members.length)} — إجراء واحد يكفيها
+                      {answeredBy.has(s.id)
+                        ? `شكوى واحدة قالتها ${num(members.length)} — وردّت عليها المدرسة ردًّا واحدًا`
+                        : `شكوى واحدة قالتها ${num(members.length)} — إجراء واحد يكفيها`}
                     </p>
                   )}
                   {members.map((m) => (

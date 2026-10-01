@@ -124,13 +124,16 @@ try {
   const label = options.find((o) => o.includes('تجربة آلية: تنظيم الخروج'))
   await picker.selectOption({ label })
   await other.getByRole('button', { name: 'اربطي' }).click()
-  await other.locator('.improve').waitFor({ state: 'detached', timeout: 10000 }).catch(() => {})
+  await page.waitForTimeout(800)
 
-  await other.locator('.done').waitFor({ timeout: 10000 })
+  // الربط يضمّ الرأي إلى بند الإجراء، فيتغيّر ترتيب البنود — نجده بنصّه
+  const merged = page.locator('.voice').filter({ hasText: heads[second] }).first()
+  await merged.locator('.done').waitFor({ timeout: 10000 })
   check('الرأي الثاني يعرض الإجراء نفسه',
-    (await other.locator('.done__title').innerText()).includes('تجربة آلية: تنظيم الخروج'))
-  const shared = (await other.locator('.improve__shared').innerText()).trim()
-  check('ويقول إنه مشترك مع آراء البند الأول', /[0-9٠-٩]/.test(shared), shared)
+    (await merged.locator('.done__title').first().innerText()).includes('تجربة آلية: تنظيم الخروج'))
+  check('وصار الرأيان بندًا واحدًا تحت الإجراء',
+    (await merged.locator('.voice__text').count()) >= 2,
+    `${await merged.locator('.voice__text').count()} نصًّا في البند`)
 
   const actions = await page.evaluate(() => {
     const raw = window.localStorage.getItem('qiyas.state.v1')
