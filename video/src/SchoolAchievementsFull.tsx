@@ -134,7 +134,7 @@ const SectionTitle: React.FC<{ text: string; sub?: string }> = ({ text, sub }) =
       <Sfx kind="whoosh" at={0} volume={0.4} />
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, opacity: t.opacity, translate: `0 ${t.y}px` }}>
         <div style={{ fontFamily, fontWeight: 900, fontSize: 50, color: brand.primaryDark }}>{text}</div>
-        {sub && <div style={{ fontFamily, fontWeight: 700, fontSize: 24, color: brand.muted }}>{sub}</div>}
+        {sub && <div style={{ fontFamily, fontWeight: 700, fontSize: 30, color: brand.muted }}>{sub}</div>}
       </div>
     </AbsoluteFill>
   );
@@ -200,13 +200,13 @@ const CaptionPill: React.FC<{ text: string; startFrame?: number; color?: string 
       style={{
         fontFamily,
         fontWeight: 800,
-        fontSize: 24,
+        fontSize: 30,
         color: brand.paper,
         background: color,
         borderRadius: 999,
-        padding: "8px 26px",
+        padding: "10px 28px",
         textAlign: "center",
-        maxWidth: 920,
+        maxWidth: 1000,
         opacity: t.opacity,
         translate: `0 ${t.y}px`,
       }}
@@ -253,7 +253,7 @@ const RankCard: React.FC<{ rank: string; grade: string; year: string; image: str
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
         <div style={{ opacity: t.opacity, translate: `0 ${t.y}px`, display: "flex", alignItems: "center", gap: 14 }}>
           <CategoryIcon kind="trophy" color={color} size={40} />
-          <div style={{ fontFamily, fontWeight: 900, fontSize: standout ? 44 : 36, color: brand.primaryDark }}>
+          <div style={{ fontFamily, fontWeight: 900, fontSize: standout ? 50 : 42, color: brand.primaryDark }}>
             المركز {rank}
           </div>
         </div>
@@ -261,8 +261,8 @@ const RankCard: React.FC<{ rank: string; grade: string; year: string; image: str
           <Img src={staticFile(image)} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
         </RevealCard>
         <div style={{ display: "flex", gap: 14, opacity: t.opacity }}>
-          <div style={{ fontFamily, fontWeight: 700, fontSize: 22, color: brand.muted }}>{grade}</div>
-          <div style={{ fontFamily, fontWeight: 800, fontSize: 16, color: brand.paper, background: color, borderRadius: 999, padding: "4px 16px" }}>
+          <div style={{ fontFamily, fontWeight: 700, fontSize: 28, color: brand.muted }}>{grade}</div>
+          <div style={{ fontFamily, fontWeight: 800, fontSize: 22, color: brand.paper, background: color, borderRadius: 999, padding: "5px 18px" }}>
             {year}
           </div>
         </div>
@@ -304,18 +304,18 @@ const TeacherCard: React.FC<{ image: string; name: string; achievement: string; 
           <Img src={staticFile(image)} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         </RevealCard>
         <div style={{ opacity: textT.opacity, translate: `0 ${textT.y}px`, display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-          <div style={{ fontFamily, fontWeight: 900, fontSize: 32, color: brand.primaryDark }}>{name}</div>
+          <div style={{ fontFamily, fontWeight: 900, fontSize: 38, color: brand.primaryDark }}>{name}</div>
           <div
             style={{
               fontFamily,
               fontWeight: 700,
-              fontSize: 20,
+              fontSize: 28,
               color: brand.paper,
               background: brand.teal,
               borderRadius: 999,
-              padding: "6px 22px",
+              padding: "8px 24px",
               textAlign: "center",
-              maxWidth: 760,
+              maxWidth: 900,
             }}
           >
             {achievement}
@@ -342,9 +342,9 @@ const InitiativeCard: React.FC<{
       <Sfx kind="whoosh" at={0} volume={0.32} />
       <div style={{ display: "flex", alignItems: "center", gap: 60 }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 12, maxWidth: 520, opacity: textT.opacity, translate: `0 ${textT.y}px` }}>
-          <div style={{ fontFamily, fontWeight: 900, fontSize: 36, color: brand.primaryDark, textAlign: "right" }}>{title}</div>
-          <div style={{ fontFamily, fontWeight: 700, fontSize: 20, color: brand.teal, textAlign: "right" }}>{owner}</div>
-          <div style={{ fontFamily, fontWeight: 500, fontSize: 22, color: brand.muted, textAlign: "right", lineHeight: 1.6 }}>{description}</div>
+          <div style={{ fontFamily, fontWeight: 900, fontSize: 40, color: brand.primaryDark, textAlign: "right" }}>{title}</div>
+          <div style={{ fontFamily, fontWeight: 700, fontSize: 26, color: brand.teal, textAlign: "right" }}>{owner}</div>
+          <div style={{ fontFamily, fontWeight: 500, fontSize: 28, color: brand.muted, textAlign: "right", lineHeight: 1.5 }}>{description}</div>
         </div>
         <RevealCard width={560} height={460} icon={icon} holdFrames={holdFrames}>
           <Img src={staticFile(image)} style={{ width: "100%", height: "100%", objectFit: "contain", background: "#f4f5f4" }} />
@@ -374,9 +374,9 @@ const StudentAchievementCard: React.FC<{ name: string; competition: string; resu
           <Img src={staticFile(image)} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         </RevealCard>
         <div style={{ opacity: textT.opacity, translate: `0 ${textT.y}px`, display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-          <div style={{ fontFamily, fontWeight: 900, fontSize: 32, color: brand.primaryDark }}>{name}</div>
-          <div style={{ fontFamily, fontWeight: 700, fontSize: 20, color: brand.muted }}>{competition}</div>
-          <div style={{ fontFamily, fontWeight: 800, fontSize: 20, color: brand.paper, background: brand.gold, borderRadius: 999, padding: "6px 22px" }}>
+          <div style={{ fontFamily, fontWeight: 900, fontSize: 38, color: brand.primaryDark }}>{name}</div>
+          <div style={{ fontFamily, fontWeight: 700, fontSize: 26, color: brand.muted }}>{competition}</div>
+          <div style={{ fontFamily, fontWeight: 800, fontSize: 26, color: brand.paper, background: brand.gold, borderRadius: 999, padding: "8px 24px" }}>
             {result} - {year}
           </div>
         </div>
@@ -403,9 +403,9 @@ const GiftedCard: React.FC<{ shortName: string; achievement: string; standout?: 
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
         <div style={{ opacity: t.opacity, translate: `0 ${t.y}px`, display: "flex", alignItems: "center", gap: 12 }}>
           <CategoryIcon kind="star" color={color} size={38} />
-          <div style={{ fontFamily, fontWeight: 900, fontSize: 32, color: brand.primaryDark }}>{shortName}</div>
+          <div style={{ fontFamily, fontWeight: 900, fontSize: 38, color: brand.primaryDark }}>{shortName}</div>
         </div>
-        <div style={{ fontFamily, fontWeight: 800, fontSize: 18, color: brand.paper, background: color, borderRadius: 999, padding: "5px 18px", opacity: t.opacity }}>
+        <div style={{ fontFamily, fontWeight: 800, fontSize: 26, color: brand.paper, background: color, borderRadius: 999, padding: "7px 22px", opacity: t.opacity }}>
           {achievement}
         </div>
         <RevealCard width={620} height={420} holdFrames={holdFrames}>
@@ -460,11 +460,11 @@ const BeforeAfterSplit: React.FC<{ title: string; before: string; after: string;
           [side]: 16,
           fontFamily,
           fontWeight: 800,
-          fontSize: 22,
+          fontSize: 28,
           color: brand.paper,
           background: accent,
           borderRadius: 999,
-          padding: "6px 22px",
+          padding: "8px 24px",
         } as React.CSSProperties}
       >
         {label}
@@ -477,7 +477,7 @@ const BeforeAfterSplit: React.FC<{ title: string; before: string; after: string;
       <Sfx kind="whoosh" at={0} volume={0.32} />
       <Sfx kind="tick" at={24} volume={0.2} />
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 18 }}>
-        <div style={{ fontFamily, fontWeight: 800, fontSize: 34, color: brand.primaryDark, opacity: titleT.opacity, translate: `0 ${titleT.y}px` }}>
+        <div style={{ fontFamily, fontWeight: 800, fontSize: 42, color: brand.primaryDark, opacity: titleT.opacity, translate: `0 ${titleT.y}px` }}>
           {title}
         </div>
         <div style={{ display: "flex", flexDirection: "row-reverse", gap: 24 }}>

@@ -59,7 +59,7 @@ export const StatsSceneChrome: React.FC<{
           gap: 28,
           opacity: appear,
           fontFamily,
-          fontSize: 26,
+          fontSize: 36,
           color: brand.muted,
         }}
       >
