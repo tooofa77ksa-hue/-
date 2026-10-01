@@ -190,6 +190,17 @@ const QUESTIONS = [
   { id: 'b3', type: 'mc', q: 'ما هو دستور المملكة العربية السعودية؟', o: ['قرارات الأمم المتحدة', 'كتاب الله تعالى وسنة رسوله', 'النظام الأساسي للحكم', 'القوانين الدولية'], answer: 1 },
   { id: 'b9', type: 'mc', q: 'يقع وطني المملكة العربية السعودية في:', o: ['أقصى شمال العالم', 'جنوب القطب المتجمد', 'قلب العالم', 'أقصى شرق العالم'], answer: 2 },
   { id: 'b10', type: 'mc', q: 'أقر الملك عبدالعزيز شكل العلم الذي نراه الآن في يوم العلم الموافق:', o: ['١ سبتمبر', '٢٢ فبراير', '١١ مارس', '١ محرم'], answer: 2 },
+  // ---- Model B, questions that repeat model A (kept on purpose, with model B's option order) ----
+  { id: 'b4', type: 'mc', dup: 'a1', q: 'فرع الدراسات الاجتماعية الذي يهتم بـ (الموارد والاستهلاك والتبادل التجاري) هو:', o: ['التاريخ', 'الاقتصاد', 'المواطنة', 'الجغرافيا'], answer: 1 },
+  { id: 'b5', type: 'mc', dup: 'a10', q: 'يوافق اليوم الوطني للمملكة العربية السعودية في كل عام تاريخ:', o: ['٢٢ فبراير', '٢٣ سبتمبر', '١٥ مارس', '١٥ شوال'], answer: 1 },
+  { id: 'b6', type: 'mc', dup: 'a11', q: 'العلم الذي يبحث في (متى حدث؟ وماذا حدث؟ ولماذا حدث؟) هو علم:', o: ['الجغرافيا', 'الاقتصاد', 'التاريخ', 'الحكومة'], answer: 2 },
+  { id: 'b7', type: 'mc', dup: 'a2', q: 'ما هي البقعة من الأرض التي ننتمي إليها ونفخر بها وعاش عليها آباؤنا وأجدادنا؟', o: ['الحديقة', 'المدرسة', 'الوطن', 'السوق'], answer: 2 },
+  { id: 'b8', type: 'mc', dup: 'a15', q: 'أي من الخيارات التالية يُعد من فروع الدراسات الاجتماعية؟', o: ['الرياضيات', 'اللغة الإنجليزية', 'التاريخ', 'العلوم'], answer: 2 },
+  { id: 'b11', type: 'mc', dup: 'a3', q: 'ما هو النبي الذي دعا لمكة المكرمة قائلاً: (رَبِّ اجْعَلْ هَٰذَا بَلَدًا آمِنًا وَارْزُقْ أَهْلَهُ مِنَ الثَّمَرَاتِ)؟', o: ['نوح عليه السلام', 'موسى عليه السلام', 'عيسى عليه السلام', 'ابراهيم عليه السلام'], answer: 3 },
+  { id: 'b12', type: 'mc', dup: 'a14', q: 'ما هي الوثيقة الرسمية التي تحدد المبادئ العامة للدولة وتنظم شؤونها؟', o: ['الصحف اليومية', 'كتب التاريخ', 'اللائحة المدرسية', 'النظام الأساسي للحكم'], answer: 3 },
+  { id: 'b13', type: 'mc', dup: 'a5', q: 'أي مما يلي يُعد من مكونات الثقافة الوطنية المذكورة في الدرس؟', o: ['الماركات العالمية للملابس', 'الألعاب الإلكترونية الحديثة', 'السيارات الفاخرة', 'الفنون الشعبية والحرف التقليدية'], answer: 3 },
+  { id: 'b14', type: 'mc', dup: 'a4', q: 'السبب الرئيس لعدم تنكيس العلم السعودي أبداً هو:', o: ['لأنه لونه أخضر', 'لأنه يحتوي على السيف', 'لأنه قديم جداً', 'لاحتوائه على كلمة التوحيد'], answer: 3 },
+  { id: 'b15', type: 'mc', dup: 'a7', q: 'أي من الأماكن المقدسة التالية يقع في وطني المملكة العربية السعودية؟', o: ['المسجد الأقصى', 'جامع الأزهر', 'الجامع الأموي', 'المسجد الحرام والمسجد النبوي'], answer: 3 },
   // ---- Question 2: true / false ----
   { id: 't1', type: 'tf', q: 'لون العلم السعودي هو الأخضر وفي وسطه كلمة التوحيد.', answer: true },
   { id: 't2', type: 'tf', q: 'يوم التأسيس هو يوم اعتزاز بالجذور الراسخة للدولة السعودية منذ أكثر من ثلاثمائة سنة.', answer: true },
@@ -216,9 +227,18 @@ if (typeof module !== 'undefined') module.exports = QUESTIONS;
   const AR = n => String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
   const LETTERS = ['أ', 'ب', 'ج', 'د'];
   const BANK = Object.fromEntries(QUESTIONS.map(q => [q.id, q]));
-  const KEY = 'ss-review-game-v1';
+  const KEY = 'ss-review-game-v2';
   const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const pick = a => a[Math.floor(Math.random() * a.length)];
+  // shuffle, but keep each repeated question at least `gap` places away from its twin
+  const twin = id => { if (BANK[id].dup) return BANK[id].dup; const t = QUESTIONS.find(x => x.dup === id); return t ? t.id : null; };
+  function spread(ids) {
+    const gap = Math.min(10, Math.floor(ids.length / 2));
+    const okOrder = o => o.every((id, i) => { const t = twin(id), j = o.indexOf(t); return j < 0 || Math.abs(i - j) >= gap; });
+    let best = shuffle(ids);
+    for (let k = 0; k < 2000 && !okOrder(best); k++) best = shuffle(ids);
+    return best;
+  }
   const GOOD = ['أحسنتِ! ⭐', 'رائعة! 🌟', 'إجابة صحيحة! استمري 💜', 'ممتازة! أنتِ تتقدمين 👏', 'بطلة! ✨'];
   const TRY = ['قريبة 🌷 فكري مرة أخرى.', 'حاولي مرة ثانية، أنتِ تستطيعين 💜', 'فكري… أنتِ تعرفينها 💡'];
 
@@ -253,7 +273,7 @@ if (typeof module !== 'undefined') module.exports = QUESTIONS;
 
   // ---------- state (saved in localStorage so a closed tab can continue) ----------
   let S = null;
-  const fresh = (round, ids) => ({ round, order: shuffle(ids), idx: 0, opt: {}, res: {}, review: S ? S.review : [], picked: null, ended: false });
+  const fresh = (round, ids) => ({ round, order: spread(ids), idx: 0, opt: {}, res: {}, review: S ? S.review : [], picked: null, ended: false });
   function save() { try { localStorage.setItem(KEY, JSON.stringify({ S, soundOn })); } catch (e) {} }
   function load() { try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { return null; } }
 
