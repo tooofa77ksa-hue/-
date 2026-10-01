@@ -440,7 +440,7 @@ td:nth-child(1) { color: var(--cs); } td:nth-child(2) { color: var(--ca); } td:n
   </section>
 </main>
 
-<footer class="gift">💌 إهداء من صديقتكم نادين الشمراني<small>الصور من شرائح الدرس (@englishanfal)</small></footer>
+<footer class="gift">💌 إهداء من صديقتكم نادين الشمراني</footer>
 <script>// Pronoun Party: learn, memory tricks, the teacher's oral test, matching, my/mine sentences and am/is/are.
 (function () {
   var $ = function (id) { return document.getElementById(id); };
@@ -575,10 +575,16 @@ td:nth-child(1) { color: var(--cs); } td:nth-child(2) { color: var(--ca); } td:n
     ['x_she', 'This is her pen. The pen is hers.'], ['x_it', 'It is a cat. This is its pen.'], ['x_we', 'These are our pens. The pens are ours.'],
     ['x_they', 'These are their pens. The pens are theirs.'],
     ['w_I', 'I.'], ['w_you', 'You.'], ['w_he', 'He.'], ['w_she', 'She.'], ['w_it', 'It.'], ['w_we', 'We.'], ['w_they', 'They.'],
-    ['p_mine', 'Mine.'], ['p_yours', 'Yours.'], ['p_his', 'His.'], ['p_hers', 'Hers.'], ['p_its', 'Its.'], ['p_ours', 'Ours.'], ['p_theirs', 'Theirs.']
-  ];
+    ['p_mine', 'Mine.'], ['p_yours', 'Yours.'], ['p_his', 'His.'], ['p_hers', 'Hers.'], ['p_its', 'Its.'], ['p_ours', 'Ours.'], ['p_theirs', 'Theirs.'],
+    // part 2
+    ['a_my', 'My.'], ['a_your', 'Your.'], ['a_her', 'Her.'], ['a_our', 'Our.'], ['a_their', 'Their.'],
+    ['l_E', 'E.'], ['l_H', 'H.'], ['l_M', 'M.'], ['l_N', 'N.'], ['l_O', 'O.'], ['l_R', 'R.'], ['l_S', 'S.'], ['l_T', 'T.'], ['l_U', 'U.'], ['l_W', 'W.'], ['l_Y', 'Y.']
+  ].concat(SENT.map(function (x, i) { return ['sn_' + (i + 1), fill(x[0], x[2])]; }), VERBS.map(function (x, i) { return ['vb_' + (i + 1), fill(x[0], x[1])]; }));
+  function fill(t, w) { return t.replace('___', w).replace(/[^\w\s.?',!]/g, '').replace(/\s+([.?!])/g, '$1').trim(); }
   var norm = function (t) { return String(t).toLowerCase().replace(/[^a-z\s]/g, ' ').replace(/\s+/g, ' ').trim(); };
   var CLIP = {}; LINES.forEach(function (l) { if (VOICE[l[0]]) CLIP[norm(l[1])] = l[0]; });
+  var hasClip = function (t) { return !!CLIP[norm(t)]; };
+  var GOOD = ['Great job!', 'Well done!', 'Excellent!'];
   // one audio element for every clip: iPhone/iPad unlock an element on the first tap, so the same one can keep playing chained lines
   var clipEl = new Audio(); clipEl.preload = 'auto';
   var clipDone = null;
@@ -845,7 +851,7 @@ td:nth-child(1) { color: var(--cs); } td:nth-child(2) { color: var(--ca); } td:n
     if (a.dataset.i === b.dataset.i) {
       var i = +a.dataset.i; [a, b].forEach(function (x) { x.classList.add('done'); x.style.setProperty('--c', P[i].c); x.disabled = true; });
       M.links.push(i); drawLines(); M.done++; play('correct'); sparkle(b);
-      var R = ROUNDS[M.r]; speak(P[i][R.l] + ', ' + P[i][R.r]);
+      var R = ROUNDS[M.r]; speakSeq([P[i][R.l], P[i][R.r]]);
       if (M.done === P.length) {
         if (!M.miss) addStar(3); else addStar(1);
         $('mfb').className = 'fb good'; $('mfb').textContent = M.miss ? 'أحسنتِ! أكملتِ الجولة 🌟' : 'رائعة! بدون أي خطأ ⭐⭐⭐';
@@ -880,7 +886,7 @@ td:nth-child(1) { color: var(--cs); } td:nth-child(2) { color: var(--ca); } td:n
         if (opts.length < 3) opts.push(s[2] === p.a ? pick(P.filter(function (x) { return opts.indexOf(x.a) < 0; })).a : pick(P.filter(function (x) { return opts.indexOf(x.p) < 0; })).p);
         return { answer: s[2], options: shuffle(opts) };
       },
-      onRight: function (s) { $('sq').querySelector('.gap').textContent = s[2]; if (VOICE.good1) cheer('good'); else speak(s[0].replace('___', s[2]).replace(/[^\w\s.?']/g, '')); }
+      onRight: function (s) { $('sq').querySelector('.gap').textContent = s[2]; var t = fill(s[0], s[2]); if (hasClip(t)) speakSeq([t].concat(VOICE.good1 ? [pick(GOOD)] : [])); else if (VOICE.good1) cheer('good'); else speak(t); }
     });
   }
 
@@ -891,7 +897,7 @@ td:nth-child(1) { color: var(--cs); } td:nth-child(2) { color: var(--ca); } td:n
       id: function (v) { return v[0].replace('___', v[1]).replace(/\s*\S+$/u, ''); },
       hint: function () { return 'I → am · he/she/it → is · you/we/they → are'; },
       render: function (v) { $('vq').innerHTML = esc(v[0]).replace('___', '<span class="gap">&nbsp;</span>'); return { answer: v[1], options: ['am', 'is', 'are'] }; },
-      onRight: function (v) { $('vq').querySelector('.gap').textContent = v[1]; if (VOICE.good1) cheer('good'); else speak(v[0].replace('___', v[1]).replace(/[^\w\s.?']/g, '')); }
+      onRight: function (v) { $('vq').querySelector('.gap').textContent = v[1]; var t = fill(v[0], v[1]); if (hasClip(t)) speakSeq([t].concat(VOICE.good1 ? [pick(GOOD)] : [])); else if (VOICE.good1) cheer('good'); else speak(t); }
     });
   }
 
