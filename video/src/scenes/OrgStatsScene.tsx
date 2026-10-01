@@ -222,7 +222,7 @@ const Pill: React.FC<{ label: string; x: number; y: number; from: number; icon: 
         }}
       >
         {icon}
-        <span style={{ fontFamily, fontWeight: 800, fontSize: 30, color: brand.primaryDark }}>{label}</span>
+        <span style={{ fontFamily, fontWeight: 800, fontSize: 36, color: brand.primaryDark }}>{label}</span>
       </div>
     </div>
   );
@@ -260,7 +260,7 @@ const SubBadge: React.FC<{ label: string; x: number; y: number; from: number; ic
     >
       <Sfx kind="tick" at={from} volume={0.15} />
       {icon}
-      <span style={{ fontFamily, fontWeight: 700, fontSize: 25, color: muted ? brand.muted : brand.primaryDark }}>{label}</span>
+      <span style={{ fontFamily, fontWeight: 700, fontSize: 32, color: muted ? brand.muted : brand.primaryDark }}>{label}</span>
     </div>
   );
 };
@@ -314,7 +314,7 @@ const StatCard: React.FC<{
           {icon}
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <div style={{ fontFamily, fontWeight: 700, fontSize: 28, color: brand.muted }}>{label}</div>
+          <div style={{ fontFamily, fontWeight: 700, fontSize: 32, color: brand.muted }}>{label}</div>
           <div style={{ fontFamily, fontWeight: 900, fontSize: 54, color: brand.primary }}>
             <CountUpNumber value={value} decimals={0} from={from} durationInFrames={COUNT_DURATION} />
           </div>

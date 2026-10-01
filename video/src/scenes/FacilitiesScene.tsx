@@ -222,7 +222,7 @@ const Card: React.FC<{
           style={{
             fontFamily,
             fontWeight: 800,
-            fontSize: isRoot ? 36 : 27,
+            fontSize: isRoot ? 36 : 32,
             color: isRoot ? brand.paper : brand.primaryDark,
             textAlign: "center",
             lineHeight: 1.25,
@@ -235,7 +235,7 @@ const Card: React.FC<{
           style={{
             fontFamily,
             fontWeight: 900,
-            fontSize: isRoot ? 26 : 21,
+            fontSize: isRoot ? 26 : 24,
             color: isRoot ? brand.primaryDark : brand.paper,
             background: isRoot ? brand.paper : brand.primary,
             borderRadius: 999,
@@ -246,7 +246,7 @@ const Card: React.FC<{
           ×{node.count}
         </div>
         {node.note ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 5, fontFamily, fontSize: 19, color: brand.muted }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 5, fontFamily, fontSize: 22, color: brand.muted }}>
             <AccessibilityIcon />
             <span>{node.note}</span>
           </div>
