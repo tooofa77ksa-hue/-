@@ -38,10 +38,10 @@ export const StatsSceneChrome: React.FC<{
           opacity: appear,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 20, flexShrink: 0 }}>
           <Img src={staticFile("ministry-logo.webp")} style={{ height: 82, width: "auto", margin: "0 10px" }} />
         </div>
-        <div style={{ fontFamily, fontWeight: 800, fontSize: 38, color: brand.primaryDark }}>{sectionTitle}</div>
+        <div style={{ fontFamily, fontWeight: 800, fontSize: 42, color: brand.primaryDark, whiteSpace: "nowrap", flexShrink: 0 }}>{sectionTitle}</div>
       </div>
 
       <div

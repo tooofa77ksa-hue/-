@@ -30,7 +30,7 @@ export const FACILITIES_DURATION =
   FACILITIES_TIMING.structureDuration + itemsPhaseFrames + FACILITIES_TIMING.finalHold;
 
 // ---- Layout (1920x1080, chrome header=118 / footer=64) ----
-const ROOT = { cx: 960, top: 170, w: 460, h: 76 };
+const ROOT = { cx: 960, top: 170, w: 620, h: 90 };
 const SPINE1_Y = 288;
 const ROW1_TOP = 320;
 const ROW1_H = 148;
@@ -109,7 +109,7 @@ const Title: React.FC = () => {
   const frame = useCurrentFrame();
   const t = interpolate(frame, [0, 14], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   return (
-    <div style={{ fontFamily, fontWeight: 800, fontSize: 38, color: brand.primaryDark, opacity: t }}>
+    <div style={{ fontFamily, fontWeight: 800, fontSize: 42, color: brand.primaryDark, opacity: t }}>
       المرافق والتجهيزات
     </div>
   );
@@ -222,10 +222,11 @@ const Card: React.FC<{
           style={{
             fontFamily,
             fontWeight: 800,
-            fontSize: isRoot ? 32 : 24,
+            fontSize: isRoot ? 36 : 27,
             color: isRoot ? brand.paper : brand.primaryDark,
             textAlign: "center",
             lineHeight: 1.25,
+            whiteSpace: isRoot ? "nowrap" : undefined,
           }}
         >
           {node.label}
@@ -234,7 +235,7 @@ const Card: React.FC<{
           style={{
             fontFamily,
             fontWeight: 900,
-            fontSize: isRoot ? 23 : 19,
+            fontSize: isRoot ? 26 : 21,
             color: isRoot ? brand.primaryDark : brand.paper,
             background: isRoot ? brand.paper : brand.primary,
             borderRadius: 999,
@@ -245,7 +246,7 @@ const Card: React.FC<{
           ×{node.count}
         </div>
         {node.note ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 5, fontFamily, fontSize: 17, color: brand.muted }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 5, fontFamily, fontSize: 19, color: brand.muted }}>
             <AccessibilityIcon />
             <span>{node.note}</span>
           </div>

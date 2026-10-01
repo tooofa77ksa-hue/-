@@ -81,7 +81,7 @@ const TableBeat: React.FC = () => {
           width: 1500,
           background: "#fbfdfc",
           borderRadius: 22,
-          padding: "20px 44px",
+          padding: "12px 44px",
           boxShadow: "0 20px 60px rgba(21,68,90,0.10)",
           opacity: headerAppear,
         }}
@@ -92,16 +92,16 @@ const TableBeat: React.FC = () => {
             gridTemplateColumns: "1fr 1fr 1fr",
             fontFamily,
             fontWeight: 800,
-            fontSize: 29,
+            fontSize: 33,
             color: brand.paper,
             background: brand.primaryDark,
             borderRadius: 10,
             overflow: "hidden",
           }}
         >
-          <div style={{ padding: "9px 0", textAlign: "center" }}>عدد الطالبات</div>
-          <div style={{ padding: "9px 0", textAlign: "center" }}>الفصل</div>
-          <div style={{ padding: "9px 0", textAlign: "center" }}>الصف</div>
+          <div style={{ padding: "4px 0", textAlign: "center" }}>عدد الطالبات</div>
+          <div style={{ padding: "4px 0", textAlign: "center" }}>الفصل</div>
+          <div style={{ padding: "4px 0", textAlign: "center" }}>الصف</div>
         </div>
 
         <div>
@@ -122,7 +122,7 @@ const TableBeat: React.FC = () => {
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr 1fr",
                   fontFamily,
-                  fontSize: 27,
+                  fontSize: 31,
                   fontWeight: isTotal ? 800 : 500,
                   color: isTotal ? brand.primaryDark : brand.ink,
                   background: isTotal ? "#eef6f2" : i % 6 < 3 ? "#ffffff" : "#f7faf9",
@@ -131,9 +131,9 @@ const TableBeat: React.FC = () => {
                   borderBottom: `1px solid ${brand.border}`,
                 }}
               >
-                <div style={{ padding: "7px 0", textAlign: "center" }}>{row.value}</div>
-                <div style={{ padding: "7px 0", textAlign: "center" }}>{row.section}</div>
-                <div style={{ padding: "7px 0", textAlign: "center" }}>{showGradeLabel ? row.grade : ""}</div>
+                <div style={{ padding: "2px 0", textAlign: "center" }}>{row.value}</div>
+                <div style={{ padding: "2px 0", textAlign: "center" }}>{row.section}</div>
+                <div style={{ padding: "2px 0", textAlign: "center" }}>{showGradeLabel ? row.grade : ""}</div>
                 <Sfx kind="tick" at={rowFrom} volume={0.18} />
               </div>
             );
@@ -147,7 +147,7 @@ const TableBeat: React.FC = () => {
             marginTop: 10,
             fontFamily,
             fontWeight: 900,
-            fontSize: 32,
+            fontSize: 36,
             color: brand.paper,
             background: brand.primary,
             borderRadius: 10,
@@ -155,8 +155,8 @@ const TableBeat: React.FC = () => {
             scale: grandTotalAppear,
           }}
         >
-          <div style={{ padding: "10px 0", textAlign: "center" }}>{studentDistributionTotal}</div>
-          <div style={{ padding: "10px 0", textAlign: "center" }}>مجموع الطالبات الكلي</div>
+          <div style={{ padding: "5px 0", textAlign: "center" }}>{studentDistributionTotal}</div>
+          <div style={{ padding: "5px 0", textAlign: "center" }}>مجموع الطالبات الكلي</div>
         </div>
         <Sfx kind="impact" at={grandTotalFrame} volume={0.5} />
       </div>
