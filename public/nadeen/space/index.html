@@ -165,6 +165,16 @@ h2 { font-family: "Baloo", "Readex", sans-serif; font-weight: 800; font-size: cl
 .cover-hint { margin-top: .6rem; font-size: .95rem; color: var(--soft); animation: blink 1.6s ease-in-out infinite; }
 @keyframes blink { 50% { opacity: .45; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition: none !important; } }
+
+/* landing result: stars fill in one by one */
+.result { margin: .4rem auto 1rem; max-width: 30rem; padding: 1rem 1rem .8rem; border-radius: 26px; background: rgba(255,255,255,.08); border: 2px solid rgba(255,214,107,.55); text-align: center; }
+.res-title { margin: 0; color: var(--soft); font-weight: 600; }
+.res-stars { display: flex; justify-content: center; gap: .6rem; margin: .5rem 0; }
+.res-stars svg { width: 3.2rem; height: 3.2rem; opacity: .22; filter: grayscale(1); transform: scale(.7); transition: opacity .4s, transform .5s cubic-bezier(.3,1.8,.5,1), filter .4s; }
+.res-stars svg.on { opacity: 1; filter: drop-shadow(0 0 10px rgba(255,214,107,.8)); transform: scale(1); }
+.res-rank { margin: .2rem 0; font-family: "Baloo", "Readex", sans-serif; font-size: 1.5rem; color: var(--gold); }
+.res-line { margin: 0; color: var(--ink); }
+.cert-stars svg.off { opacity: .2; filter: grayscale(1); }
 </style>
 </head>
 <body>
@@ -222,7 +232,7 @@ h2 { font-family: "Baloo", "Readex", sans-serif; font-weight: 800; font-size: cl
 <header class="top">
   <div class="teacher-banner">
     <span class="flower" aria-hidden="true">🌷</span>
-    <p><b>إلى معلمتنا الغالية أ. عائشة البلادي</b><span>كل عام وأنتِ النجمة التي تضيء طريقنا ✨ يوم معلم سعيد</span></p>
+    <p><b>إلى معلمتنا الغالية أ. عائشة البلادي</b><span>في يوم المعلم ٥ أكتوبر: شكرًا لأنكِ علّمتِنا كيف نحلم ونصل إلى النجوم ✨</span></p>
   </div>
   <div class="tools">
     <button type="button" id="full" class="sound">⛶ ملء الشاشة</button>
@@ -297,6 +307,12 @@ h2 { font-family: "Baloo", "Readex", sans-serif; font-weight: 800; font-size: cl
   <!-- 5: landing + certificate -->
   <section class="screen" id="s-end" hidden>
     <h2>🌟 هبطنا بسلام! 🌟</h2>
+    <div class="result" id="result" aria-live="polite">
+      <p class="res-title">نتيجة رحلتكِ</p>
+      <div class="res-stars" id="resStars" aria-hidden="true"><svg><use href="#star5"/></svg><svg><use href="#star5"/></svg><svg><use href="#star5"/></svg></div>
+      <p class="res-rank" id="resRank"></p>
+      <p class="res-line" id="resLine"></p>
+    </div>
     <p class="lead">اكتبي اسمك لتحصلي على شهادتك</p>
     <form class="namebox" id="nameForm">
       <label for="name" class="sr">اسمك</label>
@@ -308,8 +324,8 @@ h2 { font-family: "Baloo", "Readex", sans-serif; font-weight: 800; font-size: cl
       <p class="cert-title">شهادة رائدة فضاء صغيرة</p>
       <p class="cert-to">تُمنح للبطلة</p>
       <p class="cert-name" id="certName"></p>
-      <p class="cert-why">لإتمامها رحلة الفضاء بنجاح، ومعرفتها بأبطال المملكة في الفضاء 🚀</p>
-      <div class="cert-stars" aria-hidden="true"><svg><use href="#star5"/></svg><svg><use href="#star5"/></svg><svg><use href="#star5"/></svg></div>
+      <p class="cert-why">لإتمامها رحلة الفضاء بنجاح، ومعرفتها بأبطال المملكة في الفضاء 🚀<br><b id="certRank"></b></p>
+      <div class="cert-stars" id="certStars" aria-hidden="true"><svg><use href="#star5"/></svg><svg><use href="#star5"/></svg><svg><use href="#star5"/></svg></div>
     </div>
     <button type="button" class="btn next" id="toCard">💌 رسالة نادين إلى معلمتها</button>
     <button type="button" class="btn ghost" id="again">🔄 رحلة جديدة</button>
@@ -324,7 +340,7 @@ h2 { font-family: "Baloo", "Readex", sans-serif; font-weight: 800; font-size: cl
         <span class="in-stars" aria-hidden="true">✦ ✧ ✦</span>
         <span class="in-to">إلى معلمتي الغالية</span>
         <span class="in-name">أ. عائشة البلادي</span>
-        <span class="in-msg">كما تضيء النجومُ سماءَ الليل، تضيئين أنتِ عقولَنا بالعلم، وقلوبَنا بالحب.<br>شكرًا لأنكِ تأخذين بأيدينا إلى أبعد من القمر 🌙<br>كل عام وأنتِ بخير بمناسبة يوم المعلم 💜</span>
+        <span class="in-msg">في يوم المعلم، الخامس من أكتوبر، أقول لكِ من قلبي: شكرًا يا معلمتي 💜<br>أنتِ معلمةٌ مميّزة؛ علّمتِنا بصبرٍ وحب، وجعلتِ كلَّ درسٍ رحلةً ممتعة.<br>كما تضيء النجومُ سماءَ الليل، تضيئين أنتِ عقولَنا بالعلم وقلوبَنا بالأخلاق 🌙<br>ستبقين قدوتَنا دائمًا 🌷</span>
         <span class="in-from">طالبتكِ المحبّة<br><b>نادين الشمراني</b></span>
       </span>
       <span class="cover">
@@ -426,41 +442,12 @@ h2 { font-family: "Baloo", "Readex", sans-serif; font-weight: 800; font-size: cl
         if (Math.random() < 90 / sr) crack = (Math.random() * .8 + .2) * (Math.random() < .5 ? -1 : 1);
         crack *= .92; hp = .7 * (hp + crack - prev); prev = crack;          // crackle, high-passed
         lpC += .25 * (hp - lpC);
-        var env = t < .7 ? Math.pow(t / .7, 1.6) : t < 3 ? 1 : Math.exp(-(t - 3) * 1.25);
+        var env = t < 1.2 ? Math.pow(t / 1.2, 2) : t < 3 ? 1 : Math.exp(-(t - 3) * 1.4);
         var far = t < 3 ? 1 : Math.exp(-(t - 3) * 1.6);
-        d[i] = env * (brown * 5 + lpR * 2.6 * mod + lpC * 1.5 * far);
+        d[i] = env * (brown * 5 + lpR * 2 * mod + lpC * .6 * far);
       }
     }
     return (bufs.rocket = normalize(b, .55));
-  }
-  // applause: a classroom of individual clappers, each with her own pace, hand tone and place in the room
-  function applauseBuf() {
-    if (bufs.clap) return bufs.clap;
-    var dur = 3, b = stereo(dur), sr = b.sampleRate, L = b.getChannelData(0), R = b.getChannelData(1);
-    for (var p = 0; p < 26; p++) {
-      var rate = 3.6 + Math.random() * 1.8, t = Math.random() * .35, pan = Math.random(), decay = sr * (.005 + Math.random() * .007), stop = dur - .5 - Math.random() * .6;
-      // each pair of hands rings at its own pitch (a resonant band-pass around 0.8 to 2.4 kHz)
-      var fc = 800 + Math.random() * 1600, wq = 2 * Math.PI * fc / sr, al = Math.sin(wq) / (2 * 1.3), a0 = 1 + al,
-          bb0 = al / a0, aa1 = -2 * Math.cos(wq) / a0, aa2 = (1 - al) / a0;
-      while (t < stop) {
-        var s0 = Math.floor(t * sr), len = Math.floor(decay * 7), x1 = 0, x2 = 0, y1 = 0, y2 = 0, vol = .5 + Math.random() * .5;
-        for (var k = 0; k < len && s0 + k < L.length; k++) {
-          var w = (Math.random() * 2 - 1) * Math.exp(-k / decay);
-          var y = bb0 * w - bb0 * x2 - aa1 * y1 - aa2 * y2; x2 = x1; x1 = w; y2 = y1; y1 = y;
-          var v = (y * 2.2 + w * .12) * vol;
-          L[s0 + k] += v * (1 - pan * .7); R[s0 + k] += v * (.3 + pan * .7);
-        }
-        t += (1 / rate) * (.85 + Math.random() * .3);
-      }
-    }
-    // a little room echo and a gentle swell / fade
-    var dl = Math.floor(sr * .045), dr = Math.floor(sr * .061);
-    for (var i = L.length - 1; i >= 0; i--) {
-      var tt = i / sr, env = Math.min(1, tt / .35) * (tt > dur - 1.1 ? Math.max(0, (dur - tt) / 1.1) : 1);
-      var l = L[i] + (i >= dr ? R[i - dr] * .25 : 0), r = R[i] + (i >= dl ? L[i - dl] * .25 : 0);
-      L[i] = l * env; R[i] = r * env;
-    }
-    return (bufs.clap = normalize(b, .5));
   }
   function playBuf(b, vol) {
     var c = ctx(), s = c.createBufferSource(), g = c.createGain();
@@ -469,19 +456,30 @@ h2 { font-family: "Baloo", "Readex", sans-serif; font-weight: 800; font-size: cl
   var SFX = {
     beep: function () { tone(880, 0, .18, 'sine', .14); },
     go: function () { tone(1320, 0, .4, 'sine', .16); },
-    launch: function () { playBuf(rocketBuf()); },
+    launch: function () { playBuf(rocketBuf(), .45); },
     star: function () { tone(1568, 0, .2, 'sine', .12); tone(2093, .07, .3, 'sine', .1); },
-    clap: function () { playBuf(applauseBuf(), 1); },
+    clap: function () {},
+    // a soft, warm bell for the very end
+    bell: function () { [[1046.5, 0], [1318.5, .18], [1568, .36], [2093, .6]].forEach(function (n) { tone(n[0], n[1], 2.2, 'sine', .07); tone(n[0] * 2.01, n[1], 1.2, 'sine', .02); }); },
     correct: function () { tone(784, 0, .16); tone(988, .09, .16); tone(1319, .18, .32, 'sine', .14); },
     wrong: function () { tone(330, 0, .16, 'triangle', .1); tone(262, .12, .22, 'triangle', .08); },
     place: function () { tone(660, 0, .12, 'sine', .12); tone(990, .06, .18, 'sine', .1); },
-    fanfare: function () { [523, 659, 784, 1047, 784, 1047, 1319].forEach(function (f, i) { tone(f, i * .12, .32, 'triangle', .12); }); SFX.clap(); }
+    fanfare: function () { [523, 659, 784, 1047, 784, 1047, 1319].forEach(function (f, i) { tone(f, i * .12, .32, 'triangle', .1); }); if (SFXFILE.clap) play('clap'); }
   };
-  // optional recorded voice lines: build.py embeds src/voice/<launch|earth|heroes|planets|quiz|bravo|end>.mp3 when present
+  // optional recorded voice lines: build.py embeds src/voice/<launch|earth|heroes|planets|quiz|bravo|end|teacher>.mp3 when present
   var VOICE = {};
   var voiceEl = null;
   function voice(k) { if (!soundOn || !VOICE[k]) return; try { if (voiceEl) voiceEl.pause(); voiceEl = new Audio(VOICE[k]); voiceEl.play().catch(function () {}); } catch (e) {} }
-  function play(k) { if (!soundOn) return; try { SFX[k](); window.__lastSound = k; } catch (e) {} }
+  // optional recorded effects: build.py embeds src/sfx/<name>.mp3 and they replace the built-in sound of the same name
+  var SFXFILE = {};
+  function play(k) {
+    if (!soundOn) return;
+    try {
+      if (SFXFILE[k]) { var a = new Audio(SFXFILE[k]); a.volume = .7; a.play().catch(function () {}); }
+      else if (SFX[k]) SFX[k]();
+      window.__lastSound = k;
+    } catch (e) {}
+  }
   function setSound(on) { soundOn = on; $('sound').textContent = on ? '🔊 الصوت' : '🔇 الصوت'; $('sound').setAttribute('aria-pressed', String(on)); if (!on && voiceEl) voiceEl.pause(); }
   $('sound').addEventListener('click', function () { setSound(!soundOn); if (soundOn) play('star'); });
   $('full').addEventListener('click', function () {
@@ -515,7 +513,7 @@ h2 { font-family: "Baloo", "Readex", sans-serif; font-weight: 800; font-size: cl
   // ---------------- 0: countdown + launch ----------------
   var launching = false;
   $('launch').addEventListener('click', function () {
-    if (launching) return; launching = true; $('launch').hidden = true; if (soundOn) try { ctx(); rocketBuf(); applauseBuf(); } catch (e) {}
+    if (launching) return; launching = true; $('launch').hidden = true; if (soundOn) try { ctx(); rocketBuf(); } catch (e) {}
     var cd = $('countdown'), n = 3;
     (function tick() {
       cd.className = 'countdown'; void cd.offsetWidth;
@@ -624,21 +622,21 @@ h2 { font-family: "Baloo", "Readex", sans-serif; font-weight: 800; font-size: cl
   ];
   var GOOD = ['أحسنتِ يا بطلة! ⭐', 'رائعة! 🚀', 'إجابة صحيحة! 🌟', 'ممتازة يا رائدة الفضاء! 👩‍🚀'];
   var TRY = ['حاولي مرة ثانية 💜', 'قريبة! فكّري مرة أخرى 🌙'];
-  var qi = 0;
-  function startQuiz() { go('s-quiz'); voice('quiz'); qi = 0; showQ(); }
+  var qi = 0, firstTry = 0, missedThis = false;
+  function startQuiz() { go('s-quiz'); voice('quiz'); qi = 0; firstTry = 0; showQ(); }
   function showQ() {
     var item = QUIZ[qi]; $('qn').textContent = 'السؤال ' + AR(qi + 1) + ' من ' + AR(QUIZ.length); $('qtext').textContent = item.q;
-    $('fb').textContent = ''; $('fb').className = 'fb'; $('qnext').hidden = true;
+    $('fb').textContent = ''; $('fb').className = 'fb'; $('qnext').hidden = true; missedThis = false;
     var box = $('opts'); box.innerHTML = '';
     shuffle([0, 1, 2]).forEach(function (k) {
       var b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.textContent = item.o[k]; b.dataset.k = k;
       b.addEventListener('click', function () {
         if (box.dataset.done === String(qi)) return;
         if (k === item.a) {
-          box.dataset.done = String(qi); b.classList.add('right'); [].forEach.call(box.children, function (x) { x.disabled = true; });
+          box.dataset.done = String(qi); if (!missedThis) firstTry++; b.classList.add('right'); [].forEach.call(box.children, function (x) { x.disabled = true; });
           $('fb').className = 'fb good'; $('fb').textContent = pick(GOOD); play('correct'); burst(b, ['⭐', '✨']); voice('bravo');
           $('qnext').hidden = false; $('qnext').textContent = qi + 1 < QUIZ.length ? 'السؤال التالي ←' : 'نهبط الآن 🪂';
-        } else { b.classList.remove('wrong'); void b.offsetWidth; b.classList.add('wrong'); $('fb').className = 'fb try'; $('fb').textContent = pick(TRY); play('wrong'); }
+        } else { b.classList.remove('wrong'); void b.offsetWidth; b.classList.add('wrong'); $('fb').className = 'fb try'; $('fb').textContent = pick(TRY); play('wrong'); missedThis = true; }
       });
       box.appendChild(b);
     });
@@ -646,7 +644,17 @@ h2 { font-family: "Baloo", "Readex", sans-serif; font-weight: 800; font-size: cl
   $('qnext').addEventListener('click', function () { qi++; if (qi < QUIZ.length) showQ(); else startEnd(); });
 
   // ---------------- 5: landing + certificate ----------------
-  function startEnd() { go('s-end'); $('cert').hidden = true; $('name').value = ''; play('fanfare'); voice('end'); confetti(); }
+  var RANKS = ['', 'رائدة فضاء صاعدة 🚀', 'رائدة فضاء فضية 🥈', 'رائدة فضاء ذهبية 🥇'];
+  function startEnd() {
+    go('s-end'); $('cert').hidden = true; $('name').value = ''; play('fanfare'); voice('end'); confetti();
+    var n = QUIZ.length, s = firstTry === n ? 3 : firstTry * 2 >= n ? 2 : 1;
+    $('resRank').textContent = RANKS[s]; $('certRank').textContent = RANKS[s];
+    $('resLine').textContent = 'أجبتِ ' + AR(firstTry) + ' من ' + AR(n) + ' من أول محاولة' + (s === 3 ? ' — ممتاز! 🌟' : s === 2 ? ' — رائع جدًا! 💜' : ' — وفي الرحلة القادمة ستلمعين أكثر! ✨');
+    [].forEach.call($('certStars').children, function (x, i) { x.classList.toggle('off', i >= s); });
+    var stars = $('resStars').children; [].forEach.call(stars, function (x) { x.classList.remove('on'); });
+    for (var i = 0; i < s; i++) (function (k) { setTimeout(function () { stars[k].classList.add('on'); play('star'); }, reduce ? 0 : 700 + k * 450); })(i);
+    window.__result = { first: firstTry, stars: s };
+  }
   $('nameForm').addEventListener('submit', function (e) {
     e.preventDefault(); var n = $('name').value.trim(); if (!n) { $('name').focus(); return; }
     $('certName').textContent = n; $('cert').hidden = false; play('fanfare'); confetti();
@@ -656,7 +664,7 @@ h2 { font-family: "Baloo", "Readex", sans-serif; font-weight: 800; font-size: cl
   $('gcard').addEventListener('click', function () {
     var c = $('gcard'), open = c.getAttribute('aria-expanded') === 'true';
     c.setAttribute('aria-expanded', String(!open));
-    if (!open) { play('fanfare'); confetti(); setTimeout(function () { burst(c, ['💜', '✨', '🌷', '⭐']); }, 700); }
+    if (!open) { play(SFXFILE.card ? 'card' : 'star'); setTimeout(function () { play('bell'); }, 350); setTimeout(function () { voice('teacher'); }, 1400); confetti(); setTimeout(function () { burst(c, ['💜', '✨', '🌷', '⭐']); }, 700); }
   });
   $('again2').addEventListener('click', function () { $('again').click(); });
   $('again').addEventListener('click', function () {
@@ -666,7 +674,7 @@ h2 { font-family: "Baloo", "Readex", sans-serif; font-weight: 800; font-size: cl
   });
 
   setSound(true); go('s-start');
-  window.__space = { go: go, startEarth: startEarth, startHeroes: startHeroes, startPlanets: startPlanets, startQuiz: startQuiz, QUIZ: QUIZ, ORDER: ORDER, sound: function (k) { var b = k === 'launch' ? rocketBuf() : applauseBuf(); return [b.sampleRate, Array.from(b.getChannelData(0)), Array.from(b.getChannelData(1))]; } };
+  window.__space = { go: go, startEarth: startEarth, startHeroes: startHeroes, startPlanets: startPlanets, startQuiz: startQuiz, QUIZ: QUIZ, ORDER: ORDER, sound: function () { var b = rocketBuf(); return [b.sampleRate, Array.from(b.getChannelData(0)), Array.from(b.getChannelData(1))]; } };
 })();
 </script>
 </body>
