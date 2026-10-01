@@ -33,6 +33,7 @@ import { AchievementEditor } from "@/injazi/features/portfolio/AchievementEditor
 import { HobbiesEditor } from "@/injazi/features/portfolio/HobbiesEditor";
 import { AboutEditor } from "@/injazi/features/portfolio/AboutEditor";
 import { ButterflyEntrance } from "@/injazi/components/ButterflyEntrance";
+import { CertificateDialog } from "@/injazi/features/portfolio/CertificateDialog";
 import { PersonalizePanel } from "@/injazi/features/portfolio/PersonalizePanel";
 import { ProjectCard } from "@/injazi/features/portfolio/ProjectCard";
 import { ProjectEditor } from "@/injazi/features/portfolio/ProjectEditor";
@@ -42,6 +43,7 @@ import { Icon } from "@/injazi/ui/IconPicker";
 import { Rating } from "@/injazi/ui/Rating";
 import {
   useSession,
+  useSettings,
   useStudent,
   useStudentAchievements,
   useStudentEvaluations,
@@ -88,7 +90,9 @@ export function StudentPortfolio() {
     kind: Achievement["kind"];
     row: Achievement | null;
   }>({ open: false, kind: "achievement", row: null });
+  const settings = useSettings();
   const [personalize, setPersonalize] = useState(false);
+  const [certificate, setCertificate] = useState(false);
   const [hobbies, setHobbies] = useState(false);
   const [about, setAbout] = useState(false);
   const [confirm, setConfirm] = useState<{ open: boolean; run: () => Promise<void>; message: string }>({
@@ -587,8 +591,52 @@ export function StudentPortfolio() {
         )}
       </section>
 
+      {/* ---------------- شهادة التميّز ----------------
+          آخر ما في الصفحة عمدًا: الشهادة خلاصة ما فوقها، فلا تُقرأ
+          إلا بعد أن يُرى العمل الذي تلخّصه. وهي مفتوحة لمن يزور الملف
+          لا لصاحبته وحدها — الأم تفتح الرابط وتطبعها. */}
+      <section className="iz-block" aria-label="شهادة التميّز">
+        <SectionTitle hint="شهادة باسمك، جاهزة للطباعة">شهادتي</SectionTitle>
+        <Panel className="iz-cert-cta">
+          <ClayObject name="crown" tone="gold" size={64} />
+          <div className="iz-cert-cta__text">
+            <h3>شهادة تميّز باسم {student.name}</h3>
+            <p>
+              تجمع ما أنجزتِه هذا العام: {visibleProjects.length} مشروعًا، ومتوسّط{" "}
+              {averageStars || "—"} من النجوم، و{badges} شارة تميّز. حمّليها PDF واطبعيها.
+            </p>
+          </div>
+          <ClayButton
+            size="lg"
+            icon={<Award size={18} strokeWidth={2.5} />}
+            onClick={() => setCertificate(true)}
+          >
+            اعرضي شهادتك
+          </ClayButton>
+        </Panel>
+      </section>
+
       {/* ---------------- النوافذ ---------------- */}
       <AnimatePresence>{null}</AnimatePresence>
+
+      <CertificateDialog
+        open={certificate}
+        data={{
+          studentName: student.name,
+          grade: student.grade,
+          schoolName: settings.schoolName,
+          platformName: settings.platformName,
+          projects: visibleProjects.length,
+          stars: averageStars || "—",
+          badges,
+          dateText: new Date().toLocaleDateString("ar-SA-u-ca-gregory", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          }),
+        }}
+        onClose={() => setCertificate(false)}
+      />
 
       <ProjectEditor
         open={projectEditor.open}
