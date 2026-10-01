@@ -48,7 +48,7 @@ h3 { margin: 0 0 .5rem; font-size: 1.05rem; }
 .hint-line { text-align: center; color: var(--soft); margin-top: 1rem; }
 
 .tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
-@media (min-width: 760px) { .tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 760px) { .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .tile { position: relative; display: flex; flex-direction: column; align-items: center; gap: .2rem; padding: 1rem .6rem; border: 0; border-radius: 1.4rem; background: var(--card); box-shadow: 0 6px 0 var(--sh, #F1D9C2), 0 10px 24px rgba(120, 80, 40, .08); transition: transform .15s; text-align: center; min-height: 8.4rem; }
 .tile:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--sh, #F1D9C2); }
 .tile .ic { font-size: 2.2rem; line-height: 1.2; }
@@ -179,6 +179,36 @@ td:nth-child(1) { color: var(--cs); } td:nth-child(2) { color: var(--ca); } td:n
   .opt { font-size: 1.35rem; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+.t7 { --sh: #D8C9F3; border-top: 6px solid var(--lav); } .t8 { --sh: #F7C3D3; border-top: 6px solid var(--pink); }
+.hello { margin: 0 auto .4rem; display: inline-block; background: var(--blue); box-shadow: 0 4px 0 #5F89C4; }
+
+/* memory cards */
+.moves { text-align: center; color: var(--soft); margin: 0 0 .7rem; }
+.memgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .55rem; max-width: 34rem; margin: 0 auto; }
+@media (min-width: 700px) { .memgrid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+.mc { position: relative; aspect-ratio: 3 / 4; border: 0; padding: 0; background: none; perspective: 700px; }
+.mc .f, .mc .b { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; border-radius: 1rem; backface-visibility: hidden; -webkit-backface-visibility: hidden; transition: transform .45s; }
+.mc .b { background: repeating-linear-gradient(45deg, #F9B27A 0 10px, #FBC795 10px 20px); box-shadow: 0 4px 0 #E39A5E; font-size: 1.8rem; color: #fff; }
+.mc .f { background: #fff; border: 3px solid var(--line); transform: rotateY(180deg); font-size: 1.45rem; flex-direction: column; box-shadow: 0 4px 0 var(--line); }
+.mc .f small { font-family: "Readex", sans-serif; font-size: .55rem; color: var(--soft); }
+.mc.s .f b { color: var(--cs); } .mc.p .f b { color: var(--cp); }
+.mc.open .b { transform: rotateY(-180deg); } .mc.open .f { transform: rotateY(0); }
+.mc.got .f { border-color: var(--c); background: color-mix(in srgb, var(--c) 14%, white); animation: pop .4s; }
+
+/* bubbles */
+.btarget { text-align: center; font-weight: 600; margin-bottom: .6rem; }
+.btarget b { display: inline-block; font-size: 2.2rem; color: var(--cs); background: #EAF2FF; border-radius: 1.4rem; padding: 0 1rem; margin-inline-start: .3rem; }
+.arena { position: relative; height: min(58vh, 26rem); min-height: 280px; border-radius: 1.6rem; overflow: hidden; background: linear-gradient(180deg, #DDF3FF 0%, #F3E9FF 100%); box-shadow: inset 0 0 0 3px #fff, 0 8px 0 #E5D7F5; }
+.arena { --bs: 5.6rem; }
+@media (max-width: 480px) { .arena { --bs: 4.5rem; } .bub { font-size: 1.15rem !important; } }
+.bub { position: absolute; bottom: -6rem; width: var(--bs); height: var(--bs); border-radius: 50%; border: 0; font-size: 1.35rem; color: #5B3FA8; background: radial-gradient(circle at 30% 28%, rgba(255,255,255,.95) 0 12%, rgba(255,255,255,.35) 13% 40%, rgba(185,164,236,.35) 70%, rgba(134,174,227,.55) 100%); box-shadow: inset 0 0 0 2px rgba(255,255,255,.8), 0 6px 16px rgba(90,70,160,.18); animation: rise var(--t, 7s) linear infinite; animation-delay: var(--d, 0s); }
+@keyframes rise { 0% { transform: translateY(0) translateX(0); } 25% { transform: translateY(calc(var(--h) * -.25)) translateX(10px); } 50% { transform: translateY(calc(var(--h) * -.5)) translateX(-8px); } 75% { transform: translateY(calc(var(--h) * -.75)) translateX(8px); } 100% { transform: translateY(calc(var(--h) * -1)) translateX(0); } }
+.bub.wrong { animation-play-state: paused; filter: grayscale(.6); }
+.bub.popped { animation: popped .35s forwards; }
+@keyframes popped { to { transform: scale(1.6); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .bub { animation: none !important; bottom: auto; top: var(--y); } }
+.btarget .e { font-size: .5em; vertical-align: middle; }
 </style>
 </head>
 <body>
@@ -197,6 +227,7 @@ td:nth-child(1) { color: var(--cs); } td:nth-child(2) { color: var(--ca); } td:n
       <p class="kicker">English · الصف الرابع</p>
       <h1><span dir="ltr" lang="en">Pronoun Party</span> <span aria-hidden="true">🎉</span></h1>
       <p class="lead">ضمائر الفاعل وصفات وضمائر الملكية… نحفظها باللعب، ولن ننساها أبدًا!</p>
+      <button class="btn hello" id="hello" type="button">▶️ <span dir="ltr" lang="en">Hello!</span> اضغطي لتسمعي</button>
     </div>
     <div class="tiles">
       <button class="tile t1" type="button" data-go="learn"><span class="ic" aria-hidden="true">📖</span><b>تعلّمي</b><small>٧ بطاقات بالصور والصوت</small></button>
@@ -204,9 +235,11 @@ td:nth-child(1) { color: var(--cs); } td:nth-child(2) { color: var(--ca); } td:n
       <button class="tile t3" type="button" data-go="teacher"><span class="ic" aria-hidden="true">🎤</span><b>تسميع المعلمة</b><small>تقول <span dir="ltr" lang="en">(she)</span> فتقولين <span dir="ltr" lang="en">hers</span></small><i class="badge" data-badge="teacher" aria-hidden="true"></i></button>
       <button class="tile t4" type="button" data-go="match"><span class="ic" aria-hidden="true">🔗</span><b>التوصيل</b><small>صِلي كل ضمير بصاحبه</small><i class="badge" data-badge="match" aria-hidden="true"></i></button>
       <button class="tile t5" type="button" data-go="sent"><span class="ic" aria-hidden="true">✏️</span><b><span dir="ltr" lang="en">my</span> أم <span dir="ltr" lang="en">mine</span>؟</b><small>أكملي الجملة</small><i class="badge" data-badge="sent" aria-hidden="true"></i></button>
+      <button class="tile t7" type="button" data-go="memory"><span class="ic" aria-hidden="true">🃏</span><b>بطاقات الذاكرة</b><small>اقلبي واعثري على الأزواج</small><i class="badge" data-badge="memory" aria-hidden="true"></i></button>
+      <button class="tile t8" type="button" data-go="bubble"><span class="ic" aria-hidden="true">🫧</span><b>فقاعات الضمائر</b><small>فرقعي الفقاعة الصحيحة</small><i class="badge" data-badge="bubble" aria-hidden="true"></i></button>
       <button class="tile t6" type="button" data-go="verb"><span class="ic" aria-hidden="true">🧩</span><b><span dir="ltr" lang="en">am · is · are</span></b><small>الفعل المساعد المناسب</small><i class="badge" data-badge="verb" aria-hidden="true"></i></button>
     </div>
-    <p class="hint-line">اجمعي الأوسمة الأربعة 🏅 لتحصلي على كأس نجمة الضمائر 🏆</p>
+    <p class="hint-line">اجمعي الأوسمة الستة 🏅 لتحصلي على كأس نجمة الضمائر 🏆</p>
   </section>
 
   <!-- ============ learn ============ -->
@@ -332,6 +365,23 @@ td:nth-child(1) { color: var(--cs); } td:nth-child(2) { color: var(--ca); } td:n
       <p class="fb" id="vfb" aria-live="polite"></p>
       <button class="btn big" id="vnext" type="button" hidden>التالي ←</button>
     </div>
+  </section>
+
+  <!-- ============ memory ============ -->
+  <section id="s-memory" class="screen" hidden>
+    <h2>🃏 بطاقات الذاكرة</h2>
+    <p class="sub">اقلبي بطاقتين: ضمير الفاعل وضمير الملكية الخاص به</p>
+    <p class="moves">المحاولات: <b id="moves">٠</b> · الأزواج: <b id="pairs">٠</b> / ٧</p>
+    <div class="memgrid" id="memgrid" dir="ltr" lang="en"></div>
+  </section>
+
+  <!-- ============ bubbles ============ -->
+  <section id="s-bubble" class="screen" hidden>
+    <h2>🫧 فقاعات الضمائر</h2>
+    <div class="progress" id="bprog" aria-hidden="true"></div>
+    <div class="btarget"><span>فرقعي ضمير الملكية لـ</span> <b id="bq" dir="ltr" lang="en"></b></div>
+    <div class="arena" id="arena" dir="ltr" lang="en"></div>
+    <p class="fb" id="bfb" aria-live="polite"></p>
   </section>
 
   <!-- ============ result ============ -->
@@ -469,18 +519,57 @@ td:nth-child(1) { color: var(--cs); } td:nth-child(2) { color: var(--ca); } td:n
     enVoice = vs.filter(function (v) { return /samantha|female|zira|aria|jenny|google us/i.test(v.name); })[0] || vs.filter(function (v) { return /en[-_]US/i.test(v.lang); })[0] || vs[0] || null;
   }
   if (window.speechSynthesis) { findVoice(); speechSynthesis.onvoiceschanged = findVoice; }
+  // ---------- recorded girl voice (src/voice/<key>.mp3, embedded by build.py); device voice is the fallback ----------
+  var VOICE = {};
+  var LINES = [
+    ['welcome', "Welcome to Pronoun Party! Let's learn and play together!"], ['i_learn', 'Tap a card and listen.'],
+    ['i_trick', 'Here is a secret! Just add S. Your, yours. Her, hers. Our, ours. Their, theirs.'],
+    ['i_teacher', 'Teacher says a pronoun. You say the answer!'], ['i_match', 'Match each pronoun with its friend!'],
+    ['i_sent', "My or mine? Let's find out!"], ['i_verb', 'Am, is, or are? You can do it!'],
+    ['i_memory', 'Find the matching pairs!'], ['i_bubble', 'Pop the right bubble!'],
+    ['good1', 'Great job!'], ['good2', 'Well done!'], ['good3', 'Excellent!'], ['oops', 'Oops! Try again.'],
+    ['badge', 'You got a badge!'], ['trophy', 'Amazing! You are a Pronoun Star!'], ['gift', 'A gift from your friend, Nadeen!'],
+    ['c_I', 'I, my, mine.'], ['c_you', 'You, your, yours.'], ['c_he', 'He, his, his.'], ['c_she', 'She, her, hers.'],
+    ['c_it', 'It, its, its.'], ['c_we', 'We, our, ours.'], ['c_they', 'They, their, theirs.'],
+    ['x_I', 'This is my pen. The pen is mine.'], ['x_you', 'This is your pen. The pen is yours.'], ['x_he', 'This is his pen. The pen is his.'],
+    ['x_she', 'This is her pen. The pen is hers.'], ['x_it', 'It is a cat. This is its pen.'], ['x_we', 'These are our pens. The pens are ours.'],
+    ['x_they', 'These are their pens. The pens are theirs.'],
+    ['w_I', 'I.'], ['w_you', 'You.'], ['w_he', 'He.'], ['w_she', 'She.'], ['w_it', 'It.'], ['w_we', 'We.'], ['w_they', 'They.'],
+    ['p_mine', 'Mine.'], ['p_yours', 'Yours.'], ['p_his', 'His.'], ['p_hers', 'Hers.'], ['p_its', 'Its.'], ['p_ours', 'Ours.'], ['p_theirs', 'Theirs.']
+  ];
+  var norm = function (t) { return String(t).toLowerCase().replace(/[^a-z\s]/g, ' ').replace(/\s+/g, ' ').trim(); };
+  var CLIP = {}; LINES.forEach(function (l) { if (VOICE[l[0]]) CLIP[norm(l[1])] = l[0]; });
+  var clipEl = null;
+  function stopVoice() { if (clipEl) { try { clipEl.pause(); } catch (e) {} clipEl = null; } if (window.speechSynthesis) speechSynthesis.cancel(); }
+  function playClip(key, done) {
+    stopVoice();
+    var a = new Audio(VOICE[key]); clipEl = a; a.volume = .95; window.__lastClip = key;
+    var fired = false, fin = function () { if (!fired) { fired = true; if (done) done(); } };
+    a.onended = fin; a.onerror = fin; a.play().catch(fin);
+  }
   function speak(text, done) {
     window.__lastSpoken = text;
-    if (!st.sound || !window.speechSynthesis) { if (done) setTimeout(done, 900); return; }
+    if (!st.sound) { if (done) setTimeout(done, 900); return; }
+    var key = CLIP[norm(text)];
+    if (key) return playClip(key, done);
+    if (!window.speechSynthesis) { if (done) setTimeout(done, 900); return; }
     try {
-      speechSynthesis.cancel();
+      stopVoice();
       var u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = .82; u.pitch = 1.1; if (enVoice) u.voice = enVoice;
       var fired = false, fin = function () { if (!fired) { fired = true; if (done) done(); } };
       u.onend = fin; u.onerror = fin; setTimeout(fin, 900 + text.length * 120);
       speechSynthesis.speak(u);
     } catch (e) { if (done) setTimeout(done, 900); }
   }
-  function setSound(on) { st.sound = on; $('sound').textContent = on ? '🔊 الصوت' : '🔇 الصوت'; $('sound').setAttribute('aria-pressed', String(on)); if (!on && window.speechSynthesis) speechSynthesis.cancel(); save(); }
+  // say several lines one after another
+  function speakSeq(list, done) { var i = 0; (function next() { if (i >= list.length) { if (done) done(); return; } speak(list[i++], function () { setTimeout(next, 180); }); })(); }
+  // short recorded reactions (only when the girl's voice is present; otherwise the chime alone)
+  function cheer(kind) {
+    if (!st.sound) return;
+    var k = kind === 'good' ? pick(['good1', 'good2', 'good3']) : kind;
+    if (VOICE[k]) playClip(k);
+  }
+  function setSound(on) { st.sound = on; $('sound').textContent = on ? '🔊 الصوت' : '🔇 الصوت'; $('sound').setAttribute('aria-pressed', String(on)); if (!on) stopVoice(); save(); }
   $('sound').addEventListener('click', function () { setSound(!st.sound); play('tap'); });
 
   function sparkle(el) {
@@ -503,9 +592,9 @@ td:nth-child(1) { color: var(--cs); } td:nth-child(2) { color: var(--ca); } td:n
   }
 
   // ---------------- navigation ----------------
-  var SCREENS = ['home', 'learn', 'trick', 'teacher', 'match', 'sent', 'verb', 'done', 'trophy'];
+  var SCREENS = ['home', 'learn', 'trick', 'teacher', 'match', 'sent', 'verb', 'memory', 'bubble', 'done', 'trophy'];
   function go(id) {
-    if (window.speechSynthesis) speechSynthesis.cancel();
+    stopVoice(); clearBubbles();
     singing = false;
     SCREENS.forEach(function (s) { $('s-' + s).hidden = s !== id; });
     $('home').hidden = id === 'home';
@@ -515,10 +604,16 @@ td:nth-child(1) { color: var(--cs); } td:nth-child(2) { color: var(--ca); } td:n
     if (id === 'match') startMatch(0);
     if (id === 'sent') startSent();
     if (id === 'verb') startVerb();
+    if (id === 'memory') startMemory();
+    if (id === 'bubble') startBubble();
+    var INTRO = { learn: 'i_learn', trick: 'i_trick', match: 'i_match', sent: 'i_sent', verb: 'i_verb', memory: 'i_memory', bubble: 'i_bubble' };
+    if (INTRO[id]) cheer(INTRO[id]);
     window.scrollTo(0, 0);
   }
   document.addEventListener('click', function (e) { var b = e.target.closest('[data-go]'); if (b) { play('tap'); go(b.dataset.go); } });
   $('home').addEventListener('click', function () { play('tap'); go('home'); });
+
+  $('hello').addEventListener('click', function () { play('tap'); speakSeq(["Welcome to Pronoun Party! Let's learn and play together!", 'A gift from your friend, Nadeen!']); });
 
   // ---------------- learn ----------------
   var li = 0;
@@ -530,7 +625,7 @@ td:nth-child(1) { color: var(--cs); } td:nth-child(2) { color: var(--ca); } td:n
   }
   $('lface').addEventListener('click', function () {
     var p = P[li], f = $('lface'); f.classList.remove('flash'); void f.offsetWidth; f.classList.add('flash');
-    speak(p.s + '. ' + p.a + '. ' + p.p + '. ' + p.say);
+    speakSeq([p.s + ', ' + p.a + ', ' + p.p + '.', p.say]);
   });
   $('lprev').addEventListener('click', function () { if (li > 0) { li--; play('tap'); showCard(); } });
   $('lnext').addEventListener('click', function () { play('tap'); if (li < P.length - 1) { li++; showCard(); } else { li = 0; go('trick'); } });
@@ -539,7 +634,7 @@ td:nth-child(1) { color: var(--cs); } td:nth-child(2) { color: var(--ca); } td:n
   // ---------------- trick ----------------
   $('magic').innerHTML = ['your', 'her', 'our', 'their'].map(function (w) { return '<button type="button" class="mg"><span class="w">' + w + '</span><span class="s">s</span></button>'; }).join('');
   [].forEach.call($('magic').children, function (b) {
-    b.addEventListener('click', function () { var w = b.querySelector('.w').textContent; b.classList.add('on'); play('magic'); sparkle(b); speak(w + '... ' + w + 's!'); });
+    b.addEventListener('click', function () { var w = b.querySelector('.w').textContent; b.classList.add('on'); play('magic'); sparkle(b); speak(w + 's'); });
   });
   $('chant').innerHTML = P.map(function (p) { return '<li><span>' + p.s + '</span><span>' + p.a + '</span><span>' + p.p + '</span></li>'; }).join('');
   var singing = false;
@@ -553,6 +648,7 @@ td:nth-child(1) { color: var(--cs); } td:nth-child(2) { color: var(--ca); } td:n
     })();
   });
 
+  var BADGES = ['teacher', 'match', 'sent', 'verb', 'memory', 'bubble'];
   // ---------------- a small question engine shared by the quizzes ----------------
   var CUR = null;
   function quiz(cfg) {
@@ -579,7 +675,7 @@ td:nth-child(1) { color: var(--cs); } td:nth-child(2) { color: var(--ca); } td:n
       var id = cfg.id(q.cur); q.tries[id] = (q.tries[id] || 0) + 1;
       if (o === q.r.answer) { right(b); }
       else {
-        b.classList.remove('wrong'); void b.offsetWidth; b.classList.add('wrong'); b.disabled = true; play('wrong');
+        b.classList.remove('wrong'); void b.offsetWidth; b.classList.add('wrong'); b.disabled = true; play('wrong'); cheer('oops');
         $(cfg.fb).className = 'fb try'; $(cfg.fb).innerHTML = pick(['قريبة! 🌷', 'فكّري مرة ثانية 💡', 'حاولي مرة أخرى 💜']) + (cfg.hint ? ' <span dir="ltr" lang="en">' + esc(cfg.hint(q.cur)) + '</span>' : '');
         if (q.missed.indexOf(id) < 0) { q.missed.push(id); q.queue.push(q.cur); q.total++; }
       }
@@ -601,9 +697,9 @@ td:nth-child(1) { color: var(--cs); } td:nth-child(2) { color: var(--ca); } td:n
       $('dmsg').textContent = 'أجبتِ ' + AR(f) + ' من ' + AR(n) + ' من أول محاولة.' + (q.missed.length ? ' هذه راجعيها مرة ثانية:' : '');
       $('dreview').innerHTML = q.missed.map(function (m) { return '<li>' + esc(m) + '</li>'; }).join('');
       $('dagain').onclick = function () { play('tap'); go(cfg.screen); };
-      var all = ['teacher', 'match', 'sent', 'verb'].every(function (k) { return st.badges[k]; });
-      if (all && !st.trophy) { st.trophy = true; save(); go('trophy'); play('fanfare'); confetti(); return; }
-      go('done'); play('fanfare'); confetti();
+      var all = BADGES.every(function (k) { return st.badges[k]; });
+      if (all && !st.trophy) { st.trophy = true; save(); go('trophy'); play('fanfare'); confetti(); setTimeout(function () { speakSeq(['Amazing! You are a Pronoun Star!', 'A gift from your friend, Nadeen!']); }, 700); return; }
+      go('done'); play('fanfare'); confetti(); setTimeout(function () { cheer('badge'); }, 600);
     }
     $(cfg.next).onclick = function () { play('tap'); show(); };
     q.right = right; q.again = function () { var id = cfg.id(q.cur); if (q.missed.indexOf(id) < 0) { q.missed.push(id); q.queue.push(q.cur); q.total++; } q.done++; show(); };
@@ -611,22 +707,25 @@ td:nth-child(1) { color: var(--cs); } td:nth-child(2) { color: var(--ca); } td:n
   }
 
   // ---------------- teacher's oral test ----------------
-  var TQ = null;
-  function tLabel(t) { return t.k + (t.note === 'plural' ? ' (plural)' : ''); }
+  var TQ = null, teacherIntro = false;
+  function tLabel(t) { return t.k + (t.note === 'plural' ? ', plural' : ''); }
+  // shown like the teacher's card: (you) plural · (it) 🐱
+  function tShow(t) { return '(' + esc(t.k) + ')' + (t.note === 'plural' ? ' <span class="e">plural</span>' : t.note ? ' <span class="e">' + t.note + '</span>' : ''); }
   function startTeacher() {
+    teacherIntro = false;
     TQ = quiz({
       screen: 'teacher', badge: 'teacher', items: shuffle(TEACHER), prog: 'tprog', opts: 'topts', fb: 'tfb', next: 'tnext',
       id: function (t) { return '(' + tLabel(t) + ') → ' + byS(t.k).p; },
       hint: function (t) { return HINT[t.k]; },
       render: function (t) {
-        var p = byS(t.k), note = t.note && t.note !== 'plural' ? ' <span class="e">' + t.note + '</span>' : '';
-        $('tq').innerHTML = '(' + esc(tLabel(t)) + ')' + note;
+        var p = byS(t.k);
+        $('tq').innerHTML = tShow(t);
         var wrong = shuffle(POSS.filter(function (x) { return x !== p.p; })).slice(0, 3);
         oralReset();
         return { answer: p.p, options: shuffle(wrong.concat(p.p)) };
       },
-      after: function (t) { speak(t.k === 'I' ? 'I' : t.k); },
-      onRight: function (t) { var p = byS(t.k); speak(p.p); }
+      after: function (t) { if (!teacherIntro && VOICE.i_teacher) { teacherIntro = true; speakSeq(['Teacher says a pronoun. You say the answer!', t.k]); } else speak(t.k); },
+      onRight: function (t) { var p = byS(t.k); VOICE.good1 ? speakSeq([p.p, pick(['Great job!', 'Well done!', 'Excellent!'])]) : speak(p.p); }
     });
   }
   $('tq').addEventListener('click', function () { if (TQ && TQ.cur) speak(TQ.cur.k); });
@@ -683,7 +782,7 @@ td:nth-child(1) { color: var(--cs); } td:nth-child(2) { color: var(--ca); } td:n
         if (M.r < ROUNDS.length - 1) { $('mnext').hidden = false; play('clap'); }
         else setTimeout(function () {
           st.badges.match = true; save();
-          var all = ['teacher', 'match', 'sent', 'verb'].every(function (k) { return st.badges[k]; });
+          var all = BADGES.every(function (k) { return st.badges[k]; });
           $('dmedal').textContent = '🔗'; $('dtitle').textContent = 'أنهيتِ التوصيل كله! 🏅'; $('dmsg').textContent = 'وصلتِ الجدول كاملًا مثل اختبار المعلمة.'; $('dreview').innerHTML = '';
           $('dagain').onclick = function () { play('tap'); go('match'); };
           if (all && !st.trophy) { st.trophy = true; save(); go('trophy'); } else go('done');
@@ -691,7 +790,7 @@ td:nth-child(1) { color: var(--cs); } td:nth-child(2) { color: var(--ca); } td:n
         }, 900);
       }
     } else {
-      M.miss++; play('wrong'); [a, b].forEach(function (x) { x.classList.remove('wrong'); void x.offsetWidth; x.classList.add('wrong'); });
+      M.miss++; play('wrong'); cheer('oops'); [a, b].forEach(function (x) { x.classList.remove('wrong'); void x.offsetWidth; x.classList.add('wrong'); });
       $('mfb').className = 'fb try'; $('mfb').textContent = 'ليست هذه… جرّبي مرة ثانية 💜';
     }
   });
@@ -711,7 +810,7 @@ td:nth-child(1) { color: var(--cs); } td:nth-child(2) { color: var(--ca); } td:n
         if (opts.length < 3) opts.push(s[2] === p.a ? pick(P.filter(function (x) { return opts.indexOf(x.a) < 0; })).a : pick(P.filter(function (x) { return opts.indexOf(x.p) < 0; })).p);
         return { answer: s[2], options: shuffle(opts) };
       },
-      onRight: function (s) { $('sq').querySelector('.gap').textContent = s[2]; speak(s[0].replace('___', s[2]).replace(/[^\w\s.?']/g, '')); }
+      onRight: function (s) { $('sq').querySelector('.gap').textContent = s[2]; if (VOICE.good1) cheer('good'); else speak(s[0].replace('___', s[2]).replace(/[^\w\s.?']/g, '')); }
     });
   }
 
@@ -722,13 +821,95 @@ td:nth-child(1) { color: var(--cs); } td:nth-child(2) { color: var(--ca); } td:n
       id: function (v) { return v[0].replace('___', v[1]).replace(/\s*\S+$/u, ''); },
       hint: function () { return 'I → am · he/she/it → is · you/we/they → are'; },
       render: function (v) { $('vq').innerHTML = esc(v[0]).replace('___', '<span class="gap">&nbsp;</span>'); return { answer: v[1], options: ['am', 'is', 'are'] }; },
-      onRight: function (v) { $('vq').querySelector('.gap').textContent = v[1]; speak(v[0].replace('___', v[1]).replace(/[^\w\s.?']/g, '')); }
+      onRight: function (v) { $('vq').querySelector('.gap').textContent = v[1]; if (VOICE.good1) cheer('good'); else speak(v[0].replace('___', v[1]).replace(/[^\w\s.?']/g, '')); }
     });
+  }
+
+
+  // ---------------- memory cards: subject pronoun <-> possessive pronoun ----------------
+  var MEM = null;
+  function startMemory() {
+    MEM = { open: [], moves: 0, pairs: 0, lock: false };
+    $('moves').textContent = AR(0); $('pairs').textContent = AR(0);
+    var cards = [];
+    P.forEach(function (p, i) { cards.push({ i: i, t: p.s, k: 's' }); cards.push({ i: i, t: p.p, k: 'p' }); });
+    $('memgrid').innerHTML = shuffle(cards).map(function (c) {
+      return '<button type="button" class="mc ' + c.k + '" data-i="' + c.i + '" aria-label="بطاقة"><span class="b" aria-hidden="true">?</span><span class="f"><b>' + esc(c.t) + '</b><small>' + (c.k === 's' ? 'Subject' : 'Possessive') + '</small></span></button>';
+    }).join('');
+  }
+  $('memgrid').addEventListener('click', function (e) {
+    var c = e.target.closest('.mc'); if (!c || MEM.lock || c.classList.contains('open')) return;
+    c.classList.add('open'); play('tap'); speak(c.querySelector('b').textContent); MEM.open.push(c);
+    if (MEM.open.length < 2) return;
+    var a = MEM.open[0], b = MEM.open[1]; MEM.open = []; MEM.moves++; $('moves').textContent = AR(MEM.moves);
+    if (a.dataset.i === b.dataset.i && a.className !== b.className) {
+      var col = P[+a.dataset.i].c;
+      [a, b].forEach(function (x) { x.classList.add('got'); x.style.setProperty('--c', col); x.disabled = true; });
+      MEM.pairs++; $('pairs').textContent = AR(MEM.pairs); play('correct'); sparkle(b); addStar(1);
+      var p = P[+a.dataset.i]; setTimeout(function () { speak(p.s + ', ' + p.a + ', ' + p.p + '.'); }, 450);
+      if (MEM.pairs === P.length) setTimeout(function () { award('memory', '🃏', 'وجدتِ كل الأزواج! 🏅', 'أنهيتِها في ' + AR(MEM.moves) + ' محاولة.' + (MEM.moves <= 10 ? ' ذاكرة ذهبية! 🌟' : '')); }, 1500);
+    } else {
+      MEM.lock = true; setTimeout(function () { play('wrong'); a.classList.remove('open'); b.classList.remove('open'); MEM.lock = false; }, 900);
+    }
+  });
+
+  // ---------------- bubbles: pop the possessive pronoun for the subject shown ----------------
+  var BUB = null, bubTimers = [];
+  function clearBubbles() { bubTimers.forEach(clearTimeout); bubTimers = []; var a = $('arena'); if (a) a.innerHTML = ''; }
+  function startBubble() {
+    var order = shuffle(TEACHER).slice(0, 8);
+    BUB = { order: order, i: 0, first: 0, miss: false, total: order.length };
+    nextBubble();
+  }
+  function nextBubble() {
+    clearBubbles();
+    if (BUB.i >= BUB.total) return award('bubble', '🫧', 'فرقعتِ كل الفقاعات! 🏅', 'أصبتِ ' + AR(BUB.first) + ' من ' + AR(BUB.total) + ' من أول مرة.');
+    var t = BUB.order[BUB.i], p = byS(t.k); BUB.miss = false; BUB.cur = t;
+    var h = ''; for (var k = 0; k < BUB.total; k++) h += '<i class="' + (k < BUB.i ? 'ok' : k === BUB.i ? 'cur' : '') + '"></i>'; $('bprog').innerHTML = h;
+    $('bq').innerHTML = tShow(t);
+    $('bfb').textContent = ''; $('bfb').className = 'fb';
+    speak(t.k);
+    var words = shuffle(shuffle(POSS.filter(function (x) { return x !== p.p; })).slice(0, 3).concat(p.p));
+    var arena = $('arena'), H = arena.clientHeight + 140, W = arena.clientWidth;
+    words.forEach(function (w, n) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'bub'; b.textContent = w; b.dataset.v = w;
+      var lane = (n + .5) / words.length;
+      b.style.left = 'clamp(.4rem, calc(' + (lane * 100) + '% - var(--bs) / 2), calc(100% - var(--bs) - .4rem))';
+      b.style.setProperty('--h', H + 'px'); b.style.setProperty('--t', (6.5 + Math.random() * 2.5) + 's'); b.style.setProperty('--d', (-Math.random() * 4) + 's');
+      b.style.setProperty('--y', (15 + 20 * (n % 3)) + '%');
+      b.addEventListener('click', function () { popBubble(b, w === p.p); });
+      arena.appendChild(b);
+    });
+  }
+  function popBubble(b, right) {
+    if (right) {
+      b.classList.add('popped'); play('magic'); sparkle(b);
+      if (!BUB.miss) { BUB.first++; addStar(1); }
+      [].forEach.call($('arena').children, function (x) { x.disabled = true; });
+      $('bfb').className = 'fb good'; $('bfb').textContent = pick(['أحسنتِ! ⭐', 'رائعة! 🌟', 'بطلة! ✨']);
+      var p = byS(BUB.cur.k); speakSeq([p.p].concat(VOICE.good1 ? [pick(['Great job!', 'Well done!', 'Excellent!'])] : []));
+      BUB.i++; bubTimers.push(setTimeout(nextBubble, 1700));
+    } else {
+      BUB.miss = true; b.classList.add('wrong'); b.disabled = true; play('wrong'); cheer('oops');
+      $('bfb').className = 'fb try'; $('bfb').innerHTML = 'ليست هذه… <span dir="ltr" lang="en">' + esc(HINT[BUB.cur.k]) + '</span>';
+    }
+  }
+
+  // shared ending for the two new games
+  function award(badge, medal, title, msg) {
+    st.badges[badge] = true; save();
+    $('dmedal').textContent = medal; $('dtitle').textContent = title; $('dmsg').textContent = msg; $('dreview').innerHTML = '';
+    $('dagain').onclick = function () { play('tap'); go(badge); };
+    if (BADGES.every(function (k) { return st.badges[k]; }) && !st.trophy) {
+      st.trophy = true; save(); go('trophy'); play('fanfare'); confetti();
+      setTimeout(function () { speakSeq(['Amazing! You are a Pronoun Star!', 'A gift from your friend, Nadeen!']); }, 700); return;
+    }
+    go('done'); play('fanfare'); confetti(); setTimeout(function () { cheer('badge'); }, 600);
   }
 
   // ---------------- boot ----------------
   setSound(st.sound !== false); $('stars').textContent = AR(st.stars); paintBadges(); go('home');
-  window.__pp = { go: go, P: P, st: st, TEACHER: TEACHER, SENT: SENT, VERBS: VERBS, M: function () { return M; }, TQ: function () { return TQ; }, cur: function () { return CUR && CUR.cur; } };
+  window.__pp = { go: go, P: P, st: st, TEACHER: TEACHER, SENT: SENT, VERBS: VERBS, M: function () { return M; }, TQ: function () { return TQ; }, cur: function () { return CUR && CUR.cur; }, MEM: function () { return MEM; }, BUB: function () { return BUB; } };
 })();
 </script>
 </body>
