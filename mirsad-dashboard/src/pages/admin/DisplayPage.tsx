@@ -1,5 +1,6 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
+import { ImpactShow } from '../../components/ImpactShow'
 import { LockToggle } from '../../components/LockToggle'
 import { ShareChart } from '../../components/ShareChart'
 import { ORGANIZATION } from '../../brand'
@@ -22,8 +23,12 @@ import { useSystem } from '../../state/useSystem'
  * بعد. ولا تحتاج صلاحية جديدة ولا رابطًا مفتوحًا لأحد: من يفتحها هو
  * من دخل بحساب المدرسة أصلًا.
  */
+/** شرائح العرض بالترتيب الذي تُقدَّم به على الزائر. */
+const SCREENS = ['الأرقام', 'من الرأي إلى التحسين', 'صوت طالباتنا'] as const
+
 export function DisplayPage() {
   const { state } = useSystem()
+  const [screen, setScreen] = useState(0)
 
   const part = participation(state, SCHOOL_SCOPE)
   const index = satisfactionIndex(state, SCHOOL_SCOPE)
@@ -42,10 +47,20 @@ export function DisplayPage() {
     part: participation(state, { classId: room.id }),
   }))
 
-  // العرض على شاشة: الخروج بمفتاح Escape كما يتوقّع من يعرض
+  // العرض على شاشة: الخروج بمفتاح Escape، والتنقّل بين الشرائح
+  // بالأسهم ومسطرة المسافة — كما يتوقّع من يعرض على جهاز عرض
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') window.location.hash = '#/admin'
+      if (e.key === 'Escape') { window.location.hash = '#/admin'; return }
+      // لوحة عربية: السهم الأيمن يتقدّم لأن القراءة من اليمين
+      if (e.key === 'ArrowLeft' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault()
+        setScreen((n) => Math.min(n + 1, SCREENS.length - 1))
+      }
+      if (e.key === 'ArrowRight' || e.key === 'PageUp') {
+        e.preventDefault()
+        setScreen((n) => Math.max(n - 1, 0))
+      }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -69,6 +84,7 @@ export function DisplayPage() {
         <div className="show__exit no-print"><LockToggle locked /></div>
       </header>
 
+      {screen === 0 && (
       <div className="show__body">
         <section className="show__index">
           <p className="show__label">مؤشر اتجاه المتعلمات</p>
@@ -175,6 +191,22 @@ export function DisplayPage() {
           </ol>
         </section>
       </div>
+      )}
+
+      {screen > 0 && <ImpactShow state={state} screen={screen} />}
+
+      <nav className="show__dots no-print" aria-label="شرائح العرض">
+        {SCREENS.map((name, i) => (
+          <button
+            key={name} type="button"
+            className={i === screen ? 'show__dot-btn is-on' : 'show__dot-btn'}
+            aria-current={i === screen}
+            onClick={() => setScreen(i)}
+          >
+            {name}
+          </button>
+        ))}
+      </nav>
 
       <footer className="show__foot">
         <span>{hijriToday()}</span>

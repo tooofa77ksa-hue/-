@@ -3852,3 +3852,205 @@ th {
   .improve { break-inside: avoid; }
   .proof__qr { border-color: #cfd8dc; }
 }
+
+/* ───────── من الرأي إلى التحسين: على شاشة العرض ─────────
+   الزائر يقف على بعد مترين، فالخطّ أكبر والمسافات أوسع مما في
+   لوحة الإدارة. والبطاقات تتدفّق في أعمدة تنكسر على عرض الشاشة. */
+
+.impact { margin-block-start: 6px; }
+
+.impact__flow {
+  list-style: none;
+  margin: 0 0 22px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.impact__flow li {
+  position: relative;
+  text-align: center;
+  padding: 14px 8px;
+  border-radius: 14px;
+  background: var(--surface-tint);
+  border: 1px solid var(--border);
+}
+
+/* السهم بين المراحل: الرأي يصير بندًا يصير منجزًا يصير شاهدًا */
+.impact__flow li + li::after {
+  content: '←';
+  position: absolute;
+  inset-inline-start: -11px;
+  inset-block-start: 50%;
+  transform: translateY(-50%);
+  color: var(--moe-sand);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.impact__flow strong {
+  display: block;
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--moe-navy);
+}
+
+.impact__flow span { font-size: 13px; color: var(--text-muted); }
+.impact__flow .is-done strong { color: var(--moe-green); }
+
+.impact__bands {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+
+.band {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  padding: 0 0 14px;
+  overflow: hidden;
+  break-inside: avoid;
+}
+
+.band__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  background: var(--moe-navy);
+  color: #fff;
+  padding: 10px 14px;
+}
+
+.band__title { margin: 0; font-size: 15.5px; font-weight: 800; flex: 1; line-height: 1.4; }
+.band__count { font-size: 12px; color: #c9dbe4; }
+
+.band__state {
+  font-size: 11.5px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.band__state--completed { background: var(--moe-green); color: #fff; }
+.band__state--in_progress { background: var(--moe-sand); color: var(--moe-navy); }
+.band__state--planned { background: rgb(255 255 255 / 18%); color: #fff; }
+
+.band__voice {
+  margin: 12px 14px 0;
+  padding: 10px 13px;
+  border-inline-start: 4px solid var(--moe-sand);
+  border-radius: 0 10px 10px 0;
+  background: var(--surface-tint);
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--text);
+}
+
+.band__more { margin: 6px 14px 0; font-size: 12px; color: var(--text-muted); }
+
+.band__did { margin: 12px 14px 0; font-size: 14px; line-height: 1.8; }
+
+.band__did-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--moe-green);
+  margin-block-end: 3px;
+}
+
+.band__proofs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 14px 14px 0;
+}
+
+.band__proofs .proof { max-inline-size: 190px; padding-block: 12px 10px; }
+.band__proofs .proof__qr { width: 92px; height: 92px; }
+.band__proofs .proof__value { display: none; }
+.band__proofs .proof__hint { display: none; }
+
+.impact__share {
+  float: inline-end;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--moe-green);
+}
+
+.impact__praise {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  columns: 3 260px;
+  column-gap: 14px;
+}
+
+.impact__praise li { break-inside: avoid; margin-block-end: 12px; }
+
+.impact__praise blockquote {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--surface-tint);
+  border-inline-start: 4px solid var(--moe-green);
+  font-size: 13.5px;
+  line-height: 1.8;
+}
+
+.impact__basis {
+  grid-column: 1 / -1;
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.8;
+}
+
+@media print {
+  .band, .impact__flow li, .impact__praise li { break-inside: avoid; }
+  .impact__bands { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* شرائح العرض: كل شريحة تملأ الشاشة، وما زاد يُمرَّر داخلها وحدها */
+.show__screen {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: clamp(14px, 1.8vh, 24px) clamp(16px, 1.6vw, 26px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.show__dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding-block-start: 4px;
+}
+
+.show__dot-btn {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  border-radius: 20px;
+  padding: 5px 16px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.show__dot-btn.is-on {
+  background: var(--moe-navy);
+  border-color: var(--moe-navy);
+  color: #fff;
+}
