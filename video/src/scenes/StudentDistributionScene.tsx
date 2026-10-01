@@ -30,7 +30,7 @@ const TransitionBeat: React.FC = () => {
       <Sequence from={0} layout="none">
         <Audio src={staticFile("audio/school-stats/line4.mp3")} />
       </Sequence>
-      <div style={{ fontFamily, fontSize: 44, fontWeight: 800, color: brand.primaryDark, opacity: t }}>
+      <div style={{ fontFamily, fontSize: 48, fontWeight: 800, color: brand.primaryDark, opacity: t }}>
         وننتقل الآن إلى بيانات الطالبات وتوزيعهن على الفصول
       </div>
     </AbsoluteFill>
@@ -92,7 +92,7 @@ const TableBeat: React.FC = () => {
             gridTemplateColumns: "1fr 1fr 1fr",
             fontFamily,
             fontWeight: 800,
-            fontSize: 26,
+            fontSize: 29,
             color: brand.paper,
             background: brand.primaryDark,
             borderRadius: 10,
@@ -122,7 +122,7 @@ const TableBeat: React.FC = () => {
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr 1fr",
                   fontFamily,
-                  fontSize: 24,
+                  fontSize: 27,
                   fontWeight: isTotal ? 800 : 500,
                   color: isTotal ? brand.primaryDark : brand.ink,
                   background: isTotal ? "#eef6f2" : i % 6 < 3 ? "#ffffff" : "#f7faf9",
@@ -147,7 +147,7 @@ const TableBeat: React.FC = () => {
             marginTop: 10,
             fontFamily,
             fontWeight: 900,
-            fontSize: 29,
+            fontSize: 32,
             color: brand.paper,
             background: brand.primary,
             borderRadius: 10,

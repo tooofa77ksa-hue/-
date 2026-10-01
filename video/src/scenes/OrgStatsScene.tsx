@@ -72,9 +72,9 @@ const SPINE_BOTTOM = 995;
 const ROW_TITLE_Y = 150;
 const ROW_ROLES_Y = 215;
 const ROW_TEACH_ADMIN_Y = 305;
-const ROW_STUDENTS_Y = 610;
-const ROW_ECON_SOCIAL_Y = 730;
-const ROW_HEALTH_Y = 860;
+const ROW_STUDENTS_Y = 620;
+const ROW_ECON_SOCIAL_Y = 740;
+const ROW_HEALTH_Y = 865;
 
 // ---- Icons: unified single-color line icons, same visual language as FacilitiesScene ----
 const IC = brand.primary;
@@ -151,7 +151,7 @@ const GroupTitle: React.FC = () => {
         textAlign: "center",
         fontFamily,
         fontWeight: 800,
-        fontSize: 36,
+        fontSize: 40,
         color: brand.primaryDark,
         opacity: t,
       }}
@@ -222,7 +222,7 @@ const Pill: React.FC<{ label: string; x: number; y: number; from: number; icon: 
         }}
       >
         {icon}
-        <span style={{ fontFamily, fontWeight: 800, fontSize: 23, color: brand.primaryDark }}>{label}</span>
+        <span style={{ fontFamily, fontWeight: 800, fontSize: 26, color: brand.primaryDark }}>{label}</span>
       </div>
     </div>
   );
@@ -254,13 +254,13 @@ const SubBadge: React.FC<{ label: string; x: number; y: number; from: number; ic
         opacity: t,
         background: muted ? "#f3f5f4" : "#eaf7f1",
         borderRadius: 999,
-        padding: "6px 14px",
+        padding: "5px 14px",
         whiteSpace: "nowrap",
       }}
     >
       <Sfx kind="tick" at={from} volume={0.15} />
       {icon}
-      <span style={{ fontFamily, fontWeight: 700, fontSize: 18, color: muted ? brand.muted : brand.primaryDark }}>{label}</span>
+      <span style={{ fontFamily, fontWeight: 700, fontSize: 21, color: muted ? brand.muted : brand.primaryDark }}>{label}</span>
     </div>
   );
 };
@@ -307,15 +307,15 @@ const StatCard: React.FC<{
           border: `1.5px solid ${brand.border}`,
           borderRadius: 18,
           boxShadow: "0 10px 26px rgba(21,68,90,0.10)",
-          padding: "16px 24px",
+          padding: "12px 24px",
         }}
       >
         <div style={{ width: 56, height: 56, borderRadius: "50%", background: "#eef6f2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           {icon}
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <div style={{ fontFamily, fontWeight: 700, fontSize: 21, color: brand.muted }}>{label}</div>
-          <div style={{ fontFamily, fontWeight: 900, fontSize: 44, color: brand.primary }}>
+          <div style={{ fontFamily, fontWeight: 700, fontSize: 24, color: brand.muted }}>{label}</div>
+          <div style={{ fontFamily, fontWeight: 900, fontSize: 48, color: brand.primary }}>
             <CountUpNumber value={value} decimals={0} from={from} durationInFrames={COUNT_DURATION} />
           </div>
         </div>
@@ -361,15 +361,15 @@ export const OrgStatsScene: React.FC = () => {
       />
       <SubBadge
         label={`${teacherLicense.licensed} حاصلات على الرخصة`}
-        x={960 - 260 + 80}
-        y={ROW_TEACH_ADMIN_Y + 110}
+        x={960 - 260}
+        y={ROW_TEACH_ADMIN_Y + 108}
         from={ITEM_START.licensed}
         icon={<LicenseIcon />}
       />
       <SubBadge
         label={`${teacherLicense.notLicensed} بدون رخصة`}
-        x={960 - 260 - 80}
-        y={ROW_TEACH_ADMIN_Y + 110}
+        x={960 - 260}
+        y={ROW_TEACH_ADMIN_Y + 152}
         from={ITEM_START.notLicensed}
         icon={<NoLicenseIcon />}
         muted
@@ -378,29 +378,29 @@ export const OrgStatsScene: React.FC = () => {
       {/* تصنيف المعلمات - شبكة 2×2 مباشرة تحت شارتي الرخصة، ضمن نفس عمود بطاقة "المعلمات" */}
       <SubBadge
         label={`معلم خبير: ${teacherClassification.expert}`}
-        x={960 - 260 + 130}
-        y={ROW_TEACH_ADMIN_Y + 175}
+        x={960 - 260 + 150}
+        y={ROW_TEACH_ADMIN_Y + 205}
         from={ITEM_START.classExpert}
         icon={<RankBadgeIcon />}
       />
       <SubBadge
         label={`معلم متقدم: ${teacherClassification.advanced}`}
-        x={960 - 260 - 130}
-        y={ROW_TEACH_ADMIN_Y + 175}
+        x={960 - 260 - 150}
+        y={ROW_TEACH_ADMIN_Y + 205}
         from={ITEM_START.classAdvanced}
         icon={<RankBadgeIcon />}
       />
       <SubBadge
         label={`معلم ممارس: ${teacherClassification.practitioner}`}
-        x={960 - 260 + 130}
-        y={ROW_TEACH_ADMIN_Y + 222}
+        x={960 - 260 + 150}
+        y={ROW_TEACH_ADMIN_Y + 255}
         from={ITEM_START.classPractitioner}
         icon={<RankBadgeIcon />}
       />
       <SubBadge
         label={`مساعد معلم: ${teacherClassification.assistant}`}
-        x={960 - 260 - 130}
-        y={ROW_TEACH_ADMIN_Y + 222}
+        x={960 - 260 - 150}
+        y={ROW_TEACH_ADMIN_Y + 255}
         from={ITEM_START.classAssistant}
         icon={<RankBadgeIcon />}
       />
@@ -455,28 +455,28 @@ export const OrgStatsScene: React.FC = () => {
       <SubBadge
         label={`${healthCases.sugar} سكر`}
         x={960 + 360}
-        y={ROW_HEALTH_Y + 110}
+        y={ROW_HEALTH_Y + 95}
         from={ITEM_START.sugar}
         icon={<SugarIcon />}
       />
       <SubBadge
         label={`${healthCases.epilepsy} صرع`}
         x={960 + 180}
-        y={ROW_HEALTH_Y + 110}
+        y={ROW_HEALTH_Y + 95}
         from={ITEM_START.epilepsy}
         icon={<EpilepsyIcon />}
       />
       <SubBadge
         label={`${specialNeedsCases.gifted} موهبة`}
         x={960}
-        y={ROW_HEALTH_Y + 110}
+        y={ROW_HEALTH_Y + 95}
         from={ITEM_START.gifted}
         icon={<GiftedIcon />}
       />
       <SubBadge
         label={`${specialNeedsCases.disability} إعاقة`}
         x={960 - 180}
-        y={ROW_HEALTH_Y + 110}
+        y={ROW_HEALTH_Y + 95}
         from={ITEM_START.disability}
         icon={<DisabilityIcon />}
         muted
@@ -484,7 +484,7 @@ export const OrgStatsScene: React.FC = () => {
       <SubBadge
         label={`${specialNeedsCases.learningDifficulty} صعوبات تعلم`}
         x={960 - 360}
-        y={ROW_HEALTH_Y + 110}
+        y={ROW_HEALTH_Y + 95}
         from={ITEM_START.learningDifficulty}
         icon={<LearningDifficultyIcon />}
         muted

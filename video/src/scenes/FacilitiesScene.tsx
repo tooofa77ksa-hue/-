@@ -109,7 +109,7 @@ const Title: React.FC = () => {
   const frame = useCurrentFrame();
   const t = interpolate(frame, [0, 14], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   return (
-    <div style={{ fontFamily, fontWeight: 800, fontSize: 34, color: brand.primaryDark, opacity: t }}>
+    <div style={{ fontFamily, fontWeight: 800, fontSize: 38, color: brand.primaryDark, opacity: t }}>
       المرافق والتجهيزات
     </div>
   );
@@ -222,7 +222,7 @@ const Card: React.FC<{
           style={{
             fontFamily,
             fontWeight: 800,
-            fontSize: isRoot ? 28 : 21,
+            fontSize: isRoot ? 32 : 24,
             color: isRoot ? brand.paper : brand.primaryDark,
             textAlign: "center",
             lineHeight: 1.25,
@@ -234,7 +234,7 @@ const Card: React.FC<{
           style={{
             fontFamily,
             fontWeight: 900,
-            fontSize: isRoot ? 20 : 17,
+            fontSize: isRoot ? 23 : 19,
             color: isRoot ? brand.primaryDark : brand.paper,
             background: isRoot ? brand.paper : brand.primary,
             borderRadius: 999,
@@ -245,7 +245,7 @@ const Card: React.FC<{
           ×{node.count}
         </div>
         {node.note ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 5, fontFamily, fontSize: 15, color: brand.muted }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 5, fontFamily, fontSize: 17, color: brand.muted }}>
             <AccessibilityIcon />
             <span>{node.note}</span>
           </div>
