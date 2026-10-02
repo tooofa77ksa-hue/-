@@ -496,10 +496,10 @@ td small { font-size: .65em; color: var(--soft); }
     <p class="sub">اختاري الطريقة التي تحبينها… ثم الجدول في الأسفل 👇</p>
 
     <div class="sbox listen">
-      <h3>🎧 للتي تحب السمع</h3>
+      <h3>🎧 للتي تحب السمع: الشرح كاملًا</h3>
       <div class="row">
-        <button class="btn" id="sumEn" type="button">🔊 <span dir="ltr" lang="en">English</span></button>
-        <button class="btn" id="sumAr" type="button">🔊 بالعربي</button>
+        <button class="btn" id="sumEn" type="button">🔊 الشرح بالإنجليزي</button>
+        <button class="btn" id="sumAr" type="button">🔊 الشرح بالعربي</button>
       </div>
       <ol class="readlines" id="sumLines" hidden></ol>
     </div>
@@ -1205,12 +1205,10 @@ td small { font-size: .65em; color: var(--soft); }
 
 
   // ---------------- summary: listen, understand, write, memorise, then the big table and the key notes ----------------
+  // the full explanation, line by line (the recordings follow exactly these lines)
   var SUM = {
-    en: ["Let's remember!", 'My, your, his, her, its, our, their. These words need a friend after them. My pen. Your pen. Never say "my" alone!',
-      'Mine, yours, his, hers, its, ours, theirs. These words come at the end. This pen is mine.',
-      'I, my, mine. You, your, yours. He, his, his. She, her, hers. It, its, its. We, our, ours. They, their, theirs.', 'You did it! You are a Pronoun Star!'],
-    ar: ['تذكّري يا بطلة!', 'صفةُ الملكية مثل: my، your، his، her… لا تأتي وحدَها أبدًا، بعدَها اسمٌ دائمًا. my pen… يعني: قلمي. وتأتي في وسطِ الجملة.',
-      'أمّا ضميرُ الملكية مثل: mine، yours، hers… فيأتي في نهايةِ الجملة، وليس بعدَه اسم. This pen is mine… يعني: هذا القلمُ مِلكي.', 'احفظي الجدولَ جيدًا… وأنتِ نجمة!']
+    en: ["Hello! Let's learn pronouns together.", "First, subject pronouns. They tell us who does the action: I, you, he, she, it, we, they.", "I means me. You is the person I talk to. He is a boy. She is a girl. It is an animal or a thing. We means me and my friends. They means people, animals, or things.", "Second, possessive adjectives: my, your, his, her, its, our, their.", "A possessive adjective always needs a noun after it. My pen. Your book. Her cat. Never say \"my\" alone!", "It comes in the middle of the sentence. This is my pen.", "Third, possessive pronouns: mine, yours, his, hers, its, ours, theirs.", "A possessive pronoun stands alone, at the end of the sentence. This pen is mine.", "Here is a secret! Just add S. Your, yours. Her, hers. Our, ours. Their, theirs.", "Three are special. My becomes mine. His stays his. Its stays its.", "Now the table. I, my, mine. You, your, yours. He, his, his. She, her, hers. It, its, its. We, our, ours. They, their, theirs.", "In the test, if you hear \"she\", you say \"hers\". If you hear \"they\", you say \"theirs\".", "Remember! My pen: the noun comes after. The pen is mine: mine comes at the end.", "Great job! You are a Pronoun Star!"],
+    ar: ["مرحبًا يا بطلة! هيّا نتعلّمُ الضمائرَ معًا.", "أولًا: ضمائرُ الفاعل، وهي التي تخبرُنا مَن يقومُ بالعمل: I، you، he، she، it، we، they.", "I يعني: أنا. you يعني: أنتِ أو أنتم. he يعني: هو. she يعني: هي. it: لغيرِ العاقل، حيوانٍ أو شيء. we يعني: نحن. they يعني: هم، للأشخاصِ والحيواناتِ والأشياء.", "ثانيًا: صفاتُ الملكية: my، your، his، her، its، our، their.", "صفةُ الملكية لا تأتي وحدَها أبدًا، بعدَها اسمٌ دائمًا: my pen يعني قلمي. your book يعني كتابُكِ.", "وتأتي في وسطِ الجملة: This is my pen… هذا قلمي.", "ثالثًا: ضمائرُ الملكية: mine، yours، his، hers، its، ours، theirs.", "ضميرُ الملكية يأتي وحدَه في نهايةِ الجملة، وليس بعدَه اسم: The pen is mine… القلمُ مِلكي.", "وهذا سرٌّ للحفظ: نزيدُ حرفَ s: your تصبح yours، her تصبح hers، our تصبح ours، their تصبح theirs.", "وثلاثٌ مميّزات: my تصبح mine، وhis تبقى his، وits تبقى its.", "الآن الجدول: I، my، mine. you، your، yours. he، his، his. she، her، hers. it، its، its. we، our، ours. they، their، theirs.", "في التسميع: إذا سمعتِ she تقولين hers. وإذا سمعتِ they تقولين theirs.", "تذكّري: my pen… الاسمُ بعدَها. The pen is mine… mine في النهاية.", "أحسنتِ يا بطلة! أنتِ نجمةُ الضمائر!"]
   };
   // when each line starts inside the recorded summaries (seconds), measured by build.py when the recordings arrive
   var SUM_T = {};
