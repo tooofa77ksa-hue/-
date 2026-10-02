@@ -241,16 +241,41 @@ td:nth-child(1) { color: var(--cs); } td:nth-child(2) { color: var(--ca); } td:n
 .extra b { font-size: 1.05rem; color: var(--cp); } .extra b small { font-size: .7em; color: var(--soft); }
 .extra span { font-size: .85rem; color: var(--soft); }
 td small { font-size: .65em; color: var(--soft); }
+
+/* the guided journey: one clear next step for girls who lose focus easily */
+.journey { background: var(--card); border-radius: 1.6rem; padding: 1rem; margin: .2rem 0 .6rem; box-shadow: 0 8px 0 #F1D9C2, 0 14px 30px rgba(120,80,40,.1); text-align: center; }
+.btn.start { font-size: 1.35rem; padding: .85rem 2rem; animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 50% { transform: scale(1.05); } }
+.jmap { list-style: none; margin: .9rem 0 0; padding: 0; display: flex; justify-content: center; gap: .35rem; flex-wrap: wrap; }
+.jmap li { display: flex; flex-direction: column; align-items: center; gap: .1rem; width: 3.6rem; font-size: .66rem; color: var(--soft); }
+.jmap li i { font-style: normal; display: grid; place-items: center; width: 2.6rem; height: 2.6rem; border-radius: 50%; background: #F3ECE3; font-size: 1.25rem; border: 3px solid transparent; }
+.jmap li.done i { background: #E4F7EB; border-color: var(--ok); }
+.jmap li.done i::after { content: "✓"; position: absolute; transform: translate(1rem, -1rem); font-size: .8rem; color: #fff; background: var(--ok); border-radius: 50%; width: 1.1rem; height: 1.1rem; display: grid; place-items: center; }
+.jmap li.cur i { background: #FFF1C9; border-color: #F5C842; animation: pulse 1.4s ease-in-out infinite; }
+.jmap li.cur { color: var(--ink); font-weight: 600; }
+.or { text-align: center; color: var(--soft); margin: .6rem 0; }
+.jbar { position: relative; z-index: 2; max-width: 52rem; margin: 0 auto; padding: 0 1rem; display: flex; align-items: center; gap: .5rem; font-weight: 600; color: var(--coral); }
+.jbar .track { flex: 1; height: .7rem; background: #F3ECE3; border-radius: 99px; overflow: hidden; }
+.jbar .track b { display: block; height: 100%; background: linear-gradient(90deg, var(--orange), var(--coral)); border-radius: 99px; transition: width .5s; }
+.toast { position: fixed; z-index: 70; left: 50%; top: 22%; transform: translateX(-50%); background: #fff; border: 3px solid #F5C842; border-radius: 1.4rem; padding: .8rem 1.4rem; font-size: 1.3rem; font-weight: 600; color: var(--ink); box-shadow: 0 12px 40px rgba(120,80,40,.25); animation: toastIn 1.8s ease forwards; pointer-events: none; white-space: nowrap; }
+@keyframes toastIn { 0% { opacity: 0; transform: translate(-50%, 20px) scale(.8); } 15%, 80% { opacity: 1; transform: translate(-50%, 0) scale(1); } 100% { opacity: 0; transform: translate(-50%, -10px); } }
+.btn.nextst { background: var(--ok); box-shadow: 0 4px 0 #1F7547; font-size: 1.2rem; }
+.progress .left { flex-basis: 100%; text-align: center; font-size: .85rem; color: var(--coral); margin-top: .2rem; }
+.jmap { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .2rem; max-width: 26rem; margin-inline: auto; }
+.jmap li { width: auto; }
+@media (max-width: 380px) { .jmap li i { width: 2.2rem; height: 2.2rem; font-size: 1.05rem; } .jmap li { font-size: .58rem; } }
 </style>
 </head>
 <body>
 <div class="dots" aria-hidden="true"></div>
 
+<div class="toast" id="toast" aria-live="polite" hidden></div>
 <header class="top">
   <button id="home" class="pill" type="button" hidden>🏠 الرئيسية</button>
   <div class="stars-box" aria-live="polite"><span aria-hidden="true">⭐</span> <b id="stars">٠</b></div>
   <button id="sound" class="pill" type="button" aria-pressed="true">🔊 الصوت</button>
 </header>
+<div class="jbar" id="jbar" hidden></div>
 
 <main>
   <!-- ============ home ============ -->
@@ -261,6 +286,11 @@ td small { font-size: .65em; color: var(--soft); }
       <p class="lead">ضمائر الفاعل وصفات وضمائر الملكية… نحفظها باللعب، ولن ننساها أبدًا!</p>
       <button class="btn hello" id="hello" type="button">▶️ <span dir="ltr" lang="en">Hello!</span> اضغطي لتسمعي</button>
     </div>
+    <div class="journey">
+      <button class="btn start" id="jstart" type="button">🚀 ابدئي الرحلة</button>
+      <ol class="jmap" id="jmap" aria-label="محطات الرحلة"></ol>
+    </div>
+    <p class="or">أو اختاري أي لعبة 👇</p>
     <div class="tiles">
       <button class="tile t1" type="button" data-go="learn"><span class="ic" aria-hidden="true">📖</span><b>تعلّمي</b><small>٧ بطاقات بالصور والصوت</small></button>
       <button class="tile t2" type="button" data-go="trick"><span class="ic" aria-hidden="true">✨</span><b>سرّ الحفظ</b><small>سحر حرف S والأنشودة</small></button>
@@ -342,7 +372,7 @@ td small { font-size: .65em; color: var(--soft); }
       <ol class="chant" dir="ltr" lang="en" id="chant"></ol>
       <button class="btn big" id="sing" type="button">🎵 غنّي معي</button>
     </div>
-    <button class="btn big go-test" type="button" data-go="teacher">🎤 جاهزة؟ إلى التسميع</button>
+    <button class="btn big go-test" id="trickgo" type="button">🎤 جاهزة؟ إلى التسميع</button>
   </section>
 
   <!-- ============ teacher test ============ -->
@@ -433,6 +463,7 @@ td small { font-size: .65em; color: var(--soft); }
       <p class="lead" id="dmsg"></p>
       <ul class="review" id="dreview" dir="ltr" lang="en"></ul>
       <div class="row">
+        <button class="btn big nextst" id="dnext" type="button" hidden></button>
         <button class="btn big" id="dagain" type="button">🔁 العبي مرة أخرى</button>
         <button class="btn big ghost" type="button" data-go="home">🏠 الرئيسية</button>
       </div>
@@ -663,8 +694,19 @@ td small { font-size: .65em; color: var(--soft); }
     singing = false;
     SCREENS.forEach(function (s) { $('s-' + s).hidden = s !== id; });
     $('home').hidden = id === 'home';
+    if (STEPS.indexOf(id) >= 0) lastGame = id;
+    if (id === 'home') { journeyOn = false; paintMap(); }
+    paintBar(id);
+    if (id === 'done' || id === 'trophy') {
+      if (journeyOn && lastGame) stepDone(lastGame);
+      var more = journeyOn && st.path < STEPS.length, last = journeyOn && st.path >= STEPS.length;
+      $('dnext').hidden = !(journeyOn);
+      $('dnext').textContent = more ? '🚀 المحطة التالية: ' + STEP_NAME[STEPS[st.path]][1] : '🏆 أنهيتِ الرحلة!';
+      if (id === 'trophy' && last) journeyOn = false;
+    }
     if (id === 'home') paintBadges();
     if (id === 'learn') showCard();
+    if (id === 'trick') $('trickgo').textContent = journeyOn ? '✅ انتهيت! المحطة التالية 🚀' : '🎤 جاهزة؟ إلى التسميع';
     if (id === 'teacher') startTeacher();
     if (id === 'match') startMatch(0);
     if (id === 'sent') startSent();
@@ -680,6 +722,30 @@ td small { font-size: .65em; color: var(--soft); }
 
   $('hello').addEventListener('click', function () { play('tap'); speak("Welcome to Pronoun Party! Let's learn and play together!"); });
 
+
+  // ---------------- the journey: six short stations in a fixed order, one big "next" button ----------------
+  var STEPS = ['learn', 'trick', 'memory', 'bubble', 'match', 'teacher'];
+  var STEP_NAME = { learn: ['📖', 'تعلّمي'], trick: ['✨', 'سرّ الحفظ'], memory: ['🃏', 'الذاكرة'], bubble: ['🫧', 'الفقاعات'], match: ['🔗', 'التوصيل'], teacher: ['🎤', 'التسميع'] };
+  var journeyOn = false, lastGame = null;
+  st.path = st.path || 0;
+  function paintMap() {
+    $('jmap').innerHTML = STEPS.map(function (k, i) { var n = STEP_NAME[k]; return '<li class="' + (i < st.path ? 'done' : i === st.path ? 'cur' : '') + '"><i>' + n[0] + '</i>' + n[1] + '</li>'; }).join('');
+    $('jstart').textContent = st.path === 0 ? '🚀 ابدئي الرحلة' : st.path >= STEPS.length ? '🔁 الرحلة من جديد' : '🚀 أكملي الرحلة: المحطة ' + AR(st.path + 1);
+  }
+  function toast(text) { var t = $('toast'); t.hidden = false; t.textContent = text; t.style.animation = 'none'; void t.offsetWidth; t.style.animation = ''; clearTimeout(toast.t); toast.t = setTimeout(function () { t.hidden = true; }, 1800); }
+  function paintBar(id) {
+    var i = STEPS.indexOf(id), on = journeyOn && i >= 0; $('jbar').hidden = !on; if (!on) return;
+    $('jbar').innerHTML = '<span>' + STEP_NAME[id][0] + ' المحطة ' + AR(i + 1) + ' من ' + AR(STEPS.length) + '</span><span class="track"><b style="width:' + Math.round(i / STEPS.length * 100) + '%"></b></span>';
+  }
+  function stepDone(id) { if (journeyOn && STEPS[st.path] === id) { st.path++; save(); } }
+  function nextStation() {
+    if (st.path >= STEPS.length) { journeyOn = false; go('trophy'); play('fanfare'); confetti(); setTimeout(function () { speak('Amazing! You are a Pronoun Star!'); }, 700); return; }
+    var k = STEPS[st.path]; go(k); toast(STEP_NAME[k][0] + ' المحطة ' + AR(st.path + 1) + ' من ' + AR(STEPS.length) + ' 🚀');
+  }
+  $('jstart').addEventListener('click', function () { play('tap'); if (st.path >= STEPS.length) { st.path = 0; save(); } journeyOn = true; nextStation(); });
+  $('dnext').addEventListener('click', function () { play('tap'); nextStation(); });
+  $('trickgo').addEventListener('click', function () { play('tap'); if (journeyOn) { stepDone('trick'); nextStation(); } else go('teacher'); });
+
   // ---------------- learn ----------------
   var li = 0;
   function showCard() {
@@ -689,7 +755,7 @@ td small { font-size: .65em; color: var(--soft); }
     $('lrs').textContent = PRON[p.s]; $('lra').textContent = PRON[p.a]; $('lrp').textContent = PRON[p.p];
     $('lex').innerHTML = p.ex; $('lar').textContent = p.ar; $('lextra').hidden = p.s !== 'they'; $('lxi').src = pic('adj_theyanimals'); $('lcount').textContent = AR(li + 1) + ' / ' + AR(P.length);
     spellRun++; $('spell').innerHTML = ''; [].forEach.call(document.querySelectorAll('.trio .ch'), function (x) { x.classList.remove('on'); });
-    $('lprev').disabled = li === 0; $('lnext').textContent = li === P.length - 1 ? '✨ إلى سرّ الحفظ' : 'التالية ←';
+    $('lprev').disabled = li === 0; $('lnext').textContent = li === P.length - 1 ? (journeyOn ? '✅ انتهيت! المحطة التالية' : '✨ إلى سرّ الحفظ') : 'التالية ←';
   }
   // spell a word letter by letter (big letter tiles light up), then say the whole word
   var spellRun = 0;
@@ -734,7 +800,7 @@ td small { font-size: .65em; color: var(--soft); }
     (function next() { if (k >= 3) return; [].forEach.call(chips, function (x, j) { x.classList.toggle('on', j === k); }); spell(list[k++], function () { setTimeout(next, 400); }); })();
   });
   $('lprev').addEventListener('click', function () { if (li > 0) { li--; play('tap'); showCard(); } });
-  $('lnext').addEventListener('click', function () { play('tap'); if (li < P.length - 1) { li++; showCard(); } else { li = 0; go('trick'); } });
+  $('lnext').addEventListener('click', function () { play('tap'); if (li < P.length - 1) { li++; showCard(); } else { li = 0; if (journeyOn) { stepDone('learn'); nextStation(); } else go('trick'); } });
   // the teacher's tables, row for row (pen / pens, people / animals exactly as on the slides)
   var TABLE = [['I', 'my pen', 'mine'], ['you', 'your pen', 'yours'], ['he', 'his pen', 'his'], ['she', 'her pen', 'hers'], ['it', 'its pen', 'its'],
     ['we', 'our pens', 'ours'], ['they <small>(people)</small>', 'their pens <small>(people)</small>', 'theirs <small>(people)</small>'],
@@ -766,6 +832,7 @@ td small { font-size: .65em; color: var(--soft); }
     var q = { queue: cfg.items.slice(), first: 0, total: cfg.items.length, missed: [], tries: {}, cur: null, done: 0 };
     function dots() {
       var h = ''; for (var i = 0; i < q.total; i++) h += '<i class="' + (i < q.done ? 'ok' : i === q.done ? 'cur' : '') + '"></i>';
+      var left = q.total - q.done; h += '<b class="left">' + (left <= 3 ? 'باقي ' + AR(left) + ' فقط! 💪' : 'باقي ' + AR(left)) + '</b>';
       $(cfg.prog).innerHTML = h;
     }
     function show() {
@@ -808,7 +875,7 @@ td small { font-size: .65em; color: var(--soft); }
       $('dreview').innerHTML = q.missed.map(function (m) { return '<li>' + esc(m) + '</li>'; }).join('');
       $('dagain').onclick = function () { play('tap'); go(cfg.screen); };
       var all = BADGES.every(function (k) { return st.badges[k]; });
-      if (all && !st.trophy) { st.trophy = true; save(); go('trophy'); play('fanfare'); confetti(); setTimeout(function () { speak('Amazing! You are a Pronoun Star!'); }, 700); return; }
+      if (all && !st.trophy && !journeyOn) { st.trophy = true; save(); go('trophy'); play('fanfare'); confetti(); setTimeout(function () { speak('Amazing! You are a Pronoun Star!'); }, 700); return; }
       go('done'); play('fanfare'); confetti(); setTimeout(function () { cheer('badge'); }, 600);
     }
     $(cfg.next).onclick = function () { play('tap'); show(); };
@@ -824,7 +891,7 @@ td small { font-size: .65em; color: var(--soft); }
   function startTeacher() {
     teacherIntro = false;
     TQ = quiz({
-      screen: 'teacher', badge: 'teacher', items: shuffle(TEACHER), prog: 'tprog', opts: 'topts', fb: 'tfb', next: 'tnext',
+      screen: 'teacher', badge: 'teacher', items: shuffle(TEACHER).slice(0, 8), prog: 'tprog', opts: 'topts', fb: 'tfb', next: 'tnext',
       id: function (t) { return '(' + tLabel(t) + ') → ' + byS(t.k).p; },
       hint: function (t) { return HINT[t.k]; },
       render: function (t) {
@@ -895,7 +962,7 @@ td small { font-size: .65em; color: var(--soft); }
           var all = BADGES.every(function (k) { return st.badges[k]; });
           $('dmedal').textContent = '🔗'; $('dtitle').textContent = 'أنهيتِ التوصيل كله! 🏅'; $('dmsg').textContent = 'وصلتِ الجدول كاملًا.'; $('dreview').innerHTML = '';
           $('dagain').onclick = function () { play('tap'); go('match'); };
-          if (all && !st.trophy) { st.trophy = true; save(); go('trophy'); } else go('done');
+          if (all && !st.trophy && !journeyOn) { st.trophy = true; save(); go('trophy'); } else go('done');
           play('fanfare'); confetti();
         }, 900);
       }
@@ -909,7 +976,7 @@ td small { font-size: .65em; color: var(--soft); }
   // ---------------- my or mine? ----------------
   function startSent() {
     quiz({
-      screen: 'sent', badge: 'sent', items: shuffle(SENT), prog: 'sprog', opts: 'sopts', fb: 'sfb', next: 'snext',
+      screen: 'sent', badge: 'sent', items: shuffle(SENT).slice(0, 6), prog: 'sprog', opts: 'sopts', fb: 'sfb', next: 'snext',
       id: function (s) { return s[0].replace('___', s[2]).replace(/\s*\S+$/u, ''); },
       hint: function (s) { return /___\s*[.?]/.test(s[0]) ? '(لا شيء بعده ← ضمير الملكية)' : '(بعده شيء ← صفة الملكية)'; },
       render: function (s) {
@@ -927,7 +994,7 @@ td small { font-size: .65em; color: var(--soft); }
   // ---------------- am / is / are ----------------
   function startVerb() {
     quiz({
-      screen: 'verb', badge: 'verb', items: shuffle(VERBS), prog: 'vprog', opts: 'vopts', fb: 'vfb', next: 'vnext',
+      screen: 'verb', badge: 'verb', items: shuffle(VERBS).slice(0, 6), prog: 'vprog', opts: 'vopts', fb: 'vfb', next: 'vnext',
       id: function (v) { return v[0].replace('___', v[1]).replace(/\s*\S+$/u, ''); },
       hint: function () { return 'I → am · he/she/it → is · you/we/they → are'; },
       render: function (v) { $('vq').innerHTML = esc(v[0]).replace('___', '<span class="gap">&nbsp;</span>'); return { answer: v[1], options: ['am', 'is', 'are'] }; },
@@ -1011,7 +1078,7 @@ td small { font-size: .65em; color: var(--soft); }
     st.badges[badge] = true; save();
     $('dmedal').textContent = medal; $('dtitle').textContent = title; $('dmsg').textContent = msg; $('dreview').innerHTML = '';
     $('dagain').onclick = function () { play('tap'); go(badge); };
-    if (BADGES.every(function (k) { return st.badges[k]; }) && !st.trophy) {
+    if (BADGES.every(function (k) { return st.badges[k]; }) && !st.trophy && !journeyOn) {
       st.trophy = true; save(); go('trophy'); play('fanfare'); confetti();
       setTimeout(function () { speak('Amazing! You are a Pronoun Star!'); }, 700); return;
     }
@@ -1020,7 +1087,7 @@ td small { font-size: .65em; color: var(--soft); }
 
   // ---------------- boot ----------------
   setSound(st.sound !== false); $('stars').textContent = AR(st.stars); paintBadges(); go('home');
-  window.__pp = { go: go, P: P, st: st, TEACHER: TEACHER, SENT: SENT, VERBS: VERBS, M: function () { return M; }, TQ: function () { return TQ; }, cur: function () { return CUR && CUR.cur; }, MEM: function () { return MEM; }, BUB: function () { return BUB; } };
+  window.__pp = { go: go, P: P, st: st, TEACHER: TEACHER, SENT: SENT, VERBS: VERBS, M: function () { return M; }, TQ: function () { return TQ; }, cur: function () { return CUR && CUR.cur; }, journey: function () { return { on: journeyOn, path: st.path }; }, MEM: function () { return MEM; }, BUB: function () { return BUB; } };
 })();
 </script>
 </body>
