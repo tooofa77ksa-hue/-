@@ -264,6 +264,40 @@ td small { font-size: .65em; color: var(--soft); }
 .jmap { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .2rem; max-width: 26rem; margin-inline: auto; }
 .jmap li { width: auto; }
 @media (max-width: 380px) { .jmap li i { width: 2.2rem; height: 2.2rem; font-size: 1.05rem; } .jmap li { font-size: .58rem; } }
+
+/* summary page */
+.t9 { --sh: #F7C9A6; border-top: 6px solid var(--coral); }
+.sbox { background: var(--card); border-radius: 1.3rem; padding: 1rem; margin-bottom: .9rem; box-shadow: 0 5px 0 #F1E2D0; }
+.sbox h3 { margin-bottom: .6rem; }
+.readlines { margin: .7rem 0 0; padding: 0; list-style: none; display: grid; gap: .3rem; }
+.readlines li { padding: .35rem .6rem; border-radius: .7rem; background: #F8F6FF; transition: background .3s, transform .3s; }
+.readlines li.reading { background: #FFF1C9; transform: scale(1.02); }
+.rule { border-radius: 1rem; padding: .7rem; margin-bottom: .6rem; }
+.r-a { background: #FFEAF0; } .r-p { background: #FFF2DE; }
+.rt { margin: 0 0 .4rem; font-weight: 600; }
+.rs { margin: 0; font-size: 1.5rem; text-align: center; }
+.rs mark { background: none; padding: 0 .2rem; border-radius: .4rem; }
+.ma { color: var(--ca); border-bottom: 4px solid var(--ca); } .mn { color: #2E9E62; border: 2px dashed #2E9E62; }
+.mp { color: var(--cp); border-bottom: 4px solid var(--cp); } .end { color: var(--cp); font-weight: 800; font-size: 1.4em; }
+.rn { margin: .4rem 0 0; text-align: center; color: var(--soft); font-size: .9rem; }
+.tf { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; margin-top: .4rem; }
+.tf button { border: 3px solid var(--line); background: #FFFDF9; border-radius: 1rem; padding: .5rem; font-size: 1.15rem; box-shadow: 0 3px 0 var(--line); }
+.tf button.ok { border-color: var(--ok); background: #E4F7EB; } .tf button.no { border-color: var(--no); background: #FDEBEA; }
+.tf button small { display: block; font-family: "Readex", sans-serif; font-size: .7rem; color: var(--soft); }
+.wtable, .stable { width: 100%; border-collapse: collapse; text-align: center; }
+.wtable th, .stable th { background: #F8B19B; color: #4A2418; font-size: .78rem; padding: .35rem; }
+.wtable td, .stable td { border-bottom: 1px solid var(--line); padding: .3rem; font-size: 1.15rem; }
+.wtable td:nth-child(1), .stable td:nth-child(1) { color: var(--cs); } .wtable td:nth-child(2), .stable td:nth-child(2) { color: var(--ca); } .wtable td:nth-child(3), .stable td:nth-child(3) { color: var(--cp); }
+.wtable input { width: 100%; max-width: 7rem; font: inherit; font-size: 1.05rem; text-align: center; border: 2px dashed var(--lav); border-radius: .6rem; padding: .2rem; background: #F7F3FF; color: inherit; }
+.wtable input.ok { border: 2px solid var(--ok); background: #E4F7EB; } .wtable input.no { border: 2px solid var(--no); background: #FDEBEA; }
+.stable td { font-size: 1.35rem; padding: .45rem .2rem; }
+.stable td small { font-family: "Baloo", sans-serif; font-size: .55em; color: var(--soft); }
+.stable tfoot td { font-family: "Readex", sans-serif; border: 0; padding-top: .5rem; }
+.stable tfoot td small { font-family: "Readex", sans-serif; font-size: .78rem; color: var(--soft); line-height: 1.5; display: block; background: #F8F6FF; border-radius: .6rem; padding: .3rem; }
+.stable td.hidden { color: transparent !important; background: repeating-linear-gradient(45deg, #EADFCF 0 8px, #F3ECE3 8px 16px); border-radius: .4rem; }
+#covers .btn.on { background: var(--lav); color: #fff; }
+.notes { border: 3px solid #F5C842; background: #FFFBEA; }
+.notes ul { margin: 0; padding-inline-start: 1.2rem; display: grid; gap: .45rem; line-height: 1.7; }
 </style>
 </head>
 <body>
@@ -299,6 +333,7 @@ td small { font-size: .65em; color: var(--soft); }
       <button class="tile t5" type="button" data-go="sent"><span class="ic" aria-hidden="true">✏️</span><b><span dir="ltr" lang="en">my</span> أم <span dir="ltr" lang="en">mine</span>؟</b><small>أكملي الجملة</small><i class="badge" data-badge="sent" aria-hidden="true"></i></button>
       <button class="tile t7" type="button" data-go="memory"><span class="ic" aria-hidden="true">🃏</span><b>بطاقات الذاكرة</b><small>اقلبي واعثري على الأزواج</small><i class="badge" data-badge="memory" aria-hidden="true"></i></button>
       <button class="tile t8" type="button" data-go="bubble"><span class="ic" aria-hidden="true">🫧</span><b>فقاعات الضمائر</b><small>فرقعي الفقاعة الصحيحة</small><i class="badge" data-badge="bubble" aria-hidden="true"></i></button>
+      <button class="tile t9" type="button" data-go="summary"><span class="ic" aria-hidden="true">📌</span><b>الخلاصة</b><small>الجدول والقاعدة بكل الطرق</small></button>
       <button class="tile t6" type="button" data-go="verb"><span class="ic" aria-hidden="true">🧩</span><b><span dir="ltr" lang="en">am · is · are</span></b><small>الفعل المساعد المناسب</small><i class="badge" data-badge="verb" aria-hidden="true"></i></button>
     </div>
     <p class="hint-line">اجمعي الأوسمة الستة 🏅 لتحصلي على كأس نجمة الضمائر 🏆</p>
@@ -453,6 +488,88 @@ td small { font-size: .65em; color: var(--soft); }
     <div class="btarget"><img class="qpic sm" id="bqimg" alt=""><span>فرقعي ضمير الملكية لـ</span> <b id="bq" dir="ltr" lang="en"></b></div>
     <div class="arena" id="arena" dir="ltr" lang="en"></div>
     <p class="fb" id="bfb" aria-live="polite"></p>
+  </section>
+
+  <!-- ============ summary: one page for every way of learning ============ -->
+  <section id="s-summary" class="screen" hidden>
+    <h2>📌 الخلاصة</h2>
+    <p class="sub">اختاري الطريقة التي تحبينها… ثم الجدول في الأسفل 👇</p>
+
+    <div class="sbox listen">
+      <h3>🎧 للتي تحب السمع</h3>
+      <div class="row">
+        <button class="btn" id="sumEn" type="button">🔊 <span dir="ltr" lang="en">English</span></button>
+        <button class="btn" id="sumAr" type="button">🔊 بالعربي</button>
+      </div>
+      <ol class="readlines" id="sumLines" hidden></ol>
+    </div>
+
+    <div class="sbox understand">
+      <h3>🧠 للتي تحب الفهم</h3>
+      <div class="rule r-a">
+        <p class="rt">🔴 صفة الملكية لا تأتي وحدها، <b>بعدها اسم دائمًا</b>، وتأتي في وسط الجملة</p>
+        <p class="rs" dir="ltr" lang="en">This is <mark class="ma">my</mark> <mark class="mn">pen ✏️</mark> .</p>
+        <p class="rn"><span>my</span> + <span>اسم</span> ✅ &nbsp;&nbsp; <span dir="ltr" lang="en">my</span> وحدها ❌</p>
+      </div>
+      <div class="rule r-p">
+        <p class="rt">🟠 ضمير الملكية <b>في نهاية الجملة</b>، وليس بعده اسم</p>
+        <p class="rs" dir="ltr" lang="en">The pen is <mark class="mp">mine</mark> <mark class="end">.</mark></p>
+        <p class="rn"><span dir="ltr" lang="en">This is mine.</span> ✅ &nbsp;&nbsp; <span dir="ltr" lang="en">mine pen</span> ❌</p>
+      </div>
+      <p class="tiny">✅ أم ❌؟ اضغطي على كل عبارة:</p>
+      <div class="tf" id="tfbox" dir="ltr" lang="en"></div>
+    </div>
+
+    <div class="sbox write">
+      <h3>✍️ للتي تحب الكتابة</h3>
+      <p class="tiny">اكتبي الكلمة الناقصة في كل سطر، ثم اضغطي «تحقّقي»</p>
+      <table class="wtable" id="wtable" dir="ltr" lang="en"><thead><tr><th>Subject</th><th>Adjective</th><th>Pronoun</th></tr></thead><tbody></tbody></table>
+      <button class="btn big" id="wcheck" type="button">✔️ تحقّقي</button>
+      <p class="fb" id="wfb" aria-live="polite"></p>
+    </div>
+
+    <div class="sbox memo">
+      <h3>🔁 للتي تحب الحفظ</h3>
+      <p class="tiny">غطّي عمودًا من الجدول وقولي كلماته من ذاكرتك، ثم اكشفيه</p>
+      <div class="row" id="covers">
+        <button class="btn ghost" type="button" data-cover="1">🙈 غطّي ضمير الفاعل</button>
+        <button class="btn ghost" type="button" data-cover="2">🙈 غطّي صفة الملكية</button>
+        <button class="btn ghost" type="button" data-cover="3">🙈 غطّي ضمير الملكية</button>
+      </div>
+    </div>
+
+    <div class="sbox bigtable">
+      <h3>📋 الجدول (احفظيه كما هو)</h3>
+      <table class="stable" id="stable" dir="ltr" lang="en">
+        <thead><tr>
+          <th>Subject<br><small>ضمير الفاعل</small></th>
+          <th>Possessive Adjective<br><small>صفة الملكية</small></th>
+          <th>Possessive Pronoun<br><small>ضمير الملكية</small></th>
+        </tr></thead>
+        <tbody></tbody>
+        <tfoot><tr>
+          <td><small>يأتي في أول الجملة</small></td>
+          <td><small>بعدها اسم دائمًا<br>في وسط الجملة</small></td>
+          <td><small>وحده في نهاية الجملة<br>ليس بعده اسم</small></td>
+        </tr></tfoot>
+      </table>
+    </div>
+
+    <div class="sbox notes">
+      <h3>📌 تعليمات مهمة من معلمة المادة</h3>
+      <ul>
+        <li>القاعدة أساسية ومهمة جدًا، ولن يخلو الاختبار منها بإذن الله.</li>
+        <li>احفظي الجدول كاملًا كما هو.</li>
+        <li>طريقة التسميع: يُقال ضمير الفاعل بين قوسين مثل <b dir="ltr">(she)</b>، وتقولين ضمير الملكية المناسب: <b dir="ltr">hers</b>.</li>
+        <li>قد يأتي الجدول كاملًا في الاختبار على شكل توصيل.</li>
+        <li>صفة الملكية (الأحمر) لا تأتي وحدها، بعدها اسم: <b dir="ltr">my pen</b>، وتأتي في وسط الجملة.</li>
+        <li>ضمير الملكية يأتي في نهاية الجملة: <b dir="ltr">This is mine.</b> ولا نقول: <b dir="ltr">mine pen</b>.</li>
+        <li>الحفظ وحده لا يكفي؛ افهمي الفرق حتى لا تلخبطي في الاختبار.</li>
+        <li>تابعي كتاب التمارين، وأكملي الناقص في كتاب الطالبة والتمارين.</li>
+      </ul>
+    </div>
+
+    <button class="btn big nextst" id="sumDone" type="button">🏠 الرئيسية</button>
   </section>
 
   <!-- ============ result ============ -->
@@ -688,9 +805,9 @@ td small { font-size: .65em; color: var(--soft); }
   }
 
   // ---------------- navigation ----------------
-  var SCREENS = ['home', 'learn', 'trick', 'teacher', 'match', 'sent', 'verb', 'memory', 'bubble', 'done', 'trophy'];
+  var SCREENS = ['home', 'learn', 'trick', 'teacher', 'match', 'sent', 'verb', 'memory', 'bubble', 'summary', 'done', 'trophy'];
   function go(id) {
-    stopVoice(); clearBubbles();
+    stopVoice(); clearBubbles(); if (typeof sumRun === 'number') sumRun++;
     singing = false;
     SCREENS.forEach(function (s) { $('s-' + s).hidden = s !== id; });
     $('home').hidden = id === 'home';
@@ -713,6 +830,7 @@ td small { font-size: .65em; color: var(--soft); }
     if (id === 'verb') startVerb();
     if (id === 'memory') startMemory();
     if (id === 'bubble') startBubble();
+    if (id === 'summary') startSummary();
     var INTRO = { learn: 'i_learn', trick: 'i_trick', match: 'i_match', sent: 'i_sent', verb: 'i_verb', memory: 'i_memory', bubble: 'i_bubble' };
     if (INTRO[id]) cheer(INTRO[id]);
     window.scrollTo(0, 0);
@@ -724,8 +842,8 @@ td small { font-size: .65em; color: var(--soft); }
 
 
   // ---------------- the journey: six short stations in a fixed order, one big "next" button ----------------
-  var STEPS = ['learn', 'trick', 'memory', 'bubble', 'match', 'teacher'];
-  var STEP_NAME = { learn: ['📖', 'تعلّمي'], trick: ['✨', 'سرّ الحفظ'], memory: ['🃏', 'الذاكرة'], bubble: ['🫧', 'الفقاعات'], match: ['🔗', 'التوصيل'], teacher: ['🎤', 'التسميع'] };
+  var STEPS = ['learn', 'trick', 'memory', 'bubble', 'match', 'teacher', 'summary'];
+  var STEP_NAME = { learn: ['📖', 'تعلّمي'], trick: ['✨', 'سرّ الحفظ'], memory: ['🃏', 'الذاكرة'], bubble: ['🫧', 'الفقاعات'], match: ['🔗', 'التوصيل'], teacher: ['🎤', 'التسميع'], summary: ['📌', 'الخلاصة'] };
   var journeyOn = false, lastGame = null;
   st.path = st.path || 0;
   function paintMap() {
@@ -1085,9 +1203,92 @@ td small { font-size: .65em; color: var(--soft); }
     go('done'); play('fanfare'); confetti(); setTimeout(function () { cheer('badge'); }, 600);
   }
 
+
+  // ---------------- summary: listen, understand, write, memorise, then the big table and the key notes ----------------
+  var SUM = {
+    en: ["Let's remember!", 'My, your, his, her, its, our, their. These words need a friend after them. My pen. Your pen. Never say "my" alone!',
+      'Mine, yours, his, hers, its, ours, theirs. These words come at the end. This pen is mine.',
+      'I, my, mine. You, your, yours. He, his, his. She, her, hers. It, its, its. We, our, ours. They, their, theirs.', 'You did it! You are a Pronoun Star!'],
+    ar: ['تذكّري يا بطلة!', 'صفةُ الملكية مثل: my، your، his، her… لا تأتي وحدَها أبدًا، بعدَها اسمٌ دائمًا. my pen… يعني: قلمي. وتأتي في وسطِ الجملة.',
+      'أمّا ضميرُ الملكية مثل: mine، yours، hers… فيأتي في نهايةِ الجملة، وليس بعدَه اسم. This pen is mine… يعني: هذا القلمُ مِلكي.', 'احفظي الجدولَ جيدًا… وأنتِ نجمة!']
+  };
+  // when each line starts inside the recorded summaries (seconds), measured by build.py when the recordings arrive
+  var SUM_T = {};
+  var TF = [['my pen', true, 'بعدها اسم ✔'], ['mine pen', false, 'mine لا يأتي بعدها اسم'], ['This is mine.', true, 'في نهاية الجملة ✔'], ['This is my.', false, 'my لا تأتي وحدها'],
+    ['her book', true, 'بعدها اسم ✔'], ['hers book', false, 'hers لا يأتي بعدها اسم'], ['The book is hers.', true, 'في نهاية الجملة ✔'], ['This is our.', false, 'our لا تأتي وحدها']];
+  var sumRun = 0;
+  function startSummary() {
+    $('stable').querySelector('tbody').innerHTML = TABLE.map(function (r) { return '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td><td>' + r[2] + '</td></tr>'; }).join('');
+    [].forEach.call($('covers').children, function (b) { b.classList.remove('on'); });
+    // writing practice: one missing word in every row, in a different column each time
+    $('wtable').querySelector('tbody').innerHTML = P.map(function (p) {
+      var gap = 1 + Math.floor(Math.random() * 2), cells = [p.s, p.a, p.p];
+      return '<tr>' + cells.map(function (w, i) { return '<td>' + (i === gap ? '<input autocomplete="off" autocapitalize="off" spellcheck="false" data-a="' + w + '" aria-label="اكتبي الكلمة">' : esc(w)) + '</td>'; }).join('') + '</tr>';
+    }).join('');
+    $('wfb').textContent = ''; $('wfb').className = 'fb';
+    $('tfbox').innerHTML = shuffle(TF).slice(0, 6).map(function (x) { return '<button type="button" data-ok="' + x[1] + '" data-why="' + x[2] + '">' + esc(x[0]) + '<small></small></button>'; }).join('');
+    $('sumLines').hidden = true;
+    $('sumDone').textContent = journeyOn ? '🏆 أنهيتِ الرحلة!' : '🏠 الرئيسية';
+  }
+  $('tfbox').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b || b.classList.contains('ok') || b.classList.contains('no')) return;
+    var good = b.dataset.ok === 'true'; b.classList.add(good ? 'ok' : 'no'); b.querySelector('small').textContent = (good ? '✅ ' : '❌ ') + b.dataset.why;
+    play(good ? 'correct' : 'wrong'); if (good) sparkle(b);
+  });
+  $('wcheck').addEventListener('click', function () {
+    var ins = $('wtable').querySelectorAll('input'), right = 0;
+    [].forEach.call(ins, function (i) { var ok = i.value.trim().toLowerCase() === i.dataset.a.toLowerCase(); i.classList.toggle('ok', ok); i.classList.toggle('no', !ok); if (ok) right++; });
+    $('wfb').className = 'fb ' + (right === ins.length ? 'good' : 'try');
+    $('wfb').textContent = right === ins.length ? 'ممتازة! كتبتِ الجدول كله صح 🌟' : 'صحيح ' + AR(right) + ' من ' + AR(ins.length) + ' — صحّحي الأحمر وحاولي مرة ثانية 💪';
+    if (right === ins.length) { play('fanfare'); confetti(); addStar(3); } else play('wrong');
+  });
+  $('covers').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-cover]'); if (!b) return; play('tap');
+    var on = !b.classList.contains('on'), col = +b.dataset.cover; b.classList.toggle('on', on);
+    b.textContent = (on ? '👀 اكشفي ' : '🙈 غطّي ') + ['ضمير الفاعل', 'صفة الملكية', 'ضمير الملكية'][col - 1];
+    [].forEach.call($('stable').querySelectorAll('tbody td:nth-child(' + col + ')'), function (td) { td.classList.toggle('hidden', on); });
+  });
+  function readSummary(lang) {
+    var run = ++sumRun, lines = SUM[lang], ol = $('sumLines');
+    ol.hidden = false; ol.dir = lang === 'en' ? 'ltr' : 'rtl'; ol.lang = lang;
+    ol.innerHTML = lines.map(function (l) { return '<li>' + esc(l) + '</li>'; }).join('');
+    var lis = ol.children, mark = function (k) { [].forEach.call(lis, function (x, i) { x.classList.toggle('reading', i === k); }); };
+    var key = 'sum_' + lang;
+    if (VOICE[key] && st.sound) {
+      playClip(key, function () { if (run === sumRun) mark(-1); });
+      (function tick() {
+        if (run !== sumRun || clipEl.paused && clipEl.currentTime > 0) return;
+        var t = clipEl.currentTime, on = SUM_T[lang], d = clipEl.duration || 0, k = 0;
+        if (on) on.forEach(function (s, i) { if (t >= s) k = i; }); else if (d) k = Math.min(lines.length - 1, Math.floor(t / d * lines.length));
+        mark(k); requestAnimationFrame(tick);
+      })();
+      return;
+    }
+    // no recording yet: the device voice reads it line by line
+    var i = 0;
+    (function next() {
+      if (run !== sumRun) return;
+      if (i >= lines.length) { mark(-1); return; }
+      mark(i); var l = lines[i++];
+      if (lang === 'en') speak(l, function () { setTimeout(next, 250); });
+      else speakAr(l, function () { setTimeout(next, 250); });
+    })();
+  }
+  function speakAr(text, done) {
+    if (!st.sound || !window.speechSynthesis) { if (done) setTimeout(done, 1500); return; }
+    try {
+      stopVoice(); var u = new SpeechSynthesisUtterance(text); u.lang = 'ar-SA'; u.rate = .9;
+      var fired = false, fin = function () { if (!fired) { fired = true; if (done) done(); } };
+      u.onend = fin; u.onerror = fin; setTimeout(fin, 1200 + text.length * 90); speechSynthesis.speak(u);
+    } catch (e) { if (done) setTimeout(done, 1500); }
+  }
+  $('sumEn').addEventListener('click', function () { play('tap'); readSummary('en'); });
+  $('sumAr').addEventListener('click', function () { play('tap'); readSummary('ar'); });
+  $('sumDone').addEventListener('click', function () { play('tap'); sumRun++; if (journeyOn) { stepDone('summary'); nextStation(); } else go('home'); });
+
   // ---------------- boot ----------------
   setSound(st.sound !== false); $('stars').textContent = AR(st.stars); paintBadges(); go('home');
-  window.__pp = { go: go, P: P, st: st, TEACHER: TEACHER, SENT: SENT, VERBS: VERBS, M: function () { return M; }, TQ: function () { return TQ; }, cur: function () { return CUR && CUR.cur; }, journey: function () { return { on: journeyOn, path: st.path }; }, MEM: function () { return MEM; }, BUB: function () { return BUB; } };
+  window.__pp = { go: go, P: P, st: st, TEACHER: TEACHER, SENT: SENT, VERBS: VERBS, M: function () { return M; }, TQ: function () { return TQ; }, cur: function () { return CUR && CUR.cur; }, sumLines: function () { return SUM; }, journey: function () { return { on: journeyOn, path: st.path }; }, MEM: function () { return MEM; }, BUB: function () { return BUB; } };
 })();
 </script>
 </body>
