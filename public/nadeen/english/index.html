@@ -155,7 +155,9 @@ td:nth-child(1) { color: var(--cs); } td:nth-child(2) { color: var(--ca); } td:n
 .mi { border: 3px solid var(--line); background: #FFFDF9; border-radius: 1rem; padding: .4rem .3rem; font-size: 1.45rem; box-shadow: 0 3px 0 var(--line); }
 #mleft .mi { color: var(--cs); } #mright .mi { color: var(--cp); }
 .mi.sel { border-color: var(--lav); background: #F3EEFF; transform: scale(1.04); }
-.mi.done { border-color: var(--c); background: color-mix(in srgb, var(--c) 14%, white); }
+.mi.done { position: relative; border-color: var(--c); background: color-mix(in srgb, var(--c) 14%, white); opacity: 1; }
+.mi.done::after { content: "✓"; position: absolute; top: -.55em; inset-inline-end: -.45em; width: 1.35em; height: 1.35em; line-height: 1.35em; border-radius: 50%; background: var(--ok); color: #fff; font-size: .8em; font-weight: 800; box-shadow: 0 2px 0 rgba(0,0,0,.15); }
+.fb.big { font-size: 1.35em; }
 .mi.wrong { border-color: var(--no); animation: shake .4s; }
 
 /* results */
@@ -623,7 +625,7 @@ td small { font-size: .65em; color: var(--soft); }
       ex: 'It is a cat. 🐱<br>This is <u class="ua">its</u> pen.', say: 'It is a cat. This is its pen.' },
     { s: 'we',   a: 'our',   p: 'ours',   v: 'are', e: '👭', c: '#17A2B8', ar: 'نحن ← أقلامنا ← مِلكنا',
       ex: 'These are <u class="ua">our</u> pens. ✏️✏️<br>The pens are <u class="up">ours</u>.', say: 'These are our pens. The pens are ours.' },
-    { s: 'they', a: 'their', p: 'theirs', v: 'are', e: '👧👦', c: '#D9534F', ar: 'هم (أشخاص أو حيوانات أو أشياء) ← أقلامهم ← مِلكهم',
+    { s: 'they', a: 'their', p: 'theirs', v: 'are', e: '👧👦', c: '#8B5A2B', ar: 'هم (أشخاص أو حيوانات أو أشياء) ← أقلامهم ← مِلكهم',
       ex: 'These are <u class="ua">their</u> pens. ✏️✏️<br>The pens are <u class="up">theirs</u>.', say: 'These are their pens. The pens are theirs.' }
   ];
   var POSS = ['mine', 'yours', 'his', 'hers', 'its', 'ours', 'theirs'];
@@ -1071,9 +1073,10 @@ td small { font-size: .65em; color: var(--soft); }
       var i = +a.dataset.i; [a, b].forEach(function (x) { x.classList.add('done'); x.style.setProperty('--c', P[i].c); x.disabled = true; });
       M.links.push(i); drawLines(); M.done++; play('correct'); sparkle(b);
       var R = ROUNDS[M.r]; speakSeq([P[i][R.l], P[i][R.r]]);
+      $('mfb').className = 'fb good big'; $('mfb').innerHTML = '✅ صح! <span lang="en" dir="ltr">Right!</span> &nbsp;<span lang="en" dir="ltr">' + esc(P[i][R.l]) + ' = ' + esc(P[i][R.r]) + '</span>';
       if (M.done === P.length) {
         if (!M.miss) addStar(3); else addStar(1);
-        $('mfb').className = 'fb good'; $('mfb').textContent = M.miss ? 'أحسنتِ! أكملتِ الجولة 🌟' : 'رائعة! بدون أي خطأ ⭐⭐⭐';
+        $('mfb').className = 'fb good big'; $('mfb').textContent = M.miss ? '✅ صح! أحسنتِ! أكملتِ الجولة 🌟' : '✅ صح! رائعة! بدون أي خطأ ⭐⭐⭐';
         if (M.r < ROUNDS.length - 1) { $('mnext').hidden = false; play('clap'); }
         else setTimeout(function () {
           st.badges.match = true; save();
@@ -1086,7 +1089,7 @@ td small { font-size: .65em; color: var(--soft); }
       }
     } else {
       M.miss++; play('wrong'); cheer('oops'); [a, b].forEach(function (x) { x.classList.remove('wrong'); void x.offsetWidth; x.classList.add('wrong'); });
-      $('mfb').className = 'fb try'; $('mfb').textContent = 'ليست هذه… جرّبي مرة ثانية 💜';
+      $('mfb').className = 'fb try big'; $('mfb').textContent = '✋ ليست هذه… جرّبي مرة ثانية 💜';
     }
   });
   $('mnext').addEventListener('click', function () { play('tap'); startMatch(M.r + 1); });
