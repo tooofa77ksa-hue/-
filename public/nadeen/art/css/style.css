@@ -210,7 +210,6 @@ h2 { font-size: 64px; line-height: 1.2; }
 #cert { position: absolute; left: 260px; right: 260px; top: 120px; height: 650px; padding: 40px 60px; text-align: center; border: 14px double var(--leaf); background: #FFFDF6; }
 #cert h1 { font-size: 86px; line-height: 1.6; margin-top: -10px; }
 #certName { font: 800 54px B; color: var(--autumn); border: 0; border-bottom: 4px dotted var(--line); background: transparent; text-align: center; width: 70%; outline: none; margin: 12px 0; }
-@media print { body * { visibility: hidden } #cert, #cert * { visibility: visible } #cert { position: fixed; top:20px;right:20px;bottom:20px;left:20px } }
 
 .svgpop { transform-box: fill-box; transform-origin: center; animation: pop .45s cubic-bezier(.3,1.5,.5,1) both; }
 
@@ -221,3 +220,18 @@ h2 { font-size: 64px; line-height: 1.2; }
 #guide.hide { transform: translateY(260px); }
 #bubble { position: relative; left: 0; bottom: 0; border-radius: 28px; padding-right: 74px; }
 #bubble::after { content: "🔊"; position: absolute; right: 18px; top: 50%; margin-top: -21px; width: 42px; height: 42px; border-radius: 50%; background: #EEF6E8; display: grid; place-items: center; font-size: 22px; }
+
+/* printing the certificate: one full page, landscape or portrait */
+@page { margin: 0; }
+@media print {
+  html, body { background: #fff !important; overflow: visible !important; height: auto !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  #wrap, #stage { position: static !important; transform: none !important; width: auto !important; height: auto !important; overflow: visible !important; background: none !important; border-radius: 0 !important; }
+  #stage > *:not(#slides), #slides > .slide:not(#s-cert), #s-cert > *:not(#cert) { display: none !important; }
+  #slides, #s-cert { position: static !important; padding: 0 !important; opacity: 1 !important; visibility: visible !important; transform: none !important; }
+  #cert { position: relative !important; left: auto !important; right: auto !important; top: auto !important; margin: 8mm auto 0; width: 1047px; height: 718px; box-sizing: border-box; box-shadow: none !important; break-inside: avoid; }
+  #certName { border-bottom-color: #ccc; }
+  #certName::placeholder { color: transparent; }
+}
+@media print and (orientation: portrait) {
+  #cert { zoom: .68; margin-top: 60mm; }
+}
