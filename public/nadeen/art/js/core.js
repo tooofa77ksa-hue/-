@@ -9,11 +9,12 @@
   function fit() {
     var r = $('#wrap').getBoundingClientRect(), W = r.width || innerWidth, H = r.height || innerHeight;
     var k = Math.min(W / 1600, H / 900), x = Math.round((W - 1600 * k) / 2), y = Math.round((H - 900 * k) / 2);
-    stage.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + k + ')'; window.SCALE = k;
+    var tr = 'translate(' + x + 'px,' + y + 'px) scale(' + k + ')'; if (stage.style.transform !== tr) stage.style.transform = tr; window.SCALE = k;
   }
   addEventListener('resize', fit); addEventListener('orientationchange', function () { setTimeout(fit, 200); setTimeout(fit, 700); });
   if (window.visualViewport) visualViewport.addEventListener('resize', fit);
-  addEventListener('load', fit); fit(); [100, 400, 1000, 2000].forEach(function (d) { setTimeout(fit, d); });
+  addEventListener('load', fit); addEventListener('pageshow', fit); fit(); [100, 400, 1000, 2000].forEach(function (d) { setTimeout(fit, d); });
+  setInterval(fit, 1000);   // some in-app browsers report the screen size late
   // pointer position in stage pixels, relative to an element
   window.local = function (e, el) {
     var r = el.getBoundingClientRect(), p = e.touches ? e.touches[0] : e;
