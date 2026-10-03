@@ -55,7 +55,7 @@
   var NI = {}, nc = $('#nadeen'), nx = nc.getContext('2d');
   var names = ['idle', 'walk_01', 'walk_02', 'walk_03', 'walk_04', 'wave_raise', 'wave_left', 'wave_right'];
   ['closed', 'small', 'medium', 'wide', 'O', 'OO'].forEach(function (m) { names.push('t_' + m, 't_' + m + '_b'); });
-  var loaded = Promise.all(names.map(function (n) { var i = new Image(); i.src = 'assets/nadeen/' + n + '.webp'; NI[n] = i; return i.decode().catch(function () {}); }));
+  var loaded = Promise.resolve();   // the character is not shown any more; only her words
   var talkTxt = '', talkI = 0, talkT = 0, mode = 'idle', modeT = 0, bubbleTimer = 0, sayHtml = '';
   function mouthFor(ch) {
     if (!ch || ' ،.!؟:'.indexOf(ch) >= 0) return 'closed';
@@ -85,7 +85,7 @@
       if (n > talkI) { talkI = Math.min(n, talkTxt.length); $('#bubbleT').textContent = talkTxt.slice(0, talkI).join(''); if (talkI >= talkTxt.length) $('#bubbleT').innerHTML = sayHtml; }
       f = 't_' + mouthFor(talkTxt[talkI]) + (blink ? '_b' : '');
     } else f = 't_closed' + (blink ? '_b' : '');
-    nx.clearRect(0, 0, 384, 512); if (NI[f] && NI[f].complete) nx.drawImage(NI[f], 0, 0);
+    
     requestAnimationFrame(frame);
   }
   loaded.then(function () { requestAnimationFrame(frame); });

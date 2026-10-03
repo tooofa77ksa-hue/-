@@ -60,7 +60,7 @@
   station({
     id: 'color', num: '٧', title: 'نشاط ١: مرسم التلوين', peek: true,
     say: 'لوّني الورقة بألوانك المفضّلة… والخطوط تبقى ظاهرة! 🎨', voice: '16',
-    html: '<div id="colorBox"><canvas width="900" height="640" style="position:absolute;inset:0;border-radius:26px"></canvas><svg viewBox="0 0 900 640" style="position:absolute;inset:0;pointer-events:none"></svg></div>' +
+    html: '<div id="colorBox"><canvas width="900" height="640" style="position:absolute;top:0;right:0;bottom:0;left:0;border-radius:26px"></canvas><svg viewBox="0 0 900 640" style="position:absolute;top:0;right:0;bottom:0;left:0;pointer-events:none"></svg></div>' +
       '<div id="palette">' + COLS.map(function (c, i) { return '<button class="sw' + (i ? '' : ' on') + '" style="background:' + c + (c === '#FFFFFF' ? ';border:2px solid #ddd' : '') + '" data-c="' + c + '"></button>'; }).join('') + '</div>' +
       '<div style="position:absolute;right:120px;top:450px;width:330px;display:flex;flex-direction:column;gap:14px"><button class="btn org" id="nextLeaf">🍁 ورقة أخرى</button><button class="btn alt" id="eraseLeaf">🧽 امسحي</button></div>',
     init: function (el) {
@@ -348,7 +348,7 @@
   station({
     id: 'cert', title: 'شهادة فنانة الخطوط', guide: true,
     say: 'أحسنتنّ يا فنانات! 🎨 اكتبي اسمك على الشهادة… <b>وشكرًا لكم</b> 💚', voice: '23',
-    html: '<div class="card" id="cert"><svg viewBox="0 0 1060 650" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"><g transform="translate(70,600) rotate(-30) scale(.42)">' + leafSVG('maple', { fill: '#F2B233', ink: '#C9772F', w: 4 }) + '</g><g transform="translate(990,600) rotate(30) scale(.42)">' + leafSVG('ovate', { fill: '#7BBF5E', ink: '#3E8E41', w: 4 }) + '</g><g transform="translate(990,140) rotate(150) scale(.3)">' + leafSVG('oak', { fill: '#E26D2E', ink: '#A84A18', w: 4 }) + '</g><g transform="translate(70,140) rotate(-150) scale(.3)">' + leafSVG('willow', { fill: '#3E8E41', ink: '#2B6A2E', w: 4 }) + '</g></svg>' +
+    html: '<div class="card" id="cert"><svg viewBox="0 0 1060 650" style="position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;pointer-events:none"><g transform="translate(70,600) rotate(-30) scale(.42)">' + leafSVG('maple', { fill: '#F2B233', ink: '#C9772F', w: 4 }) + '</g><g transform="translate(990,600) rotate(30) scale(.42)">' + leafSVG('ovate', { fill: '#7BBF5E', ink: '#3E8E41', w: 4 }) + '</g><g transform="translate(990,140) rotate(150) scale(.3)">' + leafSVG('oak', { fill: '#E26D2E', ink: '#A84A18', w: 4 }) + '</g><g transform="translate(70,140) rotate(-150) scale(.3)">' + leafSVG('willow', { fill: '#3E8E41', ink: '#2B6A2E', w: 4 }) + '</g></svg>' +
       '<div style="font-size:70px">🎖️</div><h1>شهادة فنانة الخطوط</h1><div style="font:600 30px R;margin-top:10px">تُمنح هذه الشهادة إلى</div>' +
       '<input id="certName" placeholder="اكتبي اسمك هنا ✏️">' +
       '<div style="font:600 28px/1.7 R">لأنها اكتشفت أسرار <b style="color:var(--leaf)">الخطوط</b> في رسم أوراق الشجر 🍃</div><div id="certWin" style="font:800 28px B;color:var(--autumn);margin-top:8px"></div>' +

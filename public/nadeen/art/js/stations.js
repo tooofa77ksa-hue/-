@@ -68,7 +68,7 @@
   station({
     id: 'map', title: 'شجرة المحطات', guide: true,
     say: 'هذه <b>شجرة رحلتنا</b> 🌳 كل ورقة محطة… اضغطي على أي ورقة، أو امشي بالأسهم!', voice: '02',
-    html: '<div id="mapTree"><svg viewBox="0 0 1200 800" style="position:absolute;inset:0;width:100%;height:100%"></svg></div>',
+    html: '<div id="mapTree"><svg viewBox="0 0 1200 800" style="position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%"></svg></div>',
     init: function (el) {
       var box = $('#mapTree', el), svg = $('svg', box), h = '';
       // trunk and branches
