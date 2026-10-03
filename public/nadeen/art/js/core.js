@@ -5,8 +5,8 @@
   var stage = $('#stage');
 
   // ---- fit the 1600×900 stage to any screen ----
-  function fit() { var k = Math.min(innerWidth / 1600, innerHeight / 900); stage.style.transform = 'scale(' + k + ')'; window.SCALE = k; }
-  addEventListener('resize', fit); fit();
+  function fit() { var k = Math.min(innerWidth / 1600, innerHeight / 900); stage.style.transform = 'translate(-50%,-50%) scale(' + k + ')'; window.SCALE = k; }
+  addEventListener('resize', fit); addEventListener('orientationchange', function () { setTimeout(fit, 300); }); fit();
   // pointer position in stage pixels, relative to an element
   window.local = function (e, el) {
     var r = el.getBoundingClientRect(), p = e.touches ? e.touches[0] : e;
