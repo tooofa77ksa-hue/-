@@ -92,21 +92,26 @@
   loaded.then(function () { requestAnimationFrame(frame); });
   window.say = function (html, ms, vid) {
     if (!html) return;
-    stopVoice();
+    stopVoice(); if (!vid) queue = [];
     if (vid && soundOn) {
       var a = new Audio('assets/voice/' + vid + '.mp3'); voiceA = a; voiceCues = (window.VOICE_CUES || {})[vid] || [];
       a.play().catch(function () { if (voiceA === a) { voiceA = null; talkT = (performance.now() - t0) / 1000; } });
-      a.onended = function () { if (voiceA !== a) return; $('#bubbleT').innerHTML = sayHtml; talkI = talkTxt.length; clearTimeout(bubbleTimer); bubbleTimer = setTimeout(hideBubble, 2600); };
+      a.onended = function () { if (voiceA !== a) return; $('#bubbleT').innerHTML = sayHtml; talkI = talkTxt.length; clearTimeout(bubbleTimer);
+        if (queue.length) { var nx = queue.shift(); setTimeout(function () { if (voiceA === a) say(window.VT[nx], 0, nx); }, 450); } else bubbleTimer = setTimeout(hideBubble, 2600); };
     }
     sayHtml = html; var tmp = document.createElement('div'); tmp.innerHTML = html; talkTxt = Array.from(tmp.textContent);
     talkI = 0; talkT = (performance.now() - t0) / 1000; $('#bubbleT').textContent = ''; $('#bubble').classList.add('on');
     $('#guide').classList.remove('peek');
-    clearTimeout(bubbleTimer); bubbleTimer = setTimeout(function () { if (!voiceA || voiceA.paused || voiceA.ended) hideBubble(); }, ms || 3500 + talkTxt.length * 70);
+    clearTimeout(bubbleTimer); bubbleTimer = setTimeout(function () { if (!voiceA || voiceA.paused || voiceA.ended) { if (queue.length) { var nx = queue.shift(); say(window.VT[nx], 0, nx); } else hideBubble(); } }, ms || 3500 + talkTxt.length * 70);
   };
   function hideBubble() { $('#bubble').classList.remove('on'); if (cur && cur.peek) $('#guide').classList.add('peek'); }
+  // say recorded lines by number, one after another
+  var queue = [];
+  window.sayV = function (id) { queue = []; say(window.VT[id], 0, id); };
+  window.sayQ = function (ids) { queue = ids.slice(1); say(window.VT[ids[0]], 0, ids[0]); };
   window.wave = function () { mode = 'wave'; modeT = (performance.now() - t0) / 1000; };
   window.guide = function (show) { $('#guide').classList.toggle('hide', !show); };
-  $('#guide').onclick = function () { if (cur && cur.say) say(cur.say, 0, cur.voice); else wave(); };
+  $('#guide').onclick = function () { if (cur && cur.v) sayQ(cur.v); };
 
   // ---- slides ----
   var ST = window.STATIONS = [], idx = -1, cur = null, done = {};
@@ -115,14 +120,14 @@
   window.go = function (i, back) {
     if (i < 0 || i >= ST.length || i === idx) return;
     if (cur) { cur.el.classList.remove('on'); if (cur.leave) cur.leave(cur.el); }
-    loopStop(); stopVoice(); idx = i; cur = ST[i];
+    loopStop(); stopVoice(); queue = []; idx = i; cur = ST[i];
     cur.el.classList.toggle('back', !!back); void cur.el.offsetWidth; cur.el.classList.add('on');
     $('#chip').classList.toggle('on', !!cur.num);
     $('#chipN').textContent = cur.num || ''; $('#chipT').textContent = cur.title || '';
     $('#bPrev').classList.toggle('hide', i === 0); $('#bNext').classList.toggle('hide', i === ST.length - 1);
     guide(cur.guide !== false); $('#guide').classList.remove('peek');
     if (cur.enter) cur.enter(cur.el);
-    if (cur.say) setTimeout(function () { if (cur === ST[i]) say(cur.say, 0, cur.voice); }, 650);
+    if (cur.v) setTimeout(function () { if (cur === ST[i]) sayQ(cur.v); }, 650);
     if (i > 1) sfx('whoosh', .4);
     if (cur.id && i > 1) markDone(cur.id);
   };

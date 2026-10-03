@@ -19,7 +19,7 @@
   // ================= COVER =================
   station({
     id: 'cover', guide: true,
-    say: 'أهلًا! أنا <b>نادين</b> 👋 اليوم نكتشف سرّ رسم <b>أوراق الشجر</b>… لأن كل رسمة تبدأ <b>بخط</b>!', voice: '01',
+    v: ['01'],
     html: '<svg id="coverSvg" viewBox="0 0 1600 900"></svg>' +
       '<div id="coverTitle"><div class="sub">🍃 الموضوع الثالث: رسم أوراق الشجر</div><h1>مستكشفة الخطوط</h1></div>' +
       '<button class="btn org" id="coverGo">ابدئي الرحلة 🍃</button>' +
@@ -67,7 +67,7 @@
   ];
   station({
     id: 'map', title: 'شجرة المحطات', guide: true,
-    say: 'هذه <b>شجرة رحلتنا</b> 🌳 كل ورقة محطة… اضغطي على أي ورقة، أو امشي بالأسهم!', voice: '02',
+    v: ['02'],
     html: '<div id="mapTree"><svg viewBox="0 0 1200 800" style="position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%"></svg></div>',
     init: function (el) {
       var box = $('#mapTree', el), svg = $('svg', box), h = '';
@@ -95,7 +95,7 @@
   var CAMEL = 'M160 330 L170 250 C175 215 200 200 230 205 C250 170 280 165 300 190 C320 170 350 175 360 205 C380 205 395 215 405 235 L420 200 C425 175 445 165 455 175 L470 180 L458 190 L450 215 L430 260 L420 280 L415 330 M190 270 L180 340 M260 260 L262 340 M360 255 L372 340';
   station({
     id: 'time', num: '١', title: 'آلة الزمن: بدايات الرسم',
-    say: 'تعالي نرجع بالزمن آلاف السنين… <b>اضغطي على آلة الزمن!</b> ⏳', voice: '03',
+    v: ['03'],
     html: '<div id="tmA"><div id="tmDial"><div><div id="tmYear">٢٠٢٦</div><div id="tmLbl">نحن الآن</div><button class="btn org" id="tmGo" style="margin-top:22px">شغّلي آلة الزمن ⏳</button></div></div></div>' +
       '<div id="tmB" style="display:none">' +
       '<div class="card tape" style="right:120px;top:120px;width:360px;padding:26px 28px"><h2 style="font-size:44px">العصر الحجري 🔥</h2><p class="lead" style="font-size:24px">كان رجل الكهف <b>يخطّ بأصابعه</b> على الطين، ويرسم بـ<b>قطعة خشب محروقة</b> على الصخور ليعبّر عمّا يراه.</p><p class="lead" style="font-size:24px;color:var(--autumn)">جرّبي أنتِ: تتبّعي الجمل المنقّط! 🐪</p></div>' +
@@ -142,7 +142,7 @@
           var p = Math.min(1, (now - t0) / 1900), v = Math.round(2026 + (-40000 - 2026) * (p * p));
           $('#tmYear', el).textContent = v > 0 ? AR(v) : AR(-v) + ' سنة مضت'; $('#tmLbl', el).textContent = p < 1 ? 'نرجع بالزمن…' : 'وصلنا! 🔥';
           if (p < 1) requestAnimationFrame(spin);
-          else setTimeout(function () { el.classList.remove('shake'); $('#tmA', el).style.display = 'none'; $('#tmB', el).style.display = ''; sfx('magic'); say('وصلنا <b>للعصر الحجري</b>! 🔥 الخطوط كانت <b>أقدم وسيلة</b> للتعبير الفني… ارسمي على جدار الكهف!', 0, '04'); }, 600);
+          else setTimeout(function () { el.classList.remove('shake'); $('#tmA', el).style.display = 'none'; $('#tmB', el).style.display = ''; sfx('magic'); sayQ(['04', '24']); }, 600);
         })(t0);
       };
       // Hima rock: scratch to reveal
@@ -163,14 +163,14 @@
           if (clear / (d.length / 160) > .55) {
             revealed = true; rc.style.transition = 'opacity 1s'; rc.style.opacity = 0; sfx('magic'); confetti(26, ['⭐', '✨', '🇸🇦', '🏛️']);
             $('#unesco', el).classList.add('on'); markDone('time');
-            say('رائع! 🎉 هذه <b>رسوم صخرية</b> في حِمى بنجران… شوفي الخطوط كيف رسمت الناس والحيوانات!', 0, '06');
+            sayQ(['06', '26']);
           }
         }
       }
       rc.addEventListener('pointerdown', function (e) { rc.setPointerCapture(e.pointerId); rl = null; scratch(local(e, rc)); loopStart('scrape', .5); });
       rc.addEventListener('pointermove', function (e) { if (rl) scratch(local(e, rc)); });
       rc.addEventListener('pointerup', function () { rl = null; loopStop(); });
-      $('#toHima', el).onclick = function () { sfx('whoosh'); $('#tmB', el).style.display = 'none'; $('#tmC', el).style.display = ''; say('هنا في بلادنا 🇸🇦 رسوم صخرية مخبّأة… <b>اكشطي الصخرة</b> واكتشفيها!', 0, '05'); };
+      $('#toHima', el).onclick = function () { sfx('whoosh'); $('#tmB', el).style.display = 'none'; $('#tmC', el).style.display = ''; sayQ(['05', '25']); };
       this.reset = function () { $('#tmA', el).style.display = ''; $('#tmB', el).style.display = 'none'; $('#tmC', el).style.display = 'none'; $('#tmGo', el).disabled = false; $('#tmYear', el).textContent = '٢٠٢٦'; $('#tmLbl', el).textContent = 'نحن الآن'; rockCover(); rc.style.transition = 'none'; rc.style.opacity = 1; $('#unesco', el).classList.remove('on'); };
     },
     enter: function () { this.reset(); }
@@ -179,11 +179,11 @@
   // ================= 2. MUSEUM =================
   station({
     id: 'museum', num: '٢', title: 'المتحف السري: فن التخطيط',
-    say: 'أهلًا في <b>المتحف السري</b> 🔍 اضغطي على أي لوحة وكبّريها بالعدسة… شوفي الخطوط عن قرب!', voice: '07',
+    v: ['07', '27'],
     html: '<div style="position:absolute;left:0;right:0;bottom:0;height:150px;background:#E9DCC0;box-shadow:inset 0 10px 0 #D8C79F"></div>' +
       '<div class="spot" style="left:100px"></div><div class="spot" style="left:540px"></div>' +
-      '<div class="frame" data-src="assets/img/trees.jpg" data-cap="تخطيط مجموعة من الأشجار – الفنان تيتان" style="left:130px;top:190px;width:400px;height:300px"><img src="assets/img/trees.jpg"><div class="plaque">الفنان «تيتان» 🌳</div></div>' +
-      '<div class="frame" data-src="assets/img/hands.jpg" data-cap="لوحة تخطيطية – الفنان ليوناردو دافنشي" style="left:600px;top:150px;width:300px;height:370px"><img src="assets/img/hands.jpg"><div class="plaque">الفنان «ليوناردو دافنشي» ✋</div></div>' +
+      '<div class="frame" data-v="29" data-src="assets/img/trees.jpg" data-cap="تخطيط مجموعة من الأشجار – الفنان تيتان" style="left:130px;top:190px;width:400px;height:300px"><img src="assets/img/trees.jpg"><div class="plaque">الفنان «تيتان» 🌳</div></div>' +
+      '<div class="frame" data-v="28" data-src="assets/img/hands.jpg" data-cap="لوحة تخطيطية – الفنان ليوناردو دافنشي" style="left:600px;top:150px;width:300px;height:370px"><img src="assets/img/hands.jpg"><div class="plaque">الفنان «ليوناردو دافنشي» ✋</div></div>' +
       '<div class="card tape" style="right:120px;top:120px;width:500px;padding:28px 32px"><h2 style="font-size:50px">فن التخطيط ✏️</h2>' +
       '<p class="lead">يُعدّ <b>الرسم اليدوي (التخطيط)</b> الأساس لأي إنتاج فني.</p>' +
       '<p class="lead">يعتمد على الرسم بـ:</p><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px"><span class="pill" style="background:var(--ink)">✏️ القلم الرصاص</span><span class="pill" style="background:#555">⚫ الفحم</span><span class="pill" style="background:var(--sky)">🪶 الريشة</span></div>' +
@@ -193,7 +193,7 @@
     init: function (el) {
       var v = $('#viewer', el), img = $('#viewImg', el), lens = $('#lens', el), Z = 2.5;
       $$('.frame', el).forEach(function (f) {
-        f.onclick = function () { sfx('pop'); img.src = f.dataset.src; v.classList.add('on'); guide(false); say(f.dataset.cap); lens.style.backgroundImage = 'url(' + f.dataset.src + ')'; markDone('museum'); };
+        f.onclick = function () { sfx('pop'); img.src = f.dataset.src; v.classList.add('on'); guide(false); sayV(f.dataset.v); lens.style.backgroundImage = 'url(' + f.dataset.src + ')'; markDone('museum'); };
       });
       $('#viewClose', el).onclick = function () { v.classList.remove('on'); lens.style.display = 'none'; guide(true); };
       function move(e) {
@@ -222,7 +222,7 @@
   ];
   station({
     id: 'elements', num: '٣', title: 'عناصر التعبير الفني', peek: true,
-    say: 'الفنان يعبّر عن أفكاره بخمسة عناصر… <b>اقلبي البطاقات</b> واكتشفيها! 🃏', voice: '08',
+    v: ['08'],
     html: '<h2 style="text-align:center">عناصر التعبير الفني 🃏</h2><p class="lead" style="text-align:center">مجموعة من العناصر يعتمد عليها الفنان للتعبير عن أفكاره</p>' +
       EL.map(function (e, i) {
         return '<div class="ecard" style="right:' + (148 + i * 266) + 'px;top:330px"><div class="in"><div class="f">' + (i === 4 ? '<span class="star">⭐ محور درسنا</span>' : '') +
@@ -230,7 +230,7 @@
           '<div class="b" style="background:' + e[1] + '"><b>' + e[0] + '</b>' + e[2] + '</div></div></div>';
       }).join(''),
     init: function (el) {
-      $$('.ecard', el).forEach(function (c, i) { c.onclick = function () { c.classList.toggle('flip'); sfx('flip'); if (c.classList.contains('flip')) say('<b>' + EL[i][0] + '</b>: ' + EL[i][2]); }; });
+      $$('.ecard', el).forEach(function (c, i) { c.onclick = function () { c.classList.toggle('flip'); sfx('flip'); if (c.classList.contains('flip')) sayV(String(30 + i)); }; });
     },
     enter: function (el) { $$('.ecard', el).forEach(function (c, i) { c.classList.remove('flip'); c.style.animation = 'none'; void c.offsetWidth; c.style.animation = 'pop .55s cubic-bezier(.3,1.5,.5,1) ' + (.15 + i * .1) + 's both'; }); }
   });
@@ -245,7 +245,7 @@
   var PEN_COLORS = ['#3E8E41', '#3E8FD0', '#C2457A', '#E26D2E', '#7A4FC2'];
   station({
     id: 'tools', num: '٤', title: 'صندوق أدوات الرسم', peek: true,
-    say: 'اختاري أداة وارسمي على الورقة… <b>لاحظي الفرق</b> بين خطوط كل أداة! ✏️', voice: '09',
+    v: ['09'],
     html: '<canvas id="sheet" width="940" height="640"></canvas>' +
       '<div id="toolRack">' + TOOLS.map(function (t, i) { return '<button class="tool' + (i ? '' : ' on') + '" data-t="' + t[0] + '"><svg viewBox="0 0 120 44">' + t[3] + '</svg><span>' + t[1] + '<small>' + t[2] + '</small></span></button>'; }).join('') + '</div>' +
       '<div class="card" id="hard"><div class="lb"><span>صلب H (فاتح ورفيع)</span><span>لين B (غامق)</span></div><input type="range" min="0" max="100" value="45" id="hardV">' +
@@ -286,7 +286,7 @@
           tool = b.dataset.t; sfx('pop'); $$('.tool', el).forEach(function (t) { t.classList.toggle('on', t === b); });
           $('#hardV', el).style.display = tool === 'pencil' ? '' : 'none'; $('.lb', el).style.display = tool === 'pencil' ? '' : 'none';
           $('#penCols', el).style.display = (tool === 'pen' || tool === 'crayon') ? 'flex' : 'none'; $('#hard', el).style.display = tool === 'charcoal' ? 'none' : '';
-          say(TIPS[tool], 0, { pencil: '10', charcoal: '11' }[tool]);
+          sayV({ pencil: '10', charcoal: '11', pen: '35', crayon: '36' }[tool]);
         };
       });
       $$('#penCols .sw', el).forEach(function (s) { s.onclick = function () { penC = s.dataset.c; sfx('pop'); $$('#penCols .sw', el).forEach(function (o) { o.classList.toggle('on', o === s); }); }; });
@@ -304,7 +304,7 @@
   ];
   station({
     id: 'variety', num: '٥', title: 'التنوع في أوراق الشجر', peek: true,
-    say: 'كل ورقة لها <b>خطوط مختلفة</b>! اضغطي على الورقة لتسمعي سرّها… وجرّبي زر «الخطوط فقط» 👀', voice: '12',
+    v: ['12'],
     html: '<h2 style="text-align:center">لنتأمّل الخطوط في أوراق الشجر 🍂</h2><p class="lead" style="text-align:center">لاحظي <b>اختلاف اتجاهات الخطوط</b>، و<b>التنوّع في المساحات</b> التي تحصرها</p>' +
       '<div id="variety">' + VAR.map(function (v, i) {
         return '<div class="vl" data-i="' + i + '" style="right:' + (i * 265) + 'px"><svg viewBox="-170 -330 340 400"><g class="lv">' + leafSVG(v[0], { fill: v[2], ink: 'rgba(0,0,0,.55)', vein: 'rgba(0,0,0,.45)', w: 3 }) + '</g></svg><b>' + v[1] + '</b></div>';
@@ -314,7 +314,7 @@
       var only = false;
       $$('.vl', el).forEach(function (d) {
         d.onclick = function () {
-          var v = VAR[+d.dataset.i]; sfx('pop'); say('الورقة <b>' + v[1] + '</b>: ' + v[3]);
+          var v = VAR[+d.dataset.i]; sfx('pop'); sayV(String(37 + +d.dataset.i));
           var g = $('.lv', d); g.animate([{ transform: 'rotate(0)' }, { transform: 'rotate(-8deg)' }, { transform: 'rotate(6deg)' }, { transform: 'rotate(0)' }], { duration: 700 });
           $$('.lb,.lc', d).forEach(function (p) { p.animate([{ stroke: '#fff', strokeWidth: 6 }, { stroke: '' }], { duration: 1400 }); });
           markDone('variety');
@@ -324,7 +324,7 @@
         only = !only; sfx('magic', .5); this.textContent = only ? '🎨 بالألوان' : '👀 الخطوط فقط';
         $$('.vl .la', el).forEach(function (p) { if (p.getAttribute('fill') !== 'none') { p.dataset.f = p.dataset.f || p.getAttribute('fill'); p.style.transition = 'fill .6s'; p.style.fill = only ? '#fff' : p.dataset.f; } });
         $$('.vl path', el).forEach(function (p) { p.style.stroke = only ? '#2B2A33' : ''; });
-        if (only) say('شوفي! الورقة كلها <b>خطوط</b>: خط يحدّ الشكل، وخطوط للعروق، وخطوط صغيرة للتفاصيل ✏️', 0, '13');
+        if (only) sayV('13');
       };
     }
   });
