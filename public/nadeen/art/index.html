@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>مستكشفة الخطوط — رسم أوراق الشجر</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="wrap">
+  <div id="stage">
+    <div id="paper"></div>
+
+    <!-- top bar -->
+    <div id="bar">
+      <button class="ic" id="bHome" title="شجرة المحطات">🌳</button>
+      <div id="chip"><span id="chipN"></span><span id="chipT"></span></div>
+      <div class="sp"></div>
+      <button class="ic" id="bMusic" title="الموسيقى">🎵</button>
+      <button class="ic" id="bSound" title="الأصوات">🔊</button>
+      <button class="ic" id="bFull" title="ملء الشاشة">⛶</button>
+    </div>
+
+    <div id="slides"></div>
+
+    <!-- next / previous (right = back in Arabic reading order) -->
+    <button class="nav" id="bPrev" title="السابق">→</button>
+    <button class="nav" id="bNext" title="التالي">←</button>
+
+    <!-- Nadeen, the guide -->
+    <div id="guide">
+      <div id="bubble"><div id="bubbleT"></div></div>
+      <canvas id="nadeen" width="384" height="512"></canvas>
+    </div>
+    <div id="fx"></div>
+  </div>
+</div>
+<div id="rotate">🔄 أديري الجهاز بالعرض</div>
+<script src="js/leaves.js"></script>
+<script src="js/core.js"></script>
+<script src="js/stations.js"></script>
+<script src="js/stations2.js"></script>
+</body>
+</html>
