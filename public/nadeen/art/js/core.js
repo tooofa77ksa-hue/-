@@ -27,7 +27,7 @@
   var loopA = null;
   window.loopStart = function (n, vol) { loopStop(); if (!soundOn) return; loopA = SFX[n].cloneNode(); loopA.loop = true; loopA.volume = vol || .5; loopA.play().catch(function () {}); };
   window.loopStop = function () { if (loopA) { loopA.pause(); loopA = null; } };
-  $('#bSound').onclick = function () { soundOn = !soundOn; this.classList.toggle('off', !soundOn); this.textContent = soundOn ? '🔊' : '🔇'; if (soundOn) sfx('pop'); };
+  $('#bSound').onclick = function () { soundOn = !soundOn; if (!soundOn) stopVoice(); this.classList.toggle('off', !soundOn); this.textContent = soundOn ? '🔊' : '🔇'; if (soundOn) sfx('pop'); };
   $('#bMusic').onclick = function () { musicOn = !musicOn; this.classList.toggle('off', !musicOn); if (musicOn) music.play().catch(function () {}); else music.pause(); };
   $('#bMusic').classList.add('off');
   $('#bFull').onclick = function () { var d = document; if (!d.fullscreenElement) (d.documentElement.requestFullscreen || d.documentElement.webkitRequestFullscreen).call(d.documentElement); else d.exitFullscreen(); };
@@ -59,30 +59,46 @@
     if ('عحهأإ'.indexOf(ch) >= 0) return 'O';
     return (ch.charCodeAt(0) % 2) ? 'small' : 'medium';
   }
+  // recorded voice: mouth shapes from Rhubarb timings of each clip
+  var voiceA = null, voiceCues = [], MOUTH = { X: 'closed', A: 'closed', B: 'small', C: 'medium', D: 'wide', E: 'O', F: 'OO', G: 'small', H: 'medium' };
+  function cueAt(c, t) { var v = 'X'; for (var i = 0; i < c.length && c[i][0] <= t; i++) v = c[i][1]; return v; }
+  window.stopVoice = function () { if (voiceA) { voiceA.pause(); voiceA = null; } };
   var t0 = performance.now(), blinkAt = 2.5;
   function frame(now) {
     var t = (now - t0) / 1000, f;
     var blink = t > blinkAt && t < blinkAt + .14; if (t > blinkAt + .14) blinkAt = t + 2.4 + Math.random() * 2.6;
     if (mode === 'wave') { var v = Math.floor((t - modeT) / .24); f = ['wave_raise', 'wave_left', 'wave_raise', 'wave_right'][v % 4]; if (t - modeT > 2.6) mode = 'idle'; }
-    else if (talkI < talkTxt.length) {
+    else if (voiceA && !voiceA.paused && !voiceA.ended) {
+      var vt = voiceA.currentTime, dur = voiceA.duration || 1, n2 = Math.min(talkTxt.length, Math.ceil(talkTxt.length * Math.min(1, vt / (dur * .92))));
+      if (n2 > talkI) { talkI = n2; $('#bubbleT').textContent = talkTxt.slice(0, talkI).join(''); if (talkI >= talkTxt.length) $('#bubbleT').innerHTML = sayHtml; }
+      f = 't_' + MOUTH[cueAt(voiceCues, vt)] + (blink ? '_b' : '');
+    }
+    else if (talkI < talkTxt.length && !voiceA) {
       var n = Math.floor((t - talkT) * 26);
-      if (n > talkI) { talkI = Math.min(n, talkTxt.length); $('#bubbleT').textContent = talkTxt.slice(0, talkI); if (talkI >= talkTxt.length) $('#bubbleT').innerHTML = sayHtml; }
+      if (n > talkI) { talkI = Math.min(n, talkTxt.length); $('#bubbleT').textContent = talkTxt.slice(0, talkI).join(''); if (talkI >= talkTxt.length) $('#bubbleT').innerHTML = sayHtml; }
       f = 't_' + mouthFor(talkTxt[talkI]) + (blink ? '_b' : '');
     } else f = 't_closed' + (blink ? '_b' : '');
     nx.clearRect(0, 0, 384, 512); if (NI[f] && NI[f].complete) nx.drawImage(NI[f], 0, 0);
     requestAnimationFrame(frame);
   }
   loaded.then(function () { requestAnimationFrame(frame); });
-  window.say = function (html, ms) {
+  window.say = function (html, ms, vid) {
     if (!html) return;
-    sayHtml = html; var tmp = document.createElement('div'); tmp.innerHTML = html; talkTxt = tmp.textContent;
+    stopVoice();
+    if (vid && soundOn) {
+      var a = new Audio('assets/voice/' + vid + '.mp3'); voiceA = a; voiceCues = (window.VOICE_CUES || {})[vid] || [];
+      a.play().catch(function () { if (voiceA === a) { voiceA = null; talkT = (performance.now() - t0) / 1000; } });
+      a.onended = function () { if (voiceA !== a) return; $('#bubbleT').innerHTML = sayHtml; talkI = talkTxt.length; clearTimeout(bubbleTimer); bubbleTimer = setTimeout(hideBubble, 2600); };
+    }
+    sayHtml = html; var tmp = document.createElement('div'); tmp.innerHTML = html; talkTxt = Array.from(tmp.textContent);
     talkI = 0; talkT = (performance.now() - t0) / 1000; $('#bubbleT').textContent = ''; $('#bubble').classList.add('on');
     $('#guide').classList.remove('peek');
-    clearTimeout(bubbleTimer); bubbleTimer = setTimeout(function () { $('#bubble').classList.remove('on'); if (cur && cur.peek) $('#guide').classList.add('peek'); }, ms || 3500 + talkTxt.length * 70);
+    clearTimeout(bubbleTimer); bubbleTimer = setTimeout(function () { if (!voiceA || voiceA.paused || voiceA.ended) hideBubble(); }, ms || 3500 + talkTxt.length * 70);
   };
+  function hideBubble() { $('#bubble').classList.remove('on'); if (cur && cur.peek) $('#guide').classList.add('peek'); }
   window.wave = function () { mode = 'wave'; modeT = (performance.now() - t0) / 1000; };
   window.guide = function (show) { $('#guide').classList.toggle('hide', !show); };
-  $('#guide').onclick = function () { if (cur && cur.say) say(cur.say); else wave(); };
+  $('#guide').onclick = function () { if (cur && cur.say) say(cur.say, 0, cur.voice); else wave(); };
 
   // ---- slides ----
   var ST = window.STATIONS = [], idx = -1, cur = null, done = {};
@@ -91,14 +107,14 @@
   window.go = function (i, back) {
     if (i < 0 || i >= ST.length || i === idx) return;
     if (cur) { cur.el.classList.remove('on'); if (cur.leave) cur.leave(cur.el); }
-    loopStop(); idx = i; cur = ST[i];
+    loopStop(); stopVoice(); idx = i; cur = ST[i];
     cur.el.classList.toggle('back', !!back); void cur.el.offsetWidth; cur.el.classList.add('on');
     $('#chip').classList.toggle('on', !!cur.num);
     $('#chipN').textContent = cur.num || ''; $('#chipT').textContent = cur.title || '';
     $('#bPrev').classList.toggle('hide', i === 0); $('#bNext').classList.toggle('hide', i === ST.length - 1);
     guide(cur.guide !== false); $('#guide').classList.remove('peek');
     if (cur.enter) cur.enter(cur.el);
-    if (cur.say) setTimeout(function () { if (cur === ST[i]) say(cur.say); }, 650);
+    if (cur.say) setTimeout(function () { if (cur === ST[i]) say(cur.say, 0, cur.voice); }, 650);
     if (i > 1) sfx('whoosh', .4);
     if (cur.id && i > 1) markDone(cur.id);
   };

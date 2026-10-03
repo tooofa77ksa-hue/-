@@ -5,7 +5,7 @@
   var CAP = { a: 'أ: نرسم <b>الشكل الخارجي</b> والساق', b: 'ب: نضيف <b>العِرق الأوسط</b> والعروق الكبيرة', c: 'ج: نكمل <b>العروق الصغيرة</b> وخطوط التظليل' };
   station({
     id: 'steps', num: '٦', title: 'خطوات رسم أوراق الشجر', peek: true,
-    say: 'نرسم الورقة على <b>ثلاث خطوات</b>: أ ← ب ← ج. اضغطي «ارسمي معي» وارسمي في دفترك! ✏️',
+    say: 'نرسم الورقة على <b>ثلاث خطوات</b>: أ ← ب ← ج. اضغطي «ارسمي معي» وارسمي في دفترك! ✏️', voice: '14',
     html: '<div id="stepsArea">' + STEPS.map(function (s, i) {
       var g = Leaf(s[0]), h = '';
       g.a.forEach(function (p) { h += '<path class="sa" pathLength="1" d="' + p + '"/>'; });
@@ -39,7 +39,7 @@
         show('a', D[0]);
         timers.push(setTimeout(function () { show('b', D[1]); }, (D[0] * 1.3 + .8) * 1000));
         timers.push(setTimeout(function () { show('c', D[2]); }, (D[0] * 1.3 + D[1] * 1.3 + 1.6) * 1000));
-        timers.push(setTimeout(function () { sfx('correct'); say('تمّت! 🎉 لاحظي كيف <b>الخطوط</b> وحدها صنعت الورقة!'); markDone('steps'); }, (D[0] * 1.3 + D[1] * 1.3 + D[2] * 1.3 + 2.6) * 1000));
+        timers.push(setTimeout(function () { sfx('correct'); say('تمّت! 🎉 لاحظي كيف <b>الخطوط</b> وحدها صنعت الورقة!', 0, '15'); markDone('steps'); }, (D[0] * 1.3 + D[1] * 1.3 + D[2] * 1.3 + 2.6) * 1000));
       }
       $('#drawAll', el).onclick = function () { run(false); };
       $('#drawFast', el).onclick = function () { run(true); };
@@ -59,7 +59,7 @@
   var COLS = ['#7BBF5E', '#3E8E41', '#A6C34B', '#F2D33A', '#F2B233', '#E26D2E', '#C0392B', '#8B5A2B', '#5DADE2', '#7A4FC2', '#C2457A', '#FFFFFF'];
   station({
     id: 'color', num: '٧', title: 'نشاط ١: مرسم التلوين', peek: true,
-    say: 'لوّني الورقة بألوانك المفضّلة… والخطوط تبقى ظاهرة! جرّبي <b>لونين</b> فوق بعض مثل الكتاب 🎨',
+    say: 'لوّني الورقة بألوانك المفضّلة… والخطوط تبقى ظاهرة! 🎨', voice: '16',
     html: '<div id="colorBox"><canvas width="900" height="640" style="position:absolute;inset:0;border-radius:26px"></canvas><svg viewBox="0 0 900 640" style="position:absolute;inset:0;pointer-events:none"></svg></div>' +
       '<div id="palette">' + COLS.map(function (c, i) { return '<button class="sw' + (i ? '' : ' on') + '" style="background:' + c + (c === '#FFFFFF' ? ';border:2px solid #ddd' : '') + '" data-c="' + c + '"></button>'; }).join('') + '</div>' +
       '<div style="position:absolute;right:120px;top:450px;width:330px;display:flex;flex-direction:column;gap:14px"><button class="btn org" id="nextLeaf">🍁 ورقة أخرى</button><button class="btn alt" id="eraseLeaf">🧽 امسحي</button></div>',
@@ -100,7 +100,7 @@
   function lance(L, W) { var r = [], l = []; for (var i = 0; i <= 40; i++) { var s = i / 40, h = W * Math.pow(Math.sin(Math.PI * Math.pow(s, .8)), .9); r.push([h, -s * L]); l.push([-h, -s * L]); } return 'M' + r.concat(l.reverse()).map(function (p) { return p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join(' L') + 'Z'; }
   station({
     id: 'detective', num: '٨', title: 'نشاط ٢: محققة الخطوط', peek: true,
-    say: 'أنتِ <b>محققة الخطوط</b> 🕵️ في حديقة متشابكة… ابحثي عن الخطوط المطلوبة واضغطي عليها!',
+    say: 'أنتِ <b>محققة الخطوط</b> 🕵️ ابحثي في الحديقة عن الخطوط المطلوبة واضغطي عليها!', voice: '17',
     html: '<div id="garden"><svg viewBox="0 0 920 650" style="width:100%;height:100%"></svg></div>' +
       '<div class="card" id="mission"><img src="assets/img/garden.jpg" style="width:120px;height:150px;object-fit:cover;border-radius:12px;float:left;margin:0 0 6px 10px"><div style="font:600 19px/1.5 R;color:var(--ink2);text-align:right">مثل لوحة «حديقة متشابكة» للفنان سيمون لاكوديش</div><div style="clear:both"></div>' +
       '<div style="font:600 24px R;margin-top:8px">ابحثي عن…</div><div class="big" id="mWhat"></div><div id="mHint" style="font:400 21px R;color:var(--ink2)"></div><div class="lineSample" id="mSample"></div><div id="score3"><i></i><i></i><i></i></div>' +
@@ -143,7 +143,7 @@
         if (found === 3) {
           round++;
           if (round < 3) { setTimeout(function () { sfx('magic', .5); setRound(); say('أحسنتِ! 👏 الحين ابحثي عن <b>' + ROUNDS[round][1] + '</b>'); }, 900); }
-          else { setTimeout(function () { sfx('fanfare'); confetti(40); markDone('detective'); say('أنتِ <b>محققة خطوط</b> محترفة! 🕵️‍♀️ رفيعة، عريضة، وسميكة!'); $('#mAgain', el).style.display = ''; }, 700); }
+          else { setTimeout(function () { sfx('fanfare'); confetti(40); markDone('detective'); say('أنتِ <b>محققة خطوط</b> محترفة! 🕵️‍♀️ رفيعة، وعريضة، وسميكة!', 0, '18'); $('#mAgain', el).style.display = ''; }, 700); }
         }
       });
       $('#mAgain', el).onclick = this.reset;
@@ -161,7 +161,7 @@
   var STAMP_C = ['#3E8E41', '#E26D2E', '#C0392B', '#F2B233', '#8B5A2B', '#7A4FC2'];
   station({
     id: 'studio', num: '٩', title: 'نشاط ٣: استوديو التصميم', peek: true,
-    say: 'نستفيد من أشكال الأوراق في <b>الطباعة على الملابس</b>، و<b>الفُرش</b>، و<b>النوافذ</b>، و<b>الجدران</b>! اختاري وأطبعي 👕',
+    say: 'نستفيد من أشكال الأوراق في <b>الطباعة على الملابس</b>، و<b>الفُرش</b>، و<b>النوافذ</b>، و<b>الجدران</b>! 👕', voice: '19',
     html: '<div id="objects"><svg viewBox="0 0 940 660"></svg></div>' +
       '<div id="stampBar"><div class="objTabs">' + Object.keys(OBJ).map(function (k, i) { return '<button data-o="' + k + '"' + (i ? '' : ' class="on"') + '>' + OBJ[k][0] + '</button>'; }).join('') + '</div>' +
       '<div style="font:800 24px B">الختم:</div><div class="stamps">' + ['ovate', 'maple', 'oak', 'willow'].map(function (k, i) { return '<button data-k="' + k + '"' + (i ? '' : ' class="on"') + '><svg viewBox="-170 -330 340 400" style="width:100%;height:100%">' + leafSVG(k, { fill: '#7BBF5E', ink: '#2E5E2A', w: 6, c: false }) + '</svg></button>'; }).join('') + '</div>' +
@@ -198,7 +198,7 @@
   ];
   station({
     id: 'water', num: '١٠', title: 'نشاط ٤: أوراق على الماء', peek: true,
-    say: 'شوفي جمال الأوراق اللي <b>تنمو على سطح النهر</b> 💧 اضغطي على كل ملاحظة لتظهر في الصورة!',
+    say: 'شوفي جمال الأوراق اللي <b>تنمو على سطح النهر</b> 💧 اضغطي على كل ملاحظة!', voice: '20',
     html: '<div id="lilyWrap"><img src="assets/img/lily.jpg"><svg viewBox="0 0 900 640"><defs><radialGradient id="glow" cx="15%" cy="0%" r="80%"><stop offset="0" stop-color="#FFF6C8" stop-opacity=".85"/><stop offset=".5" stop-color="#FFF6C8" stop-opacity=".15"/><stop offset="1" stop-color="#1A2A10" stop-opacity=".45"/></radialGradient>' +
       '<marker id="arr" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10Z" fill="#fff"/></marker></defs><g id="ovl"></g></svg></div>' +
       OBS.map(function (o, i) { return '<div class="obs" data-i="' + i + '" style="top:' + (140 + i * 150) + 'px">' + o[0] + '<small>' + o[1] + '</small></div>'; }).join(''),
@@ -231,7 +231,7 @@
   // ================= 11. LIGHT & SHADOW LAB =================
   station({
     id: 'light', num: '١١', title: 'مختبر الضوء والظل', peek: true,
-    say: 'عندما يقع الضوء على جسم غير شفاف تنشأ <b>ثلاث مناطق</b>… <b>اسحبي الشمس</b> ☀️ وشوفي كيف تتغير!',
+    say: 'عندما يقع الضوء على جسم غير شفاف تنشأ <b>ثلاث مناطق</b>… <b>اسحبي الشمس</b> ☀️ وشوفي كيف تتغير!', voice: '21',
     html: '<div id="lightLab"><svg viewBox="0 0 900 640"><defs><radialGradient id="ballG" cx=".35" cy=".35" r=".75" fx=".3" fy=".3"><stop offset="0" stop-color="#FFF2D6"/><stop offset=".25" stop-color="#F4A64B"/><stop offset=".7" stop-color="#B85C1E"/><stop offset="1" stop-color="#4A2008"/></radialGradient>' +
       '<filter id="blur"><feGaussianBlur stdDeviation="10"/></filter></defs>' +
       '<path d="M120 640 C300 600 600 600 780 640" fill="#B9D59A"/>' +
@@ -292,7 +292,7 @@
   ];
   station({
     id: 'quiz', num: '١٢', title: 'تحدّي الفريقين', peek: true,
-    say: 'وقت <b>التحدّي</b>! 🏆 فريق الأوراق ضد فريق الأقلام… كل فريق يجاوب على دوره!',
+    say: 'وقت <b>التحدّي</b>! 🏆 فريق الأوراق ضد فريق الأقلام… كل فريق يجاوب على دوره!', voice: '22',
     html: '<div id="teams"><div class="team" id="t0">🍃 فريق الأوراق<span class="pts">٠</span></div><div class="team" id="t1">✏️ فريق الأقلام<span class="pts">٠</span></div></div>' +
       '<div id="timer">٢٠</div>' +
       '<div class="card" id="qBox"><div id="qKind"></div><div id="qText"></div><div id="qOpts"></div></div>' +
@@ -347,7 +347,7 @@
   // ================= 13. CERTIFICATE =================
   station({
     id: 'cert', title: 'شهادة فنانة الخطوط', guide: true,
-    say: 'أحسنتنّ يا فنانات! 🎨 اكتبي اسمك على الشهادة… <b>وشكرًا لكم</b> 💚',
+    say: 'أحسنتنّ يا فنانات! 🎨 اكتبي اسمك على الشهادة… <b>وشكرًا لكم</b> 💚', voice: '23',
     html: '<div class="card" id="cert"><svg viewBox="0 0 1060 650" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"><g transform="translate(70,600) rotate(-30) scale(.42)">' + leafSVG('maple', { fill: '#F2B233', ink: '#C9772F', w: 4 }) + '</g><g transform="translate(990,600) rotate(30) scale(.42)">' + leafSVG('ovate', { fill: '#7BBF5E', ink: '#3E8E41', w: 4 }) + '</g><g transform="translate(990,140) rotate(150) scale(.3)">' + leafSVG('oak', { fill: '#E26D2E', ink: '#A84A18', w: 4 }) + '</g><g transform="translate(70,140) rotate(-150) scale(.3)">' + leafSVG('willow', { fill: '#3E8E41', ink: '#2B6A2E', w: 4 }) + '</g></svg>' +
       '<div style="font-size:70px">🎖️</div><h1>شهادة فنانة الخطوط</h1><div style="font:600 30px R;margin-top:10px">تُمنح هذه الشهادة إلى</div>' +
       '<input id="certName" placeholder="اكتبي اسمك هنا ✏️">' +
