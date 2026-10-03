@@ -14,6 +14,7 @@ import { Modal } from "@/injazi/ui/Modal";
 import { Field, Notice, SelectInput, TextArea } from "@/injazi/ui/primitives";
 import { Rating } from "@/injazi/ui/Rating";
 import { logActivity, saveEvaluation } from "@/injazi/services/repo";
+import { isMediaRef } from "@/injazi/services/mediaRef";
 import { writeErrorMessage } from "@/injazi/lib/firestoreError";
 import { showToast } from "@/injazi/lib/toast";
 import type {
@@ -190,25 +191,39 @@ export function EvaluationEditor({
             {(project.media.length > 0 || project.links.length > 0) && (
               <section className="iz-editor-block">
                 <h3 className="iz-editor-block__title">مرفقات المشروع</h3>
+                {/*
+                  الصورة المحفوظة داخل Firestore ليست عنوانًا يُفتح.
+                  ------------------------------------------------------
+                  مرجعها «iz-media://…» بادئة داخلية يحلّها مكوّن Media
+                  إلى بيانات الصورة. وضعُه في href يجعل المتصفّح يحاول
+                  فتحه كعنوان، فيردّ سفاري على الجوّال: «لا يمكن فتح
+                  الصفحة لأن العنوان غير صالح» — وهو ما واجهته المعلمات
+                  عند الضغط على مرفق المشروع. فلا رابط إلا لعنوان حقيقي،
+                  والصورة تُعرض كما هي بلا تغيير في شكلها.
+                */}
                 <div className="iz-media-grid">
-                  {project.media.map((item) =>
-                    item.kind === "image" ? (
-                      <a key={item.id} href={item.url} target="_blank" rel="noopener noreferrer" className="iz-thumb">
+                  {project.media.map((item) => {
+                    const openable = !isMediaRef(item.url);
+                    const inner =
+                      item.kind === "image" ? (
                         <Media src={item.url} alt={item.name} />
+                      ) : (
+                        <>
+                          {item.kind === "video" ? <Film size={20} /> : <FileText size={20} />}
+                          <span>{item.name}</span>
+                        </>
+                      );
+                    const className = item.kind === "image" ? "iz-thumb" : "iz-thumb iz-thumb__file";
+                    return openable ? (
+                      <a key={item.id} href={item.url} target="_blank" rel="noopener noreferrer" className={className}>
+                        {inner}
                       </a>
                     ) : (
-                      <a
-                        key={item.id}
-                        href={item.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="iz-thumb iz-thumb__file"
-                      >
-                        {item.kind === "video" ? <Film size={20} /> : <FileText size={20} />}
-                        <span>{item.name}</span>
-                      </a>
-                    ),
-                  )}
+                      <span key={item.id} className={className}>
+                        {inner}
+                      </span>
+                    );
+                  })}
                   {project.links.map((link) => (
                     <a
                       key={link.id}

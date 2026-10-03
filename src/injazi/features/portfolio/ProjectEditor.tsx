@@ -19,6 +19,7 @@ import { useFileTrash } from "@/injazi/hooks/useFileTrash";
 import { MEDIA_BACKEND, studentScope } from "@/injazi/services/storage";
 import { createProject, logActivity, updateProject } from "@/injazi/services/repo";
 import { showToast } from "@/injazi/lib/toast";
+import { isMediaRef } from "@/injazi/services/mediaRef";
 import { writeErrorMessage } from "@/injazi/lib/firestoreError";
 import { VISIBILITY_LABEL } from "@/injazi/lib/permissions";
 import { DUR, EASE_POP } from "@/injazi/motion/motion";
@@ -469,6 +470,13 @@ export function ProjectEditor({ open, student, subjects, project, actor, onClose
               <div key={item.id} className="iz-thumb">
                 {item.kind === "image" ? (
                   <Media src={item.url} alt={item.name} />
+                ) : isMediaRef(item.url) ? (
+                  /* مرجع داخلي لا عنوان: وضعه في href يُفشل الفتح على
+                     سفاري برسالة «العنوان غير صالح». */
+                  <span className="iz-thumb__file">
+                    {item.kind === "video" ? <Film size={22} /> : <FileText size={22} />}
+                    <span>{item.name}</span>
+                  </span>
                 ) : (
                   <a className="iz-thumb__file" href={item.url} target="_blank" rel="noopener noreferrer">
                     {item.kind === "video" ? <Film size={22} /> : <FileText size={22} />}
