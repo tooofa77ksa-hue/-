@@ -2977,8 +2977,8 @@ th {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: clamp(10px, 1.2vh, 18px);
-  padding: clamp(12px, 1.6vh, 22px) clamp(14px, 1.6vw, 28px);
+  gap: clamp(8px, 0.95vh, 15px);
+  padding: clamp(10px, 1.3vh, 19px) clamp(14px, 1.6vw, 28px);
   background: var(--bg);
 }
 
@@ -3057,7 +3057,7 @@ th {
   display: flex;
   align-items: baseline;
   gap: 10px;
-  font-size: clamp(48px, 8.6vh, 98px);
+  font-size: clamp(46px, 8.1vh, 92px);
   font-weight: 700;
   line-height: 0.92;
   color: #ffffff;
@@ -3179,7 +3179,7 @@ th {
   flex-direction: column;
   align-items: center;
   gap: 1px;
-  padding: clamp(4px, 0.65vh, 9px) clamp(5px, 0.5vw, 9px);
+  padding: clamp(4px, 0.55vh, 8px) clamp(5px, 0.5vw, 9px);
   border-radius: var(--radius-sm);
   background: var(--surface-sunken);
   border: 1px solid var(--border);
@@ -3330,58 +3330,71 @@ th {
 
 .show__list strong { font-variant-numeric: tabular-nums; flex: none; }
 
+/* ذيل الشاشة: توقيعٌ ثم فِقهُ الحساب — كما يُذيَّل الخطاب الرسمي. */
 .show__foot {
+  display: grid;
+  gap: clamp(4px, 0.6vh, 8px);
+  padding-block-start: clamp(5px, 0.7vh, 9px);
+  border-block-start: 1px solid var(--border);
+}
+
+.show__fine {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 14px;
   flex-wrap: wrap;
-  font-size: clamp(10px, 1.2vh, 12.5px);
+  font-size: clamp(9.5px, 1.1vh, 12px);
   color: var(--text-muted);
-  padding-block-start: clamp(6px, 0.8vh, 10px);
-  border-block-start: 1px solid var(--border);
 }
 
-/* توقيع المدرسة في صدر الشاشة لا في حاشيتها.
-   عمودان يتحاذيان: الصفة باهتة والاسم بارز — كما يُقرأ التوقيع في
-   خطاب رسمي. وموضعه في الصدر لأنه أول ما تقع عليه العين، ولأن
-   الذيل حواشي حسابٍ لا موضع اسم. */
+/* توقيع المدرسة في ذيل الشاشة.
+   الصفة فوق والاسم تحتها، متمركزَين، بينهما فاصل رفيع — كما تُذيَّل
+   الخطابات الرسمية بالتواقيع. وهو على كل شريحة لا على ورقةٍ وحدها:
+   العمل الذي أمام اللجنة له صاحبةٌ أعدّته ومديرةٌ اعتمدته. */
 .show__signers {
   margin: 0;
-  /* منطقي لا مادّي: «left» في صفحةٍ من اليمين هو طرف البداية، فتُدفع
-     الكتلة إلى جانب العنوان بدل أن تبتعد عنه. */
-  margin-inline-start: auto;
   display: grid;
-  grid-template-columns: auto auto;
-  align-items: baseline;
-  column-gap: clamp(8px, 0.9vw, 14px);
-  row-gap: 3px;
-  padding-inline-end: clamp(12px, 1.4vw, 22px);
-  border-inline-end: 1px solid var(--border);
+  grid-auto-flow: column;
+  justify-content: center;
+  gap: clamp(26px, 3.4vw, 60px);
+}
+
+.show__signers > div {
+  display: grid;
+  justify-items: center;
+  gap: 0;
+  text-align: center;
+  position: relative;
+}
+
+/* الفاصل في منتصف الفجوة التي تسبق التوقيع الثاني — وهي في صفحةٍ
+   من اليمين إلى يساره على جهة بدايته لا نهايته. */
+.show__signers > div + div::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: calc(clamp(26px, 3.4vw, 60px) / -2);
+  inset-block: 1px;
+  width: 1px;
+  background: var(--border-strong);
 }
 
 .show__signers dt {
-  font-size: clamp(9.5px, 1.15vh, 12px);
+  font-size: clamp(9px, 1.05vh, 11.5px);
+  font-weight: 400;
   color: var(--text-muted);
-  text-align: start;
 }
 
 .show__signers dd {
   margin: 0;
-  font-size: clamp(11.5px, 1.45vh, 15px);
-  font-weight: 700;
+  font-size: clamp(12.5px, 1.65vh, 18px);
+  font-weight: 800;
+  line-height: 1.3;
   color: var(--moe-navy);
   white-space: nowrap;
 }
 
 :root[data-theme='dark'] .show__signers dd { color: var(--moe-cyan-light); }
-
-/* الصدر يحمل الآن توقيعًا: لا يبقى القفل وحده هو ما يُدفع إلى الطرف */
-.show__exit { margin-inline-start: 0; }
-
-@media (max-width: 1100px) {
-  .show__signers { margin-inline-start: 0; border-inline-end: 0; padding-inline-end: 0; }
-}
 
 /* شاشة صغيرة: تنطوي الألواح ويعود التمرير */
 /* الشاشة الصغيرة ليست شاشة عرض: يعود الارتفاع طبيعيًا والتمرير معه */
@@ -4038,7 +4051,7 @@ th {
 .impact__flow li {
   position: relative;
   text-align: center;
-  padding: 9px 8px;
+  padding: 7px 8px;
   border-radius: 14px;
   background: var(--surface-tint);
   border: 1px solid var(--border);
@@ -4084,7 +4097,7 @@ th {
 }
 
 .impact__bands .proof { max-inline-size: none; padding: 9px 5px 7px; gap: 5px; }
-.impact__bands .proof__qr { width: 70px; height: 70px; }
+.impact__bands .proof__qr { width: 64px; height: 64px; }
 .impact__bands .proof__name { font-size: 10.5px; line-height: 1.45; }
 .impact__bands .proof__scan { font-size: 9px; padding: 2px 7px; }
 
@@ -4204,17 +4217,16 @@ th {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: clamp(14px, 1.8vh, 24px) clamp(16px, 1.6vw, 26px);
+  padding: clamp(12px, 1.45vh, 20px) clamp(16px, 1.6vw, 26px);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 11px;
 }
 
 .show__dots {
   display: flex;
   justify-content: center;
   gap: 8px;
-  padding-block-start: 4px;
 }
 
 .show__dot-btn {
@@ -4223,7 +4235,7 @@ th {
   background: var(--surface);
   color: var(--text-muted);
   border-radius: 20px;
-  padding: 5px 16px;
+  padding: 4px 15px;
   font: inherit;
   font-size: 12.5px;
   font-weight: 700;

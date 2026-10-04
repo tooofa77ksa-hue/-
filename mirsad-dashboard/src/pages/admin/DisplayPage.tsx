@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { ImpactBands, ImpactPraise } from '../../components/ImpactShow'
 import { LockToggle } from '../../components/LockToggle'
@@ -113,15 +113,6 @@ export function DisplayPage() {
             {ORGANIZATION.directorate}
           </p>
         </div>
-        <dl className="show__signers">
-          {SCHOOL_SIGNERS.map((s) => (
-            <Fragment key={s.name}>
-              <dt>{s.role}</dt>
-              <dd>{s.name}</dd>
-            </Fragment>
-          ))}
-        </dl>
-
         <div className="show__exit no-print"><LockToggle locked /></div>
       </header>
 
@@ -267,14 +258,23 @@ export function DisplayPage() {
       </nav>
 
       <footer className="show__foot">
-        <span>{hijriToday()}</span>
+        <dl className="show__signers">
+          {SCHOOL_SIGNERS.map((s) => (
+            <div key={s.name}>
+              <dt>{s.role}</dt>
+              <dd>{s.name}</dd>
+            </div>
+          ))}
+        </dl>
 
-
-        <span>
-          المؤشر على مقياس من {num(index.scaleMin)} إلى {num(index.scaleMax)} بعد تصحيح
-          اتجاه العبارات العكسية · ن = {num(index.n)} إجابة مُقيَّسة ·
-          المشاركة بالطالبة لا بالورقة
-        </span>
+        <div className="show__fine">
+          <span>{hijriToday()}</span>
+          <span>
+            المؤشر على مقياس من {num(index.scaleMin)} إلى {num(index.scaleMax)} بعد تصحيح
+            اتجاه العبارات العكسية · ن = {num(index.n)} إجابة مُقيَّسة ·
+            المشاركة بالطالبة لا بالورقة
+          </span>
+        </div>
       </footer>
     </div>
   )
