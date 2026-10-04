@@ -75,19 +75,32 @@ const ITEM_START = {
 } as const;
 
 // ---- Layout (1920x1080, chrome header=118 / footer=64) ----
-// العرض وُسِّع أكثر (جولة ثانية) بناءً على طلب المستخدمة الصريح مع صورة
-// مرجعية لهيكل تنظيمي يمتد أفقيًا على كامل عرض الشاشة - البطاقات ما زالت
-// قريبة من المنتصف بهامش جانبي كبير فارغ. استخدام عرض الشاشة بشكل أوضح
-// وأبرز، بنفس مستوى بروز جزئية الهيكل التنظيمي (الشجرة) أعلى الشاشة.
-const CARD_OFFSET = 390;
+// إعادة تصميم كاملة (جولة ثالثة): بدل أربع صفوف تنزل تحت بعض (فوق بعض =
+// "مزدحم ومتراكب" حسب وصف المستخدمة)، كل الفروع السبعة بصف أفقي واحد
+// عريض يمتد على كامل عرض الشاشة - بالضبط زي الصورة المرجعية (فرع بجانب
+// فرع، لا فرع فوق فرع). تفاصيل كل فرع (الرخصة، التصنيف، المنقولات...)
+// تنزل في عمود ضيق تحت فرعها هو بالذات فقط.
 const SPINE_TOP = 195;
-const SPINE_BOTTOM = 995;
 const ROW_TITLE_Y = 150;
 const ROW_ROLES_Y = 215;
-const ROW_TEACH_ADMIN_Y = 305;
-const ROW_STUDENTS_Y = 580;
-const ROW_ECON_SOCIAL_Y = 760;
-const ROW_HEALTH_Y = 880;
+const BAR_Y = 300; // الخط الأفقي اللي يتفرّع منه كل الفروع السبعة
+const CARD_TOP_Y = 330;
+const CHILD_START_Y = 552; // أول عنصر تحت أي فرع
+const CHILD_STEP = 44;
+
+// مراكز الفروع السبعة (من اليمين لليسار) - موزّعة على كامل العرض بتباعد
+// غير منتظم عمدًا: فرعا "المعلمات" و"الطالبات" لهما أكبر عدد تفاصيل تحتهما
+// (رخصة+تصنيف، ومنقولات+معيدات) فأعطيا مسافة أكبر بينهما لمنع تراكب نص
+// التفاصيل الطويلة، بينما بقية الفروع (تفاصيلها قصيرة أو معدومة) أقرب لبعض.
+const BX = {
+  admins: 1775,
+  teachers: 1535,
+  students: 1135,
+  classes: 895,
+  economic: 655,
+  social: 415,
+  health: 175,
+} as const;
 
 // ---- Icons: unified single-color line icons, same visual language as FacilitiesScene ----
 const IC = brand.primary;
@@ -174,29 +187,6 @@ const GroupTitle: React.FC = () => {
   );
 };
 
-/** Central spine, growing continuously with overall scene progress. */
-const Spine: React.FC = () => {
-  const frame = useCurrentFrame();
-  const draw = interpolate(frame, [10, ORG_STATS_DURATION - 40], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: Easing.out(Easing.cubic),
-  });
-  const len = SPINE_BOTTOM - SPINE_TOP;
-  return (
-    <svg width={1920} height={1080} style={{ position: "absolute", inset: 0 }}>
-      <line
-        x1={960}
-        y1={SPINE_TOP}
-        x2={960}
-        y2={SPINE_TOP + len * draw}
-        stroke={brand.border}
-        strokeWidth={3}
-      />
-    </svg>
-  );
-};
-
 const Pill: React.FC<{ label: string; x: number; y: number; from: number; icon: React.ReactNode }> = ({ label, x, y, from, icon }) => {
   const frame = useCurrentFrame();
   const local = frame - from;
@@ -263,17 +253,17 @@ const SubBadge: React.FC<{ label: string; x: number; y: number; from: number; ic
         transform: `translateX(-50%) translateY(${interpolate(t, [0, 1], [8, 0])}px)`,
         display: "flex",
         alignItems: "center",
-        gap: 8,
+        gap: 7,
         opacity: t,
         background: muted ? "#f3f5f4" : "#eaf7f1",
         borderRadius: 999,
-        padding: "5px 14px",
+        padding: "4px 12px",
         whiteSpace: "nowrap",
       }}
     >
       <Sfx kind="tick" at={from} volume={0.15} />
       {icon}
-      <span style={{ fontFamily, fontWeight: 700, fontSize: 32, color: muted ? brand.muted : brand.primaryDark }}>{label}</span>
+      <span style={{ fontFamily, fontWeight: 700, fontSize: 29, color: muted ? brand.muted : brand.primaryDark }}>{label}</span>
     </div>
   );
 };
@@ -286,16 +276,15 @@ const tint = (hex: string) => {
   return `rgba(${r}, ${g}, ${b}, 0.14)`;
 };
 
-const StatCard: React.FC<{
+/** بطاقة فرع مدمجة (أيقونة فوق، تسمية، قيمة) - عرضها ضيق لأن سبعة فروع تتجاور بصف واحد بدل فروع عريضة تتكدّس فوق بعض. */
+const BranchCard: React.FC<{
   x: number;
-  y: number;
-  w: number;
   label: string;
   value: number;
   from: number;
   icon: React.ReactNode;
   accent?: string;
-}> = ({ x, y, w, label, value, from, icon, accent = brand.primary }) => {
+}> = ({ x, label, value, from, icon, accent = brand.primary }) => {
   const frame = useCurrentFrame();
   const local = frame - from;
   const t = interpolate(local, [0, REVEAL_DURATION], [0, 1], {
@@ -310,9 +299,9 @@ const StatCard: React.FC<{
     <div
       style={{
         position: "absolute",
-        left: x - w / 2,
-        top: y,
-        width: w,
+        left: x - 115,
+        top: CARD_TOP_Y,
+        width: 230,
         opacity: t,
         scale: 0.88 + t * 0.12,
         translate: `0 ${interpolate(t, [0, 1], [12, 0])}px`,
@@ -323,49 +312,64 @@ const StatCard: React.FC<{
       <div
         style={{
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
-          gap: 16,
+          gap: 6,
+          textAlign: "center",
           background: "#fbfdfc",
           border: `1.5px solid ${brand.border}`,
           borderTop: `5px solid ${accent}`,
-          borderRadius: 18,
+          borderRadius: 16,
           boxShadow: "0 10px 26px rgba(21,68,90,0.10)",
-          padding: "11px 24px 12px",
+          padding: "14px 10px 12px",
         }}
       >
-        <div style={{ width: 66, height: 66, borderRadius: "50%", background: tint(accent), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <div style={{ width: 54, height: 54, borderRadius: "50%", background: tint(accent), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           {icon}
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <div style={{ fontFamily, fontWeight: 700, fontSize: 34, color: brand.muted }}>{label}</div>
-          <div style={{ fontFamily, fontWeight: 900, fontSize: 60, color: brand.primaryDark }}>
-            <CountUpNumber value={value} decimals={0} from={from} durationInFrames={COUNT_DURATION} />
-          </div>
+        <div style={{ fontFamily, fontWeight: 700, fontSize: 24, color: brand.muted, lineHeight: 1.2 }}>{label}</div>
+        <div style={{ fontFamily, fontWeight: 900, fontSize: 46, color: brand.primaryDark }}>
+          <CountUpNumber value={value} decimals={0} from={from} durationInFrames={COUNT_DURATION} />
         </div>
       </div>
     </div>
   );
 };
 
-/** خط تفرّع بسيط من العمود الفقري إلى كل بطاقة - يعطي إحساس "الهيكل التنظيمي" المتفرّع، بنفس روح الصورة المرجعية. */
-const Branch: React.FC<{ y: number; toX: number; from: number }> = ({ y, toX, from }) => {
+/** الخط الأفقي اللي يمتد على كامل الصف ويتفرّع منه كل فرع - يرسم تدريجيًا بمجرد بداية صف الفروع. */
+const BranchBar: React.FC<{ from: number }> = ({ from }) => {
   const frame = useCurrentFrame();
-  const draw = interpolate(frame, [from, from + REVEAL_DURATION], [0, 1], {
+  const draw = interpolate(frame, [from, from + 26], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: Easing.out(Easing.cubic),
   });
   if (frame < from - 2) return null;
-  const midY = y + 33;
+  const left = BX.health;
+  const right = BX.admins;
+  const span = right - left;
   return (
     <svg width={1920} height={1080} style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+      <line x1={960} y1={SPINE_TOP} x2={960} y2={BAR_Y} stroke={brand.border} strokeWidth={3} opacity={draw} />
       <path
-        d={`M 960 ${midY} H ${toX}`}
+        d={`M ${left} ${BAR_Y} H ${right}`}
         stroke={brand.border}
         strokeWidth={3}
-        strokeDasharray={Math.abs(toX - 960)}
-        strokeDashoffset={Math.abs(toX - 960) * (1 - draw)}
+        strokeDasharray={span}
+        strokeDashoffset={span * (1 - draw)}
       />
+    </svg>
+  );
+};
+
+/** جذع قصير من الخط الأفقي إلى رأس كل بطاقة فرع. */
+const Stem: React.FC<{ x: number; from: number }> = ({ x, from }) => {
+  const frame = useCurrentFrame();
+  const t = interpolate(frame, [from, from + 14], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  if (frame < from - 2) return null;
+  return (
+    <svg width={1920} height={1080} style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+      <line x1={x} y1={BAR_Y} x2={x} y2={CARD_TOP_Y} stroke={brand.border} strokeWidth={3} opacity={t} />
     </svg>
   );
 };
@@ -379,199 +383,48 @@ export const OrgStatsScene: React.FC = () => {
       </Sequence>
       <Sfx kind="whoosh" at={0} volume={0.4} />
 
-      <Spine />
       <GroupTitle />
 
       <Pill label={supervisoryRoles[0]} x={960 + 320} y={ROW_ROLES_Y} from={ITEM_START.director} icon={<DirectorIcon />} />
       <Pill label={supervisoryRoles[1]} x={960} y={ROW_ROLES_Y} from={ITEM_START.deputy} icon={<DeputyIcon />} />
       <Pill label={supervisoryRoles[2]} x={960 - 320} y={ROW_ROLES_Y} from={ITEM_START.guidance} icon={<GuidanceIcon />} />
 
-      <Branch y={ROW_TEACH_ADMIN_Y} toX={960 + CARD_OFFSET} from={ITEM_START.admins} />
-      <Branch y={ROW_TEACH_ADMIN_Y} toX={960 - CARD_OFFSET} from={ITEM_START.teachers} />
-      <StatCard
-        x={960 + CARD_OFFSET}
-        y={ROW_TEACH_ADMIN_Y}
-        w={460}
-        label="الإداريات"
-        value={adminsCount}
-        from={ITEM_START.admins}
-        icon={<AdminsIcon />}
-        accent={brand.blue}
-      />
+      <BranchBar from={ITEM_START.admins} />
 
-      <StatCard
-        x={960 - CARD_OFFSET}
-        y={ROW_TEACH_ADMIN_Y}
-        w={520}
-        label="المعلمات"
-        value={teacherLicense.total}
-        from={ITEM_START.teachers}
-        icon={<TeachersGroupIcon />}
-        accent={brand.primary}
-      />
-      <SubBadge
-        label={`${teacherLicense.licensed} حاصلات على الرخصة`}
-        x={960 - CARD_OFFSET}
-        y={ROW_TEACH_ADMIN_Y + 108}
-        from={ITEM_START.licensed}
-        icon={<LicenseIcon />}
-      />
-      <SubBadge
-        label={`${teacherLicense.notLicensed} بدون رخصة`}
-        x={960 - CARD_OFFSET}
-        y={ROW_TEACH_ADMIN_Y + 152}
-        from={ITEM_START.notLicensed}
-        icon={<NoLicenseIcon />}
-        muted
-      />
+      <Stem x={BX.admins} from={ITEM_START.admins} />
+      <BranchCard x={BX.admins} label="الإداريات" value={adminsCount} from={ITEM_START.admins} icon={<AdminsIcon />} accent={brand.blue} />
 
-      {/* تصنيف المعلمات - صف واحد يمتد على كامل عرض الشاشة (بدل شبكة 2×2 ضيقة) - يوفّر ارتفاعًا لإضافة صف "المنقولات" تحت الطالبات بدون أي ازدحام */}
-      <SubBadge
-        label={`معلم خبير: ${teacherClassification.expert}`}
-        x={960 + 480}
-        y={ROW_TEACH_ADMIN_Y + 205}
-        from={ITEM_START.classExpert}
-        icon={<RankBadgeIcon />}
-      />
-      <SubBadge
-        label={`معلم متقدم: ${teacherClassification.advanced}`}
-        x={960 + 160}
-        y={ROW_TEACH_ADMIN_Y + 205}
-        from={ITEM_START.classAdvanced}
-        icon={<RankBadgeIcon />}
-      />
-      <SubBadge
-        label={`معلم ممارس: ${teacherClassification.practitioner}`}
-        x={960 - 160}
-        y={ROW_TEACH_ADMIN_Y + 205}
-        from={ITEM_START.classPractitioner}
-        icon={<RankBadgeIcon />}
-      />
-      <SubBadge
-        label={`مساعد معلم: ${teacherClassification.assistant}`}
-        x={960 - 480}
-        y={ROW_TEACH_ADMIN_Y + 205}
-        from={ITEM_START.classAssistant}
-        icon={<RankBadgeIcon />}
-      />
+      <Stem x={BX.teachers} from={ITEM_START.teachers} />
+      <BranchCard x={BX.teachers} label="المعلمات" value={teacherLicense.total} from={ITEM_START.teachers} icon={<TeachersGroupIcon />} accent={brand.primary} />
+      <SubBadge label={`${teacherLicense.licensed} حاصلة رخصة`} x={BX.teachers} y={CHILD_START_Y} from={ITEM_START.licensed} icon={<LicenseIcon />} />
+      <SubBadge label={`${teacherLicense.notLicensed} بدون رخصة`} x={BX.teachers} y={CHILD_START_Y + CHILD_STEP} from={ITEM_START.notLicensed} icon={<NoLicenseIcon />} muted />
+      <SubBadge label={`معلم خبير: ${teacherClassification.expert}`} x={BX.teachers} y={CHILD_START_Y + CHILD_STEP * 2} from={ITEM_START.classExpert} icon={<RankBadgeIcon />} />
+      <SubBadge label={`معلم متقدم: ${teacherClassification.advanced}`} x={BX.teachers} y={CHILD_START_Y + CHILD_STEP * 3} from={ITEM_START.classAdvanced} icon={<RankBadgeIcon />} />
+      <SubBadge label={`معلم ممارس: ${teacherClassification.practitioner}`} x={BX.teachers} y={CHILD_START_Y + CHILD_STEP * 4} from={ITEM_START.classPractitioner} icon={<RankBadgeIcon />} />
+      <SubBadge label={`مساعد معلم: ${teacherClassification.assistant}`} x={BX.teachers} y={CHILD_START_Y + CHILD_STEP * 5} from={ITEM_START.classAssistant} icon={<RankBadgeIcon />} />
 
-      <Branch y={ROW_STUDENTS_Y} toX={960 + CARD_OFFSET} from={ITEM_START.students} />
-      <Branch y={ROW_STUDENTS_Y} toX={960 - CARD_OFFSET} from={ITEM_START.classes} />
-      <StatCard
-        x={960 + CARD_OFFSET}
-        y={ROW_STUDENTS_Y}
-        w={460}
-        label="الطالبات"
-        value={headlineStats.studentCount}
-        from={ITEM_START.students}
-        icon={<StudentsGroupIcon />}
-        accent={brand.teal}
-      />
-      <StatCard
-        x={960 - CARD_OFFSET}
-        y={ROW_STUDENTS_Y}
-        w={460}
-        label="الفصول"
-        value={headlineStats.classCount}
-        from={ITEM_START.classes}
-        icon={<ClassesGroupIcon />}
-        accent={brand.gold}
-      />
+      <Stem x={BX.students} from={ITEM_START.students} />
+      <BranchCard x={BX.students} label="الطالبات" value={headlineStats.studentCount} from={ITEM_START.students} icon={<StudentsGroupIcon />} accent={brand.teal} />
+      <SubBadge label={`${transferredStudents.from} منقولة من المدرسة`} x={BX.students} y={CHILD_START_Y} from={ITEM_START.transferredFrom} icon={<StudentsGroupIcon />} />
+      <SubBadge label={`${transferredStudents.to} منقولة إلى المدرسة`} x={BX.students} y={CHILD_START_Y + CHILD_STEP} from={ITEM_START.transferredTo} icon={<StudentsGroupIcon />} />
+      <SubBadge label={`${repeatingStudents} طالبات معيدات`} x={BX.students} y={CHILD_START_Y + CHILD_STEP * 2} from={ITEM_START.repeating} icon={<StudentsGroupIcon />} muted />
 
-      {/* الطالبات المنقولات من/إلى المدرسة + المعيدات - صف كامل العرض تحت "الطالبات/الفصول" مباشرة، بنفس الصفحة، بدون اختفاء */}
-      <SubBadge
-        label={`${transferredStudents.from} منقولة من المدرسة`}
-        x={960 + 560}
-        y={ROW_STUDENTS_Y + 108}
-        from={ITEM_START.transferredFrom}
-        icon={<StudentsGroupIcon />}
-      />
-      <SubBadge
-        label={`${repeatingStudents} طالبات معيدات`}
-        x={960}
-        y={ROW_STUDENTS_Y + 108}
-        from={ITEM_START.repeating}
-        icon={<StudentsGroupIcon />}
-        muted
-      />
-      <SubBadge
-        label={`${transferredStudents.to} منقولة إلى المدرسة`}
-        x={960 - 560}
-        y={ROW_STUDENTS_Y + 108}
-        from={ITEM_START.transferredTo}
-        icon={<StudentsGroupIcon />}
-      />
+      <Stem x={BX.classes} from={ITEM_START.classes} />
+      <BranchCard x={BX.classes} label="الفصول" value={headlineStats.classCount} from={ITEM_START.classes} icon={<ClassesGroupIcon />} accent={brand.gold} />
 
-      <Branch y={ROW_ECON_SOCIAL_Y} toX={960 + CARD_OFFSET} from={ITEM_START.economic} />
-      <Branch y={ROW_ECON_SOCIAL_Y} toX={960 - CARD_OFFSET} from={ITEM_START.social} />
-      <StatCard
-        x={960 + CARD_OFFSET}
-        y={ROW_ECON_SOCIAL_Y}
-        w={460}
-        label="الحالة الاقتصادية"
-        value={economicCasesCount}
-        from={ITEM_START.economic}
-        icon={<EconomicIcon />}
-        accent={brand.primaryDark}
-      />
-      <StatCard
-        x={960 - CARD_OFFSET}
-        y={ROW_ECON_SOCIAL_Y}
-        w={460}
-        label="الحالة الاجتماعية"
-        value={socialCasesCount}
-        from={ITEM_START.social}
-        icon={<SocialIcon />}
-        accent={brand.blue}
-      />
+      <Stem x={BX.economic} from={ITEM_START.economic} />
+      <BranchCard x={BX.economic} label="الحالة الاقتصادية" value={economicCasesCount} from={ITEM_START.economic} icon={<EconomicIcon />} accent={brand.primaryDark} />
 
-      <StatCard
-        x={960}
-        y={ROW_HEALTH_Y}
-        w={520}
-        label="الحالة الصحية"
-        value={healthCases.total}
-        from={ITEM_START.health}
-        icon={<HealthIcon />}
-        accent={brand.gold}
-      />
-      <SubBadge
-        label={`${healthCases.sugar} سكر`}
-        x={960 + 360}
-        y={ROW_HEALTH_Y + 95}
-        from={ITEM_START.sugar}
-        icon={<SugarIcon />}
-      />
-      <SubBadge
-        label={`${healthCases.epilepsy} صرع`}
-        x={960 + 180}
-        y={ROW_HEALTH_Y + 95}
-        from={ITEM_START.epilepsy}
-        icon={<EpilepsyIcon />}
-      />
-      <SubBadge
-        label={`${specialNeedsCases.gifted} موهبة`}
-        x={960}
-        y={ROW_HEALTH_Y + 95}
-        from={ITEM_START.gifted}
-        icon={<GiftedIcon />}
-      />
-      <SubBadge
-        label={`${specialNeedsCases.disability} إعاقة`}
-        x={960 - 180}
-        y={ROW_HEALTH_Y + 95}
-        from={ITEM_START.disability}
-        icon={<DisabilityIcon />}
-        muted
-      />
-      <SubBadge
-        label={`${specialNeedsCases.learningDifficulty} صعوبات تعلم`}
-        x={960 - 360}
-        y={ROW_HEALTH_Y + 95}
-        from={ITEM_START.learningDifficulty}
-        icon={<LearningDifficultyIcon />}
-        muted
-      />
+      <Stem x={BX.social} from={ITEM_START.social} />
+      <BranchCard x={BX.social} label="الحالة الاجتماعية" value={socialCasesCount} from={ITEM_START.social} icon={<SocialIcon />} accent={brand.blue} />
+
+      <Stem x={BX.health} from={ITEM_START.health} />
+      <BranchCard x={BX.health} label="الحالة الصحية" value={healthCases.total} from={ITEM_START.health} icon={<HealthIcon />} accent={brand.gold} />
+      <SubBadge label={`${healthCases.sugar} سكر`} x={BX.health} y={CHILD_START_Y} from={ITEM_START.sugar} icon={<SugarIcon />} />
+      <SubBadge label={`${healthCases.epilepsy} صرع`} x={BX.health} y={CHILD_START_Y + CHILD_STEP} from={ITEM_START.epilepsy} icon={<EpilepsyIcon />} />
+      <SubBadge label={`${specialNeedsCases.gifted} موهبة`} x={BX.health} y={CHILD_START_Y + CHILD_STEP * 2} from={ITEM_START.gifted} icon={<GiftedIcon />} />
+      <SubBadge label={`${specialNeedsCases.disability} إعاقة`} x={BX.health} y={CHILD_START_Y + CHILD_STEP * 3} from={ITEM_START.disability} icon={<DisabilityIcon />} muted />
+      <SubBadge label={`${specialNeedsCases.learningDifficulty} صعوبات تعلم`} x={BX.health} y={CHILD_START_Y + CHILD_STEP * 4} from={ITEM_START.learningDifficulty} icon={<LearningDifficultyIcon />} muted />
     </AbsoluteFill>
   );
 };
