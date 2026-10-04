@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 
 import { ImpactBands, ImpactPraise } from '../../components/ImpactShow'
 import { LockToggle } from '../../components/LockToggle'
 import { Ring } from '../../components/Ring'
 import { ShareChart } from '../../components/ShareChart'
-import { ORGANIZATION } from '../../brand'
+import { ORGANIZATION, SCHOOL_SIGNERS } from '../../brand'
 import {
   SCHOOL_SCOPE, overallDistribution, satisfactionIndex, strengthsAndGaps,
 } from '../../lib/analysis'
@@ -113,6 +113,15 @@ export function DisplayPage() {
             {ORGANIZATION.directorate}
           </p>
         </div>
+        <dl className="show__signers">
+          {SCHOOL_SIGNERS.map((s) => (
+            <Fragment key={s.name}>
+              <dt>{s.role}</dt>
+              <dd>{s.name}</dd>
+            </Fragment>
+          ))}
+        </dl>
+
         <div className="show__exit no-print"><LockToggle locked /></div>
       </header>
 
@@ -259,6 +268,8 @@ export function DisplayPage() {
 
       <footer className="show__foot">
         <span>{hijriToday()}</span>
+
+
         <span>
           المؤشر على مقياس من {num(index.scaleMin)} إلى {num(index.scaleMax)} بعد تصحيح
           اتجاه العبارات العكسية · ن = {num(index.n)} إجابة مُقيَّسة ·
