@@ -2,8 +2,9 @@
 import { describe, expect, it } from 'vitest'
 
 import { initialState } from '../data/store'
-import { attendance, nameFit, nonParticipants } from '../lib/attendance'
+import { attendance, coverage, nameFit, nonParticipants } from '../lib/attendance'
 import { participation } from '../lib/analysis'
+import { archiveStudent } from '../domain/actions'
 
 const state = initialState()
 
@@ -50,5 +51,35 @@ describe('حصر من لا أثر لها', () => {
     const { orphans } = attendance(state)
     expect(Array.isArray(orphans)).toBe(true)
     for (const o of orphans) expect(o.studentId).toBeNull()
+  })
+})
+
+describe('تغطية القياس', () => {
+  it('لا تتجاوز المئة مهما تكرّرت الأوراق', () => {
+    // «الاستجابات ÷ الطالبات» تتجاوزها حين تُرسل طالبة مرتين،
+    // والتغطية تعدّ الطالبة لا الورقة فتبقى في حدّها
+    const twice = {
+      ...state,
+      responses: [...state.responses, ...state.responses.map((r, i) => ({ ...r, id: `${r.id}-x${i}` }))],
+    }
+    expect(participation(twice, {}).receivedRate).toBeGreaterThan(100)
+    expect(coverage(twice, {}).rate).toBeLessThanOrEqual(100)
+  })
+
+  it('ولا تنتظر تأكيد المطابقة', () => {
+    // فصلٌ وصلت استجاباته ولم تُربط بعد: التغطية تراها، والنسبة
+    // المبنية على الربط المؤكَّد وحده تهبط به إلى الصفر
+    const unlinked = {
+      ...state,
+      responses: state.responses.map((r) => ({ ...r, studentId: null, classId: null })),
+    }
+    expect(coverage(unlinked, {}).traced).toBeGreaterThan(0)
+  })
+
+  it('وتُسقط المؤرشفة من البسط والمقام معًا', () => {
+    const [first] = state.students
+    const after = coverage(archiveStudent(state, first.id), {})
+    expect(after.students).toBe(coverage(state, {}).students - 1)
+    expect(after.rate).toBeGreaterThan(0)
   })
 })

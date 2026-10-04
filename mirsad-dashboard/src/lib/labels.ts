@@ -56,3 +56,16 @@ const SOURCE_NUMBERING = /^\s*\d+\s*[-_]\s*/
 export function questionText(text: string): string {
   return text.replace(SOURCE_NUMBERING, (m) => ltr(m))
 }
+
+/**
+ * يفصل ترقيم المصدر عن نصّ العبارة، بلا حذف ولا تعديل.
+ *
+ * على شاشة العرض يُقرأ السؤال من آخر القاعة، و«6-لانراعي المدرسة…»
+ * يُقرأ عبارةً مكسورة. الفصل يضع الرقم في شارة ويترك العبارة كما
+ * وردت حرفًا بحرف — فالوزارة تقرأ مصدرها لا صياغةً له.
+ */
+export function splitQuestion(text: string): { no: string | null; body: string } {
+  const match = SOURCE_NUMBERING.exec(text)
+  if (!match) return { no: null, body: text }
+  return { no: match[0].replace(/[\s_-]/g, ''), body: text.slice(match[0].length) }
+}

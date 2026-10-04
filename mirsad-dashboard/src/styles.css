@@ -89,6 +89,10 @@
   --opt-middle: #b8860b;
   --opt-none: #566573;
 
+  /* لون العلامة في الرسوم ذات السلسلة الواحدة. درجة أغمق من الفيروزي
+     الأساسي لأن #0da9a6 يبلغ ٢٫٩:١ على الأبيض — دون حدّ العلامات. */
+  --chart-mark: #0e8f8c;
+
   --shadow: 0 10px 30px rgba(21, 68, 90, 0.09);
   --shadow-lifted: 0 20px 48px rgba(21, 68, 90, 0.16);
 }
@@ -112,6 +116,7 @@
   --opt-agree: #09a066;
   --opt-middle: #b8880f;
   --opt-none: #74818b;
+  --chart-mark: #0da9a6;
 }
 
 *,
@@ -3011,7 +3016,7 @@ th {
   flex: 1;
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  grid-template-rows: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 0.85fr);
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1.32fr) minmax(0, 1.03fr);
   gap: clamp(10px, 1.2vw, 18px);
   min-height: 0;
 }
@@ -3040,6 +3045,7 @@ th {
   border-color: transparent;
   color: #eaf4f6;
   justify-content: center;
+  gap: clamp(4px, 0.6vh, 9px);
 }
 
 :root[data-theme='dark'] .show__index { background: #0c3346; border-color: var(--border); }
@@ -3051,7 +3057,7 @@ th {
   display: flex;
   align-items: baseline;
   gap: 10px;
-  font-size: clamp(56px, 11vh, 120px);
+  font-size: clamp(48px, 8.6vh, 98px);
   font-weight: 700;
   line-height: 0.92;
   color: #ffffff;
@@ -3080,7 +3086,7 @@ th {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  padding-block-start: clamp(6px, 1vh, 12px);
+  padding-block-start: clamp(4px, 0.7vh, 9px);
   border-block-start: 1px solid rgba(255, 255, 255, 0.14);
 }
 
@@ -3089,7 +3095,7 @@ th {
 
 .show__facts dd {
   margin: 0;
-  font-size: clamp(16px, 2.4vh, 26px);
+  font-size: clamp(15px, 2.1vh, 23px);
   font-weight: 700;
   color: #ffffff;
   font-variant-numeric: tabular-nums;
@@ -3111,7 +3117,8 @@ th {
   margin: 0;
   padding: 0;
   display: grid;
-  gap: clamp(4px, 0.7vh, 9px);
+  gap: clamp(3px, 0.5vh, 7px);
+  align-content: space-between;
   min-height: 0;
 }
 
@@ -3126,6 +3133,7 @@ th {
 .show__bar-name { color: var(--text-muted); }
 
 .show__bar-track {
+  position: relative;
   height: clamp(8px, 1.2vh, 14px);
   border-radius: var(--radius-pill);
   background: var(--surface-sunken);
@@ -3133,8 +3141,20 @@ th {
   overflow: hidden;
 }
 
-.show__bar { display: block; height: 100%; background: var(--opt-middle); }
-.show__bar.is-above { background: var(--moe-teal); }
+/* سلسلة واحدة بلون واحد: المقارنة تقع على الخط لا على اختلاف الألوان،
+   فلا يُصبغ أربعة صفوف من ستة بلون الإنذار وهي جميعًا فوق ٢٫٧ من ٣. */
+.show__bar { display: block; height: 100%; background: var(--chart-mark); }
+
+/* خط مؤشر المدرسة: هو ما تُقاس إليه الصفوف، ومكتوبٌ تحت اللوح */
+.show__bar-mark {
+  position: absolute;
+  inset-block: -1px;
+  width: 2px;
+  background: var(--moe-navy);
+  z-index: 1;
+}
+
+:root[data-theme='dark'] .show__bar-mark { background: #eaf4f6; }
 
 .show__bar-value {
   font-weight: 700;
@@ -3150,7 +3170,7 @@ th {
   padding: 0;
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: clamp(5px, 0.7vw, 10px);
+  gap: clamp(4px, 0.55vw, 9px);
   min-height: 0;
 }
 
@@ -3158,17 +3178,35 @@ th {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1px;
-  padding: clamp(5px, 0.8vh, 10px) 4px;
+  gap: 2px;
+  padding: clamp(4px, 0.7vh, 9px) clamp(5px, 0.5vw, 9px);
   border-radius: var(--radius-sm);
   background: var(--surface-sunken);
   border: 1px solid var(--border);
 }
 
+/* فصلٌ لم تبقَ فيه طالبة بلا صوت: يُرى من آخر القاعة بلا قراءة */
+.show__room.is-full {
+  background: var(--surface);
+  border-color: var(--chart-mark);
+  box-shadow: inset 0 2px 0 var(--chart-mark);
+}
+
+.show__room-track {
+  width: 100%;
+  height: clamp(4px, 0.6vh, 7px);
+  margin-block-start: 2px;
+  border-radius: var(--radius-pill);
+  background: var(--border);
+  overflow: hidden;
+}
+
+.show__room-fill { display: block; height: 100%; background: var(--chart-mark); }
+
 .show__room-name { font-size: clamp(9.5px, 1.2vh, 12px); color: var(--text-muted); }
 
 .show__room-value {
-  font-size: clamp(16px, 2.4vh, 26px);
+  font-size: clamp(15px, 2.2vh, 24px);
   font-weight: 700;
   line-height: 1.05;
   font-variant-numeric: tabular-nums;
@@ -3181,6 +3219,75 @@ th {
 :root[data-theme='dark'] .show__room-delta.is-above { color: var(--moe-teal); }
 
 .show__room-rate { font-size: clamp(9px, 1.1vh, 11.5px); color: var(--text-muted); }
+
+/* ───── حلقة المشاركة ───── */
+
+.show__panel--ring { align-items: center; justify-content: space-between; }
+
+.ring { position: relative; display: grid; place-items: center; flex: 1; min-height: 0; }
+
+.ring__svg {
+  display: block;
+  height: 100%;
+  max-height: clamp(104px, 19vh, 184px);
+  aspect-ratio: 1;
+}
+
+.ring__track {
+  fill: none;
+  /* أغمق من السطح الغائر: الباقي بلا صوت يجب أن يُرى حلقةً لا بياضًا */
+  stroke: var(--border);
+  stroke-width: 12;
+}
+
+.ring__value {
+  fill: none;
+  stroke: var(--chart-mark);
+  stroke-width: 12;
+  stroke-linecap: round;
+}
+
+/* الرقم في قلب الحلقة لا على حاشيتها: لا دليل ألوان يُفَكّ */
+.ring__mid {
+  position: absolute;
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  pointer-events: none;
+}
+
+.ring__mid strong {
+  font-size: clamp(17px, 2.8vh, 30px);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--moe-navy);
+  font-variant-numeric: tabular-nums;
+}
+
+:root[data-theme='dark'] .ring__mid strong { color: var(--moe-cyan-light); }
+
+.ring__mid span { font-size: clamp(9.5px, 1.2vh, 12.5px); color: var(--text-muted); }
+
+.show__note {
+  margin: 0;
+  font-size: clamp(9.5px, 1.2vh, 12.5px);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.show__h2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 10px;
+}
+
+.show__legend {
+  font-size: clamp(9px, 1.1vh, 11.5px);
+  font-weight: 400;
+  color: var(--text-muted);
+}
 
 /* ───── قوائم البنود ───── */
 
@@ -3195,13 +3302,31 @@ th {
 }
 
 .show__list li {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   font-size: clamp(10.5px, 1.35vh, 13.5px);
   line-height: 1.55;
 }
+
+/* ترقيم المصدر في شارة لا في أول العبارة: «6-لانراعي» تُقرأ مكسورة
+   على الشاشة، والنصّ يبقى كما ورد حرفًا بحرف بعد الشارة. */
+.show__no {
+  align-self: center;
+  min-width: 2.2ch;
+  padding: 1px 5px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  font-size: clamp(8.5px, 1vh, 10.5px);
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.show__item { min-width: 0; }
 
 .show__list strong { font-variant-numeric: tabular-nums; flex: none; }
 
@@ -3861,7 +3986,7 @@ th {
 
 .impact__flow {
   list-style: none;
-  margin: 0 0 22px;
+  margin: 0;
   padding: 0;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -3871,7 +3996,7 @@ th {
 .impact__flow li {
   position: relative;
   text-align: center;
-  padding: 14px 8px;
+  padding: 9px 8px;
   border-radius: 14px;
   background: var(--surface-tint);
   border: 1px solid var(--border);
@@ -3891,7 +4016,7 @@ th {
 
 .impact__flow strong {
   display: block;
-  font-size: 34px;
+  font-size: 27px;
   font-weight: 800;
   line-height: 1.1;
   color: var(--moe-navy);
@@ -3906,6 +4031,20 @@ th {
   gap: 14px;
   align-items: start;
 }
+
+/* الشواهد صفًّا واحدًا مهما بلغت: البطاقة على شاشة العرض لا تُمرَّر،
+   فكل سطرٍ يزيد يقصّ باركودًا من أسفلها فلا يُمسح ولا يُقرأ. */
+.impact__bands .band__proofs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+  gap: 7px;
+  margin: 10px 11px 0;
+}
+
+.impact__bands .proof { max-inline-size: none; padding: 9px 5px 7px; gap: 5px; }
+.impact__bands .proof__qr { width: 70px; height: 70px; }
+.impact__bands .proof__name { font-size: 10.5px; line-height: 1.45; }
+.impact__bands .proof__scan { font-size: 9px; padding: 2px 7px; }
 
 .band {
   border: 1px solid var(--border);
@@ -3941,13 +4080,13 @@ th {
 .band__state--planned { background: rgb(255 255 255 / 18%); color: #fff; }
 
 .band__voice {
-  margin: 12px 14px 0;
-  padding: 10px 13px;
+  margin: 10px 12px 0;
+  padding: 8px 11px;
   border-inline-start: 4px solid var(--moe-sand);
   border-radius: 0 10px 10px 0;
   background: var(--surface-tint);
-  font-size: 14px;
-  line-height: 1.75;
+  font-size: 13px;
+  line-height: 1.7;
   color: var(--text);
 }
 
@@ -4004,10 +4143,10 @@ th {
 
 .impact__basis {
   grid-column: 1 / -1;
-  margin: 4px 0 0;
-  font-size: 12.5px;
+  margin: 0;
+  font-size: 12px;
   color: var(--text-muted);
-  line-height: 1.8;
+  line-height: 1.7;
 }
 
 @media print {

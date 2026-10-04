@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react'
 
-import { ImpactShow } from '../../components/ImpactShow'
+import { ImpactBands, ImpactPraise } from '../../components/ImpactShow'
 import { LockToggle } from '../../components/LockToggle'
+import { Ring } from '../../components/Ring'
 import { ShareChart } from '../../components/ShareChart'
 import { ORGANIZATION } from '../../brand'
 import {
-  SCHOOL_SCOPE, overallDistribution, participation, satisfactionIndex,
-  strengthsAndGaps,
+  SCHOOL_SCOPE, overallDistribution, satisfactionIndex, strengthsAndGaps,
 } from '../../lib/analysis'
+import { coverage } from '../../lib/attendance'
+import { improvementBands } from '../../lib/bands'
 import { delta } from '../../lib/delta'
-import { avg, hijriToday, num, pct } from '../../lib/format'
-import { orderedClasses, questionText, shortClass, shortGrade } from '../../lib/labels'
+import { avg, hijriToday, num } from '../../lib/format'
+import { orderedClasses, shortClass, shortGrade, splitQuestion } from '../../lib/labels'
 import { useSystem } from '../../state/useSystem'
 
 /**
@@ -23,17 +25,34 @@ import { useSystem } from '../../state/useSystem'
  * بعد. ولا تحتاج صلاحية جديدة ولا رابطًا مفتوحًا لأحد: من يفتحها هو
  * من دخل بحساب المدرسة أصلًا.
  */
-/** شرائح العرض بالترتيب الذي تُقدَّم به على الزائر. */
-const SCREENS = ['الأرقام', 'من الرأي إلى التحسين', 'صوت طالباتنا'] as const
+/**
+ * بنودٌ في الشريحة الواحدة.
+ *
+ * أحد عشر بندًا في شاشةٍ واحدة تُقصّ البطاقات في منتصف الباركود، فلا
+ * يُمسح ولا يُقرأ ما تحته. والعرض لا يُمرَّر بالإصبع أمام لجنة:
+ * يُقسَّم شرائح تُقلَّب بالسهم كما تُقلَّب أي شريحة أخرى.
+ */
+const PER_SLIDE = 4
 
 export function DisplayPage() {
   const { state } = useSystem()
   const [screen, setScreen] = useState(0)
 
-  const part = participation(state, SCHOOL_SCOPE)
+  const bands = improvementBands(state)
+  // بلا بنود: تُطوى شرائح التحسين ولا تبقى شريحةٌ بيضاء
+  const bandSlides = Math.ceil(bands.length / PER_SLIDE)
+  const SCREENS = [
+    'الأرقام',
+    ...Array.from({ length: bandSlides }, (_, i) =>
+      bandSlides > 1 ? `التحسين ${i + 1}` : 'من الرأي إلى التحسين'),
+    'صوت طالباتنا',
+  ]
+  const last = SCREENS.length - 1
+
+  const cover = coverage(state, SCHOOL_SCOPE)
   const index = satisfactionIndex(state, SCHOOL_SCOPE)
   const overall = overallDistribution(state, SCHOOL_SCOPE)
-  const { strengths, gaps } = strengthsAndGaps(state, SCHOOL_SCOPE, 3)
+  const { strengths, gaps } = strengthsAndGaps(state, SCHOOL_SCOPE, 4)
 
   const grades = state.grades
     .filter((g) => state.classes.some((c) => c.gradeId === g.id))
@@ -44,7 +63,7 @@ export function DisplayPage() {
     id: room.id,
     name: shortClass(grade, room),
     index: satisfactionIndex(state, { classId: room.id }),
-    part: participation(state, { classId: room.id }),
+    cover: coverage(state, { classId: room.id }),
   }))
 
   // العرض على شاشة: الخروج بمفتاح Escape، والتنقّل بين الشرائح
@@ -55,7 +74,7 @@ export function DisplayPage() {
       // لوحة عربية: السهم الأيمن يتقدّم لأن القراءة من اليمين
       if (e.key === 'ArrowLeft' || e.key === ' ' || e.key === 'PageDown') {
         e.preventDefault()
-        setScreen((n) => Math.min(n + 1, SCREENS.length - 1))
+        setScreen((n) => Math.min(n + 1, last))
       }
       if (e.key === 'ArrowRight' || e.key === 'PageUp') {
         e.preventDefault()
@@ -64,10 +83,23 @@ export function DisplayPage() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [])
+  }, [last])
 
   const span = index.scaleMax - index.scaleMin || 1
   const place = (v: number) => ((v - index.scaleMin) / span) * 100
+  /** موضع مؤشر المدرسة على المسطرة: الخط الذي تُقاس إليه الصفوف. */
+  const mark = index.mean === null ? null : place(index.mean)
+
+  const item = (q: { question: { id: string; text: string }; adjustedMean: number | null }) => {
+    const { no, body } = splitQuestion(q.question.text)
+    return (
+      <li key={q.question.id}>
+        {no && <span className="show__no">{no}</span>}
+        <span className="show__item">{body}</span>
+        <strong>{avg(q.adjustedMean as number)}</strong>
+      </li>
+    )
+  }
 
   return (
     <div className="show">
@@ -98,31 +130,20 @@ export function DisplayPage() {
             </div>
           )}
           <dl className="show__facts">
-            <div><dt>طالبة في الكشوف</dt><dd>{num(part.totalStudents)}</dd></div>
-            <div><dt>استجابة واردة</dt><dd>{num(part.responsesReceived)}</dd></div>
-            <div><dt>نسبة من أجابت</dt><dd>{pct(part.receivedRate)}</dd></div>
+            <div><dt>طالبة في الكشوف</dt><dd>{num(cover.students)}</dd></div>
+            <div><dt>سُمع صوتها</dt><dd>{num(cover.traced)}</dd></div>
+            <div><dt>إجابة مُقيَّسة</dt><dd>{num(index.n)}</dd></div>
           </dl>
         </section>
 
-        <section className="show__panel">
-          <h2 className="show__h2">الصفوف</h2>
-          <ul className="show__bars">
-            {grades.map((g) => (
-              <li key={g.name}>
-                <span className="show__bar-name">{g.name}</span>
-                <span className="show__bar-track">
-                  <span
-                    className={g.index.mean !== null && index.mean !== null
-                      && g.index.mean >= index.mean ? 'show__bar is-above' : 'show__bar'}
-                    style={{ width: `${g.index.mean === null ? 0 : place(g.index.mean)}%` }}
-                  />
-                </span>
-                <span className="show__bar-value">
-                  {g.index.mean === null ? '—' : avg(g.index.mean)}
-                </span>
-              </li>
-            ))}
-          </ul>
+        <section className="show__panel show__panel--ring">
+          <h2 className="show__h2">المشاركة</h2>
+          <Ring done={cover.traced} total={cover.students} />
+          <p className="show__note">
+            {cover.students - cover.traced === 0
+              ? 'لم تبقَ طالبة واحدة بلا صوت'
+              : `بقيت ${num(cover.students - cover.traced)} طالبة`}
+          </p>
         </section>
 
         <section className="show__panel">
@@ -143,23 +164,32 @@ export function DisplayPage() {
         </section>
 
         <section className="show__panel show__panel--wide">
-          <h2 className="show__h2">الفصول</h2>
+          <h2 className="show__h2">
+            الفصول
+            <span className="show__legend">
+              المؤشر من {num(index.scaleMin)} إلى {num(index.scaleMax)} · والشريط نسبة من سُمع صوتها
+            </span>
+          </h2>
           <ol className="show__rooms">
             {rooms.map((r) => {
-              const above = r.index.mean !== null && index.mean !== null
-                && r.index.mean >= index.mean
+              const full = r.cover.students > 0 && r.cover.traced === r.cover.students
               return (
-                <li key={r.id} className="show__room">
+                <li key={r.id} className={full ? 'show__room is-full' : 'show__room'}>
                   <span className="show__room-name">{r.name}</span>
                   <strong className="show__room-value">
                     {r.index.mean === null ? '—' : avg(r.index.mean)}
                   </strong>
-                  <span className={above ? 'show__room-delta is-above' : 'show__room-delta'}>
+                  <span className={r.index.mean !== null && index.mean !== null
+                    && r.index.mean >= index.mean
+                    ? 'show__room-delta is-above' : 'show__room-delta'}>
                     {r.index.mean !== null && index.mean !== null
                       ? delta(r.index.mean, index.mean) : ''}
                   </span>
+                  <span className="show__room-track" aria-hidden="true">
+                    <span className="show__room-fill" style={{ width: `${r.cover.rate}%` }} />
+                  </span>
                   <span className="show__room-rate">
-                    {r.part.totalStudents ? pct(r.part.receivedRate) : '—'}
+                    {full ? 'كاملة ✓' : `${num(r.cover.traced)} من ${num(r.cover.students)}`}
                   </span>
                 </li>
               )
@@ -167,33 +197,52 @@ export function DisplayPage() {
           </ol>
         </section>
 
-        <section className="show__panel show__panel--half">
-          <h2 className="show__h2">أعلى البنود</h2>
-          <ol className="show__list">
-            {strengths.map((q) => (
-              <li key={q.question.id}>
-                <span>{questionText(q.question.text)}</span>
-                <strong>{avg(q.adjustedMean as number)}</strong>
+        <section className="show__panel">
+          <h2 className="show__h2">
+            الصفوف
+            <span className="show__legend">الخطّ = المدرسة</span>
+          </h2>
+          <ul className="show__bars">
+            {grades.map((g) => (
+              <li key={g.name}>
+                <span className="show__bar-name">{g.name}</span>
+                <span className="show__bar-track">
+                  {mark !== null && (
+                    <span className="show__bar-mark" style={{ insetInlineStart: `${mark}%` }} />
+                  )}
+                  <span
+                    className="show__bar"
+                    style={{ width: `${g.index.mean === null ? 0 : place(g.index.mean)}%` }}
+                  />
+                </span>
+                <span className="show__bar-value">
+                  {g.index.mean === null ? '—' : avg(g.index.mean)}
+                </span>
               </li>
             ))}
-          </ol>
+          </ul>
         </section>
 
-        <section className="show__panel show__panel--half">
+        <section className="show__panel">
+          <h2 className="show__h2">أعلى البنود</h2>
+          <ol className="show__list">{strengths.map(item)}</ol>
+        </section>
+
+        <section className="show__panel">
           <h2 className="show__h2">أولى البنود بالتحسين</h2>
-          <ol className="show__list">
-            {gaps.map((q) => (
-              <li key={q.question.id}>
-                <span>{questionText(q.question.text)}</span>
-                <strong>{avg(q.adjustedMean as number)}</strong>
-              </li>
-            ))}
-          </ol>
+          <ol className="show__list">{gaps.map(item)}</ol>
         </section>
       </div>
       )}
 
-      {screen > 0 && <ImpactShow state={state} screen={screen} />}
+      {screen > 0 && screen < last && bands.length > 0 && (
+        <ImpactBands
+          bands={bands.slice((screen - 1) * PER_SLIDE, screen * PER_SLIDE)}
+          all={bands} page={screen - 1} pages={bandSlides}
+        />
+      )}
+
+      {screen === last && <ImpactPraise state={state} bands={bands.length} />}
 
       <nav className="show__dots no-print" aria-label="شرائح العرض">
         {SCREENS.map((name, i) => (
@@ -212,7 +261,8 @@ export function DisplayPage() {
         <span>{hijriToday()}</span>
         <span>
           المؤشر على مقياس من {num(index.scaleMin)} إلى {num(index.scaleMax)} بعد تصحيح
-          اتجاه العبارات العكسية · ن = {num(index.n)} إجابة مُقيَّسة
+          اتجاه العبارات العكسية · ن = {num(index.n)} إجابة مُقيَّسة ·
+          المشاركة بالطالبة لا بالورقة
         </span>
       </footer>
     </div>

@@ -53,13 +53,23 @@ export function MatchReviewPage() {
     return t
   }, [state.responses])
 
-  /** مرشّحون إضافيون داخل الصف المعلن — للمساعدة فقط، بلا ربط تلقائي. */
+  /**
+   * مرشّحات تُعرض للمساعدة فقط، بلا ربط تلقائي.
+   *
+   * الصف المعلن أولًا لأنه أصدق قرينة. فإن لم يعطِ شيئًا بُحث في
+   * المدرسة كلها: الاستجابة الآتية من رابط الفصل تحمل الصف الذي فُتح
+   * منه الرابط لا صفّ كاتبتها، فأمٌّ تفتح رابط ابنتها الصغرى وتملؤه
+   * عن الكبرى تُسجَّل في الصف الخطأ — فتبقى الكبرى «جديدة» بلا مرشّحة
+   * وهي في الكشف باسمها كاملًا.
+   */
   function suggestCandidates(rawName: string, declaredGradeId: string | null) {
-    if (!declaredGradeId) return []
-    return state.students
-      .filter((s) => s.gradeId === declaredGradeId && s.status === 'active')
-      .filter((s) => isNameCandidate(rawName, s.name))
-      .slice(0, 6)
+    const active = state.students.filter((s) => s.status === 'active')
+    const fits = (pool: typeof active) =>
+      pool.filter((s) => isNameCandidate(rawName, s.name)).slice(0, 6)
+    const inGrade = declaredGradeId
+      ? fits(active.filter((s) => s.gradeId === declaredGradeId))
+      : []
+    return inGrade.length > 0 ? inGrade : fits(active)
   }
 
   return (

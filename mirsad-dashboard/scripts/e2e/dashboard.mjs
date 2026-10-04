@@ -193,6 +193,29 @@ try {
     && document.documentElement.scrollWidth <= window.innerWidth + 2)
   check('لوحة العرض تملأ الشاشة بلا تمرير', fits)
 
+  // الشاشة لا تُمرَّر، فما زاد عن اللوح يُقصّ صامتًا: رقمٌ ناقص أو
+  // باركودٌ مقطوع أمام لجنة. يُفحص كل لوحٍ على حدة لا الصفحة وحدها.
+  const clipped = await page.evaluate(() => [...document.querySelectorAll('.show__panel, .show__index')]
+    .filter((el) => el.scrollHeight > el.clientHeight + 2)
+    .map((el) => `${el.querySelector('.show__h2')?.textContent?.trim().slice(0, 16) ?? 'المؤشر'}`))
+  check('ولا لوح فيها مقصوص', clipped.length === 0, clipped.join(' · '))
+
+  // كل شريحة تُعرض وحدها: تُقلَّب كلها ويُفحص أن محتواها يسع شاشتها
+  const slides = await page.locator('.show__dot-btn').count()
+  const tall = []
+  for (let i = 0; i < slides; i += 1) {
+    await page.locator('.show__dot-btn').nth(i).click()
+    await page.waitForTimeout(350)
+    const over = await page.evaluate(() => {
+      const el = document.querySelector('.show__screen')
+      return el ? el.scrollHeight - el.clientHeight : 0
+    })
+    if (over > 2) tall.push(`${await page.locator('.show__dot-btn').nth(i).innerText()} +${over}px`)
+  }
+  await page.locator('.show__dot-btn').first().click()
+  await page.waitForTimeout(350)
+  check('وكل شريحة تسع شاشتها', tall.length === 0, `${slides} شرائح ${tall.join(' · ')}`)
+
   check('لا قوائم ولا أزرار تحرير في العرض',
     await page.locator('.admin-nav').count() === 0
     && await page.locator('.toolbar').count() === 0)

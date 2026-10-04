@@ -138,3 +138,33 @@ export function nonParticipants(state: SystemState, scope: Scope): Student[] {
 export function awaitingConfirmation(state: SystemState, scope: Scope): number {
   return responsesInScope(state, scope).filter((r) => !r.studentId).length
 }
+
+export interface Coverage {
+  /** طالبات النطاق النشطات. */
+  students: number
+  /** من وُجد لها أثر في القياس. */
+  traced: number
+  /** نسبة المشمولات، محصورة بين صفر ومئة بحكم تعريفها. */
+  rate: number
+}
+
+/**
+ * تغطية القياس في النطاق: كم طالبةً سُمع صوتها من كم طالبة.
+ *
+ * وهي غير «الاستجابات ÷ الطالبات»: تلك تتجاوز المئة إن أرسلت طالبة
+ * مرتين، وتهبط إلى الصفر في فصلٍ وصلت استجاباته كلها ولم يُؤكَّد
+ * ربطها بعد — وكلاهما رقمٌ يُعرض على زائر فيُكذّبه الكشف بين يديه.
+ *
+ * والعدّ هنا بالطالبة لا بالورقة: مَن لها أثرٌ تُعدّ مرة واحدة مهما
+ * تعدّدت أوراقها، ولا تنتظر التغطية قرار مطابقةٍ لم يُتَّخذ بعد.
+ */
+export function coverage(state: SystemState, scope: Scope): Coverage {
+  const { trace } = attendance(state)
+  const students = studentsInScope(state, scope)
+  const traced = students.filter((s) => trace.has(s.id)).length
+  return {
+    students: students.length,
+    traced,
+    rate: students.length ? (traced / students.length) * 100 : 0,
+  }
+}
