@@ -15,6 +15,7 @@ import {
   teacherClassification,
   teacherLicense,
   transferredStudents,
+  repeatingStudents,
 } from "../data/orgStats";
 
 /**
@@ -70,6 +71,7 @@ const ITEM_START = {
   learningDifficulty: 1774,
   transferredFrom: 1800, // إضافة صامتة بعد نهاية السرد، بدون تسجيل صوتي يغطيها بعد
   transferredTo: 1822,
+  repeating: 1844,
 } as const;
 
 // ---- Layout (1920x1080, chrome header=118 / footer=64) ----
@@ -276,6 +278,14 @@ const SubBadge: React.FC<{ label: string; x: number; y: number; from: number; ic
   );
 };
 
+/** يحوّل لون هوية (hex) إلى خلفية فاتحة جدًا لدائرة الأيقونة، بنفس أسلوب برنامج الألوان الموجود أصلاً (#eef6f2 كان تلوينًا يدويًا لـ brand.primary فقط). */
+const tint = (hex: string) => {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, 0.14)`;
+};
+
 const StatCard: React.FC<{
   x: number;
   y: number;
@@ -284,7 +294,8 @@ const StatCard: React.FC<{
   value: number;
   from: number;
   icon: React.ReactNode;
-}> = ({ x, y, w, label, value, from, icon }) => {
+  accent?: string;
+}> = ({ x, y, w, label, value, from, icon, accent = brand.primary }) => {
   const frame = useCurrentFrame();
   const local = frame - from;
   const t = interpolate(local, [0, REVEAL_DURATION], [0, 1], {
@@ -316,22 +327,46 @@ const StatCard: React.FC<{
           gap: 16,
           background: "#fbfdfc",
           border: `1.5px solid ${brand.border}`,
+          borderTop: `5px solid ${accent}`,
           borderRadius: 18,
           boxShadow: "0 10px 26px rgba(21,68,90,0.10)",
-          padding: "12px 24px",
+          padding: "11px 24px 12px",
         }}
       >
-        <div style={{ width: 66, height: 66, borderRadius: "50%", background: "#eef6f2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <div style={{ width: 66, height: 66, borderRadius: "50%", background: tint(accent), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           {icon}
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <div style={{ fontFamily, fontWeight: 700, fontSize: 34, color: brand.muted }}>{label}</div>
-          <div style={{ fontFamily, fontWeight: 900, fontSize: 60, color: brand.primary }}>
+          <div style={{ fontFamily, fontWeight: 900, fontSize: 60, color: brand.primaryDark }}>
             <CountUpNumber value={value} decimals={0} from={from} durationInFrames={COUNT_DURATION} />
           </div>
         </div>
       </div>
     </div>
+  );
+};
+
+/** خط تفرّع بسيط من العمود الفقري إلى كل بطاقة - يعطي إحساس "الهيكل التنظيمي" المتفرّع، بنفس روح الصورة المرجعية. */
+const Branch: React.FC<{ y: number; toX: number; from: number }> = ({ y, toX, from }) => {
+  const frame = useCurrentFrame();
+  const draw = interpolate(frame, [from, from + REVEAL_DURATION], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: Easing.out(Easing.cubic),
+  });
+  if (frame < from - 2) return null;
+  const midY = y + 33;
+  return (
+    <svg width={1920} height={1080} style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+      <path
+        d={`M 960 ${midY} H ${toX}`}
+        stroke={brand.border}
+        strokeWidth={3}
+        strokeDasharray={Math.abs(toX - 960)}
+        strokeDashoffset={Math.abs(toX - 960) * (1 - draw)}
+      />
+    </svg>
   );
 };
 
@@ -351,6 +386,8 @@ export const OrgStatsScene: React.FC = () => {
       <Pill label={supervisoryRoles[1]} x={960} y={ROW_ROLES_Y} from={ITEM_START.deputy} icon={<DeputyIcon />} />
       <Pill label={supervisoryRoles[2]} x={960 - 320} y={ROW_ROLES_Y} from={ITEM_START.guidance} icon={<GuidanceIcon />} />
 
+      <Branch y={ROW_TEACH_ADMIN_Y} toX={960 + CARD_OFFSET} from={ITEM_START.admins} />
+      <Branch y={ROW_TEACH_ADMIN_Y} toX={960 - CARD_OFFSET} from={ITEM_START.teachers} />
       <StatCard
         x={960 + CARD_OFFSET}
         y={ROW_TEACH_ADMIN_Y}
@@ -359,6 +396,7 @@ export const OrgStatsScene: React.FC = () => {
         value={adminsCount}
         from={ITEM_START.admins}
         icon={<AdminsIcon />}
+        accent={brand.blue}
       />
 
       <StatCard
@@ -369,6 +407,7 @@ export const OrgStatsScene: React.FC = () => {
         value={teacherLicense.total}
         from={ITEM_START.teachers}
         icon={<TeachersGroupIcon />}
+        accent={brand.primary}
       />
       <SubBadge
         label={`${teacherLicense.licensed} حاصلات على الرخصة`}
@@ -416,6 +455,8 @@ export const OrgStatsScene: React.FC = () => {
         icon={<RankBadgeIcon />}
       />
 
+      <Branch y={ROW_STUDENTS_Y} toX={960 + CARD_OFFSET} from={ITEM_START.students} />
+      <Branch y={ROW_STUDENTS_Y} toX={960 - CARD_OFFSET} from={ITEM_START.classes} />
       <StatCard
         x={960 + CARD_OFFSET}
         y={ROW_STUDENTS_Y}
@@ -424,21 +465,30 @@ export const OrgStatsScene: React.FC = () => {
         value={headlineStats.studentCount}
         from={ITEM_START.students}
         icon={<StudentsGroupIcon />}
+        accent={brand.teal}
       />
-      {/* الطالبات المنقولات من/إلى المدرسة - إضافة صامتة بصرية بجانب بطاقة "الطالبات"، تستخدم المساحة الفارغة يمين الشاشة بدل إضافة صف رأسي جديد */}
+      {/* الطالبات المنقولات من/إلى المدرسة + المعيدات (صفر) - إضافة صامتة بصرية بجانب بطاقة "الطالبات"، بنفس وزن البطاقات (لا شارة صغيرة) */}
       <SubBadge
         label={`${transferredStudents.from} منقولة من المدرسة`}
-        x={960 + CARD_OFFSET + 350}
-        y={ROW_STUDENTS_Y + 18}
+        x={960 + CARD_OFFSET + 390}
+        y={ROW_STUDENTS_Y + 14}
         from={ITEM_START.transferredFrom}
         icon={<StudentsGroupIcon />}
       />
       <SubBadge
         label={`${transferredStudents.to} منقولة إلى المدرسة`}
-        x={960 + CARD_OFFSET + 350}
-        y={ROW_STUDENTS_Y + 66}
+        x={960 + CARD_OFFSET + 390}
+        y={ROW_STUDENTS_Y + 58}
         from={ITEM_START.transferredTo}
         icon={<StudentsGroupIcon />}
+      />
+      <SubBadge
+        label={`${repeatingStudents} طالبات معيدات`}
+        x={960 + CARD_OFFSET + 390}
+        y={ROW_STUDENTS_Y + 102}
+        from={ITEM_START.repeating}
+        icon={<StudentsGroupIcon />}
+        muted
       />
       <StatCard
         x={960 - CARD_OFFSET}
@@ -448,8 +498,11 @@ export const OrgStatsScene: React.FC = () => {
         value={headlineStats.classCount}
         from={ITEM_START.classes}
         icon={<ClassesGroupIcon />}
+        accent={brand.gold}
       />
 
+      <Branch y={ROW_ECON_SOCIAL_Y} toX={960 + CARD_OFFSET} from={ITEM_START.economic} />
+      <Branch y={ROW_ECON_SOCIAL_Y} toX={960 - CARD_OFFSET} from={ITEM_START.social} />
       <StatCard
         x={960 + CARD_OFFSET}
         y={ROW_ECON_SOCIAL_Y}
@@ -458,6 +511,7 @@ export const OrgStatsScene: React.FC = () => {
         value={economicCasesCount}
         from={ITEM_START.economic}
         icon={<EconomicIcon />}
+        accent={brand.primaryDark}
       />
       <StatCard
         x={960 - CARD_OFFSET}
@@ -467,6 +521,7 @@ export const OrgStatsScene: React.FC = () => {
         value={socialCasesCount}
         from={ITEM_START.social}
         icon={<SocialIcon />}
+        accent={brand.blue}
       />
 
       <StatCard
@@ -477,6 +532,7 @@ export const OrgStatsScene: React.FC = () => {
         value={healthCases.total}
         from={ITEM_START.health}
         icon={<HealthIcon />}
+        accent={brand.gold}
       />
       <SubBadge
         label={`${healthCases.sugar} سكر`}
