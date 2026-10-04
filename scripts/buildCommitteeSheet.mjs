@@ -349,7 +349,7 @@ a{color:inherit;text-decoration:none;}
     </div>
     <div>
       <p class="sign__role">وكيلة الشؤون التعليمية</p>
-      <p class="sign__name">عهود بهويني</p>
+      <p class="sign__name">عهود باهويني</p>
       <div class="sign__line"></div>
     </div>
   </section>
