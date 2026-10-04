@@ -32,6 +32,7 @@ import {
   Users,
 } from "lucide-react";
 import { Media } from "@/injazi/ui/Media";
+import { ButterflyEntrance } from "@/injazi/components/ButterflyEntrance";
 import { ClayCard } from "@/injazi/components/ClayCard";
 import { ClayObject } from "@/injazi/components/ClayObject";
 import { EmptyState } from "@/injazi/components/EmptyState";
@@ -100,6 +101,11 @@ export function BoardView() {
 
   return (
     <motion.div className="iz-page iz-page--board" variants={pageVariants} initial="initial" animate="enter" exit="exit">
+      {/* الفراشات كانت غائبة عن اللوحة تمامًا — وهي الصفحة التي يفتحها
+          الباركود. و replay يجعلها تطير في كل فتح لا مرة في الجلسة،
+          لأن اللوحة تُفتح أمام الحضور مرارًا ويُرجَع إليها من الملفات. */}
+      <ButterflyEntrance replay />
+
       <motion.header className="iz-board-head" variants={staggerContainer}>
         <motion.span className="iz-board-seal" variants={riseItem}>
           <Eye size={15} strokeWidth={2.6} aria-hidden="true" />

@@ -163,7 +163,14 @@ function markSeen() {
   }
 }
 
-export function ButterflyEntrance() {
+/**
+ * replay: تطير في كل فتح، بلا علامة الجلسة.
+ * لوحة العرض تُفتح بالباركود أمام الناس مرةً بعد مرة، وتُفتح ثم يُرجَع
+ * إليها من ملف طالبة. فعلامة «رأيتها في هذه الجلسة» — وهي صحيحة لمن
+ * تتصفّح ملفها كل يوم — تجعل الترحيب يحدث مرة واحدة ثم لا يراه أحد من
+ * الحضور بعدها. هنا الترحيب هو المقصود نفسه، فيتكرّر.
+ */
+export function ButterflyEntrance({ replay = false }: { replay?: boolean } = {}) {
   const { reducedMotion } = useCapability();
   const [flying, setFlying] = useState(false);
 
@@ -173,10 +180,13 @@ export function ButterflyEntrance() {
   // العلامة صارت مسجَّلة) فلا يُعاد ضبطه أبدًا — وتبقى الفراشات تطير
   // إلى ما لا نهاية. ربط المؤقّت بحالة flying يجعله يُعاد ضبطه دائمًا.
   useEffect(() => {
-    if (reducedMotion || hasSeen()) return;
-    markSeen();
+    if (reducedMotion) return;
+    if (!replay) {
+      if (hasSeen()) return;
+      markSeen();
+    }
     setFlying(true);
-  }, [reducedMotion]);
+  }, [reducedMotion, replay]);
 
   useEffect(() => {
     if (!flying) return;

@@ -344,7 +344,7 @@ a{color:inherit;text-decoration:none;}
   <section class="sign">
     <div>
       <p class="sign__role">مديرة المدرسة</p>
-      <p class="sign__name">جازي السميري</p>
+      <p class="sign__name">جازية السميري</p>
       <div class="sign__line"></div>
     </div>
     <div>

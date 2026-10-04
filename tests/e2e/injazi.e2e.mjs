@@ -348,6 +348,11 @@ ok("اللوحة: صفر أداة تحرير للمشرفة", boardTools.length 
 ok("اللوحة: بطاقاتها تفتح وضع العرض", boardHref.includes("/board/student/"), boardHref);
 ok("اللوحة: ستة مؤشّرات", (await page.locator(".iz-metric").count()) === 6);
 
+/* الفراشات كانت غائبة عن اللوحة تمامًا، وهي الصفحة التي يفتحها الباركود.
+   وهي تطير في كل فتح لا مرة واحدة في الجلسة — هذه زيارة ثانية للّوحة. */
+const wings = await page.locator(".iz-butterfly__wing").count();
+ok("اللوحة: الفراشات تطير في كل فتح", wings === 10, `أجنحة: ${wings}`);
+
 // ==================== 3) ولي الأمر ====================
 await logout(page);
 await login(page, "parent1@injazi.local", "Parent#2026");
