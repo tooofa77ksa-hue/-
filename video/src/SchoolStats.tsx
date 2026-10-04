@@ -1,6 +1,7 @@
 import { AbsoluteFill, Sequence } from "remotion";
 import { fontFamily } from "./brand/tokens";
 import { FadeWrapper } from "./components/FadeWrapper";
+import { WelcomeIntroScene, WELCOME_INTRO_DURATION } from "./scenes/WelcomeIntroScene";
 import { OrgStatsScene, ORG_STATS_DURATION } from "./scenes/OrgStatsScene";
 import { StudentDistributionScene, STUDENT_DISTRIBUTION_DURATION } from "./scenes/StudentDistributionScene";
 import { TeacherDataScene, TEACHER_DATA_DURATION } from "./scenes/TeacherDataScene";
@@ -30,7 +31,8 @@ import { FacilitiesScene, FACILITIES_DURATION } from "./scenes/FacilitiesScene";
  * left untouched on disk, just unregistered here, per the project's
  * non-destructive convention.
  */
-const introFrom = 0;
+const welcomeFrom = 0;
+const introFrom = welcomeFrom + WELCOME_INTRO_DURATION;
 const distributionFrom = introFrom + ORG_STATS_DURATION;
 const teachersFrom = distributionFrom + STUDENT_DISTRIBUTION_DURATION;
 const facilitiesFrom = teachersFrom + TEACHER_DATA_DURATION;
@@ -40,6 +42,12 @@ export const schoolStatsTotalDuration = facilitiesFrom + FACILITIES_DURATION;
 export const SchoolStats: React.FC = () => {
   return (
     <AbsoluteFill style={{ fontFamily, direction: "rtl" }}>
+      <Sequence from={welcomeFrom} durationInFrames={WELCOME_INTRO_DURATION} layout="absolute-fill" name="WelcomeIntro">
+        <FadeWrapper durationInFrames={WELCOME_INTRO_DURATION} fadeFrames={30}>
+          <WelcomeIntroScene />
+        </FadeWrapper>
+      </Sequence>
+
       <Sequence from={introFrom} durationInFrames={ORG_STATS_DURATION} layout="absolute-fill" name="OrgStats">
         <FadeWrapper durationInFrames={ORG_STATS_DURATION}>
           <OrgStatsScene />

@@ -14,4 +14,12 @@ Promise.all(
   ),
 );
 
+// خط المقدمة الترحيبية (WelcomeIntroScene) فقط - أرسلته المستخدمة لهذا الغرض
+// تحديدًا، وهو خط متغيّر (variable font) فنحمّله بمدى أوزان واحد.
+loadFont({
+  family: "Baloo Bhaijaan 2",
+  url: staticFile("fonts/BalooBhaijaan2-VariableFont_wght.ttf"),
+  weight: "400 800",
+});
+
 registerRoot(RemotionRoot);
