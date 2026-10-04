@@ -8,7 +8,7 @@ import { useState } from "react";
 import { Media } from "@/injazi/ui/Media";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { LayoutDashboard, Lock, LogIn, LogOut, Menu, Shield, User, X } from "lucide-react";
 import { ClayObject } from "@/injazi/components/ClayObject";
 import { MusicPlayer } from "@/injazi/ui/MusicPlayer";
@@ -21,7 +21,21 @@ export function SiteHeader() {
   const settings = useSettings();
   const { profile } = useSession();
   const navigate = useNavigate();
+  const location = useLocation();
   const [menu, setMenu] = useState(false);
+
+  /*
+    وضع العرض — كل ما تحت /board.
+    ------------------------------------------------------------------
+    اللوحة تُعرض من جهاز صاحبة المنصة نفسها وهي مسجَّلة دخولًا كمشرفة،
+    أمام لجنة ومعلمات يتناولن الجهاز. فلو بقيت الترويسة كما هي لظهر
+    «لوحة الإدارة» و«بوابة المعلمات» و«خروج» على الشاشة، وكفت لمسة
+    واحدة بالخطأ لتفتح لوحة الإدارة أمام الجميع أو تُخرج الحساب.
+    في هذا الوضع لا يبقى إلا اسم المنصة ومشغّل الأنشودة: لا رابط إدارة،
+    ولا قائمة، ولا زر خروج. والشعار نفسه يعود إلى اللوحة لا إلى
+    الصفحة الرئيسية، فلا يخرج العرض من مساره بضغطة.
+  */
+  const presenting = location.pathname.startsWith("/board");
 
   const links = [
     { to: "/", label: "الرئيسية", icon: LayoutDashboard, show: true },
@@ -38,7 +52,7 @@ export function SiteHeader() {
 
   return (
     <header className="iz-header">
-      <Link to="/" className="iz-header__brand">
+      <Link to={presenting ? "/board" : "/"} className="iz-header__brand">
         {settings.logoUrl ? (
           <Media className="iz-header__logo" src={settings.logoUrl} alt="" loading="eager" />
         ) : (
@@ -50,6 +64,7 @@ export function SiteHeader() {
         </span>
       </Link>
 
+      {!presenting && (
       <nav className="iz-header__nav" aria-label="التنقّل الرئيسي">
         {links.map(({ to, label, icon: LinkIcon }) => (
           <NavLink key={to} to={to} end={to === "/"} className="iz-header__link">
@@ -81,18 +96,22 @@ export function SiteHeader() {
           </>
         )}
       </nav>
+      )}
 
       <div className="iz-header__side">
+        {/* مشغّل الأنشودة يبقى في وضع العرض: اللجنة تسمعها. */}
         <MusicPlayer settings={settings} />
-        <button
-          type="button"
-          className="iz-header__burger"
-          onClick={() => setMenu(true)}
-          aria-label="فتح القائمة"
-          aria-expanded={menu}
-        >
-          <Menu size={20} strokeWidth={2.5} />
-        </button>
+        {!presenting && (
+          <button
+            type="button"
+            className="iz-header__burger"
+            onClick={() => setMenu(true)}
+            aria-label="فتح القائمة"
+            aria-expanded={menu}
+          >
+            <Menu size={20} strokeWidth={2.5} />
+          </button>
+        )}
       </div>
 
       {createPortal(

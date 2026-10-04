@@ -104,6 +104,10 @@ export default function InjaziApp() {
                   تسجيل دخول عمدًا: اللجنة تمسح الباركود فترى، لا تكتب.
                   المنع نفسه في قواعد Firestore لا في هذه الصفحة. */}
               <Route path="board" element={<BoardView />} />
+              {/* ملف الطالبة من اللوحة: نفس الصفحة بلا أي أداة تحرير،
+                  حتى لو كانت الفاتحة مشرفةً مسجَّلة دخولًا — فالجهاز
+                  يتناوله أعضاء اللجنة والمعلمات أثناء العرض. */}
+              <Route path="board/student/:studentId" element={<StudentPortfolio presentation />} />
 
               <Route path="login" element={<LoginPage intent="parent" />} />
               <Route path="teacher/login" element={<LoginPage intent="teacher" />} />

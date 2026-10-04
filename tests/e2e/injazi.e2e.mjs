@@ -296,6 +296,58 @@ await page.waitForTimeout(2500);
 const afterDelete = await page.locator(".iz-admin-row").count();
 ok("حذف طالبة بنافذة تأكيد", confirmShown === 1 && afterDelete === 8, `العدد بعد الحذف: ${afterDelete}`);
 
+// ============= ٢ب) وضع العرض: مقفل حتى على المشرفة =============
+/*
+  اللوحة تُعرض من جهاز صاحبة المنصة وهي داخلة كمشرفة، ويتناول الجهازَ
+  أعضاءُ اللجنة والمعلمات. فأي زر تحرير ظاهر خطرٌ عملي: لمسة واحدة
+  تفتح محرّرًا أو تمحو عملًا. هنا يُفحص ذلك بحساب المشرفة نفسه، ومعه
+  ضابط سالب على المسار العادي — فلو لم يرَ الفحصُ أزرارَ التحرير حيث
+  يجب أن تكون، لما دلّ خلوُّ وضع العرض منها على شيء.
+*/
+await page.goto(`${BASE}/`, { waitUntil: "domcontentloaded" });
+await page.waitForSelector(".iz-student-card__cta", { timeout: 20000 });
+const presentId = (await page.locator(".iz-student-card__cta").first().getAttribute("href")).split("/student/")[1];
+
+const EDIT_RX = /إضافة|أضيفي|تعديل|حذف|حفظ|تخصيص|رفع|أرشفة/;
+async function editTools(p) {
+  return p.evaluate(
+    (re) => {
+      const rx = new RegExp(re);
+      return [...document.querySelectorAll("button, a")]
+        .filter((n) => !n.closest(".iz-header") && !n.closest(".iz-menu"))
+        .map((n) => (n.textContent || n.getAttribute("aria-label") || "").trim())
+        .filter((t) => t && rx.test(t));
+    },
+    EDIT_RX.source,
+  );
+}
+
+await page.goto(`${BASE}/student/${presentId}`, { waitUntil: "domcontentloaded" });
+await page.waitForTimeout(2500);
+const normalTools = await editTools(page);
+ok(
+  "ضابط سالب: المسار العادي يُظهر أدوات التحرير للمشرفة",
+  normalTools.length > 0,
+  `${normalTools.length}: ${normalTools.slice(0, 4).join(" · ")}`,
+);
+
+await page.goto(`${BASE}/board/student/${presentId}`, { waitUntil: "domcontentloaded" });
+await page.waitForTimeout(2500);
+const presentTools = await editTools(page);
+ok("وضع العرض: صفر أداة تحرير للمشرفة", presentTools.length === 0, presentTools.join(" · ") || "نظيف");
+
+const headerInPresent = await page.locator(".iz-header__nav a, .iz-header__nav button, .iz-header__burger").count();
+ok("وضع العرض: الترويسة بلا إدارة ولا قائمة ولا خروج", headerInPresent === 0, `عناصر: ${headerInPresent}`);
+ok("وضع العرض: مشغّل الأنشودة باقٍ", (await page.locator(".iz-header__side button").count()) > 0);
+
+await page.goto(`${BASE}/board`, { waitUntil: "domcontentloaded" });
+await page.waitForTimeout(2500);
+const boardTools = await editTools(page);
+const boardHref = await page.locator(".iz-student-card__cta").first().getAttribute("href");
+ok("اللوحة: صفر أداة تحرير للمشرفة", boardTools.length === 0, boardTools.join(" · ") || "نظيفة");
+ok("اللوحة: بطاقاتها تفتح وضع العرض", boardHref.includes("/board/student/"), boardHref);
+ok("اللوحة: ستة مؤشّرات", (await page.locator(".iz-metric").count()) === 6);
+
 // ==================== 3) ولي الأمر ====================
 await logout(page);
 await login(page, "parent1@injazi.local", "Parent#2026");

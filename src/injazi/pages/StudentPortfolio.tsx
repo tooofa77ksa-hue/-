@@ -62,7 +62,20 @@ import { themeVars } from "@/injazi/themes/themes";
 import { pageVariants, riseItem, staggerContainer } from "@/injazi/motion/motion";
 import type { Achievement, Project } from "@/injazi/types/models";
 
-export function StudentPortfolio() {
+/*
+  وضع العرض (presentation).
+  ------------------------------------------------------------------
+  الملف نفسه يُفتح من لوحة العرض على مسار /board/student/:id. الفرق
+  الوحيد أنه لا يُحرَّر مهما كان دور من يفتحه — حتى المشرفة نفسها.
+  السبب عملي: اللوحة تُعرض من جهاز صاحبة المنصة وهي مسجَّلة دخولًا،
+  ويتناول الجهازَ أعضاءُ اللجنة والمعلمات. فأي زر «تعديل» أو «حذف» أو
+  «تخصيص» ظاهر على الشاشة خطرٌ حقيقي لا نظري: لمسة واحدة تفتح محرّرًا
+  أو تمحو عملًا. هنا كل أدوات التحرير غائبة، ويبقى كل ما يُرى كما هو.
+
+  وهذا تضييق لا توسيع: من لا يملك الصلاحية أصلًا لا يكسبها بفتح هذا
+  المسار، والقرار الحقيقي يبقى في قواعد Firestore كما هو.
+*/
+export function StudentPortfolio({ presentation = false }: { presentation?: boolean } = {}) {
   const { studentId = "" } = useParams();
   const { profile } = useSession();
   const { data: student, loading, error: studentError } = useStudent(studentId);
@@ -98,7 +111,7 @@ export function StudentPortfolio() {
   });
   const [crownFor, setCrownFor] = useState<string | null>(null);
 
-  const canEdit = canEditStudent(profile, studentId);
+  const canEdit = !presentation && canEditStudent(profile, studentId);
   // الأرشيف مخفي افتراضيًا: المؤرشف ليس محذوفًا لكنه ليس معروضًا.
   const [showArchive, setShowArchive] = useState(false);
   const activeSubjects = useMemo(() => subjects.filter((subject) => !subject.archived), [subjects]);
@@ -187,9 +200,9 @@ export function StudentPortfolio() {
           الصوتي، فلا تحجب رفعًا ولا تمريرًا ولا زرًّا. */}
       <ButterflyEntrance />
 
-      <Link to="/" className="iz-back">
+      <Link to={presentation ? "/board" : "/"} className="iz-back">
         <ArrowRight size={18} strokeWidth={2.6} aria-hidden="true" />
-        كل الطالبات
+        {presentation ? "لوحة العرض" : "كل الطالبات"}
       </Link>
 
       {readError && <Notice tone="danger">{readError}</Notice>}

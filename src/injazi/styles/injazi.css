@@ -2960,6 +2960,62 @@
 
 /* ==================== لوحة العرض ==================== */
 
+/*
+  اللوحة تُعرض على جهاز لوحي أو شاشة قاعة، لا على شاشة قراءة.
+  ------------------------------------------------------------------
+  عرض القراءة المريح (1120px) صحيح لصفحة يقرؤها شخص واحد على مكتبه،
+  لكنه على شاشة عرض 1920 أو 2560 يترك ثلثي الشاشة فارغين ويُبقي
+  البطاقات صغيرة لا يُقرأ اسمها من آخر القاعة. هنا تتّسع الصفحة
+  وتكبر البطاقات مع اتّساع الشاشة — ولا يمسّ هذا أي صفحة أخرى، فكل
+  القواعد مقيَّدة بـ .iz-page--board.
+*/
+@media (min-width: 1280px) {
+  .iz-page--board {
+    max-width: 1240px;
+  }
+  .iz-page--board .iz-gallery__grid {
+    grid-template-columns: repeat(auto-fill, minmax(262px, 1fr));
+  }
+}
+
+@media (min-width: 1600px) {
+  .iz-page--board {
+    max-width: 1520px;
+  }
+  .iz-page--board .iz-gallery__grid {
+    grid-template-columns: repeat(auto-fill, minmax(292px, 1fr));
+  }
+  .iz-page--board .iz-board-title {
+    font-size: clamp(42px, 3.4vw, 58px);
+  }
+  .iz-page--board .iz-board-sub,
+  .iz-page--board .iz-board-tagline {
+    font-size: 17px;
+  }
+  .iz-page--board .iz-metric__value {
+    font-size: 34px;
+  }
+}
+
+@media (min-width: 2000px) {
+  .iz-page--board {
+    max-width: 1820px;
+  }
+  .iz-page--board .iz-gallery__grid {
+    grid-template-columns: repeat(auto-fill, minmax(322px, 1fr));
+  }
+}
+
+/*
+  ملف الطالبة لا يتّسع مع اللوحة — جُرّب فرُفض.
+  ------------------------------------------------------------------
+  شبكة المشاريع auto-fill بأعمدة ثابتة العرض: حين وُسِّعت الصفحة إلى
+  1360px بقيت مشاريع المادة الواحدة (اثنان غالبًا) ملتصقةً بجهة واحدة
+  ونصف السطر فارغًا — تفكّكٌ ظاهر على شاشة القاعة. وتحويل الشبكة إلى
+  auto-fit كان سيمدّد مشروعًا واحدًا على عرض الصفحة كلها، وهو أسوأ.
+  فيبقى الملف بعرضه المجرَّب، وتتّسع اللوحة وحدها.
+*/
+
 .iz-board-head {
   display: grid;
   justify-items: center;

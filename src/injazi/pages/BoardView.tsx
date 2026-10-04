@@ -99,7 +99,7 @@ export function BoardView() {
   const latest = useMemo(() => evaluations.slice(0, LATEST_EVALUATIONS), [evaluations]);
 
   return (
-    <motion.div className="iz-page" variants={pageVariants} initial="initial" animate="enter" exit="exit">
+    <motion.div className="iz-page iz-page--board" variants={pageVariants} initial="initial" animate="enter" exit="exit">
       <motion.header className="iz-board-head" variants={staggerContainer}>
         <motion.span className="iz-board-seal" variants={riseItem}>
           <Eye size={15} strokeWidth={2.6} aria-hidden="true" />
@@ -146,7 +146,12 @@ export function BoardView() {
         ) : (
           <div className="iz-gallery__grid">
             {activeStudents.map((student) => (
-              <StudentCard key={student.id} student={student} crowns={crownsByStudent[student.id] ?? 0} />
+              <StudentCard
+                key={student.id}
+                student={student}
+                crowns={crownsByStudent[student.id] ?? 0}
+                basePath="/board/student"
+              />
             ))}
           </div>
         )}

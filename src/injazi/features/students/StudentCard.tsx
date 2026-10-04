@@ -16,7 +16,17 @@ import { DUR, EASE_CLAY, EASE_POP, popItem } from "@/injazi/motion/motion";
 import { themeById, themeVars } from "@/injazi/themes/themes";
 import type { Student } from "@/injazi/types/models";
 
-export function StudentCard({ student, crowns = 0 }: { student: Student; crowns?: number }) {
+export function StudentCard({
+  student,
+  crowns = 0,
+  /* لوحة العرض تمرّر مسارها هي (/board/student/:id) فيُفتح الملف في
+     وضع العرض بلا أدوات تحرير — ولا تُترك البطاقة تقرّر ذلك بنفسها. */
+  basePath = "/student",
+}: {
+  student: Student;
+  crowns?: number;
+  basePath?: string;
+}) {
   const theme = themeById(student.themeId);
   const style = themeVars(student.themeId, student.accentColor) as CSSProperties;
 
@@ -84,7 +94,7 @@ export function StudentCard({ student, crowns = 0 }: { student: Student; crowns?
           </span>
         )}
 
-        <Link className="iz-student-card__cta" to={`/student/${student.id}`}>
+        <Link className="iz-student-card__cta" to={`${basePath}/${student.id}`}>
           عرض الملف
           <ArrowLeft size={17} strokeWidth={2.6} aria-hidden="true" />
         </Link>
