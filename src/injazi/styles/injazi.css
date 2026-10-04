@@ -1387,6 +1387,12 @@
   grid-template-columns: repeat(4, 1fr);
 }
 
+/* ستة مؤشرات — لوحة العرض. تنزل إلى عمودين على الجوال عبر استعلامات
+   الوسائط أدناه، وهي بعد هذا السطر فتغلبه. */
+.iz-summary--6 {
+  grid-template-columns: repeat(6, 1fr);
+}
+
 .iz-metric {
   display: flex;
   flex-direction: column;
@@ -2952,6 +2958,134 @@
   --iz-tone-wash: rgba(246, 185, 59, 0.2);
 }
 
+/* ==================== لوحة العرض ==================== */
+
+.iz-board-head {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  margin-block-end: var(--iz-s-6);
+  text-align: center;
+}
+
+.iz-board-seal {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border: 1px solid var(--iz-line);
+  border-radius: 999px;
+  background: var(--iz-surface);
+  color: var(--iz-ink-soft);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.iz-board-title {
+  margin: 4px 0 0;
+  font-family: var(--iz-font-display);
+  font-size: clamp(30px, 6vw, 46px);
+  line-height: 1.25;
+  color: var(--iz-ink);
+}
+
+.iz-board-sub {
+  margin: 0;
+  font-size: 14.5px;
+  color: var(--iz-ink-soft);
+}
+
+.iz-board-tagline {
+  margin: 0;
+  font-size: 15px;
+  color: var(--iz-accent);
+  font-weight: 700;
+}
+
+.iz-board-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 62ch;
+  margin: var(--iz-s-3) 0 0;
+  padding: var(--iz-s-3) var(--iz-s-4);
+  border-radius: var(--iz-r-sm);
+  background: var(--iz-surface);
+  font-size: 13.5px;
+  line-height: 1.8;
+  color: var(--iz-ink-muted);
+  text-align: start;
+}
+
+.iz-board-note svg {
+  flex: 0 0 auto;
+}
+
+.iz-board-teachers {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: var(--iz-s-3);
+}
+
+.iz-board-teacher {
+  display: flex;
+  align-items: center;
+  gap: var(--iz-s-3);
+}
+
+.iz-board-teacher__avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--iz-tone-wash, rgba(195, 174, 245, 0.22));
+  font-family: var(--iz-font-display);
+  font-size: 19px;
+  color: var(--iz-ink);
+}
+
+.iz-board-teacher__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.iz-board-teacher__body {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.iz-board-teacher__name {
+  font-family: var(--iz-font-display);
+  font-size: 16px;
+}
+
+.iz-board-teacher__count {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--iz-surface);
+  color: var(--iz-ink-soft);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.iz-board-foot {
+  margin: var(--iz-s-6) 0 0;
+  text-align: center;
+  font-size: 14px;
+  color: var(--iz-ink-soft);
+}
+
 /* ==================== التركيز ==================== */
 
 .injazi :focus-visible,
@@ -2998,6 +3132,14 @@
   .iz-summary,
   .iz-summary--4 {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .iz-summary--6 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .iz-board-teachers {
+    grid-template-columns: 1fr;
   }
 
   .iz-admin-row {

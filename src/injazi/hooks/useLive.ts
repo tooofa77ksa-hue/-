@@ -11,8 +11,10 @@ import {
   liveAchievements,
   liveActivity,
   liveDoc,
+  liveEvaluations,
   liveEvaluationsByStudent,
   liveInvites,
+  livePublicProjects,
   liveProjectsByStudent,
   liveProjectsBySubjects,
   liveSettings,
@@ -154,6 +156,11 @@ export const useInvites = () => useLiveList<TeacherInvite>(liveInvites);
 /** للمشرفة وحدها كذلك: لا تعداد لروابط الطالبات لأي دور آخر. */
 export const useStudentLinks = () => useLiveList<StudentLink>(liveStudentLinks);
 export const useActivity = () => useLiveList<ActivityLog>(liveActivity);
+
+/* لوحة العرض وحدها تحتاج الصورة كاملة: كل المشاريع المعلنة وكل
+   التقييمات. لا تستعملها صفحة أخرى — ملف الطالبة يقرأ مشاريعها هي. */
+export const usePublicProjects = () => useLiveList<Project>(livePublicProjects);
+export const useEvaluations = () => useLiveList<Evaluation>(liveEvaluations);
 
 /*
   الوسيط الثاني (onError) كان يُهمَل في هذه الأربعة وحدها — وهي بالذات

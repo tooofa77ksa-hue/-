@@ -18,6 +18,7 @@ import { ConfigGate } from "@/injazi/app/ConfigGate";
 import { RequireRole } from "@/injazi/app/RequireRole";
 import { LoginPage } from "@/injazi/pages/LoginPage";
 import { PublicHome } from "@/injazi/pages/PublicHome";
+import { BoardView } from "@/injazi/pages/BoardView";
 import { StudentPortfolio } from "@/injazi/pages/StudentPortfolio";
 import { TeacherInvite } from "@/injazi/pages/TeacherInvite";
 import { StudentLinkEntry } from "@/injazi/pages/StudentLinkEntry";
@@ -98,6 +99,11 @@ export default function InjaziApp() {
             <Routes location={location} key={location.pathname}>
               <Route index element={<PublicHome />} />
               <Route path="student/:studentId" element={<StudentPortfolio />} />
+
+              {/* لوحة العرض — رابط الباركود. مشاهدة فقط، ومفتوحة بلا
+                  تسجيل دخول عمدًا: اللجنة تمسح الباركود فترى، لا تكتب.
+                  المنع نفسه في قواعد Firestore لا في هذه الصفحة. */}
+              <Route path="board" element={<BoardView />} />
 
               <Route path="login" element={<LoginPage intent="parent" />} />
               <Route path="teacher/login" element={<LoginPage intent="teacher" />} />

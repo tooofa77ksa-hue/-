@@ -375,6 +375,30 @@ export function liveProjectsBySubjects(
   );
 }
 
+/**
+ * كل المشاريع المعلنة — تقرأها لوحة العرض وحدها.
+ *
+ * قيد `visibility == 'public'` ليس زينة ولا ترشيحًا تجميليًا: قاعدة
+ * القراءة تُقيَّم على كل مستند يعيده الاستعلام، فلو جعلت طالبةٌ واحدة
+ * مشروعًا واحدًا «خاصًّا» لسقط الاستعلام كلّه بـ permission-denied أمام
+ * زائر بلا حساب — وتصبح اللوحة فارغة أمام اللجنة بلا سبب ظاهر. بالقيد
+ * يطابق المطلوبُ المسموحَ تمامًا، فلا تنكسر اللوحة مهما تغيّرت خصوصية
+ * أي مشروع لاحقًا.
+ */
+export function livePublicProjects(onData: (rows: Project[]) => void, onError?: (e: Error) => void) {
+  return liveCollection<Project>(
+    COL.projects,
+    [where("visibility", "==", "public")],
+    (rows) =>
+      onData(
+        rows
+          .filter((row) => !row.archived)
+          .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+      ),
+    onError,
+  );
+}
+
 export async function createProject(input: Partial<Project> & { studentId: string; subjectId: string; title: string }) {
   assertReady();
   return create<Omit<Project, "id" | "createdAt" | "updatedAt">>(COL.projects, {
@@ -429,6 +453,19 @@ export function liveEvaluationsByStudent(
     COL.evaluations,
     [where("studentId", "==", studentId)],
     onData,
+    onError,
+  );
+}
+
+/**
+ * كل التقييمات — للوحة العرض. قراءة التقييم عامة أصلًا لأنه يظهر في ملف
+ * الطالبة المفتوح، فلا يكشف هذا التعداد شيئًا لم يكن مكشوفًا.
+ */
+export function liveEvaluations(onData: (rows: Evaluation[]) => void, onError?: (e: Error) => void) {
+  return liveCollection<Evaluation>(
+    COL.evaluations,
+    [],
+    (rows) => onData([...rows].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))),
     onError,
   );
 }

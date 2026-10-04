@@ -11,7 +11,7 @@
   التشغيل:
     IZ_RULES_FILE=firestore.injazi.rules npx vitest run tests/rules/injazi.attack.test.ts
 */
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, it } from "vitest";
 import { readFileSync } from "node:fs";
 import {
   assertFails,
@@ -89,7 +89,6 @@ const anon = () => env.unauthenticatedContext().firestore();
 const signedNoProfile = () => env.authenticatedContext("ghost-uid").firestore();
 const admin = () => env.authenticatedContext("admin-uid").firestore();
 const teacherA = () => env.authenticatedContext("teacherA-uid").firestore();
-const teacherB = () => env.authenticatedContext("teacherB-uid").firestore();
 const parent1 = () => env.authenticatedContext("parent1-uid").firestore();
 
 /* ==================================================================
