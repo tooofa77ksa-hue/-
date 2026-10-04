@@ -2,6 +2,7 @@ import { AbsoluteFill, Sequence } from "remotion";
 import { fontFamily } from "./brand/tokens";
 import { FadeWrapper } from "./components/FadeWrapper";
 import { OrgStatsScene, ORG_STATS_DURATION } from "./scenes/OrgStatsScene";
+import { TransferredStudentsScene, TRANSFERRED_STUDENTS_DURATION } from "./scenes/TransferredStudentsScene";
 import { StudentDistributionScene, STUDENT_DISTRIBUTION_DURATION } from "./scenes/StudentDistributionScene";
 import { TeacherDataScene, TEACHER_DATA_DURATION } from "./scenes/TeacherDataScene";
 import { FacilitiesScene, FACILITIES_DURATION } from "./scenes/FacilitiesScene";
@@ -31,7 +32,8 @@ import { FacilitiesScene, FACILITIES_DURATION } from "./scenes/FacilitiesScene";
  * non-destructive convention.
  */
 const introFrom = 0;
-const distributionFrom = introFrom + ORG_STATS_DURATION;
+const transferredFrom = introFrom + ORG_STATS_DURATION;
+const distributionFrom = transferredFrom + TRANSFERRED_STUDENTS_DURATION;
 const teachersFrom = distributionFrom + STUDENT_DISTRIBUTION_DURATION;
 const facilitiesFrom = teachersFrom + TEACHER_DATA_DURATION;
 
@@ -43,6 +45,12 @@ export const SchoolStats: React.FC = () => {
       <Sequence from={introFrom} durationInFrames={ORG_STATS_DURATION} layout="absolute-fill" name="OrgStats">
         <FadeWrapper durationInFrames={ORG_STATS_DURATION}>
           <OrgStatsScene />
+        </FadeWrapper>
+      </Sequence>
+
+      <Sequence from={transferredFrom} durationInFrames={TRANSFERRED_STUDENTS_DURATION} layout="absolute-fill" name="TransferredStudents">
+        <FadeWrapper durationInFrames={TRANSFERRED_STUDENTS_DURATION}>
+          <TransferredStudentsScene />
         </FadeWrapper>
       </Sequence>
 

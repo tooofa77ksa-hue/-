@@ -14,22 +14,15 @@ import {
   supervisoryRoles,
   teacherClassification,
   teacherLicense,
-  transferredStudents,
-  repeatingStudents,
 } from "../data/orgStats";
 
 /**
  * "الخريطة التنظيمية والإحصائية" - أول مشهد في هذا الفيديو (يحل محل
- * StatsIntroScene). عمود فقري واحد يمتد تدريجيًا طوال المشهد (نفس أسلوب
- * FacilitiesScene)، وست مجموعات من البطاقات تتعاقب عليه بدل التراكم: كل
- * مجموعة توصل بخطوط تفرّع من العمود الفقري، تبقى ظاهرة خلال وقتها، ثم
- * تتلاشى (Group component) بالضبط مع بداية المجموعة التالية - عنوان
- * المشهد العلوي (GroupTitle) يتغيّر مع كل مجموعة. التسلسل: الهيئة
- * الإشرافية (ثابتة طول المشهد، فوق المجموعات المتعاقبة) ← المعلمات
- * والإداريات ← الطالبات والفصول ← الاقتصادية والاجتماعية ← الصحية ← شاشة
- * أخيرة مستقلة للطالبات المنقولات من/إلى المدرسة. التغيير جاء بعد ملاحظة
- * صريحة من المستخدمة أن تراكم كل البطاقات معًا "يتكدّس" ويصعب قراءته على
- * شاشة عرض كبيرة.
+ * StatsIntroScene). خريطة واحدة متراكمة (نفس أسلوب FacilitiesScene: عمود
+ * فقري يمتد تدريجيًا وبطاقات تتوالى بالظهور وتبقى على الشاشة)، مقسّمة إلى
+ * 5 مجموعات مترابطة كما طلب المستخدم بالضبط: الهيئة الإشرافية، ثم
+ * المعلمات+الإداريات، ثم الطالبات+الفصول، ثم الاقتصادية+الاجتماعية، ثم
+ * الصحية+السكر+الصرع.
  *
  * التوقيت: مبني بالكامل على التسجيل الصوتي الحقيقي الثاني
  * (public/audio/school-stats/org-stats-line.mp3، صوت "Layla"، 59.35 ثانية)
@@ -46,12 +39,10 @@ const REVEAL_DURATION = 18; // ~0.6s icon->label->count entrance
 const COUNT_DURATION = 20; // ~0.67s count-up
 const AUDIO_SRC = "audio/school-stats/org-stats-line.mp3";
 
-// آخر عنصر مَنطوق (learningDifficulty=1774) + مهلة هدوء، ثم مجموعة أخيرة
-// مخصصة (بدون تسجيل صوتي بعد) لرقمي الطالبات المنقولات من/إلى المدرسة +
-// المعيدات، بشاشة كاملة خاصة بها بدل ما تزاحم "الطالبات" في وقتها الضيق.
-export const ORG_STATS_DURATION = 1970;
-
-const GROUP_EXIT_DURATION = 22;
+// آخر عنصر مَنطوق (learningDifficulty=1774) + مهلة هدوء قصيرة قبل الانتقال.
+// الطالبات المنقولات من/إلى المدرسة لها مشهدها المستقل الخاص الآن
+// (TransferredStudentsScene) بدل إضافتها هنا - راجع ذلك الملف.
+export const ORG_STATS_DURATION = 1812;
 
 const ITEM_START = {
   groupTitle: 81,
@@ -76,18 +67,7 @@ const ITEM_START = {
   gifted: 1550,
   disability: 1686,
   learningDifficulty: 1774,
-  transferredFrom: 1834, // مجموعة أخيرة مستقلة بعد اختفاء "الحالة الصحية" - بدون تسجيل صوتي يغطيها بعد
-  transferredTo: 1872,
-  repeating: 1902,
 } as const;
-
-// بداية كل مجموعة (= فيها نهاية المجموعة السابقة، تتلاشى وتختفي مع دخول التالية)
-const GROUP2_START = ITEM_START.admins; // المعلمات + الإداريات
-const GROUP3_START = ITEM_START.students; // الطالبات + الفصول
-const GROUP4_START = ITEM_START.economic; // الحالة الاقتصادية + الاجتماعية
-const GROUP5_START = ITEM_START.health; // الحالة الصحية
-const GROUP5_EXIT = 1812; // بعد استقرار آخر عنصر فيها (صعوبات تعلم) بمهلة هدوء قصيرة
-const GROUP6_START = ITEM_START.transferredFrom; // الطالبات المنقولات (مجموعة أخيرة مستقلة)
 
 // ---- Layout (1920x1080, chrome header=118 / footer=64) ----
 // العرض وُسِّع أكثر (جولة ثانية) بناءً على طلب المستخدمة الصريح مع صورة
@@ -163,20 +143,9 @@ const LearningDifficultyIcon = () => (
   <svg width={22} height={22} viewBox="0 0 48 48" fill="none" stroke={brand.muted} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"><path d="M8 14h24v26H8zM32 20h8v20h-8z" /><path d="M14 22h12M14 28h12M14 34h8" /></svg>
 );
 
-/** عنوان المجموعة الحالية - يتغيّر مع كل مجموعة بدل نص ثابت لا يطابق المحتوى بعد أول مجموعة. */
-const GROUP_TITLES: { from: number; text: string }[] = [
-  { from: ITEM_START.groupTitle, text: "الهيئة الإشرافية" },
-  { from: GROUP2_START, text: "الكادر التعليمي والإداري" },
-  { from: GROUP3_START, text: "الطالبات والفصول" },
-  { from: GROUP4_START, text: "الحالة الاقتصادية والاجتماعية" },
-  { from: GROUP5_START, text: "الحالة الصحية" },
-  { from: GROUP6_START, text: "الطالبات المنقولات" },
-];
-
 const GroupTitle: React.FC = () => {
   const frame = useCurrentFrame();
-  const current = [...GROUP_TITLES].reverse().find((g) => frame >= g.from) ?? GROUP_TITLES[0];
-  const t = interpolate(frame, [current.from, current.from + 14], [0, 1], {
+  const t = interpolate(frame, [ITEM_START.groupTitle, ITEM_START.groupTitle + 14], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
@@ -195,23 +164,9 @@ const GroupTitle: React.FC = () => {
         opacity: t,
       }}
     >
-      {current.text}
+      الهيئة الإشرافية
     </div>
   );
-};
-
-/** يلفّ مجموعة بطاقات كاملة؛ تتلاشى بهدوء مع بداية المجموعة التالية بدل ما تبقى متراكمة على الشاشة للأبد. */
-const Group: React.FC<{ exitFrom?: number; children: React.ReactNode }> = ({ exitFrom, children }) => {
-  const frame = useCurrentFrame();
-  const opacity = exitFrom
-    ? interpolate(frame, [exitFrom, exitFrom + GROUP_EXIT_DURATION], [1, 0], {
-        extrapolateLeft: "clamp",
-        extrapolateRight: "clamp",
-        easing: Easing.in(Easing.cubic),
-      })
-    : 1;
-  if (opacity <= 0) return null;
-  return <div style={{ position: "absolute", inset: 0, opacity }}>{children}</div>;
 };
 
 /** Central spine, growing continuously with overall scene progress. */
@@ -426,210 +381,168 @@ export const OrgStatsScene: React.FC = () => {
       <Pill label={supervisoryRoles[1]} x={960} y={ROW_ROLES_Y} from={ITEM_START.deputy} icon={<DeputyIcon />} />
       <Pill label={supervisoryRoles[2]} x={960 - 320} y={ROW_ROLES_Y} from={ITEM_START.guidance} icon={<GuidanceIcon />} />
 
-      <Group exitFrom={GROUP3_START}>
-        <Branch y={ROW_TEACH_ADMIN_Y} toX={960 + CARD_OFFSET} from={ITEM_START.admins} />
-        <Branch y={ROW_TEACH_ADMIN_Y} toX={960 - CARD_OFFSET} from={ITEM_START.teachers} />
-        <StatCard
-          x={960 + CARD_OFFSET}
-          y={ROW_TEACH_ADMIN_Y}
-          w={460}
-          label="الإداريات"
-          value={adminsCount}
-          from={ITEM_START.admins}
-          icon={<AdminsIcon />}
-          accent={brand.blue}
-        />
+      <Branch y={ROW_TEACH_ADMIN_Y} toX={960 + CARD_OFFSET} from={ITEM_START.admins} />
+      <Branch y={ROW_TEACH_ADMIN_Y} toX={960 - CARD_OFFSET} from={ITEM_START.teachers} />
+      <StatCard
+        x={960 + CARD_OFFSET}
+        y={ROW_TEACH_ADMIN_Y}
+        w={460}
+        label="الإداريات"
+        value={adminsCount}
+        from={ITEM_START.admins}
+        icon={<AdminsIcon />}
+        accent={brand.blue}
+      />
 
-        <StatCard
-          x={960 - CARD_OFFSET}
-          y={ROW_TEACH_ADMIN_Y}
-          w={520}
-          label="المعلمات"
-          value={teacherLicense.total}
-          from={ITEM_START.teachers}
-          icon={<TeachersGroupIcon />}
-          accent={brand.primary}
-        />
-        <SubBadge
-          label={`${teacherLicense.licensed} حاصلات على الرخصة`}
-          x={960 - CARD_OFFSET}
-          y={ROW_TEACH_ADMIN_Y + 108}
-          from={ITEM_START.licensed}
-          icon={<LicenseIcon />}
-        />
-        <SubBadge
-          label={`${teacherLicense.notLicensed} بدون رخصة`}
-          x={960 - CARD_OFFSET}
-          y={ROW_TEACH_ADMIN_Y + 152}
-          from={ITEM_START.notLicensed}
-          icon={<NoLicenseIcon />}
-          muted
-        />
+      <StatCard
+        x={960 - CARD_OFFSET}
+        y={ROW_TEACH_ADMIN_Y}
+        w={520}
+        label="المعلمات"
+        value={teacherLicense.total}
+        from={ITEM_START.teachers}
+        icon={<TeachersGroupIcon />}
+        accent={brand.primary}
+      />
+      <SubBadge
+        label={`${teacherLicense.licensed} حاصلات على الرخصة`}
+        x={960 - CARD_OFFSET}
+        y={ROW_TEACH_ADMIN_Y + 108}
+        from={ITEM_START.licensed}
+        icon={<LicenseIcon />}
+      />
+      <SubBadge
+        label={`${teacherLicense.notLicensed} بدون رخصة`}
+        x={960 - CARD_OFFSET}
+        y={ROW_TEACH_ADMIN_Y + 152}
+        from={ITEM_START.notLicensed}
+        icon={<NoLicenseIcon />}
+        muted
+      />
 
-        {/* تصنيف المعلمات - شبكة 2×2 مباشرة تحت شارتي الرخصة، ضمن نفس عمود بطاقة "المعلمات" */}
-        <SubBadge
-          label={`معلم خبير: ${teacherClassification.expert}`}
-          x={960 - CARD_OFFSET + 150}
-          y={ROW_TEACH_ADMIN_Y + 205}
-          from={ITEM_START.classExpert}
-          icon={<RankBadgeIcon />}
-        />
-        <SubBadge
-          label={`معلم متقدم: ${teacherClassification.advanced}`}
-          x={960 - CARD_OFFSET - 150}
-          y={ROW_TEACH_ADMIN_Y + 205}
-          from={ITEM_START.classAdvanced}
-          icon={<RankBadgeIcon />}
-        />
-        <SubBadge
-          label={`معلم ممارس: ${teacherClassification.practitioner}`}
-          x={960 - CARD_OFFSET + 150}
-          y={ROW_TEACH_ADMIN_Y + 255}
-          from={ITEM_START.classPractitioner}
-          icon={<RankBadgeIcon />}
-        />
-        <SubBadge
-          label={`مساعد معلم: ${teacherClassification.assistant}`}
-          x={960 - CARD_OFFSET - 150}
-          y={ROW_TEACH_ADMIN_Y + 255}
-          from={ITEM_START.classAssistant}
-          icon={<RankBadgeIcon />}
-        />
-      </Group>
+      {/* تصنيف المعلمات - شبكة 2×2 مباشرة تحت شارتي الرخصة، ضمن نفس عمود بطاقة "المعلمات" */}
+      <SubBadge
+        label={`معلم خبير: ${teacherClassification.expert}`}
+        x={960 - CARD_OFFSET + 150}
+        y={ROW_TEACH_ADMIN_Y + 205}
+        from={ITEM_START.classExpert}
+        icon={<RankBadgeIcon />}
+      />
+      <SubBadge
+        label={`معلم متقدم: ${teacherClassification.advanced}`}
+        x={960 - CARD_OFFSET - 150}
+        y={ROW_TEACH_ADMIN_Y + 205}
+        from={ITEM_START.classAdvanced}
+        icon={<RankBadgeIcon />}
+      />
+      <SubBadge
+        label={`معلم ممارس: ${teacherClassification.practitioner}`}
+        x={960 - CARD_OFFSET + 150}
+        y={ROW_TEACH_ADMIN_Y + 255}
+        from={ITEM_START.classPractitioner}
+        icon={<RankBadgeIcon />}
+      />
+      <SubBadge
+        label={`مساعد معلم: ${teacherClassification.assistant}`}
+        x={960 - CARD_OFFSET - 150}
+        y={ROW_TEACH_ADMIN_Y + 255}
+        from={ITEM_START.classAssistant}
+        icon={<RankBadgeIcon />}
+      />
 
-      <Group exitFrom={GROUP4_START}>
-        <Branch y={ROW_STUDENTS_Y} toX={960 + CARD_OFFSET} from={ITEM_START.students} />
-        <Branch y={ROW_STUDENTS_Y} toX={960 - CARD_OFFSET} from={ITEM_START.classes} />
-        <StatCard
-          x={960 + CARD_OFFSET}
-          y={ROW_STUDENTS_Y}
-          w={460}
-          label="الطالبات"
-          value={headlineStats.studentCount}
-          from={ITEM_START.students}
-          icon={<StudentsGroupIcon />}
-          accent={brand.teal}
-        />
-        <StatCard
-          x={960 - CARD_OFFSET}
-          y={ROW_STUDENTS_Y}
-          w={460}
-          label="الفصول"
-          value={headlineStats.classCount}
-          from={ITEM_START.classes}
-          icon={<ClassesGroupIcon />}
-          accent={brand.gold}
-        />
-      </Group>
+      <Branch y={ROW_STUDENTS_Y} toX={960 + CARD_OFFSET} from={ITEM_START.students} />
+      <Branch y={ROW_STUDENTS_Y} toX={960 - CARD_OFFSET} from={ITEM_START.classes} />
+      <StatCard
+        x={960 + CARD_OFFSET}
+        y={ROW_STUDENTS_Y}
+        w={460}
+        label="الطالبات"
+        value={headlineStats.studentCount}
+        from={ITEM_START.students}
+        icon={<StudentsGroupIcon />}
+        accent={brand.teal}
+      />
+      <StatCard
+        x={960 - CARD_OFFSET}
+        y={ROW_STUDENTS_Y}
+        w={460}
+        label="الفصول"
+        value={headlineStats.classCount}
+        from={ITEM_START.classes}
+        icon={<ClassesGroupIcon />}
+        accent={brand.gold}
+      />
 
-      <Group exitFrom={GROUP5_START}>
-        <Branch y={ROW_ECON_SOCIAL_Y} toX={960 + CARD_OFFSET} from={ITEM_START.economic} />
-        <Branch y={ROW_ECON_SOCIAL_Y} toX={960 - CARD_OFFSET} from={ITEM_START.social} />
-        <StatCard
-          x={960 + CARD_OFFSET}
-          y={ROW_ECON_SOCIAL_Y}
-          w={460}
-          label="الحالة الاقتصادية"
-          value={economicCasesCount}
-          from={ITEM_START.economic}
-          icon={<EconomicIcon />}
-          accent={brand.primaryDark}
-        />
-        <StatCard
-          x={960 - CARD_OFFSET}
-          y={ROW_ECON_SOCIAL_Y}
-          w={460}
-          label="الحالة الاجتماعية"
-          value={socialCasesCount}
-          from={ITEM_START.social}
-          icon={<SocialIcon />}
-          accent={brand.blue}
-        />
-      </Group>
+      <Branch y={ROW_ECON_SOCIAL_Y} toX={960 + CARD_OFFSET} from={ITEM_START.economic} />
+      <Branch y={ROW_ECON_SOCIAL_Y} toX={960 - CARD_OFFSET} from={ITEM_START.social} />
+      <StatCard
+        x={960 + CARD_OFFSET}
+        y={ROW_ECON_SOCIAL_Y}
+        w={460}
+        label="الحالة الاقتصادية"
+        value={economicCasesCount}
+        from={ITEM_START.economic}
+        icon={<EconomicIcon />}
+        accent={brand.primaryDark}
+      />
+      <StatCard
+        x={960 - CARD_OFFSET}
+        y={ROW_ECON_SOCIAL_Y}
+        w={460}
+        label="الحالة الاجتماعية"
+        value={socialCasesCount}
+        from={ITEM_START.social}
+        icon={<SocialIcon />}
+        accent={brand.blue}
+      />
 
-      <Group exitFrom={GROUP5_EXIT}>
-        <StatCard
-          x={960}
-          y={ROW_HEALTH_Y}
-          w={520}
-          label="الحالة الصحية"
-          value={healthCases.total}
-          from={ITEM_START.health}
-          icon={<HealthIcon />}
-          accent={brand.gold}
-        />
-        <SubBadge
-          label={`${healthCases.sugar} سكر`}
-          x={960 + 360}
-          y={ROW_HEALTH_Y + 95}
-          from={ITEM_START.sugar}
-          icon={<SugarIcon />}
-        />
-        <SubBadge
-          label={`${healthCases.epilepsy} صرع`}
-          x={960 + 180}
-          y={ROW_HEALTH_Y + 95}
-          from={ITEM_START.epilepsy}
-          icon={<EpilepsyIcon />}
-        />
-        <SubBadge
-          label={`${specialNeedsCases.gifted} موهبة`}
-          x={960}
-          y={ROW_HEALTH_Y + 95}
-          from={ITEM_START.gifted}
-          icon={<GiftedIcon />}
-        />
-        <SubBadge
-          label={`${specialNeedsCases.disability} إعاقة`}
-          x={960 - 180}
-          y={ROW_HEALTH_Y + 95}
-          from={ITEM_START.disability}
-          icon={<DisabilityIcon />}
-          muted
-        />
-        <SubBadge
-          label={`${specialNeedsCases.learningDifficulty} صعوبات تعلم`}
-          x={960 - 360}
-          y={ROW_HEALTH_Y + 95}
-          from={ITEM_START.learningDifficulty}
-          icon={<LearningDifficultyIcon />}
-          muted
-        />
-      </Group>
-
-      {/* مجموعة أخيرة مستقلة: الطالبات المنقولات من/إلى المدرسة + المعيدات - شاشة كاملة خاصة بها، واضحة وكبيرة، بعد اختفاء مجموعة الحالة الصحية */}
-      <Group>
-        <Branch y={470} toX={960 + CARD_OFFSET} from={ITEM_START.transferredFrom} />
-        <Branch y={470} toX={960 - CARD_OFFSET} from={ITEM_START.transferredTo} />
-        <StatCard
-          x={960 + CARD_OFFSET}
-          y={470}
-          w={520}
-          label="الطالبات المنقولات من المدرسة"
-          value={transferredStudents.from}
-          from={ITEM_START.transferredFrom}
-          icon={<StudentsGroupIcon />}
-          accent={brand.teal}
-        />
-        <StatCard
-          x={960 - CARD_OFFSET}
-          y={470}
-          w={520}
-          label="الطالبات المنقولات إلى المدرسة"
-          value={transferredStudents.to}
-          from={ITEM_START.transferredTo}
-          icon={<StudentsGroupIcon />}
-          accent={brand.primary}
-        />
-        <SubBadge
-          label={`${repeatingStudents} طالبات معيدات`}
-          x={960}
-          y={650}
-          from={ITEM_START.repeating}
-          icon={<StudentsGroupIcon />}
-          muted
-        />
-      </Group>
+      <StatCard
+        x={960}
+        y={ROW_HEALTH_Y}
+        w={520}
+        label="الحالة الصحية"
+        value={healthCases.total}
+        from={ITEM_START.health}
+        icon={<HealthIcon />}
+        accent={brand.gold}
+      />
+      <SubBadge
+        label={`${healthCases.sugar} سكر`}
+        x={960 + 360}
+        y={ROW_HEALTH_Y + 95}
+        from={ITEM_START.sugar}
+        icon={<SugarIcon />}
+      />
+      <SubBadge
+        label={`${healthCases.epilepsy} صرع`}
+        x={960 + 180}
+        y={ROW_HEALTH_Y + 95}
+        from={ITEM_START.epilepsy}
+        icon={<EpilepsyIcon />}
+      />
+      <SubBadge
+        label={`${specialNeedsCases.gifted} موهبة`}
+        x={960}
+        y={ROW_HEALTH_Y + 95}
+        from={ITEM_START.gifted}
+        icon={<GiftedIcon />}
+      />
+      <SubBadge
+        label={`${specialNeedsCases.disability} إعاقة`}
+        x={960 - 180}
+        y={ROW_HEALTH_Y + 95}
+        from={ITEM_START.disability}
+        icon={<DisabilityIcon />}
+        muted
+      />
+      <SubBadge
+        label={`${specialNeedsCases.learningDifficulty} صعوبات تعلم`}
+        x={960 - 360}
+        y={ROW_HEALTH_Y + 95}
+        from={ITEM_START.learningDifficulty}
+        icon={<LearningDifficultyIcon />}
+        muted
+      />
     </AbsoluteFill>
   );
 };
