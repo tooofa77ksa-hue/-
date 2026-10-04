@@ -11,8 +11,10 @@ import { Sfx } from "../components/Sfx";
  *  ١) الشعار الأبيض (public/intro/logo-white-full.png) يظهر بتلاشٍ وتكبير
  *     ناعم بسيط في منتصف الشاشة، يثبت لحظة - بدون صوت نقر متكرر.
  *  ٢) "صفحة جديدة": الشعار ينتقل بسلاسة لأعلى الشاشة ويصغر (يبقى أبيض)،
- *     ثم يظهر تحته بيت الترحيب الشعري بخط القلم (كشف تدريجي من اليمين
- *     لليسار) بخط BalooBhaijaan2، بحجم كبير وواضح لعرضه على شاشة كبيرة.
+ *     ثم يظهر تحته سطر صغير "نُرحّب بقدوم فريق التقويم الخارجي" (يسمّي
+ *     الجهة المقصودة صراحة)، يتبعه بيت الترحيب الشعري بخط القلم (كشف
+ *     تدريجي من اليمين لليسار) بخط BalooBhaijaan2، بحجم كبير وواضح لعرضه
+ *     على شاشة كبيرة.
  * خلفية كحلية داكنة مع علامة مائية باهتة جدًا من الشعار الحقيقي بألوانه
  * الأصلية (public/intro/logo-watermark-color.png) للعمق البصري الاحترافي.
  * اسم المدرسة وإدارة التعليم ثابتان أسفل يسار/يمين الشاشة الفعليين طوال
@@ -39,7 +41,10 @@ const MOVE_START = 165;
 const MOVE_DURATION = 45;
 const PAGE2_START = MOVE_START + MOVE_DURATION;
 
-const BAYT1_START = PAGE2_START + 35;
+const KICKER_START = PAGE2_START + 20;
+const KICKER_DURATION = 35;
+
+const BAYT1_START = KICKER_START + KICKER_DURATION + 20;
 const BAYT1_DURATION = 60;
 const BAYT2_START = BAYT1_START + BAYT1_DURATION + 35;
 const BAYT2_DURATION = 60;
@@ -79,13 +84,14 @@ const Logo: React.FC = () => {
   );
 };
 
-const PoemLine: React.FC<{ text: string; color: string; top: number; from: number; duration: number }> = ({
-  text,
-  color,
-  top,
-  from,
-  duration,
-}) => {
+const PoemLine: React.FC<{
+  text: string;
+  color: string;
+  top: number;
+  from: number;
+  duration: number;
+  fontSize?: number;
+}> = ({ text, color, top, from, duration, fontSize = 62 }) => {
   const frame = useCurrentFrame();
   const local = frame - from;
   if (local < -2) return null;
@@ -103,7 +109,7 @@ const PoemLine: React.FC<{ text: string; color: string; top: number; from: numbe
           whiteSpace: "nowrap",
           fontFamily: '"Baloo Bhaijaan 2"',
           fontWeight: 700,
-          fontSize: 62,
+          fontSize,
           color,
           clipPath: `inset(0 0 0 ${reveal}%)`,
         }}
@@ -141,6 +147,14 @@ export const WelcomeIntroScene: React.FC = () => {
 
       <Logo />
 
+      <PoemLine
+        text="نُرحّب بقدوم فريق التقويم الخارجي"
+        color={brand.gold}
+        top={320}
+        from={KICKER_START}
+        duration={KICKER_DURATION}
+        fontSize={32}
+      />
       <PoemLine
         text="بِكُم أزهَرَ العِلمُ في رُبوعِنا وفاحَ شَذا الخَيرِ في أرجائِنا"
         color="#ffffff"
