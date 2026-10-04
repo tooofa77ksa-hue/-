@@ -14,6 +14,8 @@ import {
   supervisoryRoles,
   teacherClassification,
   teacherLicense,
+  transferredStudents,
+  repeatingStudents,
 } from "../data/orgStats";
 
 /**
@@ -59,6 +61,9 @@ const ITEM_START = {
   classAssistant: 858,
   students: 880,
   classes: 928,
+  transferredFrom: 940, // إضافة صامتة بصرية - بدون تسجيل صوتي يغطيها بعد
+  transferredTo: 970,
+  repeating: 1000,
   economic: 1044,
   social: 1212,
   health: 1304,
@@ -80,9 +85,9 @@ const SPINE_BOTTOM = 995;
 const ROW_TITLE_Y = 150;
 const ROW_ROLES_Y = 215;
 const ROW_TEACH_ADMIN_Y = 305;
-const ROW_STUDENTS_Y = 620;
-const ROW_ECON_SOCIAL_Y = 740;
-const ROW_HEALTH_Y = 865;
+const ROW_STUDENTS_Y = 580;
+const ROW_ECON_SOCIAL_Y = 760;
+const ROW_HEALTH_Y = 880;
 
 // ---- Icons: unified single-color line icons, same visual language as FacilitiesScene ----
 const IC = brand.primary;
@@ -420,32 +425,32 @@ export const OrgStatsScene: React.FC = () => {
         muted
       />
 
-      {/* تصنيف المعلمات - شبكة 2×2 مباشرة تحت شارتي الرخصة، ضمن نفس عمود بطاقة "المعلمات" */}
+      {/* تصنيف المعلمات - صف واحد يمتد على كامل عرض الشاشة (بدل شبكة 2×2 ضيقة) - يوفّر ارتفاعًا لإضافة صف "المنقولات" تحت الطالبات بدون أي ازدحام */}
       <SubBadge
         label={`معلم خبير: ${teacherClassification.expert}`}
-        x={960 - CARD_OFFSET + 150}
+        x={960 + 480}
         y={ROW_TEACH_ADMIN_Y + 205}
         from={ITEM_START.classExpert}
         icon={<RankBadgeIcon />}
       />
       <SubBadge
         label={`معلم متقدم: ${teacherClassification.advanced}`}
-        x={960 - CARD_OFFSET - 150}
+        x={960 + 160}
         y={ROW_TEACH_ADMIN_Y + 205}
         from={ITEM_START.classAdvanced}
         icon={<RankBadgeIcon />}
       />
       <SubBadge
         label={`معلم ممارس: ${teacherClassification.practitioner}`}
-        x={960 - CARD_OFFSET + 150}
-        y={ROW_TEACH_ADMIN_Y + 255}
+        x={960 - 160}
+        y={ROW_TEACH_ADMIN_Y + 205}
         from={ITEM_START.classPractitioner}
         icon={<RankBadgeIcon />}
       />
       <SubBadge
         label={`مساعد معلم: ${teacherClassification.assistant}`}
-        x={960 - CARD_OFFSET - 150}
-        y={ROW_TEACH_ADMIN_Y + 255}
+        x={960 - 480}
+        y={ROW_TEACH_ADMIN_Y + 205}
         from={ITEM_START.classAssistant}
         icon={<RankBadgeIcon />}
       />
@@ -471,6 +476,30 @@ export const OrgStatsScene: React.FC = () => {
         from={ITEM_START.classes}
         icon={<ClassesGroupIcon />}
         accent={brand.gold}
+      />
+
+      {/* الطالبات المنقولات من/إلى المدرسة + المعيدات - صف كامل العرض تحت "الطالبات/الفصول" مباشرة، بنفس الصفحة، بدون اختفاء */}
+      <SubBadge
+        label={`${transferredStudents.from} منقولة من المدرسة`}
+        x={960 + 560}
+        y={ROW_STUDENTS_Y + 108}
+        from={ITEM_START.transferredFrom}
+        icon={<StudentsGroupIcon />}
+      />
+      <SubBadge
+        label={`${repeatingStudents} طالبات معيدات`}
+        x={960}
+        y={ROW_STUDENTS_Y + 108}
+        from={ITEM_START.repeating}
+        icon={<StudentsGroupIcon />}
+        muted
+      />
+      <SubBadge
+        label={`${transferredStudents.to} منقولة إلى المدرسة`}
+        x={960 - 560}
+        y={ROW_STUDENTS_Y + 108}
+        from={ITEM_START.transferredTo}
+        icon={<StudentsGroupIcon />}
       />
 
       <Branch y={ROW_ECON_SOCIAL_Y} toX={960 + CARD_OFFSET} from={ITEM_START.economic} />
