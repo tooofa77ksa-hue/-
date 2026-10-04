@@ -32,7 +32,7 @@ import {
   reorder,
   revokeInvite,
   saveUserDoc,
-  updateInvite,
+  syncTeacherGrants,
   updateSubject,
   updateTeacher,
 } from "@/injazi/services/repo";
@@ -207,7 +207,6 @@ export function AdminTeachers() {
         row={editor.row}
         subjects={subjects}
         users={users}
-        invites={invites}
         actorName={profile?.name ?? "مشرفة"}
         onClose={() => setEditor({ open: false, row: null })}
       />
@@ -405,7 +404,6 @@ function TeacherEditor({
   row,
   subjects,
   users,
-  invites,
   actorName,
   onClose,
 }: {
@@ -413,7 +411,6 @@ function TeacherEditor({
   row: Teacher | null;
   subjects: Subject[];
   users: UserDoc[];
-  invites: TeacherInvite[];
   actorName: string;
   onClose: () => void;
 }) {
@@ -483,16 +480,12 @@ function TeacherEditor({
         }),
       );
 
-      // ملفات صلاحيات هذه المعلمة كلها — لا الأول فقط: قد تكون فتحت
-      // رابطها على الجوال والحاسب، ولكل جهاز ملفه.
-      for (const user of users.filter((entry) => entry.teacherId === teacherId)) {
-        await saveUserDoc(user.id, { name: payload.name, subjectIds, active, teacherId });
-      }
-
-      // ورابطها كذلك: القواعد تقارن ملف الصلاحيات بالرابط عند أول فتح،
-      // فرابط بمواد قديمة يمنع جهازًا جديدًا من الدخول بمواد صحيحة.
-      const link = invites.find((entry) => entry.teacherId === teacherId);
-      if (link) await updateInvite(link.id, { teacherName: payload.name, subjectIds });
+      /*
+        ملفات الصلاحيات والروابط — وهي ما تقرؤه القواعد، لا مستند
+        المعلمة. المزامنة في دالة واحدة مشتركة مع شاشة المواد حتى لا
+        تفترق الشاشتان فتصحّح إحداهما ما تفسده الأخرى.
+      */
+      await syncTeacherGrants(teacherId, subjectIds, { name: payload.name, active });
 
       if (!account && password.length >= 6 && payload.email) {
         await createAccount(payload.email, password, payload.name, "teacher", { teacherId, subjectIds });

@@ -657,6 +657,57 @@ export const updateInvite = (code: string, data: Partial<TeacherInvite>) =>
 /** الإلغاء حذف لا تعطيل: مستند غير موجود يقطع الصلاحية بلا التباس. */
 export const revokeInvite = (code: string) => remove(COL.invites, code);
 
+/**
+ * مزامنة مواد معلمة عبر المواضع الثلاثة التي تحكم صلاحيتها.
+ * ==================================================================
+ * مستند المعلمة `teachers/{id}` هو ما تعرضه الشاشات — وليس ما تقرؤه
+ * قواعد الأمان. القواعد تقرأ `users/{uid}.subjectIds` وحده:
+ *
+ *     function izTeaches(subjectId) {
+ *       return izIsTeacher() && subjectId in izUser().get('subjectIds', []);
+ *     }
+ *
+ * فإن تغيّرت مواد معلمة في مستندها دون ملف صلاحيتها، ظهرت المادة
+ * باسمها في كل شاشة ورُفض تقييمها على الخادم — وهو عطل صامت لا تفسير
+ * له أمام المعلمة: «المادة مكتوبة أمامي ولا أستطيع التقييم».
+ *
+ * والرابط كذلك: القواعد تشترط عند أول فتح على جهاز جديد أن تطابق مواد
+ * الملف مواد الرابط حرفيًا، فرابط بمواد قديمة يمنع الدخول الصحيح.
+ *
+ * ولذلك تُقرأ الملفات والروابط هنا من قاعدة البيانات لا من قوائم
+ * الشاشة: الشاشة قد تكون محمَّلة منذ دقائق، والمزامنة الناقصة هي
+ * العطل نفسه الذي تعالجه هذه الدالة.
+ */
+export async function syncTeacherGrants(
+  teacherId: string,
+  subjectIds: string[],
+  extra: { name?: string; active?: boolean } = {},
+): Promise<void> {
+  assertReady();
+
+  // كل أجهزة المعلمة لا أولها: قد تكون فتحت رابطها على الجوال والحاسب.
+  const profiles = await getDocs(
+    query(collection(db, COL.users), where("teacherId", "==", teacherId)),
+  );
+  for (const profile of profiles.docs) {
+    await saveUserDoc(profile.id, {
+      subjectIds,
+      ...(extra.name !== undefined ? { name: extra.name } : {}),
+      ...(extra.active !== undefined ? { active: extra.active } : {}),
+    });
+  }
+
+  const links = await getDocs(
+    query(collection(db, COL.invites), where("teacherId", "==", teacherId)),
+  );
+  for (const link of links.docs) {
+    await updateInvite(link.id, {
+      subjectIds,
+      ...(extra.name !== undefined ? { teacherName: extra.name } : {}),
+    });
+  }
+}
+
 // ------------------------------------------------------- روابط الطالبات
 
 export function liveStudentLinks(

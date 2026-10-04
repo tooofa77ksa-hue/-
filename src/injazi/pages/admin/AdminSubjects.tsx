@@ -21,6 +21,7 @@ import {
   deleteSubject,
   logActivity,
   reorder,
+  syncTeacherGrants,
   updateSubject,
   updateTeacher,
 } from "@/injazi/services/repo";
@@ -207,22 +208,33 @@ function SubjectEditor({
       const payload = { name: name.trim(), icon, tone, teacherId: teacherId || null };
       const subjectId = row ? (await updateSubject(row.id, payload), row.id) : await createSubject(payload);
 
-      // الإسناد ثنائي الاتجاه: تحديث المادة وحده كان سيترك المعلمة بلا
-      // صلاحية تقييمها، لأن الصلاحية تُقرأ من subjectIds.
-      await Promise.all(
-        teachers.map((teacher) => {
-          const has = teacher.subjectIds.includes(subjectId);
-          if (teacher.id === teacherId && !has) {
-            return updateTeacher(teacher.id, { subjectIds: [...teacher.subjectIds, subjectId] });
-          }
-          if (teacher.id !== teacherId && has) {
-            return updateTeacher(teacher.id, {
-              subjectIds: teacher.subjectIds.filter((id) => id !== subjectId),
-            });
-          }
-          return Promise.resolve();
-        }),
-      );
+      /*
+        الإسناد ثنائي الاتجاه: من تأخذ المادة ومن تُنزَع منها.
+        ------------------------------------------------------------
+        وكان يُحدَّث مستند المعلمة وحده — وهو ليس ما تقرؤه القواعد.
+        القواعد تقرأ users/{uid}.subjectIds، فكانت ضغطة واحدة هنا تفكّ
+        التزامن لمعلمتين في آن: الآخذة ترى المادة باسمها ويُرفض كل
+        تقييم لها على الخادم بلا سبب ظاهر، والمنزوعة منها تبقى صلاحيتها
+        قائمة في ملفها على مادة لم تعد تدرّسها. والرابط كذلك يبقى
+        بمواد قديمة فيمنع أي جهاز جديد من الدخول بمواد صحيحة.
+      */
+      const affected: { id: string; subjectIds: string[] }[] = [];
+      for (const teacher of teachers) {
+        const has = teacher.subjectIds.includes(subjectId);
+        if (teacher.id === teacherId && !has) {
+          affected.push({ id: teacher.id, subjectIds: [...teacher.subjectIds, subjectId] });
+        } else if (teacher.id !== teacherId && has) {
+          affected.push({
+            id: teacher.id,
+            subjectIds: teacher.subjectIds.filter((id) => id !== subjectId),
+          });
+        }
+      }
+
+      for (const entry of affected) {
+        await updateTeacher(entry.id, { subjectIds: entry.subjectIds });
+        await syncTeacherGrants(entry.id, entry.subjectIds);
+      }
 
       await logActivity(
         row ? "subject.update" : "subject.create",

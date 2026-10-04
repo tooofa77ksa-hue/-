@@ -630,6 +630,41 @@ const knowsHer =
   (await tpage.getByRole("link", { name: /بوابة المعلمات/ }).count()) === 1;
 ok("الترويسة تعرف المعلمة الداخلة بالرابط", knowsHer);
 
+/*
+  --- إسناد مادة من *شاشة المواد* يصل إلى صلاحية المعلمة فعلًا ---
+  هذا ما شكت منه معلمة حقيقية: المادة مكتوبة باسمها في كل شاشة، وكل
+  تقييم يُرفض على الخادم. السبب أن شاشة المواد كانت تحدّث مستند
+  المعلمة وحده، والقواعد تقرأ users/{uid}.subjectIds لا المستند.
+  الفحص من جهاز المعلمة نفسه بعد التغيير — لا من لوحة الإدارة.
+*/
+await page.goto(`${BASE}/admin/subjects`, { waitUntil: "domcontentloaded" });
+await page.waitForTimeout(2200);
+const scienceRow = page.locator(".iz-admin-row").filter({ hasText: "العلوم" }).first();
+await scienceRow.locator('button[aria-label^="تعديل"]').click();
+await page.waitForTimeout(1400);
+const teacherSelect = page.locator(".iz-modal select").first();
+const sameeraOption = (
+  await teacherSelect.locator("option").evaluateAll((nodes) =>
+    nodes.map((o) => ({ value: o.value, text: o.textContent.trim() })),
+  )
+).find((o) => o.text.includes("سميرة"));
+await teacherSelect.selectOption(sameeraOption.value);
+await page.locator(".iz-modal__foot button").last().click();
+await page.waitForTimeout(3500);
+
+// المعلمة تفتح رابطها من جديد على جهازها نفسه
+await tpage.goto(inviteUrl, { waitUntil: "domcontentloaded" });
+await tpage.waitForTimeout(5000);
+const grantedSubjects = await tpage.locator(".iz-chip-row .iz-chip").allTextContents();
+ok(
+  "إسناد مادة من شاشة المواد يصل إلى صلاحية المعلمة",
+  grantedSubjects.join("، ").includes("العلوم"),
+  grantedSubjects.join("، ") || "لا مواد",
+);
+/* ولا فحص ثانٍ على عدد المشاريع: لا مشروع في «العلوم» في بيانات
+   الاختبار، وعدٌّ مطلق للصفوف كان يمرّ بمشروع مادتها الأخرى — طمأنينة
+   كاذبة لا حراسة. الصلاحية نفسها هي موضع العطل وهي المفحوصة أعلاه. */
+
 // --- الرابط لا يفتح لوحة الإدارة
 await tpage.goto(`${BASE}/admin`, { waitUntil: "domcontentloaded" });
 await tpage.waitForTimeout(2500);

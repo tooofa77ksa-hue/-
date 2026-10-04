@@ -156,11 +156,28 @@ export async function signInWithInvite(code: string): Promise<UserDoc> {
   }
 
   const existing = await readOrExplain(() => getUserDoc(uid), "صلاحيتكِ");
+
+  /*
+    المواد جزء من «قِدَم» الملف لا تفصيل فيه.
+    ------------------------------------------------------------------
+    كانت المقارنة على الرمز والمعلمة والدور فقط، فإن تغيّرت مواد معلمة
+    بعد أن فتحت رابطها بقي ملف جهازها يحمل المواد القديمة إلى الأبد —
+    والقواعد تقرأ المواد من الملف لا من مستند المعلمة. فتُسنَد إليها
+    مادة، وتراها باسمها في كل شاشة، ويرفض الخادم كل تقييم لها بلا سبب
+    ظاهر. وتعديل الملف ممنوع على صاحبته بحكم القواعد، فلا سبيل للتصحيح
+    من هنا إلا ببدء هوية جديدة — وهو ما يفعله الفرع أدناه أصلًا.
+  */
+  const sameSubjects =
+    existing &&
+    JSON.stringify([...(existing.subjectIds ?? [])].sort()) ===
+      JSON.stringify([...(invite.subjectIds ?? [])].sort());
+
   const staleGrant =
     existing &&
     (existing.inviteCode !== code ||
       existing.teacherId !== invite.teacherId ||
-      existing.role !== "teacher");
+      existing.role !== "teacher" ||
+      !sameSubjects);
 
   // ملف قديم لهوية هذا الجهاز لا يمكن تصحيحه من هنا (التعديل للمشرفة
   // وحدها بحكم القواعد)، فنبدأ بهوية جديدة بدل أن نفشل بلا تفسير.
