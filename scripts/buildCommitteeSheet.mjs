@@ -189,8 +189,20 @@ body{
 
 .sheet > *:not(.bg){position:relative;z-index:1;}
 
-/* ---------------- الترويسة ---------------- */
-.head{padding:6.5mm 0 0;text-align:center;}
+/* ---------------- الترويسة الرسمية ----------------
+   شعار وزارة التعليم في أعلى الصفحة لا في أسفلها: الشعار الرسمي
+   لا يُنكَّس تحت المحتوى في أي مخاطبة رسمية. */
+.letterhead{
+  display:flex;align-items:center;justify-content:space-between;gap:5mm;
+  padding:7mm 0 4mm;border-bottom:.35mm solid rgba(21,68,90,.16);
+}
+.letterhead__side{flex:1 1 0;font-size:8.4pt;line-height:1.62;color:${C.navy};}
+.letterhead__side--left{text-align:left;}
+.letterhead__kingdom{font-weight:700;font-size:8.8pt;}
+.letterhead__org{color:#4a6b78;}
+.letterhead__logo{flex:0 0 auto;height:17mm;display:block;}
+
+.head{padding:5.5mm 0 0;text-align:center;}
 .head__eyebrow{
   display:inline-block;padding:1.4mm 5mm;border-radius:999px;
   background:rgba(7,168,105,.10);color:${C.green};
@@ -204,7 +216,6 @@ body{
   background:linear-gradient(90deg,${C.green},${C.teal},${C.blue});
 }
 .head__sub{margin-top:2.6mm;font-size:11pt;color:#3c6376;}
-.head__school{margin-top:1.4mm;font-size:9.4pt;color:#6b8794;}
 
 /* ---------------- الصف الأوسط ---------------- */
 .row{display:flex;gap:5mm;margin-top:5.5mm;align-items:stretch;}
@@ -271,15 +282,7 @@ b{font-weight:700;color:${C.navy};}
 .sign__line{margin-top:5mm;height:.35mm;background:rgba(21,68,90,.22);}
 
 /* ---------------- الذيل ---------------- */
-.foot{
-  display:flex;align-items:center;justify-content:space-between;gap:5mm;
-  margin-top:4.5mm;padding-top:4mm;border-top:.35mm solid rgba(21,68,90,.14);
-}
-.foot__org{flex:1 1 0;font-size:8.8pt;font-weight:700;color:${C.navy};line-height:1.5;}
-.foot__org--left{text-align:left;}
-.foot__logo{flex:0 0 auto;}
-.foot__logo img{height:15mm;display:block;}
-.by{margin-top:2.2mm;text-align:center;font-size:6.6pt;color:#93a7b0;letter-spacing:.1px;}
+.by{margin-top:5mm;padding-top:3.4mm;border-top:.35mm solid rgba(21,68,90,.14);text-align:center;font-size:6.6pt;color:#93a7b0;letter-spacing:.1px;}
 a{color:inherit;text-decoration:none;}
 </style></head>
 <body>
@@ -292,12 +295,24 @@ a{color:inherit;text-decoration:none;}
     <img class="bg__dots" src="${dots}" alt="">
   </div>
 
+  <header class="letterhead">
+    <div class="letterhead__side">
+      <p class="letterhead__kingdom">المملكة العربية السعودية</p>
+      <p class="letterhead__org">وزارة التعليم</p>
+      <p class="letterhead__org">${DEPARTMENT}</p>
+    </div>
+    <img class="letterhead__logo" src="${logo}" alt="وزارة التعليم">
+    <div class="letterhead__side letterhead__side--left">
+      <p class="letterhead__kingdom">${SCHOOL}</p>
+      <p class="letterhead__org">الصف الرابع / ٢</p>
+    </div>
+  </header>
+
   <header class="head">
     <span class="head__eyebrow">منصة إلكترونية لملفات إنجاز الطالبات</span>
     <h1 class="head__title">${PLATFORM}</h1>
     <div class="head__rule"></div>
     <p class="head__sub">ملف الإنجاز الرقمي لطالبات الصف الرابع / ٢ — كل إنجاز… يحكي قصة تميّز</p>
-    <p class="head__school">${SCHOOL}</p>
   </header>
 
   <section class="row">
@@ -339,11 +354,6 @@ a{color:inherit;text-decoration:none;}
     </div>
   </section>
 
-  <footer class="foot">
-    <p class="foot__org">${DEPARTMENT}</p>
-    <span class="foot__logo"><img src="${logo}" alt="وزارة التعليم"></span>
-    <p class="foot__org foot__org--left">${SCHOOL}</p>
-  </footer>
   <p class="by">مبادرة من أم الطالبة نادين الشمراني</p>
 </div>
 </body></html>`;
