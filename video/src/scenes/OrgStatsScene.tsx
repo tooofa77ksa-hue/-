@@ -73,11 +73,11 @@ const ITEM_START = {
 } as const;
 
 // ---- Layout (1920x1080, chrome header=118 / footer=64) ----
-// العرض وُسِّع (CARD_OFFSET وعروض البطاقات أكبر من ذي قبل) بناءً على طلب
-// المستخدمة الصريح: البطاقات كانت صغيرة وسط مساحة فارغة كبيرة جانبية -
-// استخدام عرض الشاشة بشكل أوضح وأبرز، بنفس مستوى بروز جزئية الهيكل
-// التنظيمي (الشجرة) أعلى الشاشة.
-const CARD_OFFSET = 330;
+// العرض وُسِّع أكثر (جولة ثانية) بناءً على طلب المستخدمة الصريح مع صورة
+// مرجعية لهيكل تنظيمي يمتد أفقيًا على كامل عرض الشاشة - البطاقات ما زالت
+// قريبة من المنتصف بهامش جانبي كبير فارغ. استخدام عرض الشاشة بشكل أوضح
+// وأبرز، بنفس مستوى بروز جزئية الهيكل التنظيمي (الشجرة) أعلى الشاشة.
+const CARD_OFFSET = 390;
 const SPINE_TOP = 195;
 const SPINE_BOTTOM = 995;
 const ROW_TITLE_Y = 150;
@@ -347,9 +347,9 @@ export const OrgStatsScene: React.FC = () => {
       <Spine />
       <GroupTitle />
 
-      <Pill label={supervisoryRoles[0]} x={960 + 280} y={ROW_ROLES_Y} from={ITEM_START.director} icon={<DirectorIcon />} />
+      <Pill label={supervisoryRoles[0]} x={960 + 320} y={ROW_ROLES_Y} from={ITEM_START.director} icon={<DirectorIcon />} />
       <Pill label={supervisoryRoles[1]} x={960} y={ROW_ROLES_Y} from={ITEM_START.deputy} icon={<DeputyIcon />} />
-      <Pill label={supervisoryRoles[2]} x={960 - 280} y={ROW_ROLES_Y} from={ITEM_START.guidance} icon={<GuidanceIcon />} />
+      <Pill label={supervisoryRoles[2]} x={960 - 320} y={ROW_ROLES_Y} from={ITEM_START.guidance} icon={<GuidanceIcon />} />
 
       <StatCard
         x={960 + CARD_OFFSET}
@@ -428,14 +428,14 @@ export const OrgStatsScene: React.FC = () => {
       {/* الطالبات المنقولات من/إلى المدرسة - إضافة صامتة بصرية بجانب بطاقة "الطالبات"، تستخدم المساحة الفارغة يمين الشاشة بدل إضافة صف رأسي جديد */}
       <SubBadge
         label={`${transferredStudents.from} منقولة من المدرسة`}
-        x={960 + CARD_OFFSET + 390}
+        x={960 + CARD_OFFSET + 350}
         y={ROW_STUDENTS_Y + 18}
         from={ITEM_START.transferredFrom}
         icon={<StudentsGroupIcon />}
       />
       <SubBadge
         label={`${transferredStudents.to} منقولة إلى المدرسة`}
-        x={960 + CARD_OFFSET + 390}
+        x={960 + CARD_OFFSET + 350}
         y={ROW_STUDENTS_Y + 66}
         from={ITEM_START.transferredTo}
         icon={<StudentsGroupIcon />}
