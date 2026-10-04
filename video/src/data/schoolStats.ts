@@ -10,8 +10,11 @@
  *   المعلمات فقط)، ولا يظهر في أي من ملفات الـPDF الثلاثة المرفوعة - أكّده
  *   المستخدم مباشرة كرقم صحيح معروف لديه. ملف "بيانات المعلمات" يغطي
  *   المعلمات فقط (22 سجلًا)، وهو رقم مختلف ومُتحقَّق منه من الملف نفسه.
- * - studentCount (294) وتوزيع الفصول: مُتحقَّق حرفيًا من "مجموع الطالبات
- *   الكلي" في ملف بيانات الطالبات.
+ * - studentCount (293) وتوزيع الفصول: مُحدَّث من القائمة الرسمية الثانية
+ *   (توزيع الطالبات على الفصول - سعودية/غير سعودية) التي أرسلتها المستخدمة
+ *   لاحقًا؛ صحّحت رقم الصف الأول فقط (كان 51: 24/27، صار 50: 22/28)، باقي
+ *   الصفوف مطابقة لما كان مُدخلاً سابقًا. كل رقم تحقّق حسابيًا: مجموع
+ *   الأعمدة (سعودية+غير سعودية=المجموع) ومجموع الصفوف الاثني عشر = 293.
  * - classCount (12): فصلان لكل مرحلة × 6 مراحل، مطابق لعدد صفحات ملف الجدول
  *   الذكي (12 صفحة/فصل).
  * - جداول الحصص (12 جدولاً): بدل إعادة كتابة مئات الخلايا يدويًا (خطر أخطاء
@@ -32,20 +35,27 @@ export const schoolInfo = {
 
 export const headlineStats = {
   employeeCount: 34,
-  studentCount: 294,
+  studentCount: 293,
   classCount: 12,
 } as const;
 
+/** مطابق تمامًا لقائمة "توزيع الطالبات على الفصول" الرسمية (صف-فصل-سعودية-غير سعودية-المجموع). */
 export const studentDistribution = [
-  { grade: "الأول الابتدائي", section1: 24, section2: 27, total: 51 },
-  { grade: "الثاني الابتدائي", section1: 23, section2: 26, total: 49 },
-  { grade: "الثالث الابتدائي", section1: 23, section2: 26, total: 49 },
-  { grade: "الرابع الابتدائي", section1: 20, section2: 30, total: 50 },
-  { grade: "الخامس الابتدائي", section1: 21, section2: 24, total: 45 },
-  { grade: "السادس الابتدائي", section1: 22, section2: 28, total: 50 },
+  { grade: "الأول الابتدائي", section: "1", saudi: 20, nonSaudi: 2, total: 22 },
+  { grade: "الأول الابتدائي", section: "2", saudi: 15, nonSaudi: 13, total: 28 },
+  { grade: "الثاني الابتدائي", section: "1", saudi: 19, nonSaudi: 4, total: 23 },
+  { grade: "الثاني الابتدائي", section: "2", saudi: 6, nonSaudi: 20, total: 26 },
+  { grade: "الثالث الابتدائي", section: "1", saudi: 22, nonSaudi: 1, total: 23 },
+  { grade: "الثالث الابتدائي", section: "2", saudi: 22, nonSaudi: 4, total: 26 },
+  { grade: "الرابع الابتدائي", section: "1", saudi: 18, nonSaudi: 2, total: 20 },
+  { grade: "الرابع الابتدائي", section: "2", saudi: 24, nonSaudi: 6, total: 30 },
+  { grade: "الخامس الابتدائي", section: "1", saudi: 18, nonSaudi: 3, total: 21 },
+  { grade: "الخامس الابتدائي", section: "2", saudi: 20, nonSaudi: 4, total: 24 },
+  { grade: "السادس الابتدائي", section: "1", saudi: 17, nonSaudi: 5, total: 22 },
+  { grade: "السادس الابتدائي", section: "2", saudi: 23, nonSaudi: 5, total: 28 },
 ] as const;
 
-export const studentDistributionTotal = 294;
+export const studentDistributionTotal = { saudi: 224, nonSaudi: 69, total: 293 } as const;
 
 /** ترتيب صور الجداول في public/schedules/، مطابق لترتيب صفحات ملف الجدول الذكي. */
 export const classSchedules = [

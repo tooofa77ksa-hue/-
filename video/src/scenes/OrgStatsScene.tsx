@@ -14,6 +14,7 @@ import {
   supervisoryRoles,
   teacherClassification,
   teacherLicense,
+  transferredStudents,
 } from "../data/orgStats";
 
 /**
@@ -39,7 +40,10 @@ const REVEAL_DURATION = 18; // ~0.6s icon->label->count entrance
 const COUNT_DURATION = 20; // ~0.67s count-up
 const AUDIO_SRC = "audio/school-stats/org-stats-line.mp3";
 
-export const ORG_STATS_DURATION = 1832; // آخر عنصر (learningDifficulty=1774) + مدة ظهوره + مهلة هدوء قصيرة قبل الانتقال
+// آخر عنصر مَنطوق (learningDifficulty=1774) + مهلة هدوء، ثم إضافة صامتة
+// (بدون تسجيل صوتي بعد) لرقمي الطالبات المنقولات من/إلى المدرسة، تمامًا
+// بنفس أسلوب جدول توزيع الفصول اللي يتعبّى بصريًا بدون قراءة صوتية.
+export const ORG_STATS_DURATION = 1884;
 
 const ITEM_START = {
   groupTitle: 81,
@@ -64,9 +68,16 @@ const ITEM_START = {
   gifted: 1550,
   disability: 1686,
   learningDifficulty: 1774,
+  transferredFrom: 1800, // إضافة صامتة بعد نهاية السرد، بدون تسجيل صوتي يغطيها بعد
+  transferredTo: 1822,
 } as const;
 
 // ---- Layout (1920x1080, chrome header=118 / footer=64) ----
+// العرض وُسِّع (CARD_OFFSET وعروض البطاقات أكبر من ذي قبل) بناءً على طلب
+// المستخدمة الصريح: البطاقات كانت صغيرة وسط مساحة فارغة كبيرة جانبية -
+// استخدام عرض الشاشة بشكل أوضح وأبرز، بنفس مستوى بروز جزئية الهيكل
+// التنظيمي (الشجرة) أعلى الشاشة.
+const CARD_OFFSET = 330;
 const SPINE_TOP = 195;
 const SPINE_BOTTOM = 995;
 const ROW_TITLE_Y = 150;
@@ -78,7 +89,7 @@ const ROW_HEALTH_Y = 865;
 
 // ---- Icons: unified single-color line icons, same visual language as FacilitiesScene ----
 const IC = brand.primary;
-const iconProps = { width: 34, height: 34, viewBox: "0 0 48 48", fill: "none", stroke: IC, strokeWidth: 3, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+const iconProps = { width: 38, height: 38, viewBox: "0 0 48 48", fill: "none", stroke: IC, strokeWidth: 3, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
 
 const DirectorIcon = () => (
   <svg {...iconProps}><circle cx="24" cy="16" r="8" /><path d="M8 42c0-10 7-16 16-16s16 6 16 16" /><path d="M24 4v4M17 6l2 3M31 6l-2 3" /></svg>
@@ -310,12 +321,12 @@ const StatCard: React.FC<{
           padding: "12px 24px",
         }}
       >
-        <div style={{ width: 56, height: 56, borderRadius: "50%", background: "#eef6f2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <div style={{ width: 66, height: 66, borderRadius: "50%", background: "#eef6f2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           {icon}
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <div style={{ fontFamily, fontWeight: 700, fontSize: 32, color: brand.muted }}>{label}</div>
-          <div style={{ fontFamily, fontWeight: 900, fontSize: 54, color: brand.primary }}>
+          <div style={{ fontFamily, fontWeight: 700, fontSize: 34, color: brand.muted }}>{label}</div>
+          <div style={{ fontFamily, fontWeight: 900, fontSize: 60, color: brand.primary }}>
             <CountUpNumber value={value} decimals={0} from={from} durationInFrames={COUNT_DURATION} />
           </div>
         </div>
@@ -341,9 +352,9 @@ export const OrgStatsScene: React.FC = () => {
       <Pill label={supervisoryRoles[2]} x={960 - 280} y={ROW_ROLES_Y} from={ITEM_START.guidance} icon={<GuidanceIcon />} />
 
       <StatCard
-        x={960 + 260}
+        x={960 + CARD_OFFSET}
         y={ROW_TEACH_ADMIN_Y}
-        w={380}
+        w={460}
         label="الإداريات"
         value={adminsCount}
         from={ITEM_START.admins}
@@ -351,9 +362,9 @@ export const OrgStatsScene: React.FC = () => {
       />
 
       <StatCard
-        x={960 - 260}
+        x={960 - CARD_OFFSET}
         y={ROW_TEACH_ADMIN_Y}
-        w={440}
+        w={520}
         label="المعلمات"
         value={teacherLicense.total}
         from={ITEM_START.teachers}
@@ -361,14 +372,14 @@ export const OrgStatsScene: React.FC = () => {
       />
       <SubBadge
         label={`${teacherLicense.licensed} حاصلات على الرخصة`}
-        x={960 - 260}
+        x={960 - CARD_OFFSET}
         y={ROW_TEACH_ADMIN_Y + 108}
         from={ITEM_START.licensed}
         icon={<LicenseIcon />}
       />
       <SubBadge
         label={`${teacherLicense.notLicensed} بدون رخصة`}
-        x={960 - 260}
+        x={960 - CARD_OFFSET}
         y={ROW_TEACH_ADMIN_Y + 152}
         from={ITEM_START.notLicensed}
         icon={<NoLicenseIcon />}
@@ -378,46 +389,61 @@ export const OrgStatsScene: React.FC = () => {
       {/* تصنيف المعلمات - شبكة 2×2 مباشرة تحت شارتي الرخصة، ضمن نفس عمود بطاقة "المعلمات" */}
       <SubBadge
         label={`معلم خبير: ${teacherClassification.expert}`}
-        x={960 - 260 + 150}
+        x={960 - CARD_OFFSET + 150}
         y={ROW_TEACH_ADMIN_Y + 205}
         from={ITEM_START.classExpert}
         icon={<RankBadgeIcon />}
       />
       <SubBadge
         label={`معلم متقدم: ${teacherClassification.advanced}`}
-        x={960 - 260 - 150}
+        x={960 - CARD_OFFSET - 150}
         y={ROW_TEACH_ADMIN_Y + 205}
         from={ITEM_START.classAdvanced}
         icon={<RankBadgeIcon />}
       />
       <SubBadge
         label={`معلم ممارس: ${teacherClassification.practitioner}`}
-        x={960 - 260 + 150}
+        x={960 - CARD_OFFSET + 150}
         y={ROW_TEACH_ADMIN_Y + 255}
         from={ITEM_START.classPractitioner}
         icon={<RankBadgeIcon />}
       />
       <SubBadge
         label={`مساعد معلم: ${teacherClassification.assistant}`}
-        x={960 - 260 - 150}
+        x={960 - CARD_OFFSET - 150}
         y={ROW_TEACH_ADMIN_Y + 255}
         from={ITEM_START.classAssistant}
         icon={<RankBadgeIcon />}
       />
 
       <StatCard
-        x={960 + 260}
+        x={960 + CARD_OFFSET}
         y={ROW_STUDENTS_Y}
-        w={380}
+        w={460}
         label="الطالبات"
         value={headlineStats.studentCount}
         from={ITEM_START.students}
         icon={<StudentsGroupIcon />}
       />
+      {/* الطالبات المنقولات من/إلى المدرسة - إضافة صامتة بصرية بجانب بطاقة "الطالبات"، تستخدم المساحة الفارغة يمين الشاشة بدل إضافة صف رأسي جديد */}
+      <SubBadge
+        label={`${transferredStudents.from} منقولة من المدرسة`}
+        x={960 + CARD_OFFSET + 390}
+        y={ROW_STUDENTS_Y + 18}
+        from={ITEM_START.transferredFrom}
+        icon={<StudentsGroupIcon />}
+      />
+      <SubBadge
+        label={`${transferredStudents.to} منقولة إلى المدرسة`}
+        x={960 + CARD_OFFSET + 390}
+        y={ROW_STUDENTS_Y + 66}
+        from={ITEM_START.transferredTo}
+        icon={<StudentsGroupIcon />}
+      />
       <StatCard
-        x={960 - 260}
+        x={960 - CARD_OFFSET}
         y={ROW_STUDENTS_Y}
-        w={380}
+        w={460}
         label="الفصول"
         value={headlineStats.classCount}
         from={ITEM_START.classes}
@@ -425,18 +451,18 @@ export const OrgStatsScene: React.FC = () => {
       />
 
       <StatCard
-        x={960 + 260}
+        x={960 + CARD_OFFSET}
         y={ROW_ECON_SOCIAL_Y}
-        w={380}
+        w={460}
         label="الحالة الاقتصادية"
         value={economicCasesCount}
         from={ITEM_START.economic}
         icon={<EconomicIcon />}
       />
       <StatCard
-        x={960 - 260}
+        x={960 - CARD_OFFSET}
         y={ROW_ECON_SOCIAL_Y}
-        w={380}
+        w={460}
         label="الحالة الاجتماعية"
         value={socialCasesCount}
         from={ITEM_START.social}
@@ -446,7 +472,7 @@ export const OrgStatsScene: React.FC = () => {
       <StatCard
         x={960}
         y={ROW_HEALTH_Y}
-        w={420}
+        w={520}
         label="الحالة الصحية"
         value={healthCases.total}
         from={ITEM_START.health}

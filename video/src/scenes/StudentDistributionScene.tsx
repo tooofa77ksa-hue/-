@@ -15,7 +15,7 @@ import { studentDistribution, studentDistributionTotal } from "../data/schoolSta
  */
 const LINE4_FRAMES = 144; // line4.mp3, 4.780s -> ceil(143.41)
 const TRANSITION_BEAT = LINE4_FRAMES;
-const TABLE_BEAT = 280;
+const TABLE_BEAT = 200; // 12 صفوف (بدون صفوف "مجموع المرحلة" الفرعية) × STAGGER=11 + مهلة استقرار قصيرة
 export const STUDENT_DISTRIBUTION_DURATION = TRANSITION_BEAT + TABLE_BEAT;
 
 const TransitionBeat: React.FC = () => {
@@ -37,21 +37,9 @@ const TransitionBeat: React.FC = () => {
   );
 };
 
-type Row = { grade: string; section: string; value: number; kind: "section" | "total" };
-
-const buildRows = (): Row[] => {
-  const rows: Row[] = [];
-  for (const g of studentDistribution) {
-    rows.push({ grade: g.grade, section: "1", value: g.section1, kind: "section" });
-    rows.push({ grade: g.grade, section: "2", value: g.section2, kind: "section" });
-    rows.push({ grade: g.grade, section: "مجموع المرحلة", value: g.total, kind: "total" });
-  }
-  return rows;
-};
-
 const TableBeat: React.FC = () => {
   const frame = useCurrentFrame();
-  const rows = buildRows();
+  const rows = studentDistribution;
   const STAGGER = 11;
   const headerAppear = interpolate(frame, [0, 16], [0, 1], {
     extrapolateLeft: "clamp",
@@ -78,10 +66,10 @@ const TableBeat: React.FC = () => {
     >
       <div
         style={{
-          width: 1500,
+          width: 1700,
           background: "#fbfdfc",
           borderRadius: 22,
-          padding: "8px 44px",
+          padding: "16px 44px",
           boxShadow: "0 20px 60px rgba(21,68,90,0.10)",
           opacity: headerAppear,
         }}
@@ -89,19 +77,21 @@ const TableBeat: React.FC = () => {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr",
+            gridTemplateColumns: "1.7fr 0.7fr 0.9fr 0.9fr 0.9fr",
             fontFamily,
             fontWeight: 800,
-            fontSize: 36,
+            fontSize: 34,
             color: brand.paper,
             background: brand.primaryDark,
             borderRadius: 10,
             overflow: "hidden",
           }}
         >
-          <div style={{ padding: "2px 0", textAlign: "center" }}>عدد الطالبات</div>
-          <div style={{ padding: "2px 0", textAlign: "center" }}>الفصل</div>
-          <div style={{ padding: "2px 0", textAlign: "center" }}>الصف</div>
+          <div style={{ padding: "6px 0", textAlign: "center" }}>الصف</div>
+          <div style={{ padding: "6px 0", textAlign: "center" }}>الفصل</div>
+          <div style={{ padding: "6px 0", textAlign: "center" }}>سعودية</div>
+          <div style={{ padding: "6px 0", textAlign: "center" }}>غير سعودية</div>
+          <div style={{ padding: "6px 0", textAlign: "center" }}>المجموع</div>
         </div>
 
         <div>
@@ -114,26 +104,27 @@ const TableBeat: React.FC = () => {
               easing: Easing.out(Easing.cubic),
             });
             const showGradeLabel = row.section === "1";
-            const isTotal = row.kind === "total";
             return (
               <div
                 key={i}
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "1fr 1fr 1fr",
+                  gridTemplateColumns: "1.7fr 0.7fr 0.9fr 0.9fr 0.9fr",
                   fontFamily,
-                  fontSize: 36,
-                  fontWeight: isTotal ? 800 : 500,
-                  color: isTotal ? brand.primaryDark : brand.ink,
-                  background: isTotal ? "#eef6f2" : i % 6 < 3 ? "#ffffff" : "#f7faf9",
+                  fontSize: 34,
+                  fontWeight: 500,
+                  color: brand.ink,
+                  background: i % 4 < 2 ? "#ffffff" : "#f7faf9",
                   opacity: appear,
                   translate: `0 ${interpolate(appear, [0, 1], [10, 0])}px`,
                   borderBottom: `1px solid ${brand.border}`,
                 }}
               >
-                <div style={{ padding: "0px 0", textAlign: "center" }}>{row.value}</div>
-                <div style={{ padding: "0px 0", textAlign: "center" }}>{row.section}</div>
-                <div style={{ padding: "0px 0", textAlign: "center" }}>{showGradeLabel ? row.grade : ""}</div>
+                <div style={{ padding: "5px 0", textAlign: "center", fontWeight: 700 }}>{showGradeLabel ? row.grade : ""}</div>
+                <div style={{ padding: "5px 0", textAlign: "center" }}>{row.section}</div>
+                <div style={{ padding: "5px 0", textAlign: "center" }}>{row.saudi}</div>
+                <div style={{ padding: "5px 0", textAlign: "center" }}>{row.nonSaudi}</div>
+                <div style={{ padding: "5px 0", textAlign: "center", fontWeight: 800 }}>{row.total}</div>
                 <Sfx kind="tick" at={rowFrom} volume={0.18} />
               </div>
             );
@@ -143,11 +134,11 @@ const TableBeat: React.FC = () => {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "1fr 2fr",
-            marginTop: 6,
+            gridTemplateColumns: "1.7fr 0.7fr 0.9fr 0.9fr 0.9fr",
+            marginTop: 8,
             fontFamily,
             fontWeight: 900,
-            fontSize: 40,
+            fontSize: 38,
             color: brand.paper,
             background: brand.primary,
             borderRadius: 10,
@@ -155,8 +146,10 @@ const TableBeat: React.FC = () => {
             scale: grandTotalAppear,
           }}
         >
-          <div style={{ padding: "3px 0", textAlign: "center" }}>{studentDistributionTotal}</div>
-          <div style={{ padding: "3px 0", textAlign: "center" }}>مجموع الطالبات الكلي</div>
+          <div style={{ padding: "6px 0", textAlign: "center", gridColumn: "1 / 3" }}>المجموع الكلي</div>
+          <div style={{ padding: "6px 0", textAlign: "center" }}>{studentDistributionTotal.saudi}</div>
+          <div style={{ padding: "6px 0", textAlign: "center" }}>{studentDistributionTotal.nonSaudi}</div>
+          <div style={{ padding: "6px 0", textAlign: "center" }}>{studentDistributionTotal.total}</div>
         </div>
         <Sfx kind="impact" at={grandTotalFrame} volume={0.5} />
       </div>

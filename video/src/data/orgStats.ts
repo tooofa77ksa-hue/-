@@ -44,3 +44,9 @@ export const specialNeedsCases = {
   disability: 0, // إعاقة
   learningDifficulty: 0, // صعوبات تعلم
 } as const;
+
+/** تُعرض تحت بطاقة "الطالبات" مباشرة - لا توجد حالات طالبات معيدات أو إكمال مدرسي. */
+export const transferredStudents = {
+  from: 28, // الطالبات المنقولات من المدرسة
+  to: 28, // الطالبات المنقولات إلى المدرسة
+} as const;
