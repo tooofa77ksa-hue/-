@@ -146,14 +146,26 @@ export function ProjectCard({ project, subject, evaluations, canEdit, onEdit, on
                   <Archive size={16} strokeWidth={2.5} />
                 )}
               </button>
-              <button
-                type="button"
-                className="iz-icon-btn iz-icon-btn--danger"
-                onClick={onDelete}
-                aria-label={`حذف ${project.title}`}
-              >
-                <Trash2 size={16} strokeWidth={2.5} />
-              </button>
+              {/*
+                الحذف النهائي من الأرشيف وحده: أرشفة ثم حذف.
+                ------------------------------------------------------
+                كان زر السلّة ملاصقًا لزر التعديل في الملف نفسه، وضغطةٌ
+                واحدة بالخطأ تمحو مشروعًا بصوره وتقييماته بلا رجعة —
+                والملف يُفتح على جوّال تلمسه طالبة في العاشرة. الآن
+                الخطوة الأولى أرشفةٌ قابلة للاستعادة، ولا يظهر الحذف
+                إلا بعدها داخل الأرشيف، مكتوبًا بكلمته صريحةً لا رمزًا.
+              */}
+              {project.archived && (
+                <button
+                  type="button"
+                  className="iz-icon-btn iz-icon-btn--wide iz-icon-btn--danger"
+                  onClick={onDelete}
+                  aria-label={`حذف ${project.title} نهائيًا`}
+                >
+                  <Trash2 size={16} strokeWidth={2.5} />
+                  حذف نهائي
+                </button>
+              )}
             </div>
           )}
         </article>

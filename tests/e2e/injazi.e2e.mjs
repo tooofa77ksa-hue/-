@@ -426,6 +426,10 @@ await page.waitForTimeout(2200);
 const achievements = await page.locator(".iz-achievement").count();
 ok("إضافة إنجاز", achievements >= 1, `العدد: ${achievements}`);
 
+// --- أرشفة ثم حذف: لا زرّ حذفٍ نهائي في الملف نفسه
+const deleteBeforeArchive = await page.locator('.iz-achievement button[aria-label*="نهائيًا"]').count();
+ok("لا حذف نهائي قبل الأرشفة", deleteBeforeArchive === 0, `ظهر: ${deleteBeforeArchive}`);
+
 // --- الأرشفة والاستعادة: الإخفاء بلا فقد
 await page.locator('.iz-achievement button[aria-label^="أرشفة"]').first().click();
 await page.waitForTimeout(2200);
@@ -438,6 +442,13 @@ await archiveBtn.click();
 await page.waitForTimeout(1600);
 const inArchive = await page.locator(".iz-achievement").count();
 ok("الأرشيف يعرض العنصر المؤرشف", inArchive === 1, `العدد: ${inArchive}`);
+
+const deleteInArchive = await page.locator('.iz-achievement button[aria-label*="نهائيًا"]').count();
+ok("الحذف النهائي يظهر داخل الأرشيف وحده", deleteInArchive === 1, `العدد: ${deleteInArchive}`);
+ok(
+  "الأرشيف يشرح قاعدة الحذف",
+  (await page.locator(".iz-notice").filter({ hasText: /حذف نهائي/ }).count()) === 1,
+);
 
 await page.locator('.iz-achievement button[aria-label^="استعادة"]').first().click();
 await page.waitForTimeout(2200);

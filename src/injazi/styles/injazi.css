@@ -1623,6 +1623,15 @@
   font-weight: 600;
 }
 
+/* «حذف نهائي» يبدو خطِرًا قبل اللمس لا بعده: هذا الزر لا يظهر إلا في
+   الأرشيف وفعله بلا رجعة، فلا يصحّ أن يبدو كزر محايد. الأزرار
+   الأيقونية الأخرى تبقى كما هي. */
+.iz-icon-btn--wide.iz-icon-btn--danger {
+  color: #b23b37;
+  border-color: rgba(240, 115, 110, 0.45);
+  background: rgba(240, 115, 110, 0.08);
+}
+
 .iz-icon-btn--danger:hover {
   background: rgba(240, 115, 110, 0.14);
   color: #b23b37;

@@ -270,6 +270,14 @@ export function StudentPortfolio({ presentation = false }: { presentation?: bool
         )}
       </motion.header>
 
+      {/* قاعدة الحذف مكتوبة حيث يُحذف، لا في دليل يُقرأ مرة. */}
+      {showArchive && (
+        <Notice tone="info">
+          هذا الأرشيف: ما فيه مخفيّ عن الملف ولم يُحذف. «استعادة» تُرجعه كما كان، و«حذف نهائي»
+          يمحوه ومعه صوره وتقييمات معلماته بلا رجعة.
+        </Notice>
+      )}
+
       {/* ---------------- مؤشرات ---------------- */}
       <section className="iz-summary" aria-label="ملخّص الملف">
         <MetricCard icon={<BookOpen size={20} strokeWidth={2.4} />} value={visibleProjects.length} label="مشروع" tone="lilac" />
@@ -412,17 +420,20 @@ export function StudentPortfolio({ presentation = false }: { presentation?: bool
                           showToast(project.archived ? "تمت الاستعادة" : "تمت الأرشفة");
                         }}
                         onDelete={() =>
-                          askDelete(`هل أنتِ متأكدة من حذف مشروع «${project.title}»؟`, async () => {
-                            await deleteProject(project.id);
-                            await logActivity(
-                              "project.delete",
-                              `تم حذف مشروع «${project.title}»`,
-                              profile?.name ?? "زائرة",
-                              profile?.role ?? "guest",
-                            );
-                            showToast("تم حذف المشروع", "info");
-                            setConfirm((current) => ({ ...current, open: false }));
-                          })
+                          askDelete(
+                            `حذف مشروع «${project.title}» نهائيًا؟ تُحذف معه صوره وتقييمات معلماته، ولا يمكن التراجع.`,
+                            async () => {
+                              await deleteProject(project.id);
+                              await logActivity(
+                                "project.delete",
+                                `تم حذف مشروع «${project.title}»`,
+                                profile?.name ?? "زائرة",
+                                profile?.role ?? "guest",
+                              );
+                              showToast("تم حذف المشروع نهائيًا", "info");
+                              setConfirm((current) => ({ ...current, open: false }));
+                            },
+                          )
                         }
                       />
                     ))}
@@ -522,20 +533,27 @@ export function StudentPortfolio({ presentation = false }: { presentation?: bool
                               <Archive size={16} strokeWidth={2.5} />
                             )}
                           </button>
-                          <button
-                            type="button"
-                            className="iz-icon-btn iz-icon-btn--danger"
-                            aria-label={`حذف ${row.title}`}
-                            onClick={() =>
-                              askDelete(`هل أنتِ متأكدة من حذف «${row.title}»؟`, async () => {
-                                await deleteAchievement(row.id);
-                                showToast("تم الحذف", "info");
-                                setConfirm((current) => ({ ...current, open: false }));
-                              })
-                            }
-                          >
-                            <Trash2 size={16} strokeWidth={2.5} />
-                          </button>
+                          {/* أرشفة ثم حذف — كما في المشاريع تمامًا. */}
+                          {row.archived && (
+                            <button
+                              type="button"
+                              className="iz-icon-btn iz-icon-btn--wide iz-icon-btn--danger"
+                              aria-label={`حذف ${row.title} نهائيًا`}
+                              onClick={() =>
+                                askDelete(
+                                  `حذف «${row.title}» نهائيًا؟ لا يمكن التراجع بعد الحذف.`,
+                                  async () => {
+                                    await deleteAchievement(row.id);
+                                    showToast("تم الحذف نهائيًا", "info");
+                                    setConfirm((current) => ({ ...current, open: false }));
+                                  },
+                                )
+                              }
+                            >
+                              <Trash2 size={16} strokeWidth={2.5} />
+                              حذف نهائي
+                            </button>
+                          )}
                         </div>
                       )}
                     </article>
