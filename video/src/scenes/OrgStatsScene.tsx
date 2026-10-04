@@ -231,13 +231,20 @@ const Pill: React.FC<{ label: string; x: number; y: number; from: number; icon: 
   );
 };
 
-const SubBadge: React.FC<{ label: string; x: number; y: number; from: number; icon: React.ReactNode; muted?: boolean }> = ({
+/**
+ * بطاقة صغيرة لعناصر فرعية (تصنيف المعلمات، المنقولات، تفاصيل الحالة
+ * الصحية) - مربّع بإطار وخط علوي ملوّن مثل البطاقات الكبيرة بالضبط (مو
+ * حبة مستديرة pill)، بس بحجم مصغّر وسطر واحد أفقي حتى تترتب الأعمدة
+ * الطويلة (ستة عناصر تحت المعلمات مثلاً) تحت بعض بدون ما تتجاوز الشاشة.
+ */
+const SubBadge: React.FC<{ label: string; x: number; y: number; from: number; icon: React.ReactNode; muted?: boolean; accent?: string }> = ({
   label,
   x,
   y,
   from,
   icon,
   muted,
+  accent = brand.primary,
 }) => {
   const frame = useCurrentFrame();
   const local = frame - from;
@@ -255,15 +262,18 @@ const SubBadge: React.FC<{ label: string; x: number; y: number; from: number; ic
         alignItems: "center",
         gap: 7,
         opacity: t,
-        background: muted ? "#f3f5f4" : "#eaf7f1",
-        borderRadius: 999,
-        padding: "4px 12px",
+        background: "#fbfdfc",
+        border: `1px solid ${brand.border}`,
+        borderTop: `3px solid ${muted ? brand.gray : accent}`,
+        borderRadius: 8,
+        boxShadow: "0 4px 10px rgba(21,68,90,0.06)",
+        padding: "5px 13px",
         whiteSpace: "nowrap",
       }}
     >
       <Sfx kind="tick" at={from} volume={0.15} />
       {icon}
-      <span style={{ fontFamily, fontWeight: 700, fontSize: 29, color: muted ? brand.muted : brand.primaryDark }}>{label}</span>
+      <span style={{ fontFamily, fontWeight: 700, fontSize: 27, color: muted ? brand.muted : brand.primaryDark }}>{label}</span>
     </div>
   );
 };
@@ -405,8 +415,8 @@ export const OrgStatsScene: React.FC = () => {
 
       <Stem x={BX.students} from={ITEM_START.students} />
       <BranchCard x={BX.students} label="الطالبات" value={headlineStats.studentCount} from={ITEM_START.students} icon={<StudentsGroupIcon />} accent={brand.teal} />
-      <SubBadge label={`${transferredStudents.from} منقولة من المدرسة`} x={BX.students} y={CHILD_START_Y} from={ITEM_START.transferredFrom} icon={<StudentsGroupIcon />} />
-      <SubBadge label={`${transferredStudents.to} منقولة إلى المدرسة`} x={BX.students} y={CHILD_START_Y + CHILD_STEP} from={ITEM_START.transferredTo} icon={<StudentsGroupIcon />} />
+      <SubBadge label={`${transferredStudents.from} منقولة من المدرسة`} x={BX.students} y={CHILD_START_Y} from={ITEM_START.transferredFrom} icon={<StudentsGroupIcon />} accent={brand.teal} />
+      <SubBadge label={`${transferredStudents.to} منقولة إلى المدرسة`} x={BX.students} y={CHILD_START_Y + CHILD_STEP} from={ITEM_START.transferredTo} icon={<StudentsGroupIcon />} accent={brand.teal} />
       <SubBadge label={`${repeatingStudents} طالبات معيدات`} x={BX.students} y={CHILD_START_Y + CHILD_STEP * 2} from={ITEM_START.repeating} icon={<StudentsGroupIcon />} muted />
 
       <Stem x={BX.classes} from={ITEM_START.classes} />
@@ -420,9 +430,9 @@ export const OrgStatsScene: React.FC = () => {
 
       <Stem x={BX.health} from={ITEM_START.health} />
       <BranchCard x={BX.health} label="الحالة الصحية" value={healthCases.total} from={ITEM_START.health} icon={<HealthIcon />} accent={brand.gold} />
-      <SubBadge label={`${healthCases.sugar} سكر`} x={BX.health} y={CHILD_START_Y} from={ITEM_START.sugar} icon={<SugarIcon />} />
-      <SubBadge label={`${healthCases.epilepsy} صرع`} x={BX.health} y={CHILD_START_Y + CHILD_STEP} from={ITEM_START.epilepsy} icon={<EpilepsyIcon />} />
-      <SubBadge label={`${specialNeedsCases.gifted} موهبة`} x={BX.health} y={CHILD_START_Y + CHILD_STEP * 2} from={ITEM_START.gifted} icon={<GiftedIcon />} />
+      <SubBadge label={`${healthCases.sugar} سكر`} x={BX.health} y={CHILD_START_Y} from={ITEM_START.sugar} icon={<SugarIcon />} accent={brand.gold} />
+      <SubBadge label={`${healthCases.epilepsy} صرع`} x={BX.health} y={CHILD_START_Y + CHILD_STEP} from={ITEM_START.epilepsy} icon={<EpilepsyIcon />} accent={brand.gold} />
+      <SubBadge label={`${specialNeedsCases.gifted} موهبة`} x={BX.health} y={CHILD_START_Y + CHILD_STEP * 2} from={ITEM_START.gifted} icon={<GiftedIcon />} accent={brand.gold} />
       <SubBadge label={`${specialNeedsCases.disability} إعاقة`} x={BX.health} y={CHILD_START_Y + CHILD_STEP * 3} from={ITEM_START.disability} icon={<DisabilityIcon />} muted />
       <SubBadge label={`${specialNeedsCases.learningDifficulty} صعوبات تعلم`} x={BX.health} y={CHILD_START_Y + CHILD_STEP * 4} from={ITEM_START.learningDifficulty} icon={<LearningDifficultyIcon />} muted />
     </AbsoluteFill>
