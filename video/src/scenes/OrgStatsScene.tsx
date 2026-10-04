@@ -41,37 +41,42 @@ const REVEAL_DURATION = 18; // ~0.6s icon->label->count entrance
 const COUNT_DURATION = 20; // ~0.67s count-up
 const AUDIO_SRC = "audio/school-stats/org-stats-line.mp3";
 
-// آخر عنصر مَنطوق (learningDifficulty=1774) + مهلة هدوء قصيرة قبل الانتقال.
-// الطالبات المنقولات من/إلى المدرسة لها مشهدها المستقل الخاص الآن
-// (TransferredStudentsScene) بدل إضافتها هنا - راجع ذلك الملف.
-export const ORG_STATS_DURATION = 1812;
+// إعادة مزامنة كاملة على التسجيل الصوتي الجديد (ElevenLabs "Layla - Modern
+// Arabic"، 78.99 ثانية، يغطي النص المحدّث كاملاً بما فيها جملة المنقولات
+// الجديدة). التوقيت مبني من خريطة سكتات صمت حقيقية
+// (`ffmpeg -af silencedetect=noise=-30dB:d=0.25`) مطابقة مع تقسيم كلمات
+// النص الفعلي - نفس منهجية كل مرة سابقة. الجملتان الأخيرتان في التسجيل
+// ("وننتقل الآن إلى بيانات الطالبات..." ثم "...بيانات المعلمات") لسنا
+// بحاجتها هنا (لهما ملفاتهما الخاصة في المشاهد التالية)، فتُقطع مدة
+// المشهد قبل بدايتهما مباشرة.
+export const ORG_STATS_DURATION = 2125;
 
 const ITEM_START = {
-  groupTitle: 81,
-  director: 108,
-  deputy: 186,
-  guidance: 208,
-  admins: 230,
-  teachers: 343,
-  licensed: 433,
-  notLicensed: 482,
-  classExpert: 509,
-  classAdvanced: 680,
-  classPractitioner: 742,
-  classAssistant: 858,
-  students: 880,
-  classes: 928,
-  transferredFrom: 940, // إضافة صامتة بصرية - بدون تسجيل صوتي يغطيها بعد
-  transferredTo: 970,
-  repeating: 1000,
-  economic: 1044,
-  social: 1212,
-  health: 1304,
-  sugar: 1452,
-  epilepsy: 1474,
-  gifted: 1550,
-  disability: 1686,
-  learningDifficulty: 1774,
+  groupTitle: 10,
+  director: 96,
+  deputy: 122,
+  guidance: 149,
+  admins: 197,
+  teachers: 303,
+  licensed: 410,
+  notLicensed: 568,
+  classExpert: 635,
+  classAdvanced: 695,
+  classPractitioner: 736,
+  classAssistant: 854,
+  students: 924,
+  classes: 1053,
+  transferredFrom: 1128,
+  transferredTo: 1261,
+  repeating: 1300, // لا تسجيل صوتي خاص بها - تظهر صامتة بالفجوة قبل الحالة الاقتصادية
+  economic: 1391,
+  social: 1541,
+  health: 1592,
+  sugar: 1697,
+  epilepsy: 1754,
+  gifted: 1800,
+  disability: 1853,
+  learningDifficulty: 2067, // بدون سكتة واضحة قبلها (متصلة بـ"أو" بالنص)، محسوبة تناسبيًا
 } as const;
 
 // ---- Layout (1920x1080, chrome header=118 / footer=64) ----
