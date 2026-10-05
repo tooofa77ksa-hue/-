@@ -1,4 +1,5 @@
 import { AbsoluteFill, Easing, Img, interpolate, staticFile, useCurrentFrame } from "remotion";
+import { Audio } from "@remotion/media";
 import { brand, fontFamily } from "../brand/tokens";
 import { Sfx } from "../components/Sfx";
 
@@ -23,7 +24,13 @@ import { Sfx } from "../components/Sfx";
  * اسم المدرسة وإدارة التعليم ثابتان أسفل يسار/يمين الشاشة الفعليين طوال
  * المقدمة. بدون صوت سرد (مذيعة) - أغنية ترحيب قصيرة تُضاف كموسيقى خلفية.
  */
-export const WELCOME_INTRO_DURATION = 810;
+// المدة مضبوطة بالضبط على طول النشيد الترحيبي الفعلي المُختار (بناءً على
+// طلب صريح باستخدام المقطع كاملاً بدون قصّ - لا يحتوي سكتة صمت حقيقية في
+// نهايته يمكن قصها بدون قطع المحتوى). نسختان للمقارنة: raw.mp3 (51.9 ثانية)
+// وraw-2.mp3 (31.4 ثانية) - SONG_SRC وWELCOME_INTRO_DURATION يُبدَّلان معًا
+// حسب أي نسخة قيد الاستخدام.
+const SONG_SRC = "audio/intro/welcome-song-raw-2.mp3";
+export const WELCOME_INTRO_DURATION = 942;
 
 const LOGO_ASPECT = 536 / 703; // height / width of logo-white-full.png
 
@@ -131,11 +138,12 @@ export const WelcomeIntroScene: React.FC = () => {
 
   return (
     <AbsoluteFill style={{ background: brand.primaryDark, overflow: "hidden" }}>
-      <Sfx kind="whoosh" at={0} volume={0.22} />
-      <Sfx kind="whoosh" at={MOVE_START} volume={0.2} />
-      <Sfx kind="tick" at={LINE2_START} volume={0.25} />
-      <Sfx kind="tick" at={LINE3_START} volume={0.25} />
-      <Sfx kind="tick" at={LINE4_START} volume={0.2} />
+      <Audio src={staticFile(SONG_SRC)} volume={0.85} />
+      <Sfx kind="whoosh" at={0} volume={0.15} />
+      <Sfx kind="whoosh" at={MOVE_START} volume={0.12} />
+      <Sfx kind="tick" at={LINE2_START} volume={0.15} />
+      <Sfx kind="tick" at={LINE3_START} volume={0.15} />
+      <Sfx kind="tick" at={LINE4_START} volume={0.12} />
 
       <Img
         src={staticFile("intro/logo-watermark-color.png")}
