@@ -159,7 +159,7 @@ export const WelcomeIntroScene: React.FC = () => {
         duration={LINE2_DURATION}
       />
       <PoemLine
-        text="في صَرحِنا التَّعليمي، وضُيوفُنا الكِرام"
+        text="في صَرحِنا التَّعليمي، فَأَنتُم ضُيوفُنا الكِرام"
         color={brand.teal}
         top={480}
         from={LINE3_START}
