@@ -185,7 +185,7 @@ export const WelcomeIntroScene: React.FC = () => {
         fontSize={34}
       />
       <PoemLine
-        text="أَنتُم أَهلٌ، وَهذي دارُكُم"
+        text="نُرَحِّبُ بِكُم تَرحيبًا يُعَدُّ عَدَدَ نُجومِ السَّماء"
         color="#ffffff"
         top={718}
         from={LINE5_START}
