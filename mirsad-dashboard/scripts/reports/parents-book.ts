@@ -479,6 +479,7 @@ figcaption { font-size:9.6px; color:var(--muted); padding:6px 9px; line-height:1
 
 /* ④ بطاقة إقرار الاطّلاع */
 .seen { display:grid; grid-template-columns:auto 1fr; gap:18px; align-items:center;
+        color:inherit; text-decoration:none;
         border:2px solid var(--green); border-radius:18px; padding:16px 18px;
         background:var(--soft); margin:16px 0 4px; break-inside:avoid; }
 .seen img { width:33mm; height:33mm; border-radius:10px; background:#fff; padding:4px; }
@@ -555,7 +556,7 @@ figcaption { font-size:9.6px; color:var(--muted); padding:6px 9px; line-height:1
       <span>${esc(k.from)}${k.grade ? ` — ${esc(k.grade)}` : ''}</span></div>`).join('')}
   </div>
 
-  ${publish ? `<div class="seen seen--green">
+  ${publish ? `<a class="seen seen--green" href="${SHUKR_URL}">
     <img src="${shukrQr}" alt="باركود صفحة الكلمات الطيّبة">
     <div>
       <h3>الكلماتُ الطيّبة على الرابط</h3>
@@ -564,7 +565,7 @@ figcaption { font-size:9.6px; color:var(--muted); padding:6px 9px; line-height:1
       كلُّ من وصله. امسحوا الرمز، أو افتحوا الرابط.</p>
       <span class="url">${host}/#/shukr</span>
     </div>
-  </div>` : ''}
+  </a>` : ''}
 
   <p class="shots-line">ولكلِّ أسرةٍ كتبت لنا حرفًا — شكرًا، فقد بلغَنا وأفرحَنا.</p>
 </div>
@@ -618,7 +619,7 @@ figcaption { font-size:9.6px; color:var(--muted); padding:6px 9px; line-height:1
   <p>وكلُّ ملاحظةٍ تصلنا تُقرأ بنصّها كما تُكتب، ثم تُحوَّل إلى إجراءٍ له
   مسؤولةٌ وتاريخٌ وشاهدُ تنفيذ، ويبقى أثرُها مُتابَعًا من عامٍ إلى عام.</p>
 
-  <div class="seen">
+  <a class="seen" href="${SEEN_URL}">
     <img src="${seenQr}" alt="باركود صفحة «تمَّ الاطّلاع»">
     <div>
       <h3>تمَّ الاطّلاع</h3>
@@ -627,7 +628,7 @@ figcaption { font-size:9.6px; color:var(--muted); padding:6px 9px; line-height:1
       ولا يستغرق ذلك سوى لحظة، بلا تسجيلِ دخولٍ ولا بريدٍ إلكتروني.</p>
       <span class="url">${host}/#/seen</span>
     </div>
-  </div>
+  </a>
 
   <p class="thanks">شكرًا لكلِّ أسرةٍ تكلَّمَت 💙<br>
   رأيُكم هو ما غيَّرَ ما رأيتُموه في هذه الصفحات</p>
