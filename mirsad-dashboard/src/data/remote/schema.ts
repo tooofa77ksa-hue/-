@@ -27,6 +27,7 @@ export const COLLECTIONS = {
   improvementActions: 'improvementActions',
   auditLogs: 'auditLogs',
   reviewAcks: 'reviewAcks',
+  acks: 'acks',
 } as const
 
 /** مستند الإعدادات العامة الوحيد: ما ليس له معرّف مستقل. */

@@ -1,6 +1,7 @@
 import { Suspense, lazy } from 'react'
 import { Navigate, Route, HashRouter as Router, Routes } from 'react-router-dom'
 
+import { SeenPage } from './pages/public/SeenPage'
 import { SurveyRoute } from './pages/public/SurveyRoute'
 import { SystemProvider } from './state/SystemProvider'
 
@@ -23,6 +24,7 @@ const LinksPage = lazy(() => import('./pages/admin/LinksPage').then((m) => ({ de
 const ReviewQueuePage = lazy(() => import('./pages/admin/ReviewQueuePage').then((m) => ({ default: m.ReviewQueuePage })))
 const ReportsPage = lazy(() => import('./pages/admin/ReportsPage').then((m) => ({ default: m.ReportsPage })))
 const DisplayPage = lazy(() => import('./pages/admin/DisplayPage').then((m) => ({ default: m.DisplayPage })))
+const AcksPage = lazy(() => import('./pages/admin/AcksPage').then((m) => ({ default: m.AcksPage })))
 const SettingsPage = lazy(() => import('./pages/admin/SettingsPage').then((m) => ({ default: m.SettingsPage })))
 
 function Loading() {
@@ -39,6 +41,9 @@ export default function App() {
             <Route path="/" element={<Navigate to="/survey" replace />} />
             <Route path="/survey" element={<SurveyRoute />} />
             <Route path="/survey/:classId" element={<SurveyRoute />} />
+
+            {/* إقرار الاطّلاع على كرّاسة التحسين — يكتب ولا يقرأ */}
+            <Route path="/seen" element={<SeenPage />} />
 
             {/* لوحة العرض — خلف البوابة نفسها، وبلا إطار لوحة التعديل */}
             <Route
@@ -71,6 +76,7 @@ export default function App() {
               <Route path="review-queue" element={<ReviewQueuePage />} />
               <Route path="links" element={<LinksPage />} />
               <Route path="reports" element={<ReportsPage />} />
+              <Route path="acks" element={<AcksPage />} />
               <Route path="settings" element={<SettingsPage />} />
             </Route>
 

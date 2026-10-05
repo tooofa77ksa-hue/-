@@ -234,6 +234,56 @@ export async function submitPublicResponse(input: {
   return ref.id
 }
 
+/** إقرار وليّ أمرٍ بالاطّلاع على كرّاسة «ماذا عملنا برأيكم». */
+export interface Ack {
+  id: string
+  cycleId: string
+  name: string | null
+  classId: string | null
+  word: string | null
+  submittedAt: string
+}
+
+/**
+ * تسجيل إقرار اطّلاع.
+ *
+ * الاسم اختياري عمدًا: الغرض أن يعرف وليّ الأمر أن رأيه بلغ موضعه،
+ * لا أن تُحصى أسماء من قرأ. ومن أراد أن يكتب كلمةً للمدرسة كتبها،
+ * ومن أراد أن يمرّ مرّ — وكلا الحالين إقرارٌ مقبول.
+ */
+export async function submitAck(input: {
+  cycleId: string
+  name: string | null
+  classId: string | null
+  word: string | null
+  clientToken: string
+}): Promise<string> {
+  const db = requireDb()
+  const trimmed = (v: string | null) => {
+    const t = v?.trim()
+    return t ? t : null
+  }
+  const ref = await addDoc(collection(db, COLLECTIONS.acks), {
+    cycleId: input.cycleId,
+    name: trimmed(input.name),
+    classId: input.classId,
+    word: trimmed(input.word),
+    source: 'web' as const,
+    submittedAt: new Date().toISOString(),
+    clientToken: input.clientToken,
+  })
+  return ref.id
+}
+
+/** إقرارات الاطّلاع، أحدثها أولًا — للإدارة وحدها. */
+export async function loadAcks(): Promise<Ack[]> {
+  const db = requireDb()
+  const rows = await readAll<Omit<Ack, 'id'>>(db, COLLECTIONS.acks)
+  return rows
+    .map((r) => ({ id: r.id, ...r.value }))
+    .sort((a, b) => String(b.submittedAt).localeCompare(String(a.submittedAt)))
+}
+
 /**
  * ما يحتاجه القياس العام ليعرض نفسه — ولا شيء غيره.
  *

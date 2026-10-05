@@ -20,6 +20,7 @@
 import { existsSync, globSync, readFileSync, mkdirSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 
+import QRCode from 'qrcode'
 import { chromium } from 'playwright'
 
 import { coverage } from '../../src/lib/attendance'
@@ -39,6 +40,7 @@ const option = (name: string) => {
 
 const from = option('from')
 const projectId = option('project') ?? process.env.GCLOUD_PROJECT
+const host = option('host') ?? 'qiyas-165-1448.web.app'
 const photos = resolve(ROOT, option('photos') ?? '.report-out/photos')
 const out = resolve(ROOT, option('out') ?? '.report-out/ماذا-عملنا-برأيكم-1448.pdf')
 
@@ -203,6 +205,63 @@ const section = (b: typeof bands[number], i: number) => {
 </section>`
 }
 
+/**
+ * ما تحرص عليه المدرسة دائمًا — لا ردًّا على ملاحظةٍ بعينها.
+ *
+ * بعضُ ما يسأل عنه وليّ الأمر ليس مأخذًا على المدرسة ولا بندَ تحسين:
+ * هو عملٌ قائمٌ قبل القياس وبعده. وإغفالُه يُفهم غيابًا له، فيُذكر
+ * هنا موجزًا في لوحةٍ واحدة بعد البنود لا قبلها.
+ */
+const ALWAYS: { icon: string; title: string; body: string }[] = [
+  {
+    icon: '📚',
+    title: 'منصّة «مدرستي» هي القناة الرسمية',
+    body: 'عليها تُنشر الاختبارات والتكاليف والدرجات، وهي المرجع المعتمد لكل ما يخصّ '
+      + 'الطالبة. وزادت المعلّمات عليها — حرصًا منهنّ لا تكليفًا — قناةً ومجموعةً '
+      + 'لكل مادةٍ في كل صف، يُجبن فيها على أولياء الأمور أوّلًا بأوّل.',
+  },
+  {
+    icon: '🤝',
+    title: 'التوجيه الطلابي قريبٌ من كل طالبة',
+    body: 'تُتابَع الحالات السلوكية والنفسية بسرّيةٍ تامّة، ويُعلَّم أمام الطالبات '
+      + '«خطّ مساندة الطفل ١١٦١١١» ليعرفن أن لهنّ من يُشتكى إليه. '
+      + 'ولوحة «التنمّر ليس قوّة» معلّقةٌ في الممرّ، ويُنبَّه على مضمونها في الإذاعة.',
+  },
+  {
+    icon: '🪶',
+    title: 'لا نُثقل على بناتكم',
+    body: 'الواجبات المنزلية قليلة، ويُحَلّ أغلبها داخل الحصّة. والملازم وأوراق العمل '
+      + 'غير إلزامية الطباعة: تكفي الطالبةَ قراءةُ النصّ من الملف وكتابةُ إجابتها في '
+      + 'دفترها، فلا يقع على الأسرة عبءٌ ماليٌّ ولا على الطالبة عبءٌ زائد.',
+  },
+  {
+    icon: '🧭',
+    title: 'نراعي اختلاف القدرات',
+    body: 'صدر تعميمٌ داخليٌّ للمعلّمات بمراعاة الفروق الفردية، وبعدم ذكر أسماء '
+      + 'المتعثّرات أمام الفصل. وخُصِّصت حصصُ مساندةٍ تُتابَع فيها الطالبة التي '
+      + 'تحتاج وقتًا أطول، في هدوءٍ وبلا إحراج.',
+  },
+  {
+    icon: '🧼',
+    title: 'النظافة متابعةٌ يومية لا حملةٌ موسمية',
+    body: 'لكل دورة مياهٍ جدولٌ يوميّ معلَّقٌ على بابها يُتابَع تنفيذه في أوقاته، '
+      + 'والصابون متوفّرٌ في جميع المرافق، ولوحةٌ إرشاديةٌ بخطوات النظافة أمام الطالبات.',
+  },
+  {
+    icon: '🌟',
+    title: 'التشجيع قبل المحاسبة',
+    body: 'لوحة التعزيز تحمل أسماء المتميّزات في الاجتهاد والإبداع والتعاون والمبادرة '
+      + 'والالتزام والسلوك الإيجابي، ويُقام تكريمٌ دوريٌّ للمتفوّقات، '
+      + 'وتُنشر صوره في قناة المدرسة ليراه أهلُهنّ.',
+  },
+]
+
+const SEEN_URL = `https://${host}/#/seen`
+const seenQr = await QRCode.toDataURL(SEEN_URL, {
+  errorCorrectionLevel: 'M', margin: 1, width: 460,
+  color: { dark: '#15445a', light: '#ffffff' },
+})
+
 const html = `<!doctype html>
 <html lang="ar" dir="rtl"><head><meta charset="utf-8">
 <style>
@@ -280,6 +339,27 @@ figcaption { font-size:9.6px; color:var(--muted); padding:6px 9px; line-height:1
 .soon { margin-top:10px; font-size:11px; color:var(--cyan); font-weight:700;
         background:var(--soft); border-radius:10px; padding:8px 13px; }
 
+/* ③ لوحة ما تحرص عليه المدرسة دائمًا */
+.always { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
+.always__one { border:1.4px solid var(--border); border-radius:15px; padding:12px 14px;
+               break-inside:avoid; }
+.always__one h3 { font-size:13px; font-weight:800; margin-bottom:5px; }
+.always__one .ico { font-size:15px; margin-left:6px; }
+.always__one p { font-size:11px; line-height:1.85; color:#34606f; }
+.shots-line { font-size:11.5px; color:var(--muted); text-align:center; margin-top:13px;
+              line-height:1.8; }
+
+/* ④ بطاقة إقرار الاطّلاع */
+.seen { display:grid; grid-template-columns:auto 1fr; gap:18px; align-items:center;
+        border:2px solid var(--green); border-radius:18px; padding:16px 18px;
+        background:var(--soft); margin:16px 0 4px; break-inside:avoid; }
+.seen img { width:33mm; height:33mm; border-radius:10px; background:#fff; padding:4px; }
+.seen h3 { font-size:19px; font-weight:800; margin-bottom:5px; }
+.seen p { font-size:11.8px; line-height:1.9; color:#34606f; }
+.seen .url { display:inline-block; margin-top:7px; direction:ltr; font-size:12px;
+             font-weight:800; color:#fff; background:var(--navy);
+             border-radius:999px; padding:5px 15px; }
+
 /* ③ الخاتمة */
 .end { break-before:page; padding:20mm 18mm; }
 .end h2 { font-size:27px; text-align:center; margin-bottom:6px; }
@@ -306,11 +386,12 @@ figcaption { font-size:9.6px; color:var(--muted); padding:6px 9px; line-height:1
   <h1>ماذا عملنا<br>برأيكم؟</h1>
   <div class="kicker">قياس اتجاه المتعلمين ١٤٤٨هـ</div>
 
-  <p class="lede">كتبتم ملاحظاتكم في دقيقتين، ولم تروا لها أثرًا بعدُ.
-  وهذه الكرّاسة ردُّنا عليكم: رأيُكم بنصّه كما كتبتموه، وتحته ما عملته
-  المدرسة، وتحتهما صورةُ ما عُمل. فلم يذهب رأيٌ واحد إلى ملفٍّ يُحفظ.</p>
+  <p class="lede">أولياءَ أمورنا الكرام،<br>
+  كتبتم ملاحظاتِكم في دقيقتين، ولم تروا لها أثرًا بعدُ. وهذا التقرير جوابُنا
+  عليكم: رأيُكم بنصّه كما كتبتموه، وتحته ما عملته المدرسة، وتحتهما صورةُ ما عُمل.
+  فما ذهب رأيٌ واحدٌ منكم إلى ملفٍّ يُحفَظ، ولا بقي قولٌ بلا عمل.</p>
 
-  <div class="seal">كل رأيٍ وصل — صار له إجراءٌ وشاهد</div>
+  <div class="seal">كلُّ رأيٍ وصَلَ — صار له إجراءٌ وشاهدُ تنفيذ</div>
 
   <div class="figs">
     <div class="fig"><b>${n(cover.traced)}</b><span>أسرة شاركت</span></div>
@@ -326,34 +407,64 @@ figcaption { font-size:9.6px; color:var(--muted); padding:6px 9px; line-height:1
 </div>
 
 <div class="page">
-  <div class="page__head"><b>ما قلتموه — وما عملناه</b>
-    <span>مرتَّبةً بعدد من ذكرها من أولياء الأمور</span></div>
+  <div class="page__head"><b>ما قُلتُموه — وما عَمِلناه</b>
+    <span>مرتَّبةً بحسب عدد من ذكرها من أولياء الأمور</span></div>
   ${ordered.map(section).join('')}
+</div>
+
+<div class="page">
+  <div class="page__head"><b>وممّا تحرص عليه المدرسة دائمًا</b>
+    <span>عملٌ قائمٌ قبل القياس وبعده</span></div>
+
+  <div class="always">${ALWAYS.map((a) => `
+    <div class="always__one">
+      <h3><span class="ico">${a.icon}</span>${esc(a.title)}</h3>
+      <p>${esc(a.body)}</p>
+    </div>`).join('')}
+  </div>
+
+  <p class="shots-line">وهذه لقطاتٌ يسيرةٌ من جهد المدرسة لأجل متعلّماتها،
+  لا تُحيط بما يُعمل، ولكنها تدلُّ عليه.</p>
 </div>
 
 <div class="end">
   <h2>وما زال في الطريق</h2>
   <div class="sub">نقول ما لم يكتمل كما قلنا ما اكتمل</div>
 
-  <p>ليس كل ما ذكرتموه قد تمّ، ولا نُخفي ذلك. فمن الملاحظات ما يحتاج
-  وقتًا، ومنها ما هو خارج ما تملكه المدرسة وحدها — وقد رُفع إلى الجهة
-  المختصّة في إدارة التعليم.</p>
+  <p>ليس كلُّ ما ذكرتموه قد تمَّ، ولا نُخفي ذلك عنكم. فمن الملاحظات ما
+  يحتاج وقتًا حتى يستوي، ومنها ما هو خارجٌ عمّا تملكه المدرسة وحدها —
+  وقد رُفع إلى الجهة المختصّة في إدارة التعليم، ونتابعه أوّلًا بأوّل.</p>
 
   <div class="open">
     <b>الذي نعمل عليه الآن</b>
     <ul>
-      <li>تغطية الساحة وتبريدها تبريدًا كاملًا — وهي خارج قدرة المدرسة وحدها، وقد خوطبت بها الإدارة.</li>
-      <li>أنشطةٌ خاصة بمادة اللغة الإنجليزية ترغّب الطالبات فيها — مخطَّطٌ لها هذا الفصل.</li>
-      <li>تنظيم الانصراف بحيث تخرج الصفوف الصغرى قبل الكبرى — مطبَّقٌ ويُتابَع يوميًّا.</li>
-      <li>تقليل الملازم والمطويات — والطباعة غير إلزامية، تكفي الطالبةَ قراءةُ الملف وكتابةُ إجابتها في دفترها.</li>
+      <li><b>تغطيةُ الساحة وتبريدُها تبريدًا كاملًا</b> — وهي ممّا لا تملكه المدرسة
+      وحدها، وقد خُوطِبت بها إدارةُ التعليم، ونحن في انتظار الاعتماد.</li>
+      <li><b>أنشطةٌ خاصّة بمادّة اللغة الإنجليزية</b> تُرغّب الطالبات فيها وتُنمّي
+      حصيلتَهنّ — مخطَّطٌ لها هذا الفصل الدراسي بإذن الله.</li>
+      <li><b>تنظيمُ الانصراف</b> بحيث تخرج الصفوف الصغرى قبل الكبرى — مطبَّقٌ
+      ويُتابَع يوميًّا، ويُستكمل تنظيمُ مكان الانتظار.</li>
+      <li><b>التقليلُ من الملازم والمطويّات</b> — والطباعةُ غير إلزامية، تكفي
+      الطالبةَ قراءةُ النصّ من الملف وكتابةُ إجابتها في دفترها.</li>
     </ul>
   </div>
 
-  <p>وكل ملاحظةٍ تصل تُقرأ بنصّها كما تُكتب، ثم تُحوَّل إلى إجراءٍ له
-  مسؤولةٌ وتاريخٌ وشاهدُ تنفيذ — وتبقى مُتابَعةً من عامٍ إلى عام.</p>
+  <p>وكلُّ ملاحظةٍ تصلنا تُقرأ بنصّها كما تُكتب، ثم تُحوَّل إلى إجراءٍ له
+  مسؤولةٌ وتاريخٌ وشاهدُ تنفيذ، ويبقى أثرُها مُتابَعًا من عامٍ إلى عام.</p>
 
-  <p class="thanks">شكرًا لكل أسرةٍ تكلّمت 💙<br>
-  رأيُكم هو ما غيّر هذه الصور</p>
+  <div class="seen">
+    <img src="${seenQr}" alt="باركود صفحة «تمَّ الاطّلاع»">
+    <div>
+      <h3>تمَّ الاطّلاع</h3>
+      <p>نرجو منكم تأكيدَ اطّلاعكم على هذا التقرير، وأن تكتبوا لنا كلمةً إن
+      أحببتم. امسحوا الرمز بكاميرا الجوّال، أو افتحوا الرابط مباشرةً —
+      ولا يستغرق ذلك سوى لحظة، بلا تسجيلِ دخولٍ ولا بريدٍ إلكتروني.</p>
+      <span class="url">${host}/#/seen</span>
+    </div>
+  </div>
+
+  <p class="thanks">شكرًا لكلِّ أسرةٍ تكلَّمَت 💙<br>
+  رأيُكم هو ما غيَّرَ ما رأيتُموه في هذه الصفحات</p>
 
   <div class="endsign">
     <div><div class="role">مديرة المدرسة</div><div class="who">جازية السميري</div></div>

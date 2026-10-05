@@ -141,6 +141,33 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ───── إقرار الاطّلاع على كرّاسة «ماذا عملنا برأيكم» ─────
+    //
+    // وليّ الأمر يفتح الرابط فيقرّ بأنه اطّلع، وله أن يكتب كلمةً
+    // للمدرسة. يكتب ولا يقرأ: لا يرى إقرار غيره ولا كلمته، كما لا
+    // يرى استجابة غيره في القياس.
+    //
+    // ولا اسم مطلوب: الحقل اختياري، ومن تركته فإقرارها مقبول. فمن
+    // أراد أن يُشكر باسمه شُكر، ومن أراد أن يمرّ مرّ.
+    function publicAck(d) {
+      return d.keys().hasAll(['cycleId', 'name', 'classId', 'word', 'source', 'submittedAt'])
+        && d.keys().hasOnly(['cycleId', 'name', 'classId', 'word', 'source', 'submittedAt', 'clientToken'])
+        && d.cycleId is string && d.cycleId.size() > 0
+        && (d.name == null || (d.name is string && d.name.size() <= 120))
+        && (d.classId == null || d.classId is string)
+        && (d.word == null || (d.word is string && d.word.size() <= 1000))
+        && d.source == 'web'
+        && d.submittedAt is string && d.submittedAt.size() > 0;
+    }
+
+    match /acks/{id} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        || (signedIn() && publicAck(request.resource.data) && cycleOpen(request.resource.data.cycleId));
+      // إقرارٌ وصل لا يُعدَّل ولا يُمحى، كالاستجابة سواءً بسواء
+      allow update, delete: if false;
+    }
+
     // ───── بيانات إدارية بحتة ─────
 
     match /suggestions/{id} {

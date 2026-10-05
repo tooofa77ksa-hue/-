@@ -4247,3 +4247,76 @@ th {
   border-color: var(--moe-navy);
   color: #fff;
 }
+
+
+/* ───────── صفحة «تمَّ الاطّلاع» ─────────
+   تُفتح من جوال وليّ الأمر مرةً واحدة، فحقولها ثلاثة لا أكثر،
+   وكلّها اختيارية: شرطُ الاسم يُنقص المقرّين ولا يزيد صدقهم. */
+
+.seen { text-align: center; }
+
+.seen__logo { height: 44px; margin: 0 auto 10px; display: block; }
+.seen__org { margin: 0; font-size: 12px; color: var(--text-muted); }
+.seen__school { margin: 3px 0 18px; font-size: 15px; font-weight: 700; color: var(--moe-navy); }
+
+.seen__lede {
+  margin: 10px 0 22px;
+  font-size: 15px;
+  line-height: 2;
+  color: var(--text-muted);
+}
+
+.seen__field { display: block; text-align: start; margin-bottom: 15px; }
+.seen__field > span { display: block; font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.seen__field > span i { font-style: normal; font-weight: 400; color: var(--text-muted); font-size: 12.5px; }
+.seen__field small { display: block; margin-top: 6px; font-size: 12px; color: var(--text-muted); line-height: 1.7; }
+
+.seen__field input,
+.seen__field select,
+.seen__field textarea {
+  width: 100%;
+  font: inherit;
+  font-size: 15px;
+  color: inherit;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+}
+
+.seen__field textarea { resize: vertical; line-height: 1.9; }
+
+.seen__field input:focus-visible,
+.seen__field select:focus-visible,
+.seen__field textarea:focus-visible {
+  outline: 3px solid var(--moe-cyan);
+  outline-offset: 1px;
+}
+
+.seen__note {
+  margin: 18px 0 0;
+  font-size: 13px;
+  line-height: 1.95;
+  color: var(--text-muted);
+  background: var(--surface-tint);
+  border-radius: var(--radius-sm);
+  padding: 13px 16px;
+}
+
+.seen__done { padding: 10px 0 6px; }
+
+.seen__tick {
+  display: grid;
+  place-content: center;
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  font-size: 34px;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(140deg, var(--moe-green), var(--moe-teal));
+}
+
+.seen__sign { margin-top: 22px; font-size: 14px; font-weight: 700; color: var(--moe-navy); }
+.seen__sign span { display: block; font-size: 12.5px; font-weight: 400; color: var(--text-muted); margin-top: 3px; }

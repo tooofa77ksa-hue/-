@@ -59,6 +59,19 @@ function publicResponse(overrides = {}) {
   }
 }
 
+/** إقرار اطّلاع سليم: يكتبه وليّ الأمر ولا يقرأ به شيئًا. */
+function publicAck(overrides = {}) {
+  return {
+    cycleId: 'cycle-1448',
+    name: null,
+    classId: null,
+    word: 'بارك الله في جهودكم',
+    source: 'web',
+    submittedAt: '2026-10-05T10:00:00.000Z',
+    ...overrides,
+  }
+}
+
 // ───────── تجهيز بيانات موجودة مسبقًا، بتجاوز القواعد ─────────
 await env.withSecurityRulesDisabled(async (ctx) => {
   const db = ctx.firestore()
@@ -71,6 +84,7 @@ await env.withSecurityRulesDisabled(async (ctx) => {
   await setDoc(doc(db, 'responses/response-1'), publicResponse())
   await setDoc(doc(db, 'suggestions/sug-1'), { responseId: 'response-1', text: 'اقتراح' })
   await setDoc(doc(db, 'auditLogs/log-1'), { operation: 'import', actor: 'admin' })
+  await setDoc(doc(db, 'acks/ack-1'), publicAck())
 })
 
 // ───────────────────────── الاختبارات ─────────────────────────
@@ -199,6 +213,34 @@ test('الزائر غير المصادَق لا يقرأ حتى الأسئلة',
 
 test('غير الإداري لا يعدّل الأسئلة', () =>
   assertFails(setDoc(doc(signedIn, 'questions/q1'), { text: 'سؤال مزوّر' })))
+
+// ٤٫٥) إقرارات الاطّلاع: تُكتب من العام وتُقرأ للإدارة وحدها
+test('وليّ الأمر يسجّل إقرار اطّلاع', () =>
+  assertSucceeds(addDoc(collection(signedIn, 'acks'), publicAck())))
+
+test('إقرارٌ باسمٍ وفصلٍ مقبول كذلك', () =>
+  assertSucceeds(addDoc(collection(signedIn, 'acks'),
+    publicAck({ name: 'وليّ أمر', classId: 'class-4-1' }))))
+
+test('الزائر غير المصادَق لا يسجّل إقرارًا', () =>
+  assertFails(addDoc(collection(guest, 'acks'), publicAck())))
+
+test('لا يُقبل إقرارٌ في دورة مغلقة', () =>
+  assertFails(addDoc(collection(signedIn, 'acks'), publicAck({ cycleId: 'cycle-1447' }))))
+
+test('لا يُقبل إقرارٌ بحقلٍ دخيل', () =>
+  assertFails(addDoc(collection(signedIn, 'acks'), publicAck({ adminNote: 'مزوّر' }))))
+
+test('وليّ الأمر لا يقرأ إقرارات غيره', () =>
+  assertFails(getDocs(collection(signedIn, 'acks'))))
+
+test('الإدارة تقرأ الإقرارات', () =>
+  assertSucceeds(getDocs(collection(admin, 'acks'))))
+
+test('الإقرار لا يُعدَّل ولا يُحذف حتى من الإدارة', async () => {
+  await assertFails(updateDoc(doc(admin, 'acks/ack-1'), { word: 'تبديل' }))
+  await assertFails(deleteDoc(doc(admin, 'acks/ack-1')))
+})
 
 // ٥) المجموعات غير المعرَّفة مرفوضة افتراضيًا
 test('أي مجموعة غير معرَّفة مرفوضة حتى على الإدارة', async () => {

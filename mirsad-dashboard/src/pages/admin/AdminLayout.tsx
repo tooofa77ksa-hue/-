@@ -21,6 +21,7 @@ const LINKS = [
   { to: '/admin/match-review', label: 'مراجعة المطابقة' },
   { to: '/admin/review-queue', label: 'حالات للمراجعة', badge: true },
   { to: '/admin/links', label: 'الروابط والباركود' },
+  { to: '/admin/acks', label: 'إقرارات الاطّلاع' },
   { to: '/admin/reports', label: 'التقارير' },
   { to: '/admin/settings', label: 'الإعدادات' },
 ]
