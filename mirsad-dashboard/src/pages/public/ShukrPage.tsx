@@ -44,7 +44,7 @@ export function ShukrPage() {
         <p className="seen__school">{data?.school ?? 'الابتدائية الخامسة والستون بعد المائة'}</p>
 
         <h1 className="shukr__title">كلماتٌ طيّبة</h1>
-        <p className="shukr__sub">{data?.cycle ?? 'قياس اتجاه المتعلمين ١٤٤٨هـ'}</p>
+        <p className="shukr__sub">{data?.cycle ?? 'قياس اتجاه المتعلمين 1448هـ'}</p>
 
         <p className="shukr__lede">
           ممّا كتبه أولياءُ أمور طالباتنا في القياس، بنصّه كما كُتب.

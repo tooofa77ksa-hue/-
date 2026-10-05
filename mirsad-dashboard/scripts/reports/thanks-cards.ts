@@ -69,9 +69,18 @@ const state = {
 } as unknown as SystemState
 const { trace } = attendance(state)
 
-const AR = 'ar-SA'
-const n = (v: number) => new Intl.NumberFormat(AR).format(v)
-const p1 = (v: number) => `${new Intl.NumberFormat(AR, { maximumFractionDigits: 1 }).format(v)}٪`
+/** أرقام لاتينية (0 1 2 3) في كل المطبوعات، كما في الشاشات — بطلب المدرسة. */
+const AR = 'ar-SA-u-nu-latn'
+/**
+ * الأرقام اللاتينية داخل سطرٍ عربي تُعزل بـU+2066/U+2069.
+ *
+ * العلامات المحايدة حول الرقم (% و− و/) لا تنتمي إليه، فتأخذ اتجاه
+ * الجملة وتقفز إلى طرفها الخطأ: «%96.3» بدل «96.3%». والعازلان لا
+ * يُرسمان، ويعملان في HTML وفي النص المستخرج من PDF سواء.
+ */
+const iso = (t: string) => `\u2066${t}\u2069`
+const n = (v: number) => iso(new Intl.NumberFormat(AR).format(v))
+const p1 = (v: number) => iso(`${new Intl.NumberFormat(AR, { maximumFractionDigits: 1 }).format(v)}%`)
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
 const rooms = orderedClasses(d.grades, d.classes).map(({ room, grade }) => ({
@@ -227,7 +236,7 @@ const card = (label: string, k: number, w: typeof WORDS[number]) => SHELL(`
     <div><div class="role">مديرة المدرسة</div><div class="who">جازية السميري</div></div>
     <div><div class="role">إعداد — المساعد الإداري</div><div class="who">عواطف الجهني</div></div>
   </div>
-  <div class="foot">قياس اتجاه المتعلمين ١٤٤٨هـ</div>
+  <div class="foot">قياس اتجاه المتعلمين 1448هـ</div>
 </div>`, CARD_CSS)
 
 const HONOUR_CSS = `
@@ -262,7 +271,7 @@ const honour = SHELL(`
     <div class="school">الابتدائية الخامسة والستون بعد المائة</div>
   </div>
   <div class="title">لوحة شرف المشاركة</div>
-  <div class="kicker">فصولٌ اكتملت مشاركة أسرها ١٠٠٪</div>
+  <div class="kicker">فصولٌ اكتملت مشاركة أسرها 100٪</div>
   <div class="rule"></div>
   <div class="list">${done.map((r) => `
     <div class="item"><b>${esc(r.label)}</b><span>${n(r.cover.students)} / ${n(r.cover.students)}</span></div>`).join('')}
@@ -276,7 +285,7 @@ const honour = SHELL(`
     <div><div class="role">مديرة المدرسة</div><div class="who">جازية السميري</div></div>
     <div><div class="role">إعداد — المساعد الإداري</div><div class="who">عواطف الجهني</div></div>
   </div>
-  <div class="foot">قياس اتجاه المتعلمين ١٤٤٨هـ</div>
+  <div class="foot">قياس اتجاه المتعلمين 1448هـ</div>
 </div>`, HONOUR_CSS)
 
 /** اسم ملفٍ آمن: لا مسافات ولا شرطات مائلة تُفسد المسار. */
@@ -300,7 +309,7 @@ await browser.close()
 const RULE = '─'.repeat(44)
 writeFileSync(txtOut, [
   `الفصول المتبقية — ${n(left.length)} فصول · ${n(school.students - school.traced)} أسرة`,
-  `قياس اتجاه المتعلمين ١٤٤٨هـ`,
+  `قياس اتجاه المتعلمين 1448هـ`,
   '',
   ...left.map((r) => [
     RULE,

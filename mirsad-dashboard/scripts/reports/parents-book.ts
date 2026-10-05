@@ -88,8 +88,17 @@ const state = {
   categories: d.categories, improvementActions: d.improvementActions,
 } as unknown as SystemState
 
-const AR = 'ar-SA'
-const n = (v: number) => new Intl.NumberFormat(AR).format(v)
+/** أرقام لاتينية (0 1 2 3) في كل المطبوعات، كما في الشاشات — بطلب المدرسة. */
+const AR = 'ar-SA-u-nu-latn'
+/**
+ * الأرقام اللاتينية داخل سطرٍ عربي تُعزل بـU+2066/U+2069.
+ *
+ * العلامات المحايدة حول الرقم (% و− و/) لا تنتمي إليه، فتأخذ اتجاه
+ * الجملة وتقفز إلى طرفها الخطأ: «%96.3» بدل «96.3%». والعازلان لا
+ * يُرسمان، ويعملان في HTML وفي النص المستخرج من PDF سواء.
+ */
+const iso = (t: string) => `\u2066${t}\u2069`
+const n = (v: number) => iso(new Intl.NumberFormat(AR).format(v))
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 const tidy = (s: string) => s.replace(/\s+/g, ' ').trim()
 
@@ -301,10 +310,10 @@ const ALWAYS: { icon: string; title: string; body: string; file: string; caption
   {
     icon: '📞',
     title: 'اهتمامُنا بخطّ مساندة الطفل والتعريف به',
-    body: 'وُضعت لوحةُ «خطّ مساندة الطفل ١١٦١١١» في موضعٍ ظاهرٍ تمرُّ عليه الطالبات، '
+    body: 'وُضعت لوحةُ «خطّ مساندة الطفل 116111» في موضعٍ ظاهرٍ تمرُّ عليه الطالبات، '
       + 'وعُرِّفن بها وبمتى يُطلب الرقم وكيف. فتعلم الطالبةُ أنّ لها من تشكو إليه '
       + 'ولو لم تجد أحدًا قريبًا.',
-    file: 'khat-musanada.jpg', caption: 'خطّ مساندة الطفل ١١٦١١١ — معلَّقٌ أمام الطالبات',
+    file: 'khat-musanada.jpg', caption: 'خطّ مساندة الطفل 116111 — معلَّقٌ أمام الطالبات',
   },
   {
     icon: '💗',
@@ -352,7 +361,7 @@ const kindOut = resolve(ROOT, publish ? 'public/data/shukr.json' : '.report-out/
 mkdirSync(dirname(kindOut), { recursive: true })
 writeFileSync(kindOut, JSON.stringify({
   school: 'الابتدائية الخامسة والستون بعد المائة',
-  cycle: 'قياس اتجاه المتعلمين ١٤٤٨هـ',
+  cycle: 'قياس اتجاه المتعلمين 1448هـ',
   words: KIND.map(({ text, grade }) => ({
     text,
     from: grade ? `من أسرة طالبةٍ بالصف ${grade}` : 'من أسرةٍ كريمة',
@@ -515,7 +524,7 @@ figcaption { font-size:9.6px; color:var(--muted); padding:6px 9px; line-height:1
   <div class="school">الابتدائية الخامسة والستون بعد المائة</div>
 
   <h1>ماذا عملنا<br>برأيكم؟</h1>
-  <div class="kicker">قياس اتجاه المتعلمين ١٤٤٨هـ</div>
+  <div class="kicker">قياس اتجاه المتعلمين 1448هـ</div>
 
   <p class="lede">أولياءَ أمورنا الكرام،<br>
   كتبتم ملاحظاتِكم في دقيقتين، ولم تروا لها أثرًا بعدُ. وهذا التقرير جوابُنا

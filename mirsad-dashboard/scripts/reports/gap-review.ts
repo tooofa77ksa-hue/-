@@ -96,11 +96,20 @@ const state = {
   categories: d.categories, improvementActions: d.improvementActions,
 } as unknown as SystemState
 
-const AR = 'ar-SA'
-const n = (v: number) => new Intl.NumberFormat(AR).format(v)
-const f2 = (v: number) => new Intl.NumberFormat(AR, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v)
-const p0 = (v: number) => `${new Intl.NumberFormat(AR, { maximumFractionDigits: 0 }).format(v)}٪`
-const p1 = (v: number) => `${new Intl.NumberFormat(AR, { maximumFractionDigits: 1 }).format(v)}٪`
+/** أرقام لاتينية (0 1 2 3) في كل المطبوعات، كما في الشاشات — بطلب المدرسة. */
+const AR = 'ar-SA-u-nu-latn'
+/**
+ * الأرقام اللاتينية داخل سطرٍ عربي تُعزل بـU+2066/U+2069.
+ *
+ * العلامات المحايدة حول الرقم (% و− و/) لا تنتمي إليه، فتأخذ اتجاه
+ * الجملة وتقفز إلى طرفها الخطأ: «%96.3» بدل «96.3%». والعازلان لا
+ * يُرسمان، ويعملان في HTML وفي النص المستخرج من PDF سواء.
+ */
+const iso = (t: string) => `\u2066${t}\u2069`
+const n = (v: number) => iso(new Intl.NumberFormat(AR).format(v))
+const f2 = (v: number) => iso(new Intl.NumberFormat(AR, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v))
+const p0 = (v: number) => iso(`${new Intl.NumberFormat(AR, { maximumFractionDigits: 0 }).format(v)}%`)
+const p1 = (v: number) => iso(`${new Intl.NumberFormat(AR, { maximumFractionDigits: 1 }).format(v)}%`)
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
 const cov = coverage(state, {})
@@ -138,7 +147,7 @@ const GAPS: { id: string; why: string; have: string[]; need: string[] }[] = [
     id: 'q06',
     why: 'أضعف بنود القياس كلّه. والجملة سلبية، فمن «وافقت تماماً» عليها تقول: لا تُراعى القدرات.',
     have: [
-      'تعميم ١٩ سبتمبر: مراعاة الفروق الفردية وعدم ذكر أسماء المتعثرات أمام الفصل — وتاريخه قبل وصول القياس',
+      'تعميم 19 سبتمبر: مراعاة الفروق الفردية وعدم ذكر أسماء المتعثرات أمام الفصل — وتاريخه قبل وصول القياس',
       'حصص الاحتياط والمساندة — تعميم مجموعة المعلمات',
       'أوراق عمل الترم كاملةً من بداية العام، والطباعة غير إلزامية — فلا يتعذّر عمل طالبة لعجز أسرتها عن الطباعة',
     ],
@@ -153,7 +162,7 @@ const GAPS: { id: string; why: string; have: string[]; need: string[] }[] = [
     have: [
       'لوحة «التنمّر ليس قوة» معلَّقة في الممر',
       'لوحة السلوك المتميّز',
-      'خط مساندة الطفل ١١٦١١١ معلَّقًا أمام الطالبات',
+      'خط مساندة الطفل 116111 معلَّقًا أمام الطالبات',
     ],
     need: [
       'محضر جلسة توعية سلوكية بتاريخها (أو صورة من الإذاعة المدرسية عن التنمّر)',
@@ -166,7 +175,7 @@ const GAPS: { id: string; why: string; have: string[]; need: string[] }[] = [
     have: [
       'تنظيم الفسحة فسحتين: الصفوف الصغرى وحدها والكبرى وحدها',
       'كراسي مكان الانتظار وقت الانصراف وتهويته بالمراوح',
-      'خط مساندة الطفل ١١٦١١١',
+      'خط مساندة الطفل 116111',
     ],
     need: [
       'صورة تنظيم الانصراف: الصفوف الصغرى تخرج قبل الكبرى — وهو نصّ ما طلبته وليّتا أمر',
@@ -188,7 +197,7 @@ const GAPS: { id: string; why: string; have: string[]; need: string[] }[] = [
   },
   {
     id: 'q07',
-    why: 'بندٌ يقيس الرضا بالمدرسة نفسها، ويقابله «أحب مدرستي» ٢٫٨٨ و«أرغب في الانتقال» ٢٫٨٨ — فالصورة العامة سليمة، والنقص في إظهار ما يُفتخر به.',
+    why: 'بندٌ يقيس الرضا بالمدرسة نفسها، ويقابله «أحب مدرستي» 2٫88 و«أرغب في الانتقال» 2٫88 — فالصورة العامة سليمة، والنقص في إظهار ما يُفتخر به.',
     have: [
       'تكريم المتفوقات والمثاليات — منشورٌ في قناة المدرسة',
       'ترشيح الطالبات لبرنامج موهبة',
@@ -299,7 +308,7 @@ const bandRow = (b: typeof bands[number]) => {
     <td class="mid"><b>${n(b.voices.length)}</b></td>
     <td><b>${esc(a.title)}</b><div class="say">${b.voices.slice(0, 2)
       .map((v) => `«${esc(cut(v.text, 120))}»`).join(' · ')}</div></td>
-    <td class="mid ${a.evidence?.length ? 'ok' : 'no'}">${a.evidence?.length ? n(a.evidence.length) : '٠'}</td>
+    <td class="mid ${a.evidence?.length ? 'ok' : 'no'}">${a.evidence?.length ? n(a.evidence.length) : '0'}</td>
     <td>${need.length ? `<ul>${need.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : '<span class="ok">مكتملٌ شاهدًا</span>'}</td>
   </tr>`
 }
@@ -346,7 +355,7 @@ li { margin-bottom:2px; }
               padding-bottom:6px; }
 </style></head><body>
 
-<h1>مراجعة قياس اتجاه المتعلمين ١٤٤٨هـ</h1>
+<h1>مراجعة قياس اتجاه المتعلمين 1448هـ</h1>
 <div class="sub">ما يحتاج تعبئةً · وما يحتاج شاهدًا</div>
 <div class="org">الإدارة العامة للتعليم بمحافظة جدة — الابتدائية الخامسة والستون بعد المائة</div>
 
@@ -359,7 +368,7 @@ li { margin-bottom:2px; }
   <div class="fig"><b>${n(proofs)}</b><span>شاهد تنفيذ</span></div>
 </div>
 
-<h2>١) التعبئة الناقصة <span class="k">— ${n(cov.students - cov.traced)} أسرة في ${n(pending.length)} فصول</span></h2>
+<h2>1) التعبئة الناقصة <span class="k">— ${n(cov.students - cov.traced)} أسرة في ${n(pending.length)} فصول</span></h2>
 ${pending.length ? `<table>
 <tr><th>الفصل</th><th class="mid">وصل</th><th class="mid">الكشف</th><th class="mid">النسبة</th><th class="mid">الباقي</th></tr>
 ${pending.map((r) => `<tr><td><b>${esc(r.label)}</b></td><td class="mid">${n(r.cover.traced)}</td>
@@ -369,7 +378,7 @@ ${pending.map((r) => `<tr><td><b>${esc(r.label)}</b></td><td class="mid">${n(r.c
 <p class="note">الفصول المكتملة لا تُذكر في التذكير، والباقية تُرسل إليها رسالة واحدة تحمل أسماء
 بناتهنّ ورابط الفصل. وأسماء من لم يصل رأي أسرتها في كشفٍ منفصل، لا في هذه الورقة.</p>
 
-<h2>٢) أضعف بنود القياس <span class="k">— والشاهد الذي يردّ على كل بند</span></h2>
+<h2>2) أضعف بنود القياس <span class="k">— والشاهد الذي يردّ على كل بند</span></h2>
 <table>
 <tr><th class="mid">المتوسط</th><th>البند</th><th class="mid">لم توافق</th><th>الشاهد الحاضر</th><th>الشاهد المطلوب اليوم</th></tr>
 ${LOW.map((g) => `<tr>
@@ -383,13 +392,13 @@ ${LOW.map((g) => `<tr>
 </tr>`).join('')}
 </table>
 
-<h2>٣) نقد أولياء الأمور <span class="k">— ${n(bands.reduce((k, b) => k + b.voices.length, 0))} صوتًا مربوطًا ببنوده، مرتَّبةً بعدد ما تحتها</span></h2>
+<h2>3) نقد أولياء الأمور <span class="k">— ${n(bands.reduce((k, b) => k + b.voices.length, 0))} صوتًا مربوطًا ببنوده، مرتَّبةً بعدد ما تحتها</span></h2>
 <table>
 <tr><th class="mid">الأصوات</th><th>البند وما قالته الأسر</th><th class="mid">الشواهد</th><th>الشاهد المطلوب اليوم</th></tr>
 ${bands.map(bandRow).join('')}
 </table>
 
-<h2>٤) آراءٌ وصلت ولم تُربط ببند <span class="k">— تُربط بضغطة في «مركز مراجعة الآراء»</span></h2>
+<h2>4) آراءٌ وصلت ولم تُربط ببند <span class="k">— تُربط بضغطة في «مركز مراجعة الآراء»</span></h2>
 <table>
 <tr><th>المحور ونصّ ما كُتب</th><th>ما يُعمل به</th><th>الشاهد المطلوب</th></tr>
 ${LOOSE.map((l) => `<tr><td><b>${esc(l.theme)}</b>
@@ -397,7 +406,7 @@ ${LOOSE.map((l) => `<tr><td><b>${esc(l.theme)}</b>
   <td><ul>${l.need.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></td></tr>`).join('')}
 </table>
 
-<h2>٥) حقولٌ ناقصة في بنود التحسين <span class="k">— تُعبَّأ في اللوحة</span></h2>
+<h2>5) حقولٌ ناقصة في بنود التحسين <span class="k">— تُعبَّأ في اللوحة</span></h2>
 <p>${noProof.length
   ? `<span class="no">${n(noProof.length)} بندًا بلا شاهدٍ مسجَّل:</span> ${noProof.map((a) => esc(a.title)).join(' · ')}.`
   : '<span class="ok">كل بندٍ له شاهد.</span>'}

@@ -128,7 +128,7 @@ for (const v of voices) {
  * تُعدّ في المتروك، وتُفرد في عمودٍ ثالث كي لا تُلاحَق بالخطأ.
  */
 const bare = (t: string) => normalizeArabic(t).replace(/[^؀-ۿa-zA-Z0-9]+/g, '')
-const NIL = /^(لايوجد|لا|لاشي|لاشيء|ولاشي|لايوجداياقتراح|لايوجدشي|لاينقصشئفيها|كلشيمتووفر|0+|٠+)$/u
+const NIL = /^(لايوجد|لا|لاشي|لاشيء|ولاشي|لايوجداياقتراح|لايوجدشي|لاينقصشئفيها|كلشيمتووفر|0+|0+)$/u
 
 type Kind = 'none' | 'blank' | 'nil' | 'wrote'
 interface Row { student: Student; kind: Kind; trace: Trace | null }
@@ -140,8 +140,17 @@ const rows: Row[] = active.map((student) => {
   return { student, kind, trace: l.kind }
 })
 
-const AR = 'ar-SA'
-const n = (v: number) => new Intl.NumberFormat(AR).format(v)
+/** أرقام لاتينية (0 1 2 3) في كل المطبوعات، كما في الشاشات — بطلب المدرسة. */
+const AR = 'ar-SA-u-nu-latn'
+/**
+ * الأرقام اللاتينية داخل سطرٍ عربي تُعزل بـU+2066/U+2069.
+ *
+ * العلامات المحايدة حول الرقم (% و− و/) لا تنتمي إليه، فتأخذ اتجاه
+ * الجملة وتقفز إلى طرفها الخطأ: «%96.3» بدل «96.3%». والعازلان لا
+ * يُرسمان، ويعملان في HTML وفي النص المستخرج من PDF سواء.
+ */
+const iso = (t: string) => `\u2066${t}\u2069`
+const n = (v: number) => iso(new Intl.NumberFormat(AR).format(v))
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 const byName = (a: Row, b: Row) => a.student.name.localeCompare(b.student.name, 'ar')
 
@@ -165,7 +174,7 @@ const rooms = orderedClasses(d.grades, d.classes).map(({ room, grade }) => {
 const RULE = '─'.repeat(44)
 const text = [
   `كشف من لم تصل استجابة أسرتها — ${n(count('none'))} طالبة`,
-  `قياس اتجاه المتعلمين ١٤٤٨هـ · الابتدائية الخامسة والستون بعد المائة`,
+  `قياس اتجاه المتعلمين 1448هـ · الابتدائية الخامسة والستون بعد المائة`,
   '',
   ...rooms.filter((r) => r.none.length).flatMap((r) => [
     RULE,
@@ -250,7 +259,7 @@ li { font-size:8.8px; line-height:1.62; }
 </style></head><body>
 
 <h1>كشف من لم يصل صوتها</h1>
-<div class="sub">قياس اتجاه المتعلمين ١٤٤٨هـ</div>
+<div class="sub">قياس اتجاه المتعلمين 1448هـ</div>
 <div class="org">الإدارة العامة للتعليم بمحافظة جدة — الابتدائية الخامسة والستون بعد المائة</div>
 
 <div class="figs">

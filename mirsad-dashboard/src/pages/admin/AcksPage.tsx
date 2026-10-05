@@ -82,7 +82,7 @@ export function AcksPage() {
                   <tbody>
                     {rows.map((r) => (
                       <tr key={r.id}>
-                        <td>{new Date(r.submittedAt).toLocaleDateString('ar-SA')}</td>
+                        <td>{new Date(r.submittedAt).toLocaleDateString('ar-SA-u-nu-latn')}</td>
                         <td>{(r.classId && label.get(r.classId)) || <span className="muted">—</span>}</td>
                         <td>{r.name?.trim() || <span className="muted">بلا اسم</span>}</td>
                         <td>{r.word?.trim() || <span className="muted">—</span>}</td>

@@ -76,9 +76,18 @@ const share = active.length ? (joined / active.length) * 100 : 0
 const proofs = data.improvementActions.reduce((n, a) => n + (a.evidence?.length ?? 0), 0)
 
 /** أرقام هندية على الورقة المطبوعة، كما تُكتب الخطابات الرسمية. */
-const AR = 'ar-SA'
-const n = (v: number) => new Intl.NumberFormat(AR).format(v)
-const p = (v: number) => `${new Intl.NumberFormat(AR, { maximumFractionDigits: 1 }).format(v)}٪`
+/** أرقام لاتينية (0 1 2 3) في كل المطبوعات، كما في الشاشات — بطلب المدرسة. */
+const AR = 'ar-SA-u-nu-latn'
+/**
+ * الأرقام اللاتينية داخل سطرٍ عربي تُعزل بـU+2066/U+2069.
+ *
+ * العلامات المحايدة حول الرقم (% و− و/) لا تنتمي إليه، فتأخذ اتجاه
+ * الجملة وتقفز إلى طرفها الخطأ: «%96.3» بدل «96.3%». والعازلان لا
+ * يُرسمان، ويعملان في HTML وفي النص المستخرج من PDF سواء.
+ */
+const iso = (t: string) => `\u2066${t}\u2069`
+const n = (v: number) => iso(new Intl.NumberFormat(AR).format(v))
+const p = (v: number) => iso(`${new Intl.NumberFormat(AR, { maximumFractionDigits: 1 }).format(v)}%`)
 
 const asset = (path: string, mime: string) =>
   `data:${mime};base64,${readFileSync(resolve(ROOT, path)).toString('base64')}`
@@ -212,7 +221,7 @@ h2 { font-size: 14px; font-weight: 800; color: var(--navy); margin: 14px 0 6px;
 <header class="head">
   <img src="${asset('public/brand/moe-logo.png', 'image/png')}" alt="وزارة التعليم">
   <h1>منصّة قياس اتجاه المتعلمين</h1>
-  <div class="sub">منصّة إلكترونية آمنة · العام الدراسي ١٤٤٨هـ</div>
+  <div class="sub">منصّة إلكترونية آمنة · العام الدراسي 1448هـ</div>
   <div class="org">الإدارة العامة للتعليم بمحافظة جدة — الابتدائية الخامسة والستون بعد المائة</div>
 </header>
 
