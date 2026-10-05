@@ -26,8 +26,22 @@ async function getAuthInstance(): Promise<Auth | null> {
   if (cachedAuth) return cachedAuth
   const app = getFirebaseApp()
   if (!app) return null
-  const { getAuth } = await import('firebase/auth')
+  const { browserLocalPersistence, getAuth, setPersistence } = await import('firebase/auth')
   cachedAuth = getAuth(app)
+  /**
+   * الدخول يبقى بعد إغلاق المتصفّح وإعادة تشغيل الجهاز.
+   *
+   * المدرسة تفتح اللوحة من خمسة أجهزة، ومن يُطالَب بكلمة المرور في
+   * كل مرة يفتح فيها الصفحة يترك الأداة ويعود إلى الورق. فيُسجَّل
+   * الدخول مرةً واحدة في كل جهاز ويبقى، كما يبقى في تطبيقات الجوال.
+   *
+   * ولا يُضعف ذلك الحماية: الرمز يبقى في الجهاز نفسه لا يخرج منه،
+   * ومن لم يُسجّل لا يقرأ اسمًا — القواعد على الخادم هي الحَكَم.
+   * والخروج متاح متى شاءت من زرّ الخروج.
+   */
+  await setPersistence(cachedAuth, browserLocalPersistence).catch(() => {
+    // وضع التصفّح الخاص يرفض الحفظ: تبقى الجلسة لهذا التبويب وحده
+  })
   if (readEnv('VITE_MIRSAD_USE_EMULATOR') === 'true') {
     const { connectAuthEmulator } = await import('firebase/auth')
     connectAuthEmulator(cachedAuth, 'http://127.0.0.1:9199', { disableWarnings: true })
@@ -77,7 +91,7 @@ export async function signInAdmin(email: string, password: string): Promise<Iden
   if (identity.role !== 'admin') {
     // حساب صحيح بلا صلاحية إدارة: نُخرجه فورًا بدل تركه بهوية جزئية
     await signOut(auth)
-    throw new Error('هذا الحساب لا يملك صلاحية الإدارة')
+    throw new Error('هذا الحساب لا يملك صلاحية الإدارة')  // تُشرح في الشاشة
   }
   return identity
 }

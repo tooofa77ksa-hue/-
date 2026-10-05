@@ -118,7 +118,12 @@ function RemoteGate({ children }: { children: ReactNode }) {
 
         {error && <p className="field__error">{error}</p>}
         {identity.role === 'respondent' && !error && (
-          <p className="field__error">هذا الحساب لا يملك صلاحية الإدارة.</p>
+          <p className="field__error">
+            هذا الحساب لا يملك صلاحية الإدارة.
+            <br />
+            سجّلي الدخول بالحساب نفسه الذي تستعملينه على جهازك الأساسي — فالصلاحية
+            مرتبطة بالحساب لا بالجهاز.
+          </p>
         )}
         {status === 'denied' && identity.role === 'none' && !error && (
           <p className="gate__note">تعذّر الوصول إلى البيانات بالحساب الحالي.</p>
