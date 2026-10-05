@@ -29,8 +29,11 @@ import { Sfx } from "../components/Sfx";
 // نهايته يمكن قصها بدون قطع المحتوى). نسختان للمقارنة: raw.mp3 (51.9 ثانية)
 // وraw-2.mp3 (31.4 ثانية) - SONG_SRC وWELCOME_INTRO_DURATION يُبدَّلان معًا
 // حسب أي نسخة قيد الاستخدام.
+// القصّ (٣٣ث إلى النهاية) ينطبق على ملف الأغنية نفسه فقط - مدة المقدمة
+// (الفيديو) تبقى بطولها الطبيعي المستقل بدل الانكماش لتطابق طول الأغنية
+// المقصوصة القصير (١٨.٩ث) - بناءً على توضيح صريح.
 const SONG_SRC = "audio/intro/welcome-song-trimmed-33.mp3";
-export const WELCOME_INTRO_DURATION = 567;
+export const WELCOME_INTRO_DURATION = 810;
 
 const LOGO_ASPECT = 536 / 703; // height / width of logo-white-full.png
 
