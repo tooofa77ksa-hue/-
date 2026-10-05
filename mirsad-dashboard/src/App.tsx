@@ -2,6 +2,7 @@ import { Suspense, lazy } from 'react'
 import { Navigate, Route, HashRouter as Router, Routes } from 'react-router-dom'
 
 import { SeenPage } from './pages/public/SeenPage'
+import { ShukrPage } from './pages/public/ShukrPage'
 import { SurveyRoute } from './pages/public/SurveyRoute'
 import { SystemProvider } from './state/SystemProvider'
 
@@ -44,6 +45,9 @@ export default function App() {
 
             {/* إقرار الاطّلاع على كرّاسة التحسين — يكتب ولا يقرأ */}
             <Route path="/seen" element={<SeenPage />} />
+
+            {/* الكلمات الطيّبة — تُقرأ من ملفٍّ ثابت لا من قاعدة البيانات */}
+            <Route path="/shukr" element={<ShukrPage />} />
 
             {/* لوحة العرض — خلف البوابة نفسها، وبلا إطار لوحة التعديل */}
             <Route

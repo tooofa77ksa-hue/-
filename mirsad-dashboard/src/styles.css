@@ -4320,3 +4320,47 @@ th {
 
 .seen__sign { margin-top: 22px; font-size: 14px; font-weight: 700; color: var(--moe-navy); }
 .seen__sign span { display: block; font-size: 12.5px; font-weight: 400; color: var(--text-muted); margin-top: 3px; }
+
+
+/* ───────── صفحة «كلماتٌ طيّبة» ─────────
+   تُفتح من رابطٍ يُشارَك، فعرضُها واحدٌ على الجوال والحاسوب. */
+
+.shukr { text-align: center; }
+
+.shukr__title { font-size: 30px; font-weight: 800; margin: 16px 0 2px; color: var(--moe-navy); }
+.shukr__sub { font-size: 14px; font-weight: 700; color: var(--moe-green); margin: 0 0 14px; }
+
+.shukr__lede {
+  font-size: 14.5px;
+  line-height: 2;
+  color: var(--text-muted);
+  margin: 0 0 22px;
+}
+
+.shukr__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; text-align: start; }
+
+.shukr__one {
+  border: 1.5px solid #cfe7da;
+  border-radius: var(--radius);
+  padding: 15px 18px 13px;
+  background: linear-gradient(170deg, #f3fbf7, #f7fbfb);
+}
+
+.shukr__one p { margin: 0; font-size: 15px; line-height: 2; color: #26544a; }
+.shukr__one p::before { content: '❝ '; color: var(--moe-green); font-weight: 800; }
+
+.shukr__one span {
+  display: block;
+  margin-top: 9px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--moe-green);
+}
+
+.shukr__end { margin-top: 24px; font-size: 15px; font-weight: 700; color: var(--moe-navy); }
+
+:root[data-theme='dark'] .shukr__one {
+  background: var(--surface-tint);
+  border-color: var(--border);
+}
+:root[data-theme='dark'] .shukr__one p { color: var(--text); }
