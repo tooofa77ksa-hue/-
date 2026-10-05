@@ -11,7 +11,6 @@ import {
   healthCases,
   socialCasesCount,
   specialNeedsCases,
-  supervisoryRoles,
   teacherClassification,
   teacherLicense,
   transferredStudents,
@@ -21,10 +20,17 @@ import {
 /**
  * "الخريطة التنظيمية والإحصائية" - أول مشهد في هذا الفيديو (يحل محل
  * StatsIntroScene). خريطة واحدة متراكمة (نفس أسلوب FacilitiesScene: عمود
- * فقري يمتد تدريجيًا وبطاقات تتوالى بالظهور وتبقى على الشاشة)، مقسّمة إلى
- * 5 مجموعات مترابطة كما طلب المستخدم بالضبط: الهيئة الإشرافية، ثم
- * المعلمات+الإداريات، ثم الطالبات+الفصول، ثم الاقتصادية+الاجتماعية، ثم
- * الصحية+السكر+الصرع.
+ * فقري يمتد تدريجيًا وبطاقات تتوالى بالظهور وتبقى على الشاشة).
+ *
+ * صف "الهيئة الإشرافية" (عنوان + بطاقات مديرة/وكيلة/موجهة طلابية) حُذف
+ * بالكامل بناءً على طلب صريح، وكُبّرت بطاقات الفروع ونصوصها لوضوح أكبر على
+ * شاشات العرض الكبيرة/الخارجية. ملاحظة مهمة: التسجيل الصوتي المرافق
+ * (org-stats-line.mp3) لا يزال يتضمّن جملة "تتكوّن الهيئة الإشرافية...
+ * مديرة، ووكيلة، وموجهة طلابية" في أول ~6.5 ثانية من المشهد - حذف الجزء
+ * البصري فقط يعني أن هذه الجملة تُسمع الآن بدون أي ظهور بصري مرافق لها
+ * (خلفية+شعار المشهد فقط حتى تبدأ بطاقة "الإداريات"). إن احتجنا مزامنة
+ * بصرية لهذه الجملة لاحقًا، الحل يكون بإعادة تسجيل صوتي بدونها وإعادة كل
+ * توقيتات ITEM_START - لم يُنفَّذ هنا تفاديًا لتوسيع نطاق التعديل المطلوب.
  *
  * التوقيت: مبني بالكامل على التسجيل الصوتي الحقيقي الثاني
  * (public/audio/school-stats/org-stats-line.mp3، صوت "Layla"، 59.35 ثانية)
@@ -85,13 +91,14 @@ const ITEM_START = {
 // عريض يمتد على كامل عرض الشاشة - بالضبط زي الصورة المرجعية (فرع بجانب
 // فرع، لا فرع فوق فرع). تفاصيل كل فرع (الرخصة، التصنيف، المنقولات...)
 // تنزل في عمود ضيق تحت فرعها هو بالذات فقط.
-const SPINE_TOP = 195;
-const ROW_TITLE_Y = 150;
-const ROW_ROLES_Y = 215;
-const BAR_Y = 300; // الخط الأفقي اللي يتفرّع منه كل الفروع السبعة
-const CARD_TOP_Y = 330;
-const CHILD_START_Y = 552; // أول عنصر تحت أي فرع
-const CHILD_STEP = 44;
+// صف "الهيئة الإشرافية" (العنوان + مديرة/وكيلة/موجهة طلابية) حُذف بالكامل
+// بناءً على طلب صريح - استُغلت المساحة المرتفعة في تكبير بطاقات الفروع
+// والنصوص لتكون واضحة على شاشات العرض الكبيرة/الخارجية.
+const SPINE_TOP = 140;
+const BAR_Y = 230; // الخط الأفقي اللي يتفرّع منه كل الفروع السبعة
+const CARD_TOP_Y = 262;
+const CHILD_START_Y = 512; // أول عنصر تحت أي فرع
+const CHILD_STEP = 48;
 
 // مراكز الفروع السبعة (من اليمين لليسار) - موزّعة على كامل العرض بتباعد
 // غير منتظم عمدًا: فرعا "المعلمات" و"الطالبات" لهما أكبر عدد تفاصيل تحتهما
@@ -109,25 +116,16 @@ const BX = {
 
 // ---- Icons: unified single-color line icons, same visual language as FacilitiesScene ----
 const IC = brand.primary;
-const iconProps = { width: 38, height: 38, viewBox: "0 0 48 48", fill: "none", stroke: IC, strokeWidth: 3, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+const iconProps = { width: 44, height: 44, viewBox: "0 0 48 48", fill: "none", stroke: IC, strokeWidth: 3, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
 
-const DirectorIcon = () => (
-  <svg {...iconProps}><circle cx="24" cy="16" r="8" /><path d="M8 42c0-10 7-16 16-16s16 6 16 16" /><path d="M24 4v4M17 6l2 3M31 6l-2 3" /></svg>
-);
-const DeputyIcon = () => (
-  <svg {...iconProps}><circle cx="24" cy="17" r="7.5" /><path d="M9 42c0-9 7-15 15-15s15 6 15 15" /><path d="M17 26l4 4 9-9" /></svg>
-);
-const GuidanceIcon = () => (
-  <svg {...iconProps}><path d="M6 10h36v22H20l-8 8v-8H6z" /><path d="M14 19h20M14 25h12" /></svg>
-);
 const TeachersGroupIcon = () => (
   <svg {...iconProps}><circle cx="17" cy="16" r="6" /><path d="M6 40c0-8 5-13 11-13s11 5 11 13" /><circle cx="34" cy="14" r="5" strokeOpacity={0.55} /><path d="M26 40c1-7 5-11 10-11s9 4 10 11" strokeOpacity={0.55} /></svg>
 );
 const LicenseIcon = () => (
-  <svg width={22} height={22} viewBox="0 0 48 48" fill="none" stroke={IC} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="12" width="38" height="26" rx="3" /><circle cx="16" cy="25" r="5" /><path d="M26 21h13M26 29h13" /><path d="M13 44l3-4 3 4" /></svg>
+  <svg width={25} height={25} viewBox="0 0 48 48" fill="none" stroke={IC} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="12" width="38" height="26" rx="3" /><circle cx="16" cy="25" r="5" /><path d="M26 21h13M26 29h13" /><path d="M13 44l3-4 3 4" /></svg>
 );
 const NoLicenseIcon = () => (
-  <svg width={22} height={22} viewBox="0 0 48 48" fill="none" stroke={brand.muted} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="12" width="38" height="26" rx="3" /><path d="M18 31l8-11M18 20l8 11" /></svg>
+  <svg width={25} height={25} viewBox="0 0 48 48" fill="none" stroke={brand.muted} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="12" width="38" height="26" rx="3" /><path d="M18 31l8-11M18 20l8 11" /></svg>
 );
 const AdminsIcon = () => (
   <svg {...iconProps}><circle cx="20" cy="14" r="6.5" /><path d="M8 40c0-8.5 5.5-14 12-14s12 5.5 12 14" /><rect x="30" y="22" width="14" height="12" rx="2" strokeOpacity={0.55} /><path d="M33 22v-2a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" strokeOpacity={0.55} /></svg>
@@ -148,93 +146,25 @@ const HealthIcon = () => (
   <svg {...iconProps}><circle cx="24" cy="24" r="18" /><path d="M24 15v18M15 24h18" /></svg>
 );
 const SugarIcon = () => (
-  <svg width={22} height={22} viewBox="0 0 48 48" fill="none" stroke={IC} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"><path d="M24 6c8 11 13 18 13 25a13 13 0 0 1-26 0c0-7 5-14 13-25Z" /></svg>
+  <svg width={25} height={25} viewBox="0 0 48 48" fill="none" stroke={IC} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"><path d="M24 6c8 11 13 18 13 25a13 13 0 0 1-26 0c0-7 5-14 13-25Z" /></svg>
 );
 const EpilepsyIcon = () => (
-  <svg width={22} height={22} viewBox="0 0 48 48" fill="none" stroke={IC} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"><path d="M4 26h8l4-12 8 22 4-16 4 6h12" /></svg>
+  <svg width={25} height={25} viewBox="0 0 48 48" fill="none" stroke={IC} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"><path d="M4 26h8l4-12 8 22 4-16 4 6h12" /></svg>
 );
 const RankBadgeIcon = () => (
-  <svg {...iconProps}><circle cx="24" cy="18" r="11" /><path d="M15 27l-4 15 13-6 13 6-4-15" /></svg>
+  <svg width={25} height={25} viewBox="0 0 48 48" fill="none" stroke={IC} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="24" cy="18" r="11" /><path d="M15 27l-4 15 13-6 13 6-4-15" />
+  </svg>
 );
 const GiftedIcon = () => (
-  <svg width={22} height={22} viewBox="0 0 48 48" fill="none" stroke={IC} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"><path d="M24 6l4.5 9.5L38 18l-7 7 1.7 10-8.7-5-8.7 5L17 25l-7-7 9.5-2.5L24 6Z" /></svg>
+  <svg width={25} height={25} viewBox="0 0 48 48" fill="none" stroke={IC} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"><path d="M24 6l4.5 9.5L38 18l-7 7 1.7 10-8.7-5-8.7 5L17 25l-7-7 9.5-2.5L24 6Z" /></svg>
 );
 const DisabilityIcon = () => (
-  <svg width={22} height={22} viewBox="0 0 48 48" fill="none" stroke={brand.muted} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"><circle cx="20" cy="10" r="4" /><path d="M20 16v10l-9 14M20 26h14M20 20l9 6 7-4" /></svg>
+  <svg width={25} height={25} viewBox="0 0 48 48" fill="none" stroke={brand.muted} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"><circle cx="20" cy="10" r="4" /><path d="M20 16v10l-9 14M20 26h14M20 20l9 6 7-4" /></svg>
 );
 const LearningDifficultyIcon = () => (
-  <svg width={22} height={22} viewBox="0 0 48 48" fill="none" stroke={brand.muted} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"><path d="M8 14h24v26H8zM32 20h8v20h-8z" /><path d="M14 22h12M14 28h12M14 34h8" /></svg>
+  <svg width={25} height={25} viewBox="0 0 48 48" fill="none" stroke={brand.muted} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"><path d="M8 14h24v26H8zM32 20h8v20h-8z" /><path d="M14 22h12M14 28h12M14 34h8" /></svg>
 );
-
-const GroupTitle: React.FC = () => {
-  const frame = useCurrentFrame();
-  const t = interpolate(frame, [ITEM_START.groupTitle, ITEM_START.groupTitle + 14], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-  return (
-    <div
-      style={{
-        position: "absolute",
-        top: ROW_TITLE_Y,
-        left: 0,
-        right: 0,
-        textAlign: "center",
-        fontFamily,
-        fontWeight: 800,
-        fontSize: 48,
-        color: brand.primaryDark,
-        opacity: t,
-      }}
-    >
-      الهيئة الإشرافية
-    </div>
-  );
-};
-
-const Pill: React.FC<{ label: string; x: number; y: number; from: number; icon: React.ReactNode }> = ({ label, x, y, from, icon }) => {
-  const frame = useCurrentFrame();
-  const local = frame - from;
-  const t = interpolate(local, [0, REVEAL_DURATION], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: Easing.out(Easing.cubic),
-    output: "perceptual-scale",
-  });
-  if (local < -2) return null;
-
-  return (
-    <div
-      style={{
-        position: "absolute",
-        left: x - 150,
-        top: y,
-        width: 300,
-        opacity: t,
-        scale: 0.85 + t * 0.15,
-        translate: `0 ${interpolate(t, [0, 1], [10, 0])}px`,
-      }}
-    >
-      <Sfx kind="tick" at={from} volume={0.2} />
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 12,
-          background: "#fbfdfc",
-          border: `1.5px solid ${brand.border}`,
-          borderRadius: 999,
-          boxShadow: "0 10px 26px rgba(21,68,90,0.10)",
-          padding: "12px 22px",
-        }}
-      >
-        {icon}
-        <span style={{ fontFamily, fontWeight: 800, fontSize: 36, color: brand.primaryDark }}>{label}</span>
-      </div>
-    </div>
-  );
-};
 
 /**
  * بطاقة صغيرة لعناصر فرعية (تصنيف المعلمات، المنقولات، تفاصيل الحالة
@@ -272,13 +202,13 @@ const SubBadge: React.FC<{ label: string; x: number; y: number; from: number; ic
         borderTop: `3px solid ${muted ? brand.gray : accent}`,
         borderRadius: 8,
         boxShadow: "0 4px 10px rgba(21,68,90,0.06)",
-        padding: "5px 13px",
+        padding: "6px 14px",
         whiteSpace: "nowrap",
       }}
     >
       <Sfx kind="tick" at={from} volume={0.15} />
       {icon}
-      <span style={{ fontFamily, fontWeight: 700, fontSize: 27, color: muted ? brand.muted : brand.primaryDark }}>{label}</span>
+      <span style={{ fontFamily, fontWeight: 700, fontSize: 30, color: muted ? brand.muted : brand.primaryDark }}>{label}</span>
     </div>
   );
 };
@@ -314,9 +244,9 @@ const BranchCard: React.FC<{
     <div
       style={{
         position: "absolute",
-        left: x - 115,
+        left: x - 125,
         top: CARD_TOP_Y,
-        width: 230,
+        width: 250,
         opacity: t,
         scale: 0.88 + t * 0.12,
         translate: `0 ${interpolate(t, [0, 1], [12, 0])}px`,
@@ -334,16 +264,16 @@ const BranchCard: React.FC<{
           background: "#fbfdfc",
           border: `1.5px solid ${brand.border}`,
           borderTop: `5px solid ${accent}`,
-          borderRadius: 16,
+          borderRadius: 18,
           boxShadow: "0 10px 26px rgba(21,68,90,0.10)",
-          padding: "14px 10px 12px",
+          padding: "18px 12px 14px",
         }}
       >
-        <div style={{ width: 54, height: 54, borderRadius: "50%", background: tint(accent), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <div style={{ width: 64, height: 64, borderRadius: "50%", background: tint(accent), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           {icon}
         </div>
-        <div style={{ fontFamily, fontWeight: 700, fontSize: 24, color: brand.muted, lineHeight: 1.2 }}>{label}</div>
-        <div style={{ fontFamily, fontWeight: 900, fontSize: 46, color: brand.primaryDark }}>
+        <div style={{ fontFamily, fontWeight: 700, fontSize: 28, color: brand.muted, lineHeight: 1.25 }}>{label}</div>
+        <div style={{ fontFamily, fontWeight: 900, fontSize: 56, color: brand.primaryDark }}>
           <CountUpNumber value={value} decimals={0} from={from} durationInFrames={COUNT_DURATION} />
         </div>
       </div>
@@ -397,12 +327,6 @@ export const OrgStatsScene: React.FC = () => {
         <Audio src={staticFile(AUDIO_SRC)} />
       </Sequence>
       <Sfx kind="whoosh" at={0} volume={0.4} />
-
-      <GroupTitle />
-
-      <Pill label={supervisoryRoles[0]} x={960 + 320} y={ROW_ROLES_Y} from={ITEM_START.director} icon={<DirectorIcon />} />
-      <Pill label={supervisoryRoles[1]} x={960} y={ROW_ROLES_Y} from={ITEM_START.deputy} icon={<DeputyIcon />} />
-      <Pill label={supervisoryRoles[2]} x={960 - 320} y={ROW_ROLES_Y} from={ITEM_START.guidance} icon={<GuidanceIcon />} />
 
       <BranchBar from={ITEM_START.admins} />
 
