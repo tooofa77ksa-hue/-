@@ -6,6 +6,7 @@ import {
 import { getDb } from '../../firebase/config'
 import type { Answer, SystemState } from '../../domain/types'
 import { DEFAULT_CATEGORIES } from '../categories'
+import { derivedVoices } from '../../domain/voices'
 import { diffById, keyed, keyedRecord } from './diff'
 import {
   COLLECTIONS, NEVER_DELETE, SLICE_COLLECTION, SYSTEM_DOC,
@@ -96,6 +97,9 @@ export async function loadRemoteState(): Promise<SystemState | null> {
     responseDocs.map((e) => ({ id: e.id, doc: e.value })),
   )
 
+  const stored = loaded.suggestions as SystemState['suggestions']
+  const students = loaded.students as SystemState['students']
+
   return {
     meta: system.meta,
     overallOptions: system.overallOptions ?? [],
@@ -107,7 +111,10 @@ export async function loadRemoteState(): Promise<SystemState | null> {
     students: loaded.students as SystemState['students'],
     questions: loaded.questions as SystemState['questions'],
     options: loaded.options as SystemState['options'],
-    suggestions: loaded.suggestions as SystemState['suggestions'],
+    // آراء القياس العام تُشتقّ من إجاباتها: الزائر لا يكتب في
+    // «suggestions»، فلولا هذا الاشتقاق لسقط رأي كل وليّ أمر
+    // وصل من رابط الفصل من الشاشات والتقارير جميعًا.
+    suggestions: [...stored, ...derivedVoices(responses, answers, stored, students)],
     categories: (loaded.categories as SystemState['categories']).length > 0
       ? (loaded.categories as SystemState['categories'])
       : DEFAULT_CATEGORIES,
