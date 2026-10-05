@@ -11,16 +11,17 @@ import { Sfx } from "../components/Sfx";
  *  ١) الشعار الأبيض (public/intro/logo-white-full.png) يظهر بتلاشٍ وتكبير
  *     ناعم بسيط في منتصف الشاشة، يثبت لحظة - بدون صوت نقر متكرر.
  *  ٢) "صفحة جديدة": الشعار ينتقل بسلاسة لأعلى الشاشة ويصغر (يبقى أبيض)،
- *     ثم يظهر تحته سطر صغير "نُرحّب بقدوم فريق التقويم الخارجي" (يسمّي
- *     الجهة المقصودة صراحة)، يتبعه بيت الترحيب الشعري بخط القلم (كشف
- *     تدريجي من اليمين لليسار) بخط BalooBhaijaan2، بحجم كبير وواضح لعرضه
- *     على شاشة كبيرة.
+ *     ثم تظهر تحته أربعة أسطر ترحيبية (بدّلت القصيدة الأولى بناءً على طلب
+ *     صريح) بخط القلم (كشف تدريجي من اليمين لليسار) بخط BalooBhaijaan2،
+ *     بحجم كبير وواضح لعرضه على شاشة كبيرة. العبارات مأخوذة ومُصاغة من
+ *     نماذج ترحيب أرسلتها المستخدمة (قوالب تصميم جاهزة)، مع تخصيصها باسم
+ *     مديرة المدرسة واسم المدرسة بالأرقام الإنجليزية كما طلبت.
  * خلفية كحلية داكنة مع علامة مائية باهتة جدًا من الشعار الحقيقي بألوانه
  * الأصلية (public/intro/logo-watermark-color.png) للعمق البصري الاحترافي.
  * اسم المدرسة وإدارة التعليم ثابتان أسفل يسار/يمين الشاشة الفعليين طوال
- * المقدمة. بدون صوت سرد.
+ * المقدمة. بدون صوت سرد (مذيعة) - أغنية ترحيب قصيرة تُضاف كموسيقى خلفية.
  */
-export const WELCOME_INTRO_DURATION = 780;
+export const WELCOME_INTRO_DURATION = 810;
 
 const LOGO_ASPECT = 536 / 703; // height / width of logo-white-full.png
 
@@ -37,17 +38,18 @@ const headerBox = boxForWidth(HEADER_BOX.width, HEADER_BOX.top);
 
 const LOGO_IN_START = 15;
 const LOGO_IN_DURATION = 45;
-const MOVE_START = 165;
+const MOVE_START = 140;
 const MOVE_DURATION = 45;
 const PAGE2_START = MOVE_START + MOVE_DURATION;
 
-const KICKER_START = PAGE2_START + 20;
-const KICKER_DURATION = 35;
-
-const BAYT1_START = KICKER_START + KICKER_DURATION + 20;
-const BAYT1_DURATION = 60;
-const BAYT2_START = BAYT1_START + BAYT1_DURATION + 35;
-const BAYT2_DURATION = 60;
+const LINE1_START = PAGE2_START + 20;
+const LINE1_DURATION = 30;
+const LINE2_START = LINE1_START + LINE1_DURATION + 15;
+const LINE2_DURATION = 50;
+const LINE3_START = LINE2_START + LINE2_DURATION + 20;
+const LINE3_DURATION = 55;
+const LINE4_START = LINE3_START + LINE3_DURATION + 20;
+const LINE4_DURATION = 55;
 
 const Logo: React.FC = () => {
   const frame = useCurrentFrame();
@@ -130,8 +132,10 @@ export const WelcomeIntroScene: React.FC = () => {
     <AbsoluteFill style={{ background: brand.primaryDark, overflow: "hidden" }}>
       <Sfx kind="whoosh" at={0} volume={0.22} />
       <Sfx kind="whoosh" at={MOVE_START} volume={0.2} />
-      <Sfx kind="tick" at={BAYT1_START} volume={0.25} />
-      <Sfx kind="tick" at={BAYT2_START} volume={0.25} />
+      <Sfx kind="tick" at={LINE1_START} volume={0.2} />
+      <Sfx kind="tick" at={LINE2_START} volume={0.25} />
+      <Sfx kind="tick" at={LINE3_START} volume={0.25} />
+      <Sfx kind="tick" at={LINE4_START} volume={0.2} />
 
       <Img
         src={staticFile("intro/logo-watermark-color.png")}
@@ -148,26 +152,35 @@ export const WelcomeIntroScene: React.FC = () => {
       <Logo />
 
       <PoemLine
-        text="نُرحّب بقدوم فريق التقويم الخارجي"
+        text="الترحيب بفريق التقويم الخارجي"
         color={brand.gold}
-        top={320}
-        from={KICKER_START}
-        duration={KICKER_DURATION}
-        fontSize={32}
+        top={316}
+        from={LINE1_START}
+        duration={LINE1_DURATION}
+        fontSize={34}
       />
       <PoemLine
-        text="بِكُم أزهَرَ العِلمُ في رُبوعِنا وفاحَ شَذا الخَيرِ في أرجائِنا"
+        text="حَلَلتُم أهلًا ووَطِئتُم سَهلًا"
         color="#ffffff"
-        top={400}
-        from={BAYT1_START}
-        duration={BAYT1_DURATION}
+        top={396}
+        from={LINE2_START}
+        duration={LINE2_DURATION}
       />
       <PoemLine
-        text="فحَيَّا الصَّباحُ خُطاكُم بابتِسامةٍ ومدرستي اليومَ تَزهو بِلِقانا"
+        text="نَستقبِلُكُم بكُلِّ حُبٍّ وتَقديرٍ في صَرحِنا التَّعليمي"
         color={brand.teal}
-        top={508}
-        from={BAYT2_START}
-        duration={BAYT2_DURATION}
+        top={504}
+        from={LINE3_START}
+        duration={LINE3_DURATION}
+        fontSize={54}
+      />
+      <PoemLine
+        text="مديرة المدرسة الابتدائية 165: أ. جازية أسميري، وكافة منسوباتها وطالباتها"
+        color={brand.gold}
+        top={610}
+        from={LINE4_START}
+        duration={LINE4_DURATION}
+        fontSize={34}
       />
 
       <div
@@ -182,7 +195,7 @@ export const WelcomeIntroScene: React.FC = () => {
           color: "#eaf2ef",
         }}
       >
-        المدرسة الابتدائية الخامسة والستون بعد المائة
+        المدرسة الابتدائية 165
       </div>
       <div
         style={{
