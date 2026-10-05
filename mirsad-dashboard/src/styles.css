@@ -4364,3 +4364,75 @@ th {
   border-color: var(--border);
 }
 :root[data-theme='dark'] .shukr__one p { color: var(--text); }
+
+
+/* ───────── صفحة «ماذا عملنا برأيكم» ─────────
+   الباركود يفتحها في جوّال وليّ الأمر، فعرضُها عمودٌ واحد يُمرَّر. */
+
+.amal { max-width: 760px; }
+
+.amal__item {
+  text-align: start;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px 14px;
+  margin-bottom: 14px;
+  background: var(--surface);
+}
+
+.amal__item header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+
+.amal__no {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-content: center;
+  border-radius: 11px;
+  font-size: 17px;
+  font-weight: 800;
+  color: #fff;
+  background: var(--grad-brand);
+}
+
+.amal__item h2 { margin: 0; font-size: 17px; font-weight: 800; line-height: 1.3; }
+.amal__says { font-size: 12.5px; color: var(--moe-green); font-weight: 700; }
+
+.amal__item blockquote {
+  margin: 0 0 7px;
+  background: var(--surface-tint);
+  border-inline-start: 4px solid var(--moe-sand);
+  border-radius: var(--radius-sm);
+  padding: 9px 13px;
+  font-size: 14px;
+  line-height: 1.85;
+}
+.amal__item blockquote::before { content: '« '; color: var(--moe-sand); font-weight: 800; }
+.amal__item blockquote::after { content: ' »'; color: var(--moe-sand); font-weight: 800; }
+
+.amal__did { margin: 10px 0 0; font-size: 14.5px; line-height: 1.95; }
+.amal__did b { display: block; font-size: 12.5px; color: var(--moe-green); margin-bottom: 2px; }
+
+.amal__shots { display: grid; gap: 10px; margin-top: 12px; grid-template-columns: 1fr 1fr; }
+.amal__shots figure { margin: 0; border: 1.3px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+.amal__shots img { width: 100%; height: 150px; object-fit: cover; object-position: center 32%; display: block; }
+.amal__shots figcaption { font-size: 11.5px; color: var(--text-muted); padding: 7px 10px; line-height: 1.6; background: var(--surface-tint); }
+
+.amal__soon {
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--moe-cyan);
+  background: var(--surface-tint);
+  border-radius: var(--radius-sm);
+  padding: 9px 13px;
+}
+
+.amal__head { font-size: 22px; font-weight: 800; margin: 26px 0 4px; }
+.amal__item--care h3 { margin: 0 0 6px; font-size: 16px; font-weight: 800; }
+.amal__item--care .amal__shots { grid-template-columns: 1fr; }
+
+@media (max-width: 560px) {
+  .amal__shots { grid-template-columns: 1fr; }
+  .amal__shots img { height: 190px; }
+}

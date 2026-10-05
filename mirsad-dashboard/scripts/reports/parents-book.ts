@@ -102,6 +102,12 @@ const n = (v: number) => iso(new Intl.NumberFormat(AR).format(v))
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 const tidy = (s: string) => s.replace(/\s+/g, ' ').trim()
 
+/** اقتباسٌ مختصر: النقط الثلاث تقول إن بقيّة الكلام موجودة ولم تُحذف. */
+const cut = (t: string, max: number) => {
+  const one = tidy(t)
+  return one.length <= max ? one : `${one.slice(0, max).replace(/\s+\S*$/, '')}…`
+}
+
 const bands = improvementBands(state)
 const voiceCount = state.suggestions.filter((s) => !s.excluded).length
 const proofs = state.improvementActions.reduce((k, a) => k + (a.evidence?.length ?? 0), 0)
@@ -356,7 +362,7 @@ const ALWAYS: { icon: string; title: string; body: string; file: string; caption
  * وهو على حقّ. فنشرُه قرارُ المدرسة تتّخذه عن علم، لا أثرٌ جانبي
  * لتوليد ورقة.
  */
-const publish = args.includes('--publish-shukr')
+const publish = args.includes('--publish-shukr') || args.includes('--publish')
 const kindOut = resolve(ROOT, publish ? 'public/data/shukr.json' : '.report-out/shukr.json')
 mkdirSync(dirname(kindOut), { recursive: true })
 writeFileSync(kindOut, JSON.stringify({
@@ -366,6 +372,36 @@ writeFileSync(kindOut, JSON.stringify({
     text,
     from: grade ? `من أسرة طالبةٍ بالصف ${grade}` : 'من أسرةٍ كريمة',
     grade: '',
+  })),
+}, null, 2) + '\n', 'utf8')
+
+/**
+ * صفحةُ «ماذا عملنا برأيكم» العامة تقرأ هذا الملف، والكرّاسةُ تكتبه.
+ *
+ * الباركود في الورقة المطبوعة لا يفتح ملفًّا في جهاز المعدّة، فلا
+ * بدَّ من صفحةٍ على الشبكة. وهي تحمل ما تحمله الكرّاسة من بنودٍ
+ * وإجراءاتٍ وصور، دون أسماء الطالبات ولا أسماء الأسر — فالرابط
+ * يفتحه كلُّ من وصله.
+ */
+const amalOut = resolve(ROOT, publish ? 'public/data/amal.json' : '.report-out/amal.json')
+mkdirSync(dirname(amalOut), { recursive: true })
+writeFileSync(amalOut, JSON.stringify({
+  school: 'الابتدائية الخامسة والستون بعد المائة',
+  cycle: 'قياس اتجاه المتعلمين 1448هـ',
+  items: ordered.map((b) => {
+    const a = b.action
+    return {
+      title: a.title,
+      voices: b.voices.length,
+      said: b.voices.slice(0, 2).map((v) => cut(v.text, 180)),
+      did: SAID_BETTER[a.title] ?? a.action,
+      shots: (SHOTS[a.title] ?? []).map((x) => ({ src: `/shahid/${x.file}`, caption: x.caption })),
+      note: NO_SHOT[a.title] ?? null,
+    }
+  }),
+  always: ALWAYS.map((a) => ({
+    icon: a.icon, title: a.title, body: a.body,
+    shot: { src: `/shahid/${a.file}`, caption: a.caption },
   })),
 }, null, 2) + '\n', 'utf8')
 
@@ -660,5 +696,7 @@ await page.pdf({ path: out, format: 'A4', printBackground: true })
 await browser.close()
 
 console.log(`✓ ${out}`)
+console.log(`✓ ${kindOut}`)
+console.log(`✓ ${amalOut}`)
 console.log(`  ${n(ordered.length)} بندًا · ${n(voiceCount)} رأيًا · ${n(proofs)} شاهدًا`
   + ` · ${n(KIND.length)} كلمةً طيّبة`)

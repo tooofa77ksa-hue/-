@@ -38,12 +38,27 @@ const identifying = (text) => {
   return value.length >= 6 && (value.match(LETTERS)?.length ?? 0) >= 4 ? value : null
 }
 
-const secrets = new Set()
-for (const s of school.students ?? []) { const v = identifying(s.name); if (v) secrets.add(v) }
-for (const r of school.responses ?? []) { const v = identifying(r.rawName); if (v) secrets.add(v) }
-for (const g of school.suggestions ?? []) { const v = identifying(g.text); if (v?.length > 12) secrets.add(v) }
+/**
+ * الأسماء ممنوعة في كل ملف، والآراء ممنوعة إلا فيما نشرته المدرسة عمدًا.
+ *
+ * اسمُ طالبة لا يخرج إلى الشبكة في أي حال. أمّا نصُّ الرأي فقد تختار
+ * المدرسة نشر بعضه — كلمات الثناء في صفحة الشكر، وما عُمل ردًّا على
+ * الملاحظات — وهو قرارٌ تتّخذه عن علمٍ لا تسريبٌ عارض.
+ *
+ * فيُفصل الفحصان: ما تحت «data/» يُفحص بحثًا عن الأسماء وحدها، لأن
+ * ملفّاته لا تُكتب إلا بأمرٍ صريح يحمل «‎--publish». وما سواه يُفحص
+ * بحثًا عن الاثنين معًا.
+ */
+const names = new Set()
+const voices = new Set()
+for (const s of school.students ?? []) { const v = identifying(s.name); if (v) names.add(v) }
+for (const r of school.responses ?? []) { const v = identifying(r.rawName); if (v) names.add(v) }
+for (const g of school.suggestions ?? []) { const v = identifying(g.text); if (v?.length > 12) voices.add(v) }
 
-if (secrets.size === 0) {
+/** ملفّاتُ النشر المقصود: الأسماء فيها ممنوعة، والآراء مسموحة. */
+const PUBLISHED = /^data[/\\]/
+
+if (names.size === 0 && voices.size === 0) {
   console.log('ℹ ملف البيانات لا يحتوي نصوصًا شخصية.')
   process.exit(0)
 }
@@ -67,14 +82,24 @@ try {
 }
 
 const offenders = new Map()
+let published = 0
 for (const file of files) {
+  const relative = file.slice(distDir.length + 1)
+  const openly = PUBLISHED.test(relative)
+  if (openly) published += 1
   const text = readFileSync(file, 'latin1') + '\n' + readFileSync(file, 'utf8')
   let hits = 0
-  for (const secret of secrets) if (text.includes(secret)) hits += 1
-  if (hits > 0) offenders.set(file.slice(distDir.length + 1), hits)
+  for (const secret of names) if (text.includes(secret)) hits += 1
+  if (!openly) for (const secret of voices) if (text.includes(secret)) hits += 1
+  if (hits > 0) offenders.set(relative, hits)
 }
 
-console.log(`فُحص ${files.length} ملفًا في ${distDir} بحثًا عن ${secrets.size} نصًّا شخصيًا.`)
+console.log(`فُحص ${files.length} ملفًا في ${distDir}`
+  + ` بحثًا عن ${names.size} اسمًا و${voices.size} رأيًا.`)
+if (published > 0) {
+  console.log(`  (${published} ملفًا تحت «data/» نشرته المدرسة عمدًا:`
+    + ' فُحص بحثًا عن الأسماء وحدها.)')
+}
 
 if (offenders.size > 0) {
   console.error('\n✗ النسخة تكشف بيانات شخصية — النشر ممنوع.')
@@ -84,4 +109,4 @@ if (offenders.size > 0) {
   process.exit(1)
 }
 
-console.log('✓ لا يوجد أي اسم طالبة أو رأي في ملفات النسخة. النشر آمن من هذه الجهة.')
+console.log('✓ لا اسمَ طالبةٍ في النسخة، ولا رأيَ خارج ما نُشر عمدًا. النشر آمن من هذه الجهة.')

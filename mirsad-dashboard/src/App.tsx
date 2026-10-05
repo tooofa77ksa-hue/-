@@ -2,6 +2,7 @@ import { Suspense, lazy } from 'react'
 import { Navigate, Route, HashRouter as Router, Routes } from 'react-router-dom'
 
 import { SeenPage } from './pages/public/SeenPage'
+import { AmalPage } from './pages/public/AmalPage'
 import { ShukrPage } from './pages/public/ShukrPage'
 import { SurveyRoute } from './pages/public/SurveyRoute'
 import { SystemProvider } from './state/SystemProvider'
@@ -48,6 +49,9 @@ export default function App() {
 
             {/* الكلمات الطيّبة — تُقرأ من ملفٍّ ثابت لا من قاعدة البيانات */}
             <Route path="/shukr" element={<ShukrPage />} />
+
+            {/* ماذا عملنا برأيكم — الكرّاسة نفسها على صفحةٍ تُفتح برابط */}
+            <Route path="/amal" element={<AmalPage />} />
 
             {/* لوحة العرض — خلف البوابة نفسها، وبلا إطار لوحة التعديل */}
             <Route

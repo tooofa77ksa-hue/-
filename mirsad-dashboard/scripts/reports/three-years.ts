@@ -39,6 +39,22 @@ const ARCHIVE = {
 }
 const PLATFORM = `https://${host}/#/admin`
 
+/**
+ * ما أرسلته المدرسة إلى أولياء الأمور، بترتيب ما جرى:
+ * سألناهم، ثم عملنا برأيهم، ثم نشرنا كلماتهم.
+ *
+ * وهي الصفحات التي تُفتح من الورقة المطبوعة، فلا بدَّ لكلٍّ من
+ * باركودٍ: الرابط المكتوب لا يُنسخ من ورق.
+ */
+const FOR_PARENTS: { icon: string; title: string; note: string; path: string }[] = [
+  { icon: '📨', title: 'الاستبيان الذي أرسلناه إليكم', path: '#/survey',
+    note: 'الرابط نفسه الذي وصل كلَّ أسرة، فأخذنا منه رأيها' },
+  { icon: '🛠️', title: 'ماذا عملنا برأيكم؟', path: '#/amal',
+    note: 'كلُّ ملاحظةٍ وصلتنا، وما عملته المدرسة ردًّا عليها، وصورتُه' },
+  { icon: '💙', title: 'كلماتٌ طيّبة وصلَتْنا منكم', path: '#/shukr',
+    note: 'ما أثنى به أولياء الأمور على المدرسة، بنصّه كما كُتب' },
+]
+
 const asset = (path: string, mime: string) =>
   `data:${mime};base64,${readFileSync(resolve(ROOT, path)).toString('base64')}`
 const font = (file: string) => asset(`public/fonts/${file}`, 'font/woff2')
@@ -132,6 +148,9 @@ const qrFor = (url: string, dark: string) => QRCode.toDataURL(url, {
   color: { dark, light: '#ffffff' },
 })
 
+const parentCodes = new Map(await Promise.all(FOR_PARENTS.map(async (f) =>
+  [f.path, await qrFor(`https://${host}/${f.path}`, '#07734c')] as const)))
+
 const codes = new Map(await Promise.all(YEARS.map(async (y) =>
   // كل الرموز بلون الهوية الداكن لا بالأخضر: الماسح يقرأ فرق إضاءةٍ
   // لا لونًا، والأخضر على الأبيض يسقط عند الطباعة بدقّةٍ منخفضة —
@@ -160,6 +179,10 @@ const html = `<!doctype html>
 * { box-sizing:border-box; margin:0; padding:0; }
 body { font-family:'Baloo',sans-serif; color:var(--navy); }
 .sheet { height:297mm; padding:10mm 13mm 8mm; display:flex; flex-direction:column; }
+.sheet--two { break-before:page; }
+.head--slim { border-bottom:2px solid var(--navy); padding-bottom:8px; }
+.head--slim .school { font-size:12.5px; font-weight:800; }
+.lede--tight { margin:7px 2mm 0; }
 
 .head { text-align:center; border-bottom:2px solid var(--navy); padding-bottom:10px; }
 .head img { height:48px; }
@@ -187,7 +210,7 @@ h1 small { display:block; font-size:15px; font-weight:700; color:var(--green); m
          padding-right:13px; position:relative; }
 .yr li::before { content:'•'; position:absolute; right:0; color:var(--sand); font-weight:800; }
 .yr--live li::before { color:var(--green); }
-.yr__qr { display:block; width:24mm; height:24mm; margin:7px auto 6px;
+.yr__qr { display:block; width:27mm; height:27mm; margin:9px auto 8px;
           border:1px solid var(--border); border-radius:8px; padding:3px; background:#fff; }
 .yr__cta { display:block; text-align:center; margin-top:10px; padding:7px 0; border-radius:10px;
            font-size:11.5px; font-weight:800; color:#fff; background:var(--navy); }
@@ -199,14 +222,26 @@ h2 { font-size:15px; font-weight:800; margin:11px 0 7px; padding-right:10px;
 .gain { display:grid; grid-template-columns:19px 1fr; gap:6px;
         border:1.3px solid var(--border); border-radius:11px; padding:7px 10px; }
 .gain .ico { font-size:15px; text-align:center; }
-.gain b { display:block; font-size:11.4px; margin-bottom:2px; line-height:1.35; }
-.gain span { font-size:9.6px; line-height:1.62; color:var(--muted); }
+.gain b { display:block; font-size:12px; margin-bottom:2px; line-height:1.35; }
+.gain span { font-size:10.2px; line-height:1.7; color:var(--muted); }
 
-.init { border:1.6px solid var(--green); border-radius:14px; padding:9px 14px; margin-top:10px;
+.parents { display:grid; gap:8px; }
+.parents { margin-top:11px; gap:11px; }
+.pc { display:grid; grid-template-columns:30mm 1fr; gap:15px; align-items:center;
+      text-decoration:none; color:inherit; border:1.8px solid #bfe0d2; border-radius:16px;
+      padding:13px 16px; background:linear-gradient(170deg,#f4fbf8,#f8fbfb); }
+.pc img { width:30mm; height:30mm; background:#fff; border-radius:9px; padding:3px; }
+.pc b { display:block; font-size:16px; font-weight:800; }
+.pc .ico { margin-left:6px; }
+.pc > div > span { display:block; font-size:12px; color:var(--muted); line-height:1.7;
+                   margin-top:4px; }
+.pc__url { direction:ltr; font-weight:800; color:var(--green) !important; font-size:11.5px !important;
+           margin-top:5px !important; }
+.init { border:1.8px solid var(--green); border-radius:16px; padding:14px 18px; margin-top:16px;
          background:linear-gradient(170deg,#f2fbf7,#f6fbfb); }
-.init h3 { font-size:14px; font-weight:800; margin-bottom:5px; }
+.init h3 { font-size:16px; font-weight:800; margin-bottom:6px; }
 .init h3 span { margin-left:6px; }
-.init p { font-size:10.6px; line-height:1.82; color:#2d5c54; }
+.init p { font-size:12px; line-height:1.95; color:#2d5c54; }
 .init__how { margin-top:6px; padding-top:6px; border-top:1px dotted #bfe0d2;
              color:var(--muted); }
 .init__how b { color:var(--navy); }
@@ -253,6 +288,27 @@ h2 { font-size:15px; font-weight:800; margin:11px 0 7px; padding-right:10px;
   <div class="gains">${GAINS.map(([i, t, b]) => `
     <div class="gain"><span class="ico">${i}</span>
       <span><b>${esc(t)}</b><span>${esc(b)}</span></span></div>`).join('')}
+  </div>
+
+</div>
+
+<div class="sheet sheet--two">
+  <header class="head head--slim">
+    <div class="school">الابتدائية الخامسة والستون بعد المائة — قياس اتجاه المتعلمين ${hijri('1448')}</div>
+  </header>
+
+  <h2>وهذا ما أرسلناه إلى أولياء الأمور</h2>
+  <p class="lede lede--tight">ثلاث صفحاتٍ تُفتح من الجوّال: سألناهم، ثم عملنا برأيهم،
+  ثم نشرنا كلماتهم. امسحوا الرمز إن كانت الورقة مطبوعة، أو اضغطوا البطاقة على الشاشة.</p>
+  <div class="parents">${FOR_PARENTS.map((f) => `
+    <a class="pc" href="https://${host}/${f.path}">
+      <img src="${parentCodes.get(f.path)}" alt="باركود ${esc(f.title)}">
+      <div>
+        <b><span class="ico">${f.icon}</span>${esc(f.title)}</b>
+        <span>${esc(f.note)}</span>
+        <span class="pc__url">${host}/${f.path}</span>
+      </div>
+    </a>`).join('')}
   </div>
 
   <section class="init">
