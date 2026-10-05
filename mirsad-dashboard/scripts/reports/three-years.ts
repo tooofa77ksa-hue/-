@@ -45,9 +45,17 @@ const font = (file: string) => asset(`public/fonts/${file}`, 'font/woff2')
 
 /** العازل الثنائي: «1446هـ» في سطرٍ عربي لا تنقلب هاؤه إلى طرفه. */
 const iso = (t: string) => `⁦${t}⁩`
+/**
+ * «1448هـ»: يُعزل الرقم وحده وتُترك الهاء للسطر.
+ *
+ * ولو عُزلت العبارة كلُّها باتجاهٍ لاتيني لانتقلت هاؤها إلى يسار
+ * الرقم، والسطر عربيٌّ من اليمين إلى اليسار — فتُقرأ مقلوبة.
+ */
+const hijri = (y: string) => `${iso(y)}\u00A0هـ`
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
 interface Year {
+  /** رقم العام وحده، بلا «هـ»: تُضاف عند العرض خارج العازل. */
   year: string
   kind: string
   tone: 'paper' | 'live'
@@ -59,7 +67,7 @@ interface Year {
 
 const YEARS: Year[] = [
   {
-    year: '1446هـ', kind: 'ورقي', tone: 'paper', icon: '📄',
+    year: '1446', kind: 'ورقي', tone: 'paper', icon: '📄',
     lines: [
       'استبانةٌ تُطبع وتُوزَّع وتُجمع يدًا بيد',
       'إدخالٌ وحسابٌ باليد بعد الجمع',
@@ -68,7 +76,7 @@ const YEARS: Year[] = [
     href: ARCHIVE.y1446, cta: 'اضغط لفتح ملف العام',
   },
   {
-    year: '1447هـ', kind: 'ورقي', tone: 'paper', icon: '📄',
+    year: '1447', kind: 'ورقي', tone: 'paper', icon: '📄',
     lines: [
       'المجهود نفسه يتكرّر من أوّله',
       'الوقت يطول بين الجمع والنتيجة',
@@ -77,7 +85,7 @@ const YEARS: Year[] = [
     href: ARCHIVE.y1447, cta: 'اضغط لفتح ملف العام',
   },
   {
-    year: '1448هـ', kind: 'إلكتروني', tone: 'live', icon: '💻',
+    year: '1448', kind: 'إلكتروني', tone: 'live', icon: '💻',
     lines: [
       'رابطٌ يبلغ كلَّ أسرةٍ في ثانية',
       'النتائج تُحسب لحظة وصول الرأي',
@@ -109,19 +117,36 @@ const SIGNERS: [string, string][] = [
   ['مديرة المدرسة', 'جازية السميري'],
 ]
 
-const qr = await QRCode.toDataURL(PLATFORM, {
-  errorCorrectionLevel: 'M', margin: 1, width: 460,
-  color: { dark: '#15445a', light: '#ffffff' },
+/**
+ * باركودٌ لكل عام، لا للمنصّة وحدها.
+ *
+ * الورقة تُطبع وتُوزَّع على اللجنة، والمطبوع لا يُضغط. فمن أراد ملفّ
+ * 1446 أو 1447 يمسح رمزه بجوّاله ويفتحه في ثانية، ومن قرأها على
+ * الشاشة ضغط البطاقة نفسها.
+ *
+ * وتصحيحُ الخطأ «M» لا «L»: الرمز يُطبع صغيرًا وقد يُصوَّر بجوّالٍ
+ * مائل، فيحتمل شيئًا من التلف ويبقى مقروءًا.
+ */
+const qrFor = (url: string, dark: string) => QRCode.toDataURL(url, {
+  errorCorrectionLevel: 'M', margin: 2, width: 560,
+  color: { dark, light: '#ffffff' },
 })
+
+const codes = new Map(await Promise.all(YEARS.map(async (y) =>
+  // كل الرموز بلون الهوية الداكن لا بالأخضر: الماسح يقرأ فرق إضاءةٍ
+  // لا لونًا، والأخضر على الأبيض يسقط عند الطباعة بدقّةٍ منخفضة —
+  // جُرِّب فلم يُقرأ عند 150 نقطة، وقُرئ الداكن عندها وعند ما دونها
+  [y.year, await qrFor(y.href, '#15445a')] as const)))
 
 const card = (y: Year) => `
 <a class="yr yr--${y.tone}" href="${y.href}">
   <div class="yr__top">
     <span class="yr__icon">${y.icon}</span>
-    <b class="yr__year">${iso(y.year)}</b>
+    <b class="yr__year">${hijri(y.year)}</b>
     <span class="yr__kind">${esc(y.kind)}</span>
   </div>
   <ul>${y.lines.map((l) => `<li>${esc(l)}</li>`).join('')}</ul>
+  <img class="yr__qr" src="${codes.get(y.year)}" alt="باركود ${y.year}">
   <span class="yr__cta">${esc(y.cta)} ↗</span>
 </a>`
 
@@ -153,7 +178,7 @@ h1 small { display:block; font-size:15px; font-weight:700; color:var(--green); m
             background:linear-gradient(170deg,#f1fbf6,#f6fbfb); }
 .yr__top { text-align:center; border-bottom:1px dotted var(--border); padding-bottom:9px; }
 .yr__icon { font-size:20px; }
-.yr__year { display:block; font-size:23px; font-weight:800; margin-top:3px; direction:ltr; }
+.yr__year { display:block; font-size:23px; font-weight:800; margin-top:3px; }
 .yr__kind { display:inline-block; margin-top:6px; padding:3px 13px; border-radius:999px;
             font-size:11px; font-weight:700; color:#fff; background:var(--muted); }
 .yr--live .yr__kind { background:var(--green); }
@@ -162,6 +187,8 @@ h1 small { display:block; font-size:15px; font-weight:700; color:var(--green); m
          padding-right:13px; position:relative; }
 .yr li::before { content:'•'; position:absolute; right:0; color:var(--sand); font-weight:800; }
 .yr--live li::before { color:var(--green); }
+.yr__qr { display:block; width:26mm; height:26mm; margin:8px auto 7px;
+          border:1px solid var(--border); border-radius:8px; padding:3px; background:#fff; }
 .yr__cta { display:block; text-align:center; margin-top:10px; padding:7px 0; border-radius:10px;
            font-size:11.5px; font-weight:800; color:#fff; background:var(--navy); }
 .yr--live .yr__cta { background:linear-gradient(90deg,var(--green),var(--teal)); }
@@ -175,6 +202,9 @@ h2 { font-size:16px; font-weight:800; margin:13px 0 8px; padding-right:10px;
 .gain b { display:block; font-size:12.5px; margin-bottom:2px; }
 .gain span { font-size:10.4px; line-height:1.7; color:var(--muted); }
 
+.hint { text-align:center; font-size:11.5px; line-height:1.85; color:var(--muted);
+         background:var(--soft); border-radius:12px; padding:9px 14px; margin-top:12px; }
+.hint b { color:var(--navy); }
 .qrbox { display:grid; grid-template-columns:auto 1fr; gap:14px; align-items:center;
          border:2px solid var(--green); border-radius:15px; padding:11px 14px; margin-top:11px;
          background:var(--soft); color:inherit; text-decoration:none; }
@@ -202,7 +232,7 @@ h2 { font-size:16px; font-weight:800; margin:13px 0 8px; padding-right:10px;
   </header>
 
   <h1>من الورق إلى المنصّة
-    <small>تطوُّر قياس اتجاه المتعلمين — ${iso('1446')} · ${iso('1447')} · ${iso('1448هـ')}</small>
+    <small>تطوُّر قياس اتجاه المتعلمين — ${iso('1446')} · ${iso('1447')} · ${hijri('1448')}</small>
   </h1>
 
   <p class="lede">عامان أُجري فيهما القياس على الورق، وعامٌ أُجري على منصّةٍ إلكترونية.
@@ -216,15 +246,8 @@ h2 { font-size:16px; font-weight:800; margin:13px 0 8px; padding-right:10px;
       <span><b>${esc(t)}</b><span>${esc(b)}</span></span></div>`).join('')}
   </div>
 
-  <a class="qrbox" href="${PLATFORM}">
-    <img src="${qr}" alt="باركود منصّة القياس">
-    <div>
-      <h3>منصّة قياس اتجاه المتعلمين ${iso('1448هـ')}</h3>
-      <p>امسحوا الرمز بكاميرا الجوّال، أو اضغطوا هذه البطاقة داخل الملف —
-      تُفتح المنصّة بنتائجها وبنود تحسينها وشواهد تنفيذها.</p>
-      <span class="url">${host}</span>
-    </div>
-  </a>
+  <p class="hint">كلُّ بطاقةٍ أعلاه تُفتح بطريقتين: <b>امسحوا رمزها</b> بكاميرا الجوّال
+  إن كانت الورقة مطبوعة، أو <b>اضغطوا البطاقة</b> إن قرأتموها على الشاشة.</p>
 
   <div class="signs">${SIGNERS.map(([role, who]) => `
     <div><div class="role">${esc(role)}</div><div class="who">${esc(who)}</div></div>`).join('')}
