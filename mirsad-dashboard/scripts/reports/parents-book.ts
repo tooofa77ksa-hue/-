@@ -129,6 +129,7 @@ const SHOTS: Record<string, { file: string; caption: string }[]> = {
   ],
   'تكريم الطالبات المتفوقات والمثاليات': [
     { file: 'lawhat-taaziz.jpg', caption: 'لوحة التعزيز: الاجتهاد والإبداع والتعاون والمبادرة' },
+    { file: 'suluk-mutamayyiz.jpg', caption: 'لوحة «السلوك المتميّز» ودرجاتُه المعتمدة' },
     { file: 'tashrif-maamal.jpg', caption: 'تكريم المتفوّقات في العلوم' },
     { file: 'tashrif-shahadatan.jpg', caption: 'شهادات التقدير والجوائز' },
   ],
@@ -208,7 +209,7 @@ const section = (b: typeof bands[number], i: number) => {
 
   <div class="did"><b>ما عملناه</b>${esc(SAID_BETTER[a.title] ?? a.action)}</div>
 
-  ${shots.length ? `<div class="shots shots--${Math.min(shots.length, 3)}">${shots.map((s) => `
+  ${shots.length ? `<div class="shots shots--${Math.min(shots.length, 4)}">${shots.map((s) => `
     <figure><img src="${photo(s.file)}" alt="${esc(s.caption)}">
       <figcaption>${esc(s.caption)}</figcaption></figure>`).join('')}</div>`
     : `<p class="soon">📷 ${esc(note ?? '')}</p>`}
@@ -310,6 +311,20 @@ const KIND: { text: string; from: string }[] = [
   { text: 'الشكر لجميع العاملين فيها', from: 'أسرةٌ من الصف الرابع' },
 ]
 
+/**
+ * لوحاتٌ معلَّقةٌ في ساحة المدرسة الخارجية وممرّاتها.
+ *
+ * هذه ليست ردًّا على ملاحظةٍ بعينها حتى تدخل في بنود التحسين، وهي
+ * مع ذلك أظهرُ ما تراه الطالبة كل صباح. فتُعرض شريطًا واحدًا في
+ * صفحة ما تحرص عليه المدرسة دائمًا، لتُرى لا لتُذكر وحسب.
+ */
+const ALWAYS_SHOTS: { file: string; caption: string }[] = [
+  { file: 'athkar-sabah.jpg', caption: 'أذكار الصباح — في الساحة الخارجية' },
+  { file: 'khat-musanada.jpg', caption: 'خطّ مساندة الطفل ١١٦١١١' },
+  { file: 'tanammur.jpg', caption: 'لوحة «التنمّر ليس قوّة»' },
+  { file: 'tawjih-sihhi.jpg', caption: 'لوحة التوجيه الصحي — نحافظ على الهواء النقي' },
+]
+
 const SEEN_URL = `https://${host}/#/seen`
 const seenQr = await QRCode.toDataURL(SEEN_URL, {
   errorCorrectionLevel: 'M', margin: 1, width: 460,
@@ -382,10 +397,12 @@ blockquote::after { content:' »'; color:var(--sand); font-weight:800; }
 .shots--1 { grid-template-columns:55%; justify-content:center; }
 .shots--2 { grid-template-columns:1fr 1fr; }
 .shots--3 { grid-template-columns:repeat(3,1fr); }
+.shots--4 { grid-template-columns:repeat(4,1fr); }
 figure { border-radius:13px; overflow:hidden; border:1.3px solid var(--border); background:#fff; }
 .shots--1 img { height:60mm; }
 .shots--2 img { height:50mm; }
 .shots--3 img { height:41mm; }
+.shots--4 img { height:38mm; }
 /* الاقتصاص من الوسط يقطع رؤوس الصور الطولية، فيُرفع موضعه إلى أعلى قليلًا */
 img { width:100%; height:auto; object-fit:cover; object-position:center 32%; display:block; }
 figcaption { font-size:9.6px; color:var(--muted); padding:6px 9px; line-height:1.5;
@@ -501,6 +518,11 @@ figcaption { font-size:9.6px; color:var(--muted); padding:6px 9px; line-height:1
       <h3><span class="ico">${a.icon}</span>${esc(a.title)}</h3>
       <p>${esc(a.body)}</p>
     </div>`).join('')}
+  </div>
+
+  <div class="shots shots--4">${ALWAYS_SHOTS.map((x) => `
+    <figure><img src="${photo(x.file)}" alt="${esc(x.caption)}">
+      <figcaption>${esc(x.caption)}</figcaption></figure>`).join('')}
   </div>
 
   <p class="shots-line">وهذه لقطاتٌ يسيرةٌ من جهد المدرسة لأجل متعلّماتها،
