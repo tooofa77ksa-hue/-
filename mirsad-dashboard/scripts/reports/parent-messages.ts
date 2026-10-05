@@ -67,7 +67,6 @@ const p = (v: number) => `${new Intl.NumberFormat(AR, { maximumFractionDigits: 1
 const counted = (k: number, one: string, two: string, few: string, many: string) =>
   k === 1 ? one : k === 2 ? two : `${n(k)} ${k <= 10 ? few : many}`
 const families = (k: number) => counted(k, 'أسرة واحدة', 'أسرتان', 'أسر', 'أسرة')
-const girls = (k: number) => counted(k, 'طالبة واحدة', 'طالبتان', 'طالبات', 'طالبة')
 
 const school = coverage(state, {})
 const rooms = orderedClasses(state.grades, state.classes).map(({ room, grade }) => ({
@@ -87,19 +86,28 @@ const link = (id?: string) => `https://${host}/#/survey${id ? `/${id}` : ''}`
 
 const blocks: string[] = []
 
-// ① رسالة المجموعة العامة: الشكر أولًا، فالأسر التي شاركت هي الأكثر
+// ① الرسالة الجامعة: كل من لم يصل رأي أسرتها في رسالة واحدة.
+// الأمّ لا تبحث عن رسالة فصلها بين اثنتي عشرة رسالة في المجموعة —
+// تقرأ واحدةً فترى اسم ابنتها ورابط فصلها في سطرين متجاورين.
+const groups = pending.map((r) => `*${r.label}*
+${link(r.room.id)}
+${r.missing.map((s) => `• ${s.name}`).join('\n')}`).join('\n\n')
+
 blocks.push(`🌸 *قياس اتجاه المتعلمين ١٤٤٨هـ*
 الابتدائية الخامسة والستون بعد المائة
 
 أولياء أمورنا الكرام،
 وصلتنا آراء *${n(school.traced)}* أسرة من *${n(school.students)}* — ${p(school.rate)} 💙
-وهذا رقمٌ نفخر به، والشكر لكم أولًا.
+والشكر لكم أولًا على سرعة استجابتكم.
 
-ونرجو ممّن لم يسجّل رأيه بعد أن يفعل اليوم — ${girls(school.students - school.traced)} فقط تفصلنا عن الاكتمال.
+🔔 *بقيت ${families(school.students - school.traced)} فقط* ليكتمل القياس، وهذه أسماء بناتهنّ ورابط فصل كلٍّ منهنّ:
 
-📲 التعبئة من الجوال ولا تتجاوز دقيقتين:
-${link()}
+${groups}
 
+📲 اضغطوا رابط فصل ابنتكم — التعبئة من الجوال، ودقيقتان تكفيان.
+${done.length > 0 ? `
+✅ واكتملت مشاركة ${n(done.length)} فصول بالكامل: ${done.map((r) => r.label.replace(' الابتدائي / فصل ', '/')).join(' · ')} — شكرًا لأسرها 💙
+` : ''}
 رأيكم يُقرأ بنصّه كما تكتبونه، وما ذُكر فيه رُدَّ عليه بإجراءٍ وشاهدٍ في المدرسة.
 فمشاركتكم تصنع فرقًا تراه بناتكم 🌟`)
 
@@ -118,18 +126,6 @@ ${link(r.room.id)}
 
 رأيكم يُقرأ بنصّه كما تكتبونه، وما ذُكر فيه رُدَّ عليه بإجراءٍ وشاهدٍ في المدرسة.
 نسعد بمشاركتكم 🌟`)
-}
-
-// ③ شكرٌ للفصول التي اكتملت: المشاركة تُشكر حين تتمّ لا حين تُطلب فقط
-if (done.length > 0) {
-  blocks.push(`🎉 *فصولٌ اكتملت مشاركتها بالكامل*
-الابتدائية الخامسة والستون بعد المائة
-
-شكرًا لأولياء أمور هذه الفصول — لم تبقَ فيها أسرة واحدة لم يصل رأيها:
-
-${done.map((r) => `✅ ${r.label} — ${n(r.cover.students)} من ${n(r.cover.students)}`).join('\n')}
-
-رأيُكم وصل، وسيُقرأ، وسيُردّ عليه. بارك الله فيكم 💙`)
 }
 
 mkdirSync(dirname(out), { recursive: true })
