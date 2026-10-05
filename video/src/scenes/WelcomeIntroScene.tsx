@@ -166,7 +166,7 @@ export const WelcomeIntroScene: React.FC = () => {
         duration={LINE3_DURATION}
       />
       <PoemLine
-        text="مديرة المدرسة الابتدائية 165: أ. جازية أسميري، وكافة منسوباتها وطالباتها"
+        text="مديرة المدرسة الابتدائية 165: الأستاذة جازية السميري، وكافة منسوباتها وطالباتها"
         color={brand.gold}
         top={630}
         from={LINE4_START}
