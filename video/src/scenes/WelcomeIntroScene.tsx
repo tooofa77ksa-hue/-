@@ -58,8 +58,6 @@ const LINE3_START = LINE2_START + LINE2_DURATION + 20;
 const LINE3_DURATION = 55;
 const LINE4_START = LINE3_START + LINE3_DURATION + 20;
 const LINE4_DURATION = 55;
-const LINE5_START = LINE4_START + LINE4_DURATION + 20;
-const LINE5_DURATION = 55;
 
 const Logo: React.FC = () => {
   const frame = useCurrentFrame();
@@ -146,7 +144,6 @@ export const WelcomeIntroScene: React.FC = () => {
       <Sfx kind="tick" at={LINE2_START} volume={0.15} />
       <Sfx kind="tick" at={LINE3_START} volume={0.15} />
       <Sfx kind="tick" at={LINE4_START} volume={0.12} />
-      <Sfx kind="tick" at={LINE5_START} volume={0.12} />
 
       <Img
         src={staticFile("intro/logo-watermark-color.png")}
@@ -183,14 +180,6 @@ export const WelcomeIntroScene: React.FC = () => {
         from={LINE4_START}
         duration={LINE4_DURATION}
         fontSize={34}
-      />
-      <PoemLine
-        text="نُرَحِّبُ بِكُم تَرحيبًا يُعَدُّ عَدَدَ نُجومِ السَّماء"
-        color="#ffffff"
-        top={718}
-        from={LINE5_START}
-        duration={LINE5_DURATION}
-        fontSize={40}
       />
 
       <div
