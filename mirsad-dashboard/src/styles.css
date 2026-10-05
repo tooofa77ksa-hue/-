@@ -3439,6 +3439,9 @@ th {
   font-size: 13px;
   font-weight: 700;
   text-decoration: none;
+  /* القفل زرٌّ لا رابط: الأزرار لا ترث الخطّ ولا تُظهر يد المؤشّر */
+  font-family: inherit;
+  cursor: pointer;
   transition: border-color 150ms ease, background-color 150ms ease;
 }
 

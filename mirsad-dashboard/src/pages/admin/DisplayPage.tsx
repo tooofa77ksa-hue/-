@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import { ImpactBands, ImpactPraise } from '../../components/ImpactShow'
-import { LockToggle } from '../../components/LockToggle'
+import { ExitDisplay } from '../../components/LockToggle'
 import { Ring } from '../../components/Ring'
 import { ShareChart } from '../../components/ShareChart'
 import { ORGANIZATION, SCHOOL_SIGNERS } from '../../brand'
@@ -114,7 +114,7 @@ export function DisplayPage({ published = false }: { published?: boolean }) {
           </p>
         </div>
         {/* النسخة المنشورة بلا قفل: لا لوحةَ تعديلٍ خلفها يُرجَع إليها */}
-        {!published && <div className="show__exit no-print"><LockToggle locked /></div>}
+        {!published && <div className="show__exit no-print"><ExitDisplay /></div>}
       </header>
 
       {screen === 0 && (

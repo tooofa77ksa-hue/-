@@ -2,7 +2,6 @@ import { NavLink, Outlet } from 'react-router-dom'
 
 import { BrandFooter } from '../../components/BrandFooter'
 import { LockToggle } from '../../components/LockToggle'
-import { ViewOnlyToggle } from '../../components/ViewOnlyToggle'
 import { BrandHeader } from '../../components/BrandHeader'
 import { AnthemPlayer } from '../../components/AnthemPlayer'
 import { LiveClock } from '../../components/LiveClock'
@@ -24,6 +23,7 @@ const LINKS = [
   { to: '/admin/review-queue', label: 'حالات للمراجعة', badge: true },
   { to: '/admin/links', label: 'الروابط والباركود' },
   { to: '/admin/acks', label: 'إقرارات الاطّلاع' },
+  { to: '/admin/display', label: 'الشرائح' },
   { to: '/admin/reports', label: 'التقارير' },
   { to: '/admin/settings', label: 'الإعدادات' },
 ]
@@ -51,8 +51,7 @@ export function AdminLayout() {
             >
               ⎙
             </button>
-            <ViewOnlyToggle />
-            <LockToggle locked={false} />
+            <LockToggle />
             <AnthemPlayer />
             <button
               type="button"
@@ -84,8 +83,8 @@ export function AdminLayout() {
 
       {viewOnly && (
         <p className="viewbar" role="status">
-          🔒 اللوحة على القراءة فقط — كل شيء يُقرأ ولا شيء يُحفظ.
-          <span>اضغطي «أعيدي الكتابة» في الأعلى لتعود الكتابة.</span>
+          🔒 اللوحة مقفلة للعرض — كل شيء يُقرأ ولا شيء يُحفظ.
+          <span>اضغطي القفل في الأعلى لتعود الكتابة.</span>
         </p>
       )}
 

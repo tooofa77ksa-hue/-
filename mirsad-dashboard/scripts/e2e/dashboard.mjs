@@ -219,20 +219,19 @@ try {
   check('لا قوائم ولا أزرار تحرير في العرض',
     await page.locator('.admin-nav').count() === 0
     && await page.locator('.toolbar').count() === 0)
-  check('قفل مغلق في وضع العرض', await page.locator('.lock.is-locked').isVisible())
-  // اللوحة واحدة ووضعان: القفل يعيدها إلى التعديل ويعود منها
-  await page.locator('.lock.is-locked').click()
+  // الشرائح لها طريقُها من القائمة، وخروجُها يعيد اللوحة كاملة
+  await page.locator('.show__exit .lock').click()
   await page.waitForSelector('.admin-nav', { timeout: 20000 })
-  check('فتح القفل يعيد لوحة التعديل', await page.locator('.hero').isVisible())
-  check('والقفل مفتوح فيها', await page.locator('.lock:not(.is-locked)').isVisible())
-  await page.locator('.lock:not(.is-locked)').click()
-  await page.waitForSelector('.show', { timeout: 20000 })
-  check('وإقفاله يعيد وضع العرض', await page.locator('.show__big').isVisible())
+  check('الخروج من الشرائح يعيد اللوحة', await page.locator('.hero').isVisible())
+  const nav = await page.locator('.admin-nav__item').allInnerTexts()
+  check('شاشة الشرائح لها موضع في القائمة',
+    nav.some((t) => t.includes('الشرائح')), `${nav.length} قسمًا`)
 
-  // وضع العرض: القفل يمنع الكتابة فعلًا، لا يُخفي أزرارًا وحسب
-  await page.locator('.lock.is-locked').click()
-  await page.waitForSelector('.admin-nav', { timeout: 20000 })
-  await page.locator('button[aria-pressed]').first().click()
+  // القفل لا ينقل إلى شاشةٍ أخرى: اللوحة تبقى كاملةً ويُمنع الحفظ
+  await page.locator('.lock').click()
+  check('القفل يُبقي اللوحة كاملة لا يستبدلها',
+    await page.locator('.admin-nav').count() > 0 && await page.locator('.hero').isVisible())
+  check('والقفل يلبس حالته', await page.locator('.lock.is-locked').isVisible())
   check('شريط وضع العرض يظهر', await page.locator('.viewbar').isVisible())
   check('اللوحة تحمل علامة القفل', await page.locator('.app.is-view-only').count() > 0)
   // صفحةٌ فيها أدوات تحرير فعلًا: النظرة العامة قراءةٌ محضة
@@ -254,11 +253,11 @@ try {
   check('أدوات التحرير لا تُضغط في وضع العرض',
     blocked !== null && blocked.live === 0, JSON.stringify(blocked))
   check('الوضع محفوظ في الجهاز', await page.evaluate(() => localStorage.getItem('qiyas.viewOnly')) === '1')
-  await page.locator('button[aria-pressed="true"]').first().click()
+  // القفل يبقى مقفلًا وأنتِ تتنقّلين بين الأقسام
+  check('القفل يصحب اللوحة بين الأقسام', await page.locator('.lock.is-locked').isVisible())
+  await page.locator('.lock.is-locked').click()
   check('رفعُ القفل يُعيد الكتابة', await page.locator('.viewbar').count() === 0)
-  await page.goto(`http://127.0.0.1:${PORT}/#/admin`, { waitUntil: 'domcontentloaded' })
-  await page.waitForSelector('.admin-nav', { timeout: 20000 })
-  await page.locator('.lock:not(.is-locked)').click()
+  await page.goto(`http://127.0.0.1:${PORT}/#/admin/display`, { waitUntil: 'domcontentloaded' })
   await page.waitForSelector('.show', { timeout: 20000 })
 
   const big = (await page.locator('.show__big').innerText()).trim()
