@@ -34,7 +34,7 @@ import { useSystem } from '../../state/useSystem'
  */
 const PER_SLIDE = 4
 
-export function DisplayPage() {
+export function DisplayPage({ published = false }: { published?: boolean }) {
   const { state } = useSystem()
   const [screen, setScreen] = useState(0)
 
@@ -70,7 +70,7 @@ export function DisplayPage() {
   // بالأسهم ومسطرة المسافة — كما يتوقّع من يعرض على جهاز عرض
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { window.location.hash = '#/admin'; return }
+      if (e.key === 'Escape' && !published) { window.location.hash = '#/admin'; return }
       // لوحة عربية: السهم الأيمن يتقدّم لأن القراءة من اليمين
       if (e.key === 'ArrowLeft' || e.key === ' ' || e.key === 'PageDown') {
         e.preventDefault()
@@ -83,7 +83,7 @@ export function DisplayPage() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [last])
+  }, [last, published])
 
   const span = index.scaleMax - index.scaleMin || 1
   const place = (v: number) => ((v - index.scaleMin) / span) * 100
@@ -113,7 +113,8 @@ export function DisplayPage() {
             {ORGANIZATION.directorate}
           </p>
         </div>
-        <div className="show__exit no-print"><LockToggle locked /></div>
+        {/* النسخة المنشورة بلا قفل: لا لوحةَ تعديلٍ خلفها يُرجَع إليها */}
+        {!published && <div className="show__exit no-print"><LockToggle locked /></div>}
       </header>
 
       {screen === 0 && (
