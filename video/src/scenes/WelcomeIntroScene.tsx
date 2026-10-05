@@ -11,11 +11,12 @@ import { Sfx } from "../components/Sfx";
  *  ١) الشعار الأبيض (public/intro/logo-white-full.png) يظهر بتلاشٍ وتكبير
  *     ناعم بسيط في منتصف الشاشة، يثبت لحظة - بدون صوت نقر متكرر.
  *  ٢) "صفحة جديدة": الشعار ينتقل بسلاسة لأعلى الشاشة ويصغر (يبقى أبيض)،
- *     ثم تظهر تحته أربعة أسطر ترحيبية (بدّلت القصيدة الأولى بناءً على طلب
- *     صريح) بخط القلم (كشف تدريجي من اليمين لليسار) بخط BalooBhaijaan2،
- *     بحجم كبير وواضح لعرضه على شاشة كبيرة. العبارات مأخوذة ومُصاغة من
- *     نماذج ترحيب أرسلتها المستخدمة (قوالب تصميم جاهزة)، مع تخصيصها باسم
- *     مديرة المدرسة واسم المدرسة بالأرقام الإنجليزية كما طلبت.
+ *     ثم تظهر تحته ثلاثة أسطر ترحيبية (بدّلت القصيدة الأولى بناءً على طلب
+ *     صريح، ثم حُذف سطر العنوان المنفصل لاحقًا) بخط القلم (كشف تدريجي من
+ *     اليمين لليسار) بخط BalooBhaijaan2، بحجم كبير وواضح لعرضه على شاشة
+ *     كبيرة. العبارات مأخوذة ومُصاغة من نماذج ترحيب أرسلتها المستخدمة
+ *     (قوالب تصميم جاهزة)، مع تخصيصها باسم مديرة المدرسة واسم المدرسة
+ *     بالأرقام الإنجليزية كما طلبت.
  * خلفية كحلية داكنة مع علامة مائية باهتة جدًا من الشعار الحقيقي بألوانه
  * الأصلية (public/intro/logo-watermark-color.png) للعمق البصري الاحترافي.
  * اسم المدرسة وإدارة التعليم ثابتان أسفل يسار/يمين الشاشة الفعليين طوال
@@ -42,9 +43,7 @@ const MOVE_START = 140;
 const MOVE_DURATION = 45;
 const PAGE2_START = MOVE_START + MOVE_DURATION;
 
-const LINE1_START = PAGE2_START + 20;
-const LINE1_DURATION = 30;
-const LINE2_START = LINE1_START + LINE1_DURATION + 15;
+const LINE2_START = PAGE2_START + 20;
 const LINE2_DURATION = 50;
 const LINE3_START = LINE2_START + LINE2_DURATION + 20;
 const LINE3_DURATION = 55;
@@ -132,7 +131,6 @@ export const WelcomeIntroScene: React.FC = () => {
     <AbsoluteFill style={{ background: brand.primaryDark, overflow: "hidden" }}>
       <Sfx kind="whoosh" at={0} volume={0.22} />
       <Sfx kind="whoosh" at={MOVE_START} volume={0.2} />
-      <Sfx kind="tick" at={LINE1_START} volume={0.2} />
       <Sfx kind="tick" at={LINE2_START} volume={0.25} />
       <Sfx kind="tick" at={LINE3_START} volume={0.25} />
       <Sfx kind="tick" at={LINE4_START} volume={0.2} />
@@ -152,32 +150,23 @@ export const WelcomeIntroScene: React.FC = () => {
       <Logo />
 
       <PoemLine
-        text="الترحيب بفريق التقويم الخارجي"
-        color={brand.gold}
-        top={316}
-        from={LINE1_START}
-        duration={LINE1_DURATION}
-        fontSize={34}
-      />
-      <PoemLine
         text="حَلَلتُم أهلًا ووَطِئتُم سَهلًا"
         color="#ffffff"
-        top={396}
+        top={420}
         from={LINE2_START}
         duration={LINE2_DURATION}
       />
       <PoemLine
-        text="نَستقبِلُكُم بكُلِّ حُبٍّ وتَقديرٍ في صَرحِنا التَّعليمي"
+        text="في صَرحِنا التَّعليمي، وضُيوفُنا الكِرام"
         color={brand.teal}
-        top={504}
+        top={528}
         from={LINE3_START}
         duration={LINE3_DURATION}
-        fontSize={54}
       />
       <PoemLine
         text="مديرة المدرسة الابتدائية 165: أ. جازية أسميري، وكافة منسوباتها وطالباتها"
         color={brand.gold}
-        top={610}
+        top={650}
         from={LINE4_START}
         duration={LINE4_DURATION}
         fontSize={34}
