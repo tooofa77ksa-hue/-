@@ -23,7 +23,6 @@ import { dirname, resolve } from 'node:path'
 import QRCode from 'qrcode'
 import { chromium } from 'playwright'
 
-import { coverage } from '../../src/lib/attendance'
 import { improvementBands } from '../../src/lib/bands'
 import { derivedVoices } from '../../src/domain/voices'
 import type {
@@ -91,11 +90,9 @@ const state = {
 
 const AR = 'ar-SA'
 const n = (v: number) => new Intl.NumberFormat(AR).format(v)
-const p1 = (v: number) => `${new Intl.NumberFormat(AR, { maximumFractionDigits: 1 }).format(v)}٪`
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 const tidy = (s: string) => s.replace(/\s+/g, ' ').trim()
 
-const cover = coverage(state, {})
 const bands = improvementBands(state)
 const voiceCount = state.suggestions.filter((s) => !s.excluded).length
 const proofs = state.improvementActions.reduce((k, a) => k + (a.evidence?.length ?? 0), 0)
@@ -109,14 +106,20 @@ const proofs = state.improvementActions.reduce((k, a) => k + (a.evidence?.length
  */
 const SHOTS: Record<string, { file: string; caption: string }[]> = {
   'تبريد الساحة وتهوية الفصول': [
+    { file: 'marwaha-saha.jpg', caption: 'مروحة الساحة — تهويةُ مكان الانتظار' },
     { file: 'fasl-mukayyif.jpg', caption: 'مكيّف الفصل بعد الصيانة' },
+  ],
+  'انتظار الطالبات وقت الانصراف': [
+    { file: 'karasi-intizar.jpg', caption: 'كراسي مكان الانتظار وقت الانصراف' },
+    { file: 'marwaha-saha.jpg', caption: 'مروحةٌ تُهوّي المكان في أيام الحرّ' },
   ],
   'نظافة دورات المياه وتوفير الصابون': [
     { file: 'hammam.jpg', caption: 'دورات المياه بعد التهيئة والدهان' },
-    { file: 'hammam-jadwal.jpg', caption: 'جدول النظافة اليومي معلَّق على الباب' },
-    { file: 'hammam-lawha.jpg', caption: '«دورة مياه نظيفة = بيئة مدرسية صحية»' },
+    { file: 'maghasil-saboon.jpg', caption: 'المغاسل والصابون متوفّرٌ فيها' },
+    { file: 'hammam-jadwal.jpg', caption: 'جدول النظافة اليومي معلَّقٌ على الباب' },
   ],
   'الأنشطة الطلابية وحصص التربية البدنية': [
+    { file: 'rukn-riyada.jpg', caption: 'ركن الرياضة — «صحّةٌ ونشاطٌ وحياة»' },
     { file: 'maamal-oloom.jpg', caption: 'معمل العلوم — تُقام فيه التجارب والأنشطة' },
     { file: 'oqool-lamia.jpg', caption: 'ركن «العقول اللامعة» وبطاقات العمل الجماعي' },
   ],
@@ -153,6 +156,14 @@ const SHOTS: Record<string, { file: string; caption: string }[]> = {
  * «مركز التحسين» — فمَوضعُه هناك لا هنا.
  */
 const SAID_BETTER: Record<string, string> = {
+  'تبريد الساحة وتهوية الفصول': 'رُكِّبت مراوحُ في ساحة المدرسة تُهوّي مكان انتظار '
+    + 'الطالبات في أيام الحرّ، ورُكِّبت أجهزةُ تهويةٍ في فنائها الخارجي. '
+    + 'ومكيّفاتُ الفصول تحت متابعةٍ دائمة: يُرفع بلاغُ الصيانة فور العطل، ويُتابَع '
+    + 'مع الدعم الفنّي حتى الإصلاح.',
+  'انتظار الطالبات وقت الانصراف': 'خُصِّص للطالبات مكانُ انتظارٍ وُضعت فيه كراسٍ، '
+    + 'ورُكِّبت فيه مروحةٌ تُهوّيه. وتخرج الصفوفُ الأوّلية أوّلًا، ثم تخرج الصفوف '
+    + 'العليا بعدها بخمس دقائق إلى عشر — فلا تزدحم الصغيرات بالكبيرات عند الباب، '
+    + 'وهذا معمولٌ به في المدرسة ومتابَعٌ يوميًّا.',
   'حفظ الأمانات والمفقودات': 'أُنشئ «صندوق الأمانات» ووُضع في مكانٍ ظاهرٍ تصل إليه الطالبات، '
     + 'وعُلِّقت عليه بطاقته. فما تفقده الطالبة يُحفظ فيه حتى تعود إليه، '
     + 'وأُبلغ أولياء الأمور بمكانه وآلية الاستلام.',
@@ -160,8 +171,7 @@ const SAID_BETTER: Record<string, string> = {
 
 /** بنودٌ نُفِّذت ولم تُصوَّر بعد: تُذكر صريحةً لا تُسقَط. */
 const NO_SHOT: Record<string, string> = {
-  'انتظار الطالبات وقت الانصراف': 'نُفِّذ — والصورة في الطريق',
-  'المكتبة وورش المهارات': 'نُفِّذ — والصورة في الطريق',
+  'المكتبة وورش المهارات': 'منفَّذٌ ومستمرّ — والصورة تلحق بالتقرير القادم',
 }
 
 const asset = (path: string, mime: string) =>
@@ -256,6 +266,50 @@ const ALWAYS: { icon: string; title: string; body: string }[] = [
   },
 ]
 
+/**
+ * كلماتُ أولياء الأمور الطيّبة، بنصّها.
+ *
+ * التقرير الذي يذكر النقد وحده يُقرأ اعتذارًا، والمدرسة لم تُخطئ حتى
+ * تعتذر: أكثرُ ما وصلها ثناءٌ لا مأخذ. فتُنشر هذه الكلمات كما كُتبت —
+ * بإملائها وعلامتها — لأن تهذيبها يُذهب صدقها.
+ *
+ * وتُنسب إلى الصفّ لا إلى الأسرة: الرأي أُبدي في قياسٍ لا في منشور،
+ * ونسبتُه إلى صاحبه بالاسم في ورقةٍ تصل البيوت كلَّها كشفٌ له لم
+ * يأذن به. ومن أراد أن يُشكر باسمه فصفحة «تمَّ الاطّلاع» تتيح له ذلك.
+ *
+ * وأسماء المعلّمات تبقى كما ذكرها أهلُها: الثناء على المعلّمة باسمها
+ * حقٌّ لها، وهو مرادُ من كتبه.
+ */
+const KIND: { text: string; from: string }[] = [
+  { text: 'المدرسة رائعة وتعامل المرشدة والمعلمات جدًّا راقٍ، لا يوجد عندي أي اقتراح، '
+      + 'أنا مبسوطة جدًّا من المدرسة وبنتي مرتاحة فيها', from: 'أسرةٌ من الصف السادس' },
+  { text: 'أتقدّم بالشكر والتقدير لكل منسوبي المدرسة على ما يقدّمونه لبناتنا من تعليم '
+      + 'العلم والأدب والأخلاق والدين الإسلامي، وحرصهم على اكتشاف مواهبهنّ وتنميتها، '
+      + 'جزاكم الله خيرًا ودمتم بودّ', from: 'أسرةٌ من الصف الأول' },
+  { text: 'مدرسةٌ متكاملة ورائعة بالكادر الإداري والتعليمي، بارك الله جهودكم',
+    from: 'أسرةٌ من الصف الثالث' },
+  { text: 'الله يعطيهم العافية جميعًا، وعلى رأسهم المديرة أبلة الجازي، وأبلة شمعة، '
+      + 'والمرشدة الصحية، وأبلة ناهد، وأبلة دلال معلّمة لغتي، وجميع معلّمات المدرسة 💕',
+    from: 'أسرةٌ من الصف الأول' },
+  { text: 'كل الشكر والتقدير والاحترام لقائدة المدرسة جازية السميري',
+    from: 'أسرةٌ من الصف الخامس' },
+  { text: 'كل شكرٍ وتقدير للمديرة والمدرّسات على أدائهنّ الرائع والتعليم الممتاز لنا',
+    from: 'أسرةٌ من الصف الثاني' },
+  { text: 'المدرسة رائعة جدًّا وبنتي مرّة مبسوطة فيها، أتوقّع ما هم مقصّرين بأي شيء، '
+      + 'بارك الله فيهم جميعًا', from: 'أسرةٌ من الصف السادس' },
+  { text: 'أشكر كل المعلّمات بدون استثناء، المدرسة ما شاء الله تبارك الله 💕',
+    from: 'أسرةٌ من الصف الأول' },
+  { text: 'مدرسةٌ نموذجية في موقعٍ ممتاز، ومواقفُ ومخارجُ جيّدة',
+    from: 'أسرةٌ من الصف السادس' },
+  { text: 'المدرسة مثل المنزل، شكرًا لكم جميعًا', from: 'أسرةٌ من الصف الخامس' },
+  { text: 'مدرسةٌ رائعة ومعلّماتٌ رائعات وإداريات، كل الشكر لكم',
+    from: 'أسرةٌ من الصف الأول' },
+  { text: 'الاستمرار في هذا المستوى الرائع من التنظيم والتعليم',
+    from: 'أسرةٌ من الصف الرابع' },
+  { text: 'شكرًا على حسن التعامل والاهتمام', from: 'أسرةٌ من الصف الخامس' },
+  { text: 'الشكر لجميع العاملين فيها', from: 'أسرةٌ من الصف الرابع' },
+]
+
 const SEEN_URL = `https://${host}/#/seen`
 const seenQr = await QRCode.toDataURL(SEEN_URL, {
   errorCorrectionLevel: 'M', margin: 1, width: 460,
@@ -289,7 +343,7 @@ body { font-family:'Baloo',sans-serif; color:var(--navy); }
 .cover .seal { width:fit-content; margin:30px auto 0; padding:9px 26px; border-radius:999px;
                font-size:14px; font-weight:700; color:#06352a;
                background:linear-gradient(90deg,#8fe3c4,#5fd6b0); }
-.cover .figs { display:grid; grid-template-columns:repeat(4,1fr); gap:11px; margin-top:auto; }
+.cover .figs { display:grid; grid-template-columns:repeat(3,1fr); gap:13px; margin-top:auto; }
 .cover .fig { border:1.5px solid rgba(255,255,255,.22); border-radius:16px; padding:13px 6px;
               text-align:center; background:rgba(255,255,255,.07); }
 .cover .fig b { display:block; font-size:29px; font-weight:800; color:#9fe8c6; }
@@ -349,6 +403,17 @@ figcaption { font-size:9.6px; color:var(--muted); padding:6px 9px; line-height:1
 .shots-line { font-size:11.5px; color:var(--muted); text-align:center; margin-top:13px;
               line-height:1.8; }
 
+/* ⑤ لوحة الكلمات الطيّبة */
+.kind { columns:2; column-gap:11px; margin-top:12px; }
+.kind__one { break-inside:avoid; border:1.4px solid #cfe7da; border-radius:15px;
+             padding:12px 14px 11px; margin-bottom:11px;
+             background:linear-gradient(170deg,#f3fbf7,#f7fbfb); }
+.kind__one p { font-size:11.4px; line-height:1.9; color:#26544a; }
+.kind__one p::before { content:'❝ '; color:var(--green); font-weight:800; font-size:14px; }
+.kind__one span { display:block; margin-top:7px; font-size:9.8px; font-weight:700;
+                  color:var(--green); }
+.kind-lede { font-size:12px; line-height:1.95; color:#34606f; margin-top:4px; }
+
 /* ④ بطاقة إقرار الاطّلاع */
 .seen { display:grid; grid-template-columns:auto 1fr; gap:18px; align-items:center;
         border:2px solid var(--green); border-radius:18px; padding:16px 18px;
@@ -394,10 +459,9 @@ figcaption { font-size:9.6px; color:var(--muted); padding:6px 9px; line-height:1
   <div class="seal">كلُّ رأيٍ وصَلَ — صار له إجراءٌ وشاهدُ تنفيذ</div>
 
   <div class="figs">
-    <div class="fig"><b>${n(cover.traced)}</b><span>أسرة شاركت</span></div>
-    <div class="fig"><b>${p1(cover.rate)}</b><span>نسبة المشاركة</span></div>
-    <div class="fig"><b>${n(voiceCount)}</b><span>رأيًا مكتوبًا</span></div>
-    <div class="fig"><b>${n(proofs)}</b><span>شاهد تنفيذ</span></div>
+    <div class="fig"><b>${n(voiceCount)}</b><span>رأيًا مكتوبًا قرأناه</span></div>
+    <div class="fig"><b>${n(bands.length)}</b><span>بندَ تحسينٍ نُفِّذ</span></div>
+    <div class="fig"><b>${n(proofs)}</b><span>شاهدَ تنفيذٍ موثَّق</span></div>
   </div>
 
   <div class="sign">
@@ -410,6 +474,22 @@ figcaption { font-size:9.6px; color:var(--muted); padding:6px 9px; line-height:1
   <div class="page__head"><b>ما قُلتُموه — وما عَمِلناه</b>
     <span>مرتَّبةً بحسب عدد من ذكرها من أولياء الأمور</span></div>
   ${ordered.map(section).join('')}
+</div>
+
+<div class="page">
+  <div class="page__head"><b>كلماتٌ طيّبة وصلَتْنا منكم</b>
+    <span>بنصّها كما كتبتموها</span></div>
+
+  <p class="kind-lede">لم يكن أكثرُ ما وصلنا مأخذًا، بل كان ثناءً ودعاءً.
+  ونحن نُثبته هنا كما كُتب، لا لنُثني على أنفسنا، بل لتعلموا أنّ كلماتِكم
+  قُرئت كما قُرئت ملاحظاتُكم سواءً بسواء — وأنّ ما تكتبونه يبلُغ موضعَه عندنا،
+  حسنُه وشديدُه.</p>
+
+  <div class="kind">${KIND.map((k) => `
+    <div class="kind__one"><p>${esc(k.text)}</p><span>${esc(k.from)}</span></div>`).join('')}
+  </div>
+
+  <p class="shots-line">ولكلِّ أسرةٍ كتبت لنا حرفًا — شكرًا، فقد بلغَنا وأفرحَنا.</p>
 </div>
 
 <div class="page">
@@ -431,19 +511,20 @@ figcaption { font-size:9.6px; color:var(--muted); padding:6px 9px; line-height:1
   <h2>وما زال في الطريق</h2>
   <div class="sub">نقول ما لم يكتمل كما قلنا ما اكتمل</div>
 
-  <p>ليس كلُّ ما ذكرتموه قد تمَّ، ولا نُخفي ذلك عنكم. فمن الملاحظات ما
-  يحتاج وقتًا حتى يستوي، ومنها ما هو خارجٌ عمّا تملكه المدرسة وحدها —
-  وقد رُفع إلى الجهة المختصّة في إدارة التعليم، ونتابعه أوّلًا بأوّل.</p>
+  <p>ليس كلُّ ما ذكرتموه قد تمَّ، ولا نُخفي ذلك عنكم. فمن الملاحظات ما يحتاج
+  وقتًا حتى يستوي، ومنها ما هو خارجٌ عن قدرة المدرسة وحدها — وقد رُفع إلى
+  الجهة المختصّة في إدارة التعليم، ونتابعه أوّلًا بأوّل.</p>
 
   <div class="open">
     <b>الذي نعمل عليه الآن</b>
     <ul>
-      <li><b>تغطيةُ الساحة وتبريدُها تبريدًا كاملًا</b> — وهي ممّا لا تملكه المدرسة
-      وحدها، وقد خُوطِبت بها إدارةُ التعليم، ونحن في انتظار الاعتماد.</li>
+      <li><b>تغطيةُ الساحة وتبريدُها تبريدًا كاملًا</b> — رُكِّبت المراوح وأجهزةُ
+      التهوية، أمّا التغطيةُ والتكييفُ الكامل فليسا في يد المدرسة وحدها، وقد
+      خُوطِبت بهما إدارةُ التعليم، ونحن في انتظار الاعتماد.</li>
       <li><b>أنشطةٌ خاصّة بمادّة اللغة الإنجليزية</b> تُرغّب الطالبات فيها وتُنمّي
       حصيلتَهنّ — مخطَّطٌ لها هذا الفصل الدراسي بإذن الله.</li>
-      <li><b>تنظيمُ الانصراف</b> بحيث تخرج الصفوف الصغرى قبل الكبرى — مطبَّقٌ
-      ويُتابَع يوميًّا، ويُستكمل تنظيمُ مكان الانتظار.</li>
+      <li><b>مكتبةٌ للقراءة وورشُ مهاراتٍ للرسم والخطّ العربي</b> — المكتبة
+      متاحةٌ للطالبات، ونعمل على توسعة الورش وجدولتها.</li>
       <li><b>التقليلُ من الملازم والمطويّات</b> — والطباعةُ غير إلزامية، تكفي
       الطالبةَ قراءةُ النصّ من الملف وكتابةُ إجابتها في دفترها.</li>
     </ul>
@@ -485,4 +566,4 @@ await browser.close()
 
 console.log(`✓ ${out}`)
 console.log(`  ${n(ordered.length)} بندًا · ${n(voiceCount)} رأيًا · ${n(proofs)} شاهدًا`
-  + ` · ${n(cover.traced)} من ${n(cover.students)} (${p1(cover.rate)})`)
+  + ` · ${n(KIND.length)} كلمةً طيّبة`)
