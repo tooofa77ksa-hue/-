@@ -30,6 +30,7 @@ const projectId = option('project') ?? process.env.GCLOUD_PROJECT
 const host = option('host') ?? 'qiyas-165-1448.web.app'
 const out = resolve(ROOT, option('out') ?? '.report-out/رسائل-أولياء-الأمور-1448.txt')
 const thanksOut = resolve(ROOT, option('thanks') ?? '.report-out/شكر-الفصول-المكتملة-1448.txt')
+const allOut = resolve(ROOT, option('all') ?? '.report-out/رسائل-القياس-كاملة-1448.txt')
 
 async function snapshot() {
   if (from) return JSON.parse(readFileSync(resolve(from), 'utf8'))
@@ -229,17 +230,51 @@ const THANKS: ((label: string, k: string) => string)[] = [
 واهتمامكم هذا هو ما يجعل المدرسة تتحسّن عامًا بعد عام 🌸`,
 ]
 
-if (done.length > 0) {
-  const thanks = done.map((r, i) =>
-    THANKS[i % THANKS.length](r.label, n(r.cover.students)))
-  mkdirSync(dirname(thanksOut), { recursive: true })
-  writeFileSync(thanksOut, thanks.join(`\n\n${RULE}\n\n`) + '\n', 'utf8')
-}
+const thanks = done.map((r, i) => THANKS[i % THANKS.length](r.label, n(r.cover.students)))
 
 mkdirSync(dirname(out), { recursive: true })
 writeFileSync(out, blocks.join(`\n\n${RULE}\n\n`) + '\n', 'utf8')
+if (thanks.length > 0) {
+  writeFileSync(thanksOut, thanks.join(`\n\n${RULE}\n\n`) + '\n', 'utf8')
+}
 
+/**
+ * ملفٌ واحد يجمع الرسائل كلّها.
+ *
+ * الملفّان المنفصلان يُفتحان في مكانين، ومن تُرسل من جوالها بين
+ * مجموعة وأخرى تحتاج ملفًّا واحدًا تمرّ عليه من أوّله إلى آخره.
+ * فلكل رسالةٍ هنا عنوانٌ يقول أين تُرسل، وفاصلٌ يبيّن أين تنتهي —
+ * لأن النسخ من الجوال يأخذ ما بين الفاصلين لا ما بين السطرين.
+ */
+const HEAVY = '═'.repeat(44)
+const section = (no: string, title: string, note: string, items: { where: string; text: string }[]) =>
+  [`${HEAVY}\n${no}) ${title}\n${note}\n${HEAVY}`,
+    ...items.map((b) => `▼ تُرسل إلى: ${b.where}\n\n${b.text}\n\n${RULE}`)].join('\n\n')
+
+const parts = [
+  `📋 رسائل قياس اتجاه المتعلمين ١٤٤٨هـ — كاملةً
+الابتدائية الخامسة والستون بعد المائة
+
+الحال اليوم: ${n(school.traced)} من ${n(school.students)} · ${p(school.rate)}`
+    + ` · بقيت ${families(school.students - school.traced)} في ${n(pending.length)} فصول
+كل رسالة بين فاصلين: انسخي ما بينهما كما هو، وأرسليه حيث يقول العنوان فوقها.`,
+  section('١', 'الرسالة الجامعة', 'تُرسل مرة واحدة في المجموعة العامة لأولياء الأمور.',
+    [{ where: 'المجموعة العامة', text: blocks[0] }]),
+]
+if (pending.length > 0) {
+  parts.push(section('٢', 'رسائل الفصول المتبقية',
+    'لكل فصلٍ رسالته: تُرسل في مجموعة الفصل وحدها، لا في المجموعة العامة.',
+    pending.map((r, i) => ({ where: `مجموعة ${r.label}`, text: blocks[i + 1] }))))
+}
+if (thanks.length > 0) {
+  parts.push(section('٣', 'شكر الفصول المكتملة',
+    'لكل فصلٍ عبارته، فلا تتكرّر رسالتان لو قارنت المجموعاتُ بينها.',
+    done.map((r, i) => ({ where: `مجموعة ${r.label}`, text: thanks[i] }))))
+}
+writeFileSync(allOut, parts.join('\n\n') + '\n', 'utf8')
+
+console.log(`✓ ${allOut} — الملف الجامع`)
 console.log(`✓ ${out}`)
+if (thanks.length > 0) console.log(`✓ ${thanksOut}`)
 console.log(`  ${n(school.traced)} من ${n(school.students)} · ${p(school.rate)}`)
 console.log(`  ${n(pending.length)} فصلًا بقيت فيه أسر · ${n(done.length)} فصلًا مكتملًا`)
-if (done.length > 0) console.log(`✓ ${thanksOut}`)
