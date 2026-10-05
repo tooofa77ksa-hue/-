@@ -1,5 +1,5 @@
 /**
- * «من الورق إلى المنصّة» — ورقةٌ تُسلَّم للجنة الزائرة.
+ * «من النماذج إلى المنصّة» — ورقةٌ تُسلَّم للجنة الزائرة.
  *
  * اللجنة لا تقرأ تقريرًا، تقرأ صفحةً وتضغط رابطًا. فالورقة هنا موجزةٌ
  * عمدًا: ثلاث بطاقاتٍ لثلاثة أعوام، وستُّ جملٍ لِما تغيّر، وتوقيعات.
@@ -28,7 +28,7 @@ const option = (name: string) => {
 }
 
 const host = option('host') ?? 'qiyas-165-1448.web.app'
-const out = resolve(ROOT, option('out') ?? '.report-out/من-الورق-إلى-المنصة-1448.pdf')
+const out = resolve(ROOT, option('out') ?? '.report-out/من-النماذج-إلى-المنصة-1448.pdf')
 
 /** ملفّا العامين السابقين، كما شاركتهما المدرسة. */
 const ARCHIVE = {
@@ -58,7 +58,7 @@ interface Year {
   /** رقم العام وحده، بلا «هـ»: تُضاف عند العرض خارج العازل. */
   year: string
   kind: string
-  tone: 'paper' | 'live'
+  tone: 'form' | 'live'
   icon: string
   lines: string[]
   href: string
@@ -67,47 +67,47 @@ interface Year {
 
 const YEARS: Year[] = [
   {
-    year: '1446', kind: 'ورقي', tone: 'paper', icon: '📄',
+    year: '1446', kind: 'نماذج إلكترونية', tone: 'form', icon: '📝',
     lines: [
-      'استبانةٌ تُطبع وتُوزَّع وتُجمع يدًا بيد',
-      'إدخالٌ وحسابٌ باليد بعد الجمع',
-      'رأيُ وليّ الأمر يصل متأخّرًا',
+      'النموذج يصل إلى أولياء الأمور ويجمع ردودهم',
+      'ثم تُفرَّغ الردود في جدولٍ وتُحسب يدويًا',
+      'ولا يُربط الردُّ بالطالبة في الكشف الرسمي',
     ],
     href: ARCHIVE.y1446, cta: 'اضغط لفتح ملف العام',
   },
   {
-    year: '1447', kind: 'ورقي', tone: 'paper', icon: '📄',
+    year: '1447', kind: 'نماذج إلكترونية', tone: 'form', icon: '📝',
     lines: [
-      'المجهود نفسه يتكرّر من أوّله',
-      'الوقت يطول بين الجمع والنتيجة',
-      'الأثر لا يُقاس إلا بعد انقضاء وقته',
+      'العمل نفسه يُعاد بناؤه من أوّله كلَّ عام',
+      'والرسوم والنِّسَب تُصنع بعد التصدير يدويًا',
+      'والرأي يُقرأ ثم يقف، بلا إجراءٍ يتبعه',
     ],
     href: ARCHIVE.y1447, cta: 'اضغط لفتح ملف العام',
   },
   {
-    year: '1448', kind: 'إلكتروني', tone: 'live', icon: '💻',
+    year: '1448', kind: 'منصّة متكاملة', tone: 'live', icon: '💻',
     lines: [
-      'رابطٌ يبلغ كلَّ أسرةٍ في ثانية',
-      'النتائج تُحسب لحظة وصول الرأي',
-      'كلُّ ملاحظةٍ تصير إجراءً له شاهد',
+      'رابطٌ خاصٌّ بكل فصل يصل أسرَه مباشرةً',
+      'والنتائج تُحسب لحظة وصول الرأي بلا تفريغ',
+      'وكلُّ ملاحظةٍ تصير إجراءً له شاهدُ تنفيذ',
     ],
     href: PLATFORM, cta: 'اضغط لفتح المنصّة',
   },
 ]
 
 const GAINS: [string, string, string][] = [
-  ['⚡', 'سرعةُ الوصول',
-    'الرابط يبلغ كلَّ وليّ أمرٍ في ثوانٍ، بلا ورقٍ يُوزَّع ويُجمع ويُفقد بعضُه.'],
-  ['🎯', 'دقّةٌ بلا إدخالٍ يدوي',
-    'تُحسب النتيجة لحظة وصول الرأي، فلا خطأ نسخٍ ولا جمعٍ ولا تأخير.'],
+  ['🔗', 'ربطٌ بالكشف الرسمي',
+    'كان الردُّ يصل باسمٍ مكتوب فيُطابَق يدويًا، وصار يُرشَّح في الشاشة ويُؤكَّد بضغطة.'],
+  ['🎯', 'نتائجُ بلا تفريغٍ يدوي',
+    'كانت الردود تُصدَّر إلى جدولٍ ثم تُحسب وتُرسم، وصارت تُحسب لحظة وصول الرأي.'],
   ['⏱️', 'سرعةُ قياس الأثر',
     'كان الأثر يُعرف بعد انقضاء وقته، وصار يُقرأ في يومه فيُعالَج في حينه.'],
   ['🗣️', 'استطلاعُ آراء المستفيدين في وقته',
     'رأيُ وليّ الأمر يصل وهو حيٌّ، فيُبنى عليه قرارٌ ينفع صاحبَه لا من بعده.'],
   ['✅', 'من الرأي إلى الإجراء',
-    'كلُّ ملاحظةٍ تُربط بإجراءٍ له مسؤولةٌ وتاريخٌ وشاهدُ تنفيذٍ يُفتح بمسح الرمز.'],
+    'النموذج يجمع الرأي ثم يقف، والمنصّة تربطه بإجراءٍ له مسؤولةٌ وتاريخٌ وشاهدُ تنفيذ.'],
   ['♻️', 'استدامةٌ للأعوام القادمة',
-    'تُعاد الدورة على المنصّة نفسها، فتُقارَن الأعوام ويُقاس التحسّن لا يُدَّعى.'],
+    'لا يُعاد البناء كلَّ عام: تُعاد الدورة على المنصّة نفسها فتُقارَن الأعوام ويُقاس التحسّن.'],
 ]
 
 /** التواقيع بترتيب المدرسة: يمينًا ثم وسطًا ثم يسارًا. */
@@ -159,21 +159,21 @@ const html = `<!doctype html>
 @page { size:A4; margin:0; }
 * { box-sizing:border-box; margin:0; padding:0; }
 body { font-family:'Baloo',sans-serif; color:var(--navy); }
-.sheet { height:297mm; padding:12mm 14mm 9mm; display:flex; flex-direction:column; }
+.sheet { height:297mm; padding:10mm 13mm 8mm; display:flex; flex-direction:column; }
 
 .head { text-align:center; border-bottom:2px solid var(--navy); padding-bottom:10px; }
 .head img { height:48px; }
 .head .org { font-size:11px; color:var(--muted); margin-top:9px; }
 .head .school { font-size:14px; font-weight:800; margin-top:3px; }
-h1 { font-size:30px; font-weight:800; margin-top:12px; line-height:1.3; text-align:center; }
+h1 { font-size:27px; font-weight:800; margin-top:10px; line-height:1.3; text-align:center; }
 h1 small { display:block; font-size:15px; font-weight:700; color:var(--green); margin-top:6px; }
-.lede { text-align:center; font-size:12.2px; line-height:1.85; color:var(--muted);
-        margin:10px 8mm 0; }
+.lede { text-align:center; font-size:11.6px; line-height:1.8; color:var(--muted);
+        margin:8px 6mm 0; }
 
 .years { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:12px; }
 .yr { display:flex; flex-direction:column; text-decoration:none; color:inherit;
       border:1.6px solid var(--border); border-radius:16px; padding:11px 12px 10px; }
-.yr--paper { background:var(--soft); }
+.yr--form { background:var(--soft); }
 .yr--live { border-color:var(--green); border-width:2.2px;
             background:linear-gradient(170deg,#f1fbf6,#f6fbfb); }
 .yr__top { text-align:center; border-bottom:1px dotted var(--border); padding-bottom:9px; }
@@ -183,27 +183,35 @@ h1 small { display:block; font-size:15px; font-weight:700; color:var(--green); m
             font-size:11px; font-weight:700; color:#fff; background:var(--muted); }
 .yr--live .yr__kind { background:var(--green); }
 .yr ul { list-style:none; margin:10px 0 0; flex:1; }
-.yr li { font-size:11px; line-height:1.7; color:#33606f; margin-bottom:7px;
+.yr li { font-size:10.5px; line-height:1.65; color:#33606f; margin-bottom:7px;
          padding-right:13px; position:relative; }
 .yr li::before { content:'•'; position:absolute; right:0; color:var(--sand); font-weight:800; }
 .yr--live li::before { color:var(--green); }
-.yr__qr { display:block; width:26mm; height:26mm; margin:8px auto 7px;
+.yr__qr { display:block; width:24mm; height:24mm; margin:7px auto 6px;
           border:1px solid var(--border); border-radius:8px; padding:3px; background:#fff; }
 .yr__cta { display:block; text-align:center; margin-top:10px; padding:7px 0; border-radius:10px;
            font-size:11.5px; font-weight:800; color:#fff; background:var(--navy); }
 .yr--live .yr__cta { background:linear-gradient(90deg,var(--green),var(--teal)); }
 
-h2 { font-size:16px; font-weight:800; margin:13px 0 8px; padding-right:10px;
+h2 { font-size:15px; font-weight:800; margin:11px 0 7px; padding-right:10px;
      border-right:4px solid var(--green); }
-.gains { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
-.gain { display:grid; grid-template-columns:22px 1fr; gap:8px;
-        border:1.3px solid var(--border); border-radius:12px; padding:8px 11px; }
+.gains { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.gain { display:grid; grid-template-columns:19px 1fr; gap:6px;
+        border:1.3px solid var(--border); border-radius:11px; padding:7px 10px; }
 .gain .ico { font-size:15px; text-align:center; }
-.gain b { display:block; font-size:12.5px; margin-bottom:2px; }
-.gain span { font-size:10.4px; line-height:1.7; color:var(--muted); }
+.gain b { display:block; font-size:11.4px; margin-bottom:2px; line-height:1.35; }
+.gain span { font-size:9.6px; line-height:1.62; color:var(--muted); }
 
-.hint { text-align:center; font-size:11.5px; line-height:1.85; color:var(--muted);
-         background:var(--soft); border-radius:12px; padding:9px 14px; margin-top:12px; }
+.init { border:1.6px solid var(--green); border-radius:14px; padding:9px 14px; margin-top:10px;
+         background:linear-gradient(170deg,#f2fbf7,#f6fbfb); }
+.init h3 { font-size:14px; font-weight:800; margin-bottom:5px; }
+.init h3 span { margin-left:6px; }
+.init p { font-size:10.6px; line-height:1.82; color:#2d5c54; }
+.init__how { margin-top:6px; padding-top:6px; border-top:1px dotted #bfe0d2;
+             color:var(--muted); }
+.init__how b { color:var(--navy); }
+.hint { text-align:center; font-size:10.8px; line-height:1.75; color:var(--muted);
+         background:var(--soft); border-radius:11px; padding:7px 13px; margin-top:9px; }
 .hint b { color:var(--navy); }
 .qrbox { display:grid; grid-template-columns:auto 1fr; gap:14px; align-items:center;
          border:2px solid var(--green); border-radius:15px; padding:11px 14px; margin-top:11px;
@@ -216,11 +224,11 @@ h2 { font-size:16px; font-weight:800; margin:13px 0 8px; padding-right:10px;
               padding:4px 14px; }
 
 .signs { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; text-align:center;
-         margin-top:auto; padding-top:13px; }
+         margin-top:auto; padding-top:11px; }
 .signs .role { font-size:10.5px; color:var(--muted); }
-.signs .who { font-size:14px; font-weight:800; margin-top:4px;
-              border-bottom:1.2px dotted var(--muted); padding-bottom:9px; }
-.by { text-align:center; font-size:11px; color:var(--muted); margin-top:9px; }
+.signs .who { font-size:13.5px; font-weight:800; margin-top:4px;
+              border-bottom:1.2px dotted var(--muted); padding-bottom:7px; }
+.by { text-align:center; font-size:10.5px; color:var(--muted); margin-top:7px; }
 .by b { color:var(--navy); font-size:13px; }
 </style></head><body>
 <div class="sheet">
@@ -231,12 +239,13 @@ h2 { font-size:16px; font-weight:800; margin:13px 0 8px; padding-right:10px;
     <div class="school">الابتدائية الخامسة والستون بعد المائة</div>
   </header>
 
-  <h1>من الورق إلى المنصّة
+  <h1>من النماذج إلى المنصّة
     <small>تطوُّر قياس اتجاه المتعلمين — ${iso('1446')} · ${iso('1447')} · ${hijri('1448')}</small>
   </h1>
 
-  <p class="lede">عامان أُجري فيهما القياس على الورق، وعامٌ أُجري على منصّةٍ إلكترونية.
-  وهذه الورقة تُظهر الفرق، ومعها روابطُ الأعوام الثلاثة تُفتح بالضغط أو بمسح الرمز.</p>
+  <p class="lede">عامان أُجري فيهما القياس على نماذج إلكترونية تجمع الردود وتقف عندها،
+  وعامٌ أُجري على منصّةٍ تقرأ الرأي وتُحوّله إلى عمل. وهذه الورقة تُظهر الفرق،
+  ومعها روابطُ الأعوام الثلاثة تُفتح بالضغط أو بمسح الرمز.</p>
 
   <div class="years">${YEARS.map(card).join('')}</div>
 
@@ -246,8 +255,17 @@ h2 { font-size:16px; font-weight:800; margin:13px 0 8px; padding-right:10px;
       <span><b>${esc(t)}</b><span>${esc(b)}</span></span></div>`).join('')}
   </div>
 
-  <p class="hint">كلُّ بطاقةٍ أعلاه تُفتح بطريقتين: <b>امسحوا رمزها</b> بكاميرا الجوّال
-  إن كانت الورقة مطبوعة، أو <b>اضغطوا البطاقة</b> إن قرأتموها على الشاشة.</p>
+  <section class="init">
+    <h3><span>✨</span>مبادرةٌ لرفع جودة العمل في المدرسة</h3>
+    <p>أُنشئت هذه المنصّة بمبادرةٍ من المساعد الإداري بالمدرسة، بالاستعانة بالذكاء
+    الاصطناعي ضمن الاستخدام الآمن والمسؤول الذي تدعو إليه وزارة التعليم. فصار ما
+    يُكتب نصًّا ينعكس على المنصّة في حينه: يُصاغ السؤال، ويُرسل الرابط إلى أولياء
+    الأمور مربوطًا بفصل ابنتهم، وتُقرأ النتيجة لحظة وصولها — بلا تفريغٍ يدويّ،
+    ولا جدولٍ يُعاد بناؤه كلَّ عام.</p>
+    <p class="init__how">وكلُّ بطاقةٍ أعلاه تُفتح بطريقتين: <b>امسحوا رمزها</b> بكاميرا
+    الجوّال إن كانت الورقة مطبوعة، أو <b>اضغطوا البطاقة</b> إن قرأتموها على الشاشة.</p>
+  </section>
+
 
   <div class="signs">${SIGNERS.map(([role, who]) => `
     <div><div class="role">${esc(role)}</div><div class="who">${esc(who)}</div></div>`).join('')}
