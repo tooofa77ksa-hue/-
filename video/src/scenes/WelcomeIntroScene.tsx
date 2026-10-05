@@ -10,13 +10,14 @@ import { Sfx } from "../components/Sfx";
  * مرحلتان فقط، بلا أي حركة درامية أو دوران:
  *  ١) الشعار الأبيض (public/intro/logo-white-full.png) يظهر بتلاشٍ وتكبير
  *     ناعم بسيط في منتصف الشاشة، يثبت لحظة - بدون صوت نقر متكرر.
- *  ٢) "صفحة جديدة": الشعار ينتقل بسلاسة لأعلى الشاشة ويصغر (يبقى أبيض)،
- *     ثم تظهر تحته ثلاثة أسطر ترحيبية (بدّلت القصيدة الأولى بناءً على طلب
- *     صريح، ثم حُذف سطر العنوان المنفصل لاحقًا) بخط القلم (كشف تدريجي من
- *     اليمين لليسار) بخط BalooBhaijaan2، بحجم كبير وواضح لعرضه على شاشة
- *     كبيرة. العبارات مأخوذة ومُصاغة من نماذج ترحيب أرسلتها المستخدمة
- *     (قوالب تصميم جاهزة)، مع تخصيصها باسم مديرة المدرسة واسم المدرسة
- *     بالأرقام الإنجليزية كما طلبت.
+ *  ٢) "صفحة جديدة": الشعار يصغر جدًا وينتقل لأعلى يمين الشاشة (بدل أعلى
+ *     المنتصف - بناءً على طلب صريح: شعار صغير احترافي بالزاوية بدل منافسة
+ *     النص على المنتصف)، ثم تظهر وسط الشاشة ثلاثة أسطر ترحيبية بمسافات
+ *     رأسية واسعة بينها بخط القلم (كشف تدريجي من اليمين لليسار) بخط
+ *     BalooBhaijaan2، بحجم كبير وواضح لعرضه على شاشة كبيرة. العبارات
+ *     مأخوذة ومُصاغة من نماذج ترحيب أرسلتها المستخدمة (قوالب تصميم جاهزة)،
+ *     مع تخصيصها باسم مديرة المدرسة واسم المدرسة بالأرقام الإنجليزية كما
+ *     طلبت.
  * خلفية كحلية داكنة مع علامة مائية باهتة جدًا من الشعار الحقيقي بألوانه
  * الأصلية (public/intro/logo-watermark-color.png) للعمق البصري الاحترافي.
  * اسم المدرسة وإدارة التعليم ثابتان أسفل يسار/يمين الشاشة الفعليين طوال
@@ -26,16 +27,17 @@ export const WELCOME_INTRO_DURATION = 810;
 
 const LOGO_ASPECT = 536 / 703; // height / width of logo-white-full.png
 
-const CENTERED_BOX = { width: 520, top: 300 };
-const HEADER_BOX = { width: 280, top: 56 };
-const boxForWidth = (width: number, top: number) => ({
-  width,
-  height: width * LOGO_ASPECT,
-  top,
-  left: (1920 - width) / 2,
-});
-const centeredBox = boxForWidth(CENTERED_BOX.width, CENTERED_BOX.top);
-const headerBox = boxForWidth(HEADER_BOX.width, HEADER_BOX.top);
+const centeredBox = { width: 520, height: 520 * LOGO_ASPECT, top: 300, left: (1920 - 520) / 2 };
+// أثناء كتابة الكلام، الشعار يصغر جدًا ويذهب لأعلى يمين الشاشة (بدل أعلى
+// المنتصف) بشكل احترافي صغير متناسب مع عرض النص - بناءً على طلب صريح.
+const HEADER_WIDTH = 150;
+const HEADER_RIGHT_MARGIN = 90;
+const headerBox = {
+  width: HEADER_WIDTH,
+  height: HEADER_WIDTH * LOGO_ASPECT,
+  top: 50,
+  left: 1920 - HEADER_WIDTH - HEADER_RIGHT_MARGIN,
+};
 
 const LOGO_IN_START = 15;
 const LOGO_IN_DURATION = 45;
@@ -152,21 +154,21 @@ export const WelcomeIntroScene: React.FC = () => {
       <PoemLine
         text="حَلَلتُم أهلًا ووَطِئتُم سَهلًا"
         color="#ffffff"
-        top={420}
+        top={340}
         from={LINE2_START}
         duration={LINE2_DURATION}
       />
       <PoemLine
         text="في صَرحِنا التَّعليمي، وضُيوفُنا الكِرام"
         color={brand.teal}
-        top={528}
+        top={480}
         from={LINE3_START}
         duration={LINE3_DURATION}
       />
       <PoemLine
         text="مديرة المدرسة الابتدائية 165: أ. جازية أسميري، وكافة منسوباتها وطالباتها"
         color={brand.gold}
-        top={650}
+        top={630}
         from={LINE4_START}
         duration={LINE4_DURATION}
         fontSize={34}
