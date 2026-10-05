@@ -177,7 +177,7 @@ export const WelcomeIntroScene: React.FC = () => {
         duration={LINE3_DURATION}
       />
       <PoemLine
-        text="مديرة المدرسة جازية السميري، وكافة منسوباتها وطالباتها يُرَحِّبنَ بكم"
+        text="تُرَحِّبُ بِكُم مديرةُ المدرسة جازية السميري، وكافة منسوباتها وطالباتها"
         color={brand.gold}
         top={630}
         from={LINE4_START}
@@ -185,7 +185,7 @@ export const WelcomeIntroScene: React.FC = () => {
         fontSize={34}
       />
       <PoemLine
-        text="فَأَنتُم بَينَ أَهلِكُم، أُسرَةٌ واحِدَةٌ نُحِبُّكُم ونَفخَرُ بِكُم"
+        text="أَنتُم أَهلٌ، وَهذي دارُكُم"
         color="#ffffff"
         top={718}
         from={LINE5_START}
