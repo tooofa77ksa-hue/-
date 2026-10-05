@@ -2,6 +2,7 @@ import { NavLink, Outlet } from 'react-router-dom'
 
 import { BrandFooter } from '../../components/BrandFooter'
 import { LockToggle } from '../../components/LockToggle'
+import { ViewOnlyToggle } from '../../components/ViewOnlyToggle'
 import { BrandHeader } from '../../components/BrandHeader'
 import { AnthemPlayer } from '../../components/AnthemPlayer'
 import { LiveClock } from '../../components/LiveClock'
@@ -10,6 +11,7 @@ import { useTheme } from '../../hooks/useTheme'
 import { flagCounts } from '../../lib/reviewFlags'
 import { num } from '../../lib/format'
 import { useSystem } from '../../state/useSystem'
+import { useViewOnly } from '../../state/viewOnly'
 
 const LINKS = [
   { to: '/admin', end: true, label: 'نظرة عامة' },
@@ -29,10 +31,11 @@ const LINKS = [
 export function AdminLayout() {
   const { theme, toggle } = useTheme()
   const { state } = useSystem()
+  const [viewOnly] = useViewOnly()
   const pending = flagCounts(state).pending
 
   return (
-    <div className="app">
+    <div className={viewOnly ? 'app is-view-only' : 'app'}>
       <BrandHeader
         actions={
           <>
@@ -48,6 +51,7 @@ export function AdminLayout() {
             >
               ⎙
             </button>
+            <ViewOnlyToggle />
             <LockToggle locked={false} />
             <AnthemPlayer />
             <button
@@ -77,6 +81,13 @@ export function AdminLayout() {
           </NavLink>
         ))}
       </nav>
+
+      {viewOnly && (
+        <p className="viewbar" role="status">
+          🔒 اللوحة على القراءة فقط — كل شيء يُقرأ ولا شيء يُحفظ.
+          <span>اضغطي «أعيدي الكتابة» في الأعلى لتعود الكتابة.</span>
+        </p>
+      )}
 
       <main className="main">
         <SyncBanner />

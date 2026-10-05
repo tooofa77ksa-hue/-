@@ -4436,3 +4436,55 @@ th {
   .amal__shots { grid-template-columns: 1fr; }
   .amal__shots img { height: 190px; }
 }
+
+
+/* ───────── وضع العرض ─────────
+   القفل منعٌ في طبقة الحالة، وهذه الطبقة تُريه للعين: كل أداةِ
+   تحريرٍ تبدو مقفلة، فلا تُضغط ثم يُقال «لم يُحفظ». */
+
+.viewbar {
+  margin: 0;
+  padding: 11px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #6b4b00;
+  background: #fdf3d7;
+  border-bottom: 1.5px solid #e6c766;
+  text-align: center;
+}
+.viewbar span { display: block; font-weight: 400; font-size: 12.5px; margin-top: 2px; }
+
+:root[data-theme='dark'] .viewbar {
+  color: #ffe7a8;
+  background: #4a3a10;
+  border-bottom-color: #7a6320;
+}
+
+.button.is-locked {
+  background: #fdf3d7;
+  border-color: #e6c766;
+  color: #6b4b00;
+  font-weight: 700;
+}
+:root[data-theme='dark'] .button.is-locked { background: #4a3a10; color: #ffe7a8; }
+
+/* كل ما يُحرِّر داخل اللوحة المقفلة: يُرى ولا يُضغط.
+   وتُستثنى الترويسة والتنقّل والطباعة، فهي قراءةٌ لا تحرير. */
+.app.is-view-only main button:not(.button--ghost),
+.app.is-view-only main input,
+.app.is-view-only main select,
+.app.is-view-only main textarea,
+.app.is-view-only main [contenteditable] {
+  pointer-events: none;
+  opacity: 0.55;
+  filter: grayscale(0.35);
+}
+
+/* حقول البحث والتصفية تبقى عاملة: هي قراءةٌ لا كتابة */
+.app.is-view-only main input[type='search'],
+.app.is-view-only main .toolbar input,
+.app.is-view-only main .toolbar select {
+  pointer-events: auto;
+  opacity: 1;
+  filter: none;
+}

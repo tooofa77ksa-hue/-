@@ -229,6 +229,38 @@ try {
   await page.waitForSelector('.show', { timeout: 20000 })
   check('وإقفاله يعيد وضع العرض', await page.locator('.show__big').isVisible())
 
+  // وضع العرض: القفل يمنع الكتابة فعلًا، لا يُخفي أزرارًا وحسب
+  await page.locator('.lock.is-locked').click()
+  await page.waitForSelector('.admin-nav', { timeout: 20000 })
+  await page.locator('button[aria-pressed]').first().click()
+  check('شريط وضع العرض يظهر', await page.locator('.viewbar').isVisible())
+  check('اللوحة تحمل علامة القفل', await page.locator('.app.is-view-only').count() > 0)
+  // صفحةٌ فيها أدوات تحرير فعلًا: النظرة العامة قراءةٌ محضة
+  await page.goto(`http://127.0.0.1:${PORT}/#/admin/improvement`, { waitUntil: 'domcontentloaded' })
+  // تُنتظر أداةُ تحريرٍ فعلية: الصفحة تُرسم على دفعات، والفحص قبل
+  // اكتمالها يمرّ على لا شيء فيُقرأ نجاحًا وهو غفلة
+  await page.waitForFunction(() => [...document.querySelectorAll(
+    'main button:not(.button--ghost), main input, main select, main textarea')]
+    .some((el) => !el.closest('.toolbar') && el.type !== 'search'), { timeout: 20000 })
+  // حقول البحث والتصفية مستثناة عمدًا — فهي قراءةٌ لا كتابة
+  const blocked = await page.evaluate(() => {
+    const all = [...document.querySelectorAll(
+      'main button:not(.button--ghost), main input, main select, main textarea')]
+      .filter((el) => !el.closest('.toolbar') && el.type !== 'search')
+    if (all.length === 0) return null
+    const live = all.filter((el) => getComputedStyle(el).pointerEvents !== 'none')
+    return { total: all.length, live: live.length }
+  })
+  check('أدوات التحرير لا تُضغط في وضع العرض',
+    blocked !== null && blocked.live === 0, JSON.stringify(blocked))
+  check('الوضع محفوظ في الجهاز', await page.evaluate(() => localStorage.getItem('qiyas.viewOnly')) === '1')
+  await page.locator('button[aria-pressed="true"]').first().click()
+  check('رفعُ القفل يُعيد الكتابة', await page.locator('.viewbar').count() === 0)
+  await page.goto(`http://127.0.0.1:${PORT}/#/admin`, { waitUntil: 'domcontentloaded' })
+  await page.waitForSelector('.admin-nav', { timeout: 20000 })
+  await page.locator('.lock:not(.is-locked)').click()
+  await page.waitForSelector('.show', { timeout: 20000 })
+
   const big = (await page.locator('.show__big').innerText()).trim()
   check('المؤشر بارز في صدر العرض', /[0-9]/.test(big), big.replace(/\s+/g, ' '))
 

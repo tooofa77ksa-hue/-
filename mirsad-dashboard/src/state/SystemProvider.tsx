@@ -6,6 +6,7 @@ import { initialState } from '../data/store'
 import type { SystemState } from '../domain/types'
 import { ANONYMOUS, watchIdentity, type Identity } from '../firebase/auth'
 import { SystemContext, type SyncStatus } from './SystemContext'
+import { VIEW_ONLY_MESSAGE, isViewOnly } from './viewOnly'
 
 /**
  * مصدر الحالة الوحيد في التطبيق.
@@ -94,6 +95,8 @@ export function SystemProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const commit = useCallback((next: SystemState) => {
+    // وضع العرض يُمنع هنا لا في الأزرار: الزرّ قد يُنسى، والحالة لا تُنسى
+    if (isViewOnly()) { setSyncError(VIEW_ONLY_MESSAGE); return }
     setState(next)
     // في الوضع البعيد قبل الرفع الأوّلي لا نكتب: الإدارة ترفع صراحةً.
     if (storageMode() === 'remote' && persisted.current === null) return
@@ -101,6 +104,7 @@ export function SystemProvider({ children }: { children: ReactNode }) {
   }, [enqueue])
 
   const apply = useCallback((fn: (s: SystemState) => SystemState) => {
+    if (isViewOnly()) { setSyncError(VIEW_ONLY_MESSAGE); return }
     setState((prev) => {
       const next = fn(prev)
       if (storageMode() === 'local' || persisted.current !== null) enqueue(next)
