@@ -33,7 +33,7 @@ const asset = (path: string, mime: string) =>
 const font = (file: string) => asset(`public/fonts/${file}`, 'font/woff2')
 
 const iso = (t: string) => `⁦${t}⁩`
-const hijri = (y: string) => `${iso(y)} هـ`
+const hijri = (y: string) => `${iso(y)}\u00A0هـ`
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
 interface Year { year: string; kind: string; tone: 'paper' | 'live'; icon: string; lines: string[] }
