@@ -36,26 +36,40 @@ const iso = (t: string) => `⁦${t}⁩`
 const hijri = (y: string) => `${iso(y)}\u00A0هـ`
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
-interface Year { year: string; kind: string; tone: 'first' | 'live'; icon: string; lines: string[] }
+interface Stage { kind: string; tone: 'paper' | 'live'; icon: string; lines: string[] }
 
-/** العامان كلاهما إلكترونيّ: الورق كان قبلهما، والتحوّل بدأ في 1447. */
-const YEARS: Year[] = [
+/**
+ * قبلُ وبعدُ، لا عامان متقابلان.
+ *
+ * ملفُّ التقويم الذاتي أُسند للمدرسة لعامَي 1447 و1448 معًا وهو ورقيّ،
+ * ثم طُوِّر إلى موقع. فلا يصحّ أن يُقال «1447 ورقيّ و1448 إلكترونيّ»:
+ * الورق كان حال الملفّ لا حال عامٍ بعينه.
+ */
+const STAGES: Stage[] = [
   {
-    year: '1447', kind: 'عامُ التحوّل', tone: 'first', icon: '🚀',
+    kind: 'كان ورقًا', tone: 'paper', icon: '📄',
     lines: [
-      'أوّلُ عامٍ يُنجَز فيه التقويم الذاتي إلكترونيًّا',
-      'فانتهى معه طبعُ الاستمارات وملؤها بخطّ اليد',
-      'والشواهد تُرفع في موضعها من المعيار نفسه',
+      'استمارةٌ تُطبع وتُملأ بخطّ اليد',
+      'وكلُّ تغييرٍ يعني شطبًا أو إعادةَ طبع',
+      'والشواهد في ملفّاتٍ تُحمل وتُفتَّش',
     ],
   },
   {
-    year: '1448', kind: 'على المنصّة نفسها', tone: 'live', icon: '💻',
+    kind: 'صار منصّةً إلكترونية', tone: 'live', icon: '💻',
     lines: [
-      'يُبنى على المنصّة نفسها لا على ملفٍّ يُستأنف من الصفر',
-      'فيُقارَن العامان في موضعٍ واحد ويُقرأ التحسّن',
-      'والبند يُضاف ويُعدَّل ويُحذف ويُؤرشف بضغطة',
+      'تُفتح في المتصفّح من أيّ جهاز',
+      'والعامان في موضعٍ واحد يُقارَنان',
+      'والعمل يُحفظ أوّلًا بأوّل فلا يضيع',
     ],
   },
+]
+
+/** المجالات الأربعة بمعاييرها، كما أثبتتها المدرسة. */
+const FIELDS: [string, string][] = [
+  ['التعليم والتعلم', 'بناء خبرات التعلم · تقويم التعلم'],
+  ['الإدارة المدرسية', 'التخطيط · قيادة العملية التعليمية · التطوير المؤسسي · المجتمع المدرسي'],
+  ['البيئة المدرسية', 'المبنى المدرسي · الأمن والسلامة'],
+  ['نواتج التعلم', 'التطور الشخصي والصحي والاجتماعي · نواتج التحصيل التعليمي'],
 ]
 
 /** ما تُتيحه المنصّة — الأفعال التي كان الورق يعجز عنها. */
@@ -86,14 +100,13 @@ const qr = await QRCode.toDataURL(SITE, {
   color: { dark: '#15445a', light: '#ffffff' },
 })
 
-const card = (y: Year) => `
-<div class="yr yr--${y.tone}">
+const card = (st: Stage) => `
+<div class="yr yr--${st.tone}">
   <div class="yr__top">
-    <span class="yr__icon">${y.icon}</span>
-    <b class="yr__year">${hijri(y.year)}</b>
-    <span class="yr__kind">${esc(y.kind)}</span>
+    <span class="yr__icon">${st.icon}</span>
+    <b class="yr__year">${esc(st.kind)}</b>
   </div>
-  <ul>${y.lines.map((l) => `<li>${esc(l)}</li>`).join('')}</ul>
+  <ul>${st.lines.map((l) => `<li>${esc(l)}</li>`).join('')}</ul>
 </div>`
 
 const html = `<!doctype html>
@@ -124,7 +137,7 @@ h1 small { display:block; font-size:13px; font-weight:700; color:var(--green); m
             background:linear-gradient(170deg,#f1fbf6,#f6fbfb); }
 .yr__top { text-align:center; border-bottom:1px dotted var(--border); padding-bottom:8px; }
 .yr__icon { font-size:19px; }
-.yr__year { display:block; font-size:20px; font-weight:800; margin-top:2px; }
+.yr__year { display:block; font-size:17px; font-weight:800; margin-top:4px; }
 .yr__kind { display:inline-block; margin-top:5px; padding:3px 13px; border-radius:999px;
             font-size:11px; font-weight:700; color:#fff; background:var(--muted); }
 .yr--live .yr__kind { background:var(--green); }
@@ -145,11 +158,11 @@ h2 { font-size:13.5px; font-weight:800; margin:8px 0 6px; padding-right:10px;
 .gain b { display:block; font-size:12px; margin-bottom:2px; }
 .gain span { font-size:9.6px; line-height:1.6; color:var(--muted); }
 
-.fields { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
-.fld { border:1.4px solid var(--border); border-radius:11px; padding:7px 7px; text-align:center;
-       background:var(--soft); }
-.fld b { display:block; font-size:12px; font-weight:800; }
-.fld span { display:block; font-size:9.8px; line-height:1.6; color:var(--muted); margin-top:3px; }
+.fields { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+.fld { border:1.4px solid var(--border); border-right:3.5px solid var(--teal);
+       border-radius:11px; padding:7px 11px; background:var(--soft); }
+.fld b { display:block; font-size:12.5px; font-weight:800; }
+.fld span { display:block; font-size:9.9px; line-height:1.65; color:var(--muted); margin-top:3px; }
 .fields__note { font-size:9.9px; line-height:1.65; color:var(--muted); margin-top:6px;
                 text-align:center; }
 
@@ -190,12 +203,12 @@ h2 { font-size:13.5px; font-weight:800; margin:8px 0 6px; padding-right:10px;
     <small>شاهدٌ من شواهد المدرسة — ${iso('1447')} · ${hijri('1448')}</small>
   </h1>
 
-  <p class="lede">كان التقويم الذاتي يُنجَز ورقًا يُطبع ويُملأ باليد ويُعاد طبعُه كلّما
-  تغيّر سطر. فمنذ عام ${hijri('1447')} صار يُنجَز على منصّةٍ إلكترونية تُفتح في
-  المتصفّح من أيّ جهاز — وعليها العامان ${iso('1447')} و${hijri('1448')} بمجالاتهما
-  ومعاييرهما وشواهدهما.</p>
+  <p class="lede">أُسند إلى المدرسة ملفُّ التقويم الذاتي لعامَي ${iso('1447')}
+  و${hijri('1448')} وهو ورقيّ: استمارةٌ تُطبع وتُملأ باليد وتُعاد طباعتُها كلّما
+  تغيّر سطر. فطُوِّر إلى منصّةٍ إلكترونية تُفتح في المتصفّح، تحمل العامين معًا
+  بمجالاتهما الأربعة ومعاييرها وشواهدها.</p>
 
-  <div class="years">${YEARS.map(card).join('')}</div>
+  <div class="years">${STAGES.map(card).join('')}</div>
 
   <h2>ما الذي صار ميسورًا</h2>
   <div class="gains">${GAINS.map(([i, t, b]) => `
@@ -204,11 +217,11 @@ h2 { font-size:13.5px; font-weight:800; margin:8px 0 6px; padding-right:10px;
   </div>
 
   <h2>المجالات الأربعة</h2>
-  <div class="fields">${['الأول', 'الثاني', 'الثالث', 'الرابع'].map((n) => `
-    <div class="fld"><b>المجال ${esc(n)}</b><span>معاييرُه وشواهدُه</span></div>`).join('')}
+  <div class="fields">${FIELDS.map(([name, items]) => `
+    <div class="fld"><b>${esc(name)}</b><span>${esc(items)}</span></div>`).join('')}
   </div>
-  <p class="fields__note">لكلّ مجالٍ معاييرُه، ولكلّ معيارٍ شواهدُه ودرجةُ تحقّقه —
-  تُضاف وتُعدَّل وتُؤرشف في موضعها، ويُرجع إليها في أيّ وقت.</p>
+  <p class="fields__note">لكلّ معيارٍ شواهدُه ودرجةُ تحقّقه — تُضاف وتُعدَّل وتُؤرشف
+  في موضعها، ويُرجع إليها في أيّ وقت.</p>
 
   <a class="qrbox" href="${SITE}">
     <img src="${qr}" alt="باركود منصّة التقويم الذاتي">
