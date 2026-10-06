@@ -36,23 +36,24 @@ const iso = (t: string) => `⁦${t}⁩`
 const hijri = (y: string) => `${iso(y)}\u00A0هـ`
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
-interface Year { year: string; kind: string; tone: 'paper' | 'live'; icon: string; lines: string[] }
+interface Year { year: string; kind: string; tone: 'first' | 'live'; icon: string; lines: string[] }
 
+/** العامان كلاهما إلكترونيّ: الورق كان قبلهما، والتحوّل بدأ في 1447. */
 const YEARS: Year[] = [
   {
-    year: '1447', kind: 'ورقيّ', tone: 'paper', icon: '📄',
+    year: '1447', kind: 'عامُ التحوّل', tone: 'first', icon: '🚀',
     lines: [
-      'استمارةٌ تُطبع وتُملأ بخطّ اليد',
-      'والتعديل شطبٌ على الورقة أو إعادةُ طبعها',
-      'والشواهد تُجمع في ملفّاتٍ تُحمل وتُفتَّش',
+      'أوّلُ عامٍ يُنجَز فيه التقويم الذاتي إلكترونيًّا',
+      'فانتهى معه طبعُ الاستمارات وملؤها بخطّ اليد',
+      'والشواهد تُرفع في موضعها من المعيار نفسه',
     ],
   },
   {
-    year: '1448', kind: 'منصّة إلكترونية', tone: 'live', icon: '💻',
+    year: '1448', kind: 'على المنصّة نفسها', tone: 'live', icon: '💻',
     lines: [
-      'يُفتح من أيّ جهاز ويُعدَّل في مكانه ويُحفظ بنفسه',
-      'والبند يُضاف ويُحذف ويُؤرشف بضغطة',
-      'والشواهد مرفوعةٌ في موضعها من المعيار',
+      'يُبنى على المنصّة نفسها لا على ملفٍّ يُستأنف من الصفر',
+      'فيُقارَن العامان في موضعٍ واحد ويُقرأ التحسّن',
+      'والبند يُضاف ويُعدَّل ويُحذف ويُؤرشف بضغطة',
     ],
   },
 ]
@@ -117,7 +118,8 @@ h1 small { display:block; font-size:13px; font-weight:700; color:var(--green); m
 .years { display:grid; grid-template-columns:repeat(2,1fr); gap:9px; margin-top:8px; }
 .yr { display:flex; flex-direction:column; border:1.6px solid var(--border);
       border-radius:15px; padding:8px 11px 7px; }
-.yr--paper { background:var(--soft); }
+.yr--first { border-color:var(--teal); border-width:2px;
+             background:linear-gradient(170deg,#f0fafa,#f6fbfb); }
 .yr--live { border-color:var(--green); border-width:2.2px;
             background:linear-gradient(170deg,#f1fbf6,#f6fbfb); }
 .yr__top { text-align:center; border-bottom:1px dotted var(--border); padding-bottom:8px; }
@@ -131,6 +133,8 @@ h1 small { display:block; font-size:13px; font-weight:700; color:var(--green); m
          padding-right:13px; position:relative; }
 .yr li::before { content:'•'; position:absolute; right:0; color:var(--sand); font-weight:800; }
 .yr--live li::before { color:var(--green); }
+.yr--first li::before { color:var(--teal); }
+.yr--first .yr__kind { background:var(--teal); }
 
 h2 { font-size:13.5px; font-weight:800; margin:8px 0 6px; padding-right:10px;
      border-right:4px solid var(--green); }
@@ -187,8 +191,9 @@ h2 { font-size:13.5px; font-weight:800; margin:8px 0 6px; padding-right:10px;
   </h1>
 
   <p class="lede">كان التقويم الذاتي يُنجَز ورقًا يُطبع ويُملأ باليد ويُعاد طبعُه كلّما
-  تغيّر سطر. فأُنشئت له منصّةٌ إلكترونية تحمل عامَي ${iso('1447')} و${hijri('1448')}
-  بمجالاتهما ومعاييرهما وشواهدهما، تُفتح من أيّ جهاز وتُعدَّل في مكانها.</p>
+  تغيّر سطر. فمنذ عام ${hijri('1447')} صار يُنجَز على منصّةٍ إلكترونية تُفتح في
+  المتصفّح من أيّ جهاز — وعليها العامان ${iso('1447')} و${hijri('1448')} بمجالاتهما
+  ومعاييرهما وشواهدهما.</p>
 
   <div class="years">${YEARS.map(card).join('')}</div>
 
