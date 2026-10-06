@@ -24,8 +24,15 @@ const option = (name: string) => {
   return i >= 0 ? args[i + 1] : undefined
 }
 
+/**
+ * رابطُ المعاينة لا رابطُ المشروع.
+ *
+ * رابط readdy.ai/project هو محرّرُ المدرسة الخاصّ: من يمسحه يُطلب منه
+ * دخولٌ فلا يرى شيئًا، أو يدخل مساحةَ التحرير. والورقة تُعطى للجنة
+ * لتقرأ، فرابطُها رابطُ قراءة.
+ */
 const SITE = option('site')
-  ?? 'https://readdy.ai/project/ccfdd1a6-911c-47e7-84c5-b2436ac6f7ed'
+  ?? 'https://readdy.cc/preview/ccfdd1a6-911c-47e7-84c5-b2436ac6f7ed/14579353/'
 const out = resolve(ROOT, option('out') ?? '.report-out/التقويم-الذاتي-من-الورق-إلى-المنصة.pdf')
 
 const asset = (path: string, mime: string) =>
