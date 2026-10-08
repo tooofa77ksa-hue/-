@@ -110,11 +110,20 @@ td.cls { width:32mm; color:var(--muted); font-size:10px; }
 td.word { color:#2d5c54; }
 td.when { width:20mm; color:var(--muted); font-size:9.6px; text-align:center; }
 
-.close { border:2px solid var(--green); border-radius:18px; padding:15px 18px; margin-top:16px;
-         background:linear-gradient(170deg,#f1fbf6,#fdf5f7); text-align:center;
-         break-inside:avoid; }
-.close .big { font-size:21px; font-weight:800; }
-.close p { font-size:11.6px; line-height:1.9; color:#2d5c54; margin-top:6px; }
+.close { border:2px solid var(--green); border-radius:18px; padding:16px 20px 18px;
+         margin-top:16px; background:linear-gradient(170deg,#f1fbf6,#fdf5f7);
+         text-align:center; break-inside:avoid; }
+.close .crown { font-size:22px; }
+.close .head2 { font-size:17px; font-weight:800; margin-top:4px; color:var(--navy); }
+.close .lead { font-size:12px; font-weight:700; color:#2d5c54; margin-top:9px; }
+.close .lines { margin:9px auto 0; max-width:142mm; }
+.close .lines p { font-size:11.3px; line-height:1.95; color:#35635b;
+                  border-bottom:1px dotted #cfe6dd; padding-bottom:4px; margin-top:4px; }
+.close .lines p:last-child { border-bottom:0; }
+.close .punch { font-size:12.2px; font-weight:800; color:var(--navy); margin-top:10px; }
+.close .all { font-size:11.3px; line-height:1.9; color:#2d5c54; margin-top:8px; }
+.close .dua { font-size:11.6px; line-height:1.9; color:#8a4a62; font-weight:700; margin-top:9px; }
+.close .big { font-size:22px; font-weight:800; margin-top:11px; }
 
 .signs { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; text-align:center;
          margin-top:20px; break-inside:avoid; }
@@ -149,10 +158,28 @@ td.when { width:20mm; color:var(--muted); font-size:9.6px; text-align:center; }
 </table>
 
 <section class="close">
+  <div class="crown">💐</div>
+  <div class="head2">إلى معلّماتنا وإدارياتنا الغاليات</div>
+
+  <p class="lead">كلُّ كلمةٍ قرأتموها في هذه الورقة لم تأتِ من فراغ.</p>
+
+  <div class="lines">
+    <p>جاءت من صباحٍ وقفتِ فيه وأنتِ متعبة، فلم تُظهري تعبك لطالبة. 🌷</p>
+    <p>ومن طفلةٍ دخلت باكيةً فخرجت ضاحكة، ولم يعرف أحدٌ ماذا قلتِ لها. 🤍</p>
+    <p>ومن درسٍ أعدتِه مرّةً ومرّتين حتى فهمته واحدة. 📖</p>
+    <p>ومن ورقةٍ رتّبتِها، وصفٍّ نظّمتِه، وأمٍّ طمأنتِها على ابنتها. 💙</p>
+  </div>
+
+  <p class="punch">هذا كلُّه لا يراه أحد… لكنّ الأهالي رأَوه، وكتبوا عنه بأيديهم.</p>
+
+  <p class="all">ولم يكن ثناؤهم لواحدةٍ دون أخرى — كان لكنَّ جميعًا:
+  <br>لكلِّ من وقفت في فصل، وكلِّ من حملت همَّ طالبة، وكلِّ من أعطت
+  بلا أن تنتظر شكرًا.</p>
+
+  <p class="dua">جعل الله ما تبذلنه في موازين حسناتكنّ،
+  <br>وأقرَّ أعينكنّ ببناتكنّ كما أقررتنَّ أعينَ أمّهاتٍ ببناتهنّ. 🤲</p>
+
   <div class="big">🌸 خميسكم ونيس 🌸</div>
-  <p>هذا الثناءُ ثمرةُ جهدٍ لم يَرَه أحدٌ إلا الله ثم أنتنّ — وقد رآه الأهالي فشكروه.
-  <br>شكرًا لكلِّ واحدةٍ منكنّ، بلا استثناءٍ ولا تفضيل، فما قامت المدرسة إلا بكنّ جميعًا.
-  <br>بارك الله في جهودكنّ، وجعلها في موازين حسناتكنّ. 💐🤍💙</p>
 </section>
 
 <div class="signs">${SIGNERS.map(([role, who]) => `
