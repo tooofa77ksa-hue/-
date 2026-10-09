@@ -35,10 +35,10 @@
   // عملية عمودية (من اليسار لليمين كما في الكتاب)
   function vert(a, b, sign, res) {
     var w = Math.max(String(a).length, String(b).length, String(res).length);
-    function row(n, s, cls) { var d = String(n), cells = ''; for (var i = 0; i < w; i++) { var j = i - (w - d.length); cells += '<td>' + (j >= 0 ? ar(d[j]) : '') + '</td>'; } return '<tr class="' + (cls || '') + '"><td class="sg">' + (s || '') + '</td>' + cells + '</tr>'; }
+    function row(n, s, cls) { var d = String(n), cells = ''; for (var i = 0; i < w; i++) { var j = i - (w - d.length); cells += '<td>' + (j >= 0 ? ar(d[j]) : '') + '</td>'; } return '<tr class="' + (cls || '') + '">' + cells + '<td class="sg">' + (s || '') + '</td></tr>'; }
     return '<table class="vert" dir="ltr">' + row(a) + row(b, sign, 'ln') + row(res, '', 'res') + '</table>';
   }
-  function eq(s) { return '<span class="eq" dir="ltr">' + ar(s).replace(/-/g, '−') + '</span>'; }
+  function eq(s) { return '<span class="eq" dir="rtl">' + ar(s).replace(/-/g, '−') + '</span>'; }
 
   // ---------- مسائل «تأكَّد» الحسابية ----------
   function calc(id, sec, src, a, b, est, makeNums) {
@@ -316,7 +316,7 @@
   mc('x73_12', 'ص٧٣ — ١٢', 'ما قيمة الرقم ٣ في العدد ٨٠٥٣١٢؟', ['٣٠٠', '٣', '٣٠', '٣٠٠٠'], 'من اليمين: ٢ آحاد، ١ عشرات، ٣ مئات ← ٣٠٠');
   mc('x73_14', 'ص٧٣ — ١٤', 'ما العدد الذي يزيد بمقدار ١٠٠٠ على ٤٥٦٩٨٧؟', ['٤٥٧٩٨٧', '٤٥٦٩٨٨', '٤٦٦٩٨٧', '٥٥٦٩٨٧'], 'زيادة ١٠٠٠ تغيّر رقم الألوف فقط: ٦ يصبح ٧ ← ٤٥٧٩٨٧');
   mc('x73_15', 'ص٧٣ — ١٥', 'ما الصيغة القياسية للعدد: اثنا عشر مليونًا ومئتان وخمسة وثلاثون ألفًا ومئة واثنا عشر؟', ['١٢٢٣٥١١٢', '١٢٢٣٥٠١٢', '١٢٢٣٥١٢', '١٢٢٣٥٠١١٢'], '١٢ مليونًا | ٢٣٥ ألفًا | ١١٢ ← ١٢٢٣٥١١٢ (كل مجموعة بعد الملايين ثلاثة أرقام)');
-  mc('x74_1', 'ص٧٤ — ١', 'كيف نستعمل الرقم ٤ ثماني مرّات لنحصل على ٥٠٠ بالجمع فقط؟', ['<span dir="ltr">٤ + ٤ + ٤ + ٤٤ + ٤٤٤</span>', '<span dir="ltr">٤٤ + ٤٤ + ٤٤٤</span>', '<span dir="ltr">٤ + ٤ + ٤٤ + ٤٤٤</span>', '<span dir="ltr">٤٤٤ + ٤٤ + ٤٤</span>'], '٤٤٤ + ٤٤ = ٤٨٨ ، ثم ٤٨٨ + ٤ + ٤ + ٤ = ٥٠٠. وعدد الأربعات: ٣ + ٢ + ١ + ١ + ١ = ٨ ✔');
+  mc('x74_1', 'ص٧٤ — ١', 'كيف نستعمل الرقم ٤ ثماني مرّات لنحصل على ٥٠٠ بالجمع فقط؟', ['<span dir="rtl">٤ + ٤ + ٤ + ٤٤ + ٤٤٤</span>', '<span dir="rtl">٤٤ + ٤٤ + ٤٤٤</span>', '<span dir="rtl">٤ + ٤ + ٤٤ + ٤٤٤</span>', '<span dir="rtl">٤٤٤ + ٤٤ + ٤٤</span>'], '٤٤٤ + ٤٤ = ٤٨٨ ، ثم ٤٨٨ + ٤ + ٤ + ٤ = ٥٠٠. وعدد الأربعات: ٣ + ٢ + ١ + ١ + ١ = ٨ ✔');
   mc('x74_4', 'ص٧٤ — ٤', 'ما العدد الذي يساوي ثماني عشرات مضافًا إليها تسع عشرات؟', ['١٧٠', '١٧', '١٧٠٠', '١٧٠٠٠'], '٨ عشرات = ٨٠ ، ٩ عشرات = ٩٠ ، و٨٠ + ٩٠ = ١٧٠');
   mc('x74_5', 'ص٧٤ — ٥', 'مجموع كل صفٍّ وكل عمود متساوٍ. ما العدد في المربّع الأوسط؟', ['٧', '٥', '٩', '٢١'], 'الصف الأول: ٤ + ١١ + ٦ = ٢١. الصف الأوسط: ٩ + ؟ + ٥ = ٢١، و٩ + ٥ = ١٤، إذن ٢١ − ١٤ = ٧', '<table class="grid" dir="ltr"><tr><td>٤</td><td>١١</td><td>٦</td></tr><tr><td>٩</td><td class="q">؟</td><td>٥</td></tr><tr><td>٨</td><td>٣</td><td>١٠</td></tr></table>');
   mc('x75_6', 'ص٧٥ — ٦', 'عند طرح ٢٧٥ من الأعداد الآتية، أيّها يكون ناتجه أكبر من ٤٠٠؟', ['٦٨٠', '٦٥٥', '٦٢٠', '٦٦٦'], '٦٨٠ − ٢٧٥ = ٤٠٥ وهو أكبر من ٤٠٠. (٦٥٥ ← ٣٨٠ ، ٦٢٠ ← ٣٤٥ ، ٦٦٦ ← ٣٩١)');
@@ -326,7 +326,7 @@
   mc('x75_10', 'ص٧٥ — ١٠', 'في عملية الجمع التالية: قيمة المستطيل الضيّق <span class="nr"></span> = ٦، وقيمة المثلث △ = ٢. أوجدي قيمة باقي الأشكال.',
     ['<span dir="rtl" class="pr2"><span class="wr"></span> = ٣</span> ، <span dir="rtl" class="pr2">○ = ٤</span> ، <span dir="rtl" class="pr2">☆ = ٨</span>', '<span dir="rtl" class="pr2"><span class="wr"></span> = ٦</span> ، <span dir="rtl" class="pr2">○ = ٤</span> ، <span dir="rtl" class="pr2">☆ = ٨</span>', '<span dir="rtl" class="pr2"><span class="wr"></span> = ٣</span> ، <span dir="rtl" class="pr2">○ = ٢</span> ، <span dir="rtl" class="pr2">☆ = ٨</span>', '<span dir="rtl" class="pr2"><span class="wr"></span> = ٣</span> ، <span dir="rtl" class="pr2">○ = ٤</span> ، <span dir="rtl" class="pr2">☆ = ٦</span>'],
     'نبدأ من اليمين (الآحاد): ○ + △ = <span class="nr"></span> أي ○ + ٢ = ٦، إذن ○ = ٤.<br>العشرات: <span class="wr"></span> + <span class="wr"></span> = <span class="nr"></span> أي <span class="wr"></span> + <span class="wr"></span> = ٦، إذن <span class="wr"></span> = ٣.<br>المئات: <span class="nr"></span> + △ = ☆ أي ٦ + ٢ = ٨، إذن ☆ = ٨.<br>التحقق: ٤٦٣٤ + ٤٢٣٢ = ٨٨٦٦ ✔<br>انتبهي: المستطيل الضيّق <span class="nr"></span> = ٦، والمستطيل العريض <span class="wr"></span> = ٣.',
-    '<table class="shp" dir="ltr"><tr><td></td><td>○</td><td><span class="nr"></span></td><td><span class="wr"></span></td><td>○</td></tr><tr><td>+</td><td>○</td><td>△</td><td><span class="wr"></span></td><td>△</td></tr><tr class="ln"><td></td><td>☆</td><td>☆</td><td><span class="nr"></span></td><td><span class="nr"></span></td></tr></table>',
+    '<table class="shp" dir="ltr"><tr><td>○</td><td><span class="nr"></span></td><td><span class="wr"></span></td><td>○</td><td></td></tr><tr><td>○</td><td>△</td><td><span class="wr"></span></td><td>△</td><td>+</td></tr><tr class="ln"><td>☆</td><td>☆</td><td><span class="nr"></span></td><td><span class="nr"></span></td><td></td></tr></table>',
     { '<span dir="rtl" class="pr2"><span class="wr"></span> = ٦</span> ، <span dir="rtl" class="pr2">○ = ٤</span> ، <span dir="rtl" class="pr2">☆ = ٨</span>': 'الستة هي قيمة المستطيل الضيّق <span class="nr"></span> (معطاة في السؤال). المستطيل العريض <span class="wr"></span> مختلف: <span class="wr"></span> + <span class="wr"></span> = ٦، إذن <span class="wr"></span> = ٣.',
       '<span dir="rtl" class="pr2"><span class="wr"></span> = ٣</span> ، <span dir="rtl" class="pr2">○ = ٢</span> ، <span dir="rtl" class="pr2">☆ = ٨</span>': 'في الآحاد: ○ + △ = <span class="nr"></span> أي ○ + ٢ = ٦، إذن ○ = ٤ وليس ٢.',
       '<span dir="rtl" class="pr2"><span class="wr"></span> = ٣</span> ، <span dir="rtl" class="pr2">○ = ٤</span> ، <span dir="rtl" class="pr2">☆ = ٦</span>': 'في المئات: <span class="nr"></span> + △ = ☆ أي ٦ + ٢ = ٨، إذن ☆ = ٨.' });

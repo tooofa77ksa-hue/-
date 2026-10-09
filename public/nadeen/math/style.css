@@ -51,7 +51,7 @@ mark{background:#FFE58A;border-radius:6px;padding:0 4px;color:inherit}
 .big{display:flex;justify-content:center;margin-top:8px}
 .vert{border-collapse:collapse;font:800 30px/1.25 B;margin:6px auto}
 .vert td{width:.9em;text-align:center;padding:0 2px}
-.vert td.sg{color:var(--bad);width:1em}
+.vert td.sg{color:var(--bad);width:1em;padding-left:6px}
 .vert tr.ln td{border-bottom:3px solid var(--ink)}
 .vert tr.res td{color:var(--ok);height:1.25em}
 .eq{display:inline-block;font:800 20px B;background:#F1EEFF;border-radius:8px;padding:0 8px;margin:2px 0;white-space:nowrap}
