@@ -114,8 +114,14 @@
     stop();
     app.innerHTML = '<div class="wrap">' + bar(false) + '<h1 class="t">🗺️ عوالمُ المغامرة</h1><div class="hello blk">' + nm(pick(HELLO)) + '</div><div class="sub">كلُّ إجابةٍ صحيحة = نجمة ⭐</div>' +
       '<div class="worlds">' + W.map(function (w, i) { var b = P.best[w[0]] || 0; return '<button class="tile blk" data-w="' + i + '" style="--c:' + w[4] + '"><span class="ic">' + w[1] + '</span><span><b>' + w[2] + '</b><small>' + w[3] + '</small></span><span class="st">' + '⭐'.repeat(b) + '☆'.repeat(3 - b) + '</span></button>'; }).join('') + '</div>' +
-      '<div class="nav" style="margin-top:16px"><button class="btn w" id="col">🐾 حيواناتي</button><button class="btn w" id="ed">👗 شخصيّتي</button></div></div>';
+      '<div class="nav" style="margin-top:16px"><button class="btn w" id="col">🐾 حيواناتي</button><button class="btn w" id="ed">👗 شخصيّتي</button></div>' +
+      '<button class="btn p" id="reset" style="width:100%;margin-top:14px">🔄 ابدئي كلَّ شيءٍ من جديد</button></div>';
     [].forEach.call(app.querySelectorAll('[data-w]'), function (b) { b.onclick = function () { W[+b.dataset.w][5](); }; });
+    document.getElementById('reset').onclick = function () {
+      if (!confirm('هل تريدين مسحَ كلِّ النجوم والعوالم والحيوانات، والبدءَ من جديد؟')) return;
+      P.stars = 0; P.best = {}; P.coll = []; if (P.acc !== 'none') P.acc = 'bow'; save(); map();
+      play(function () { speak('بدأنا من جديد! هيّا يا ' + P.name + '، المغامرةُ تنتظرُكِ.'); });
+    };
     document.getElementById('col').onclick = collection; document.getElementById('ed').onclick = function () { maker(true); };
     window.scrollTo(0, 0);
   }
