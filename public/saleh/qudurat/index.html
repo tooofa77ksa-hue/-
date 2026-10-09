@@ -13,10 +13,10 @@
   --r0:#4f5d53;--r1:#36e07a;--r2:#4aa3ff;--r3:#b06bff;--r4:#ffc83d;--rad:18px;--f:"HeroBaloo","Baloo Bhaijaan 2","Noto Sans Arabic",Tahoma,sans-serif}
 *{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
 body{margin:0;min-height:100vh;color:var(--ink);font-family:var(--f);font-size:clamp(16px,1vw + 12px,22px);line-height:1.7;background:#070b08}
-body::before{content:"";position:fixed;inset:0;z-index:-2;background:radial-gradient(900px 500px at 50% -10%,#1d3a22 0,transparent 65%),repeating-linear-gradient(90deg,#0b130d 0 120px,#0d1710 120px 124px),linear-gradient(180deg,#0e1710,#050805)}
-body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,.75) 100%)}
+body::before{content:"";position:fixed;top:0;right:0;bottom:0;left:0;z-index:-2;background:radial-gradient(900px 500px at 50% -10%,#1d3a22 0,transparent 65%),repeating-linear-gradient(90deg,#0b130d 0 120px,#0d1710 120px 124px),linear-gradient(180deg,#0e1710,#050805)}
+body::after{content:"";position:fixed;top:0;right:0;bottom:0;left:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,.75) 100%)}
 button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:6px;padding:8px 10px;background:rgba(7,11,8,.92);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:6px;padding:8px 10px;background:rgba(7,11,8,.92);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
 .top .who{display:flex;align-items:center;gap:8px;flex:1;min-width:0}.ava{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:24px;background:linear-gradient(160deg,#3fd56a,#147a3a);box-shadow:0 0 14px rgba(125,255,106,.35)}
 .who b{display:block;line-height:1.2}.who small{color:var(--muted);font-size:.72em;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .chip{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px 8px;font-weight:800;white-space:nowrap;font-size:.9em}
@@ -25,14 +25,14 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;-webki
 main{max-width:980px;margin:0 auto;padding:14px 16px 60px;display:flex;flex-direction:column;gap:14px}
 .card{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:var(--rad);padding:16px;box-shadow:0 8px 24px rgba(0,0,0,.45)}
 .hero{position:relative;overflow:hidden;border-radius:22px;padding:20px 18px;border:1px solid #2f5a37;background:linear-gradient(180deg,rgba(10,20,12,.2),rgba(5,8,5,.9)),repeating-linear-gradient(90deg,#16261a 0 46px,#1b3020 46px 48px,#16261a 48px 92px,#203826 92px 94px);box-shadow:inset 0 -40px 60px rgba(0,0,0,.6),0 0 30px rgba(125,255,106,.08)}
-.hero::before{content:"";position:absolute;inset:0;background:radial-gradient(260px 120px at 50% 0,rgba(220,255,200,.35),transparent 70%);animation:flick 5s infinite;pointer-events:none}
+.hero::before{content:"";position:absolute;top:0;right:0;bottom:0;left:0;background:radial-gradient(260px 120px at 50% 0,rgba(220,255,200,.35),transparent 70%);animation:flick 5s infinite;pointer-events:none}
 @keyframes flick{0%,18%,22%,62%,64%,100%{opacity:1}20%,63%{opacity:.15}}
 .hero h1{margin:0;font-size:clamp(30px,5vw,52px);line-height:1.15;text-shadow:0 0 18px rgba(125,255,106,.45)}.hero p{margin:6px 0 0;color:#cdeccd;max-width:30em;position:relative}
-.hero .zz{position:absolute;inset-inline-end:10px;bottom:-6px;font-size:64px;animation:lurch 3.2s ease-in-out infinite;filter:drop-shadow(0 0 10px rgba(125,255,106,.6))}
+.hero .zz{position:absolute;left:10px;bottom:-6px;font-size:64px;animation:lurch 3.2s ease-in-out infinite;filter:drop-shadow(0 0 10px rgba(125,255,106,.6))}
 @keyframes lurch{0%,100%{transform:translateX(0) rotate(-4deg)}50%{transform:translateX(-14px) rotate(5deg)}}
 h2{margin:0 0 6px;font-size:clamp(20px,2.4vw,30px);line-height:1.3}h3{margin:6px 0;font-size:1.05em}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
-.isl{background:linear-gradient(180deg,#1c2e21,#121c15);border:2px solid var(--c,var(--line));border-radius:18px;padding:14px 10px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:0 5px 0 rgba(0,0,0,.5),0 0 18px color-mix(in srgb,var(--c,#000) 25%,transparent)}
+.isl{background:linear-gradient(180deg,#1c2e21,#121c15);border:2px solid var(--c,var(--line));border-radius:18px;padding:14px 10px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:0 5px 0 rgba(0,0,0,.5);box-shadow:0 5px 0 rgba(0,0,0,.5),0 0 18px color-mix(in srgb,var(--c,#000) 25%,transparent)}
 .isl:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.5)}.isl .ic{font-size:38px;line-height:1.1}.isl .t{font-weight:800;line-height:1.3}.isl small{color:var(--muted);font-size:.75em;line-height:1.4}
 .isl .fl{font-size:.7em;font-weight:800;color:#0b120d;background:var(--c);border-radius:999px;padding:0 10px}
 .meter{width:100%;height:8px;background:#020402;border-radius:8px;overflow:hidden}.meter i{display:block;height:100%;background:var(--c,var(--ok))}
@@ -63,10 +63,10 @@ h2{margin:0 0 6px;font-size:clamp(20px,2.4vw,30px);line-height:1.3}h3{margin:6px
 .boss{display:flex;align-items:center;gap:10px;margin-bottom:8px}.boss .bz{font-size:52px;filter:drop-shadow(0 0 12px rgba(125,255,106,.7));animation:lurch 2.4s infinite}.boss .bz.hit{animation:hit .4s}
 @keyframes hit{30%{transform:translateX(12px) scale(.9);filter:brightness(3)}}
 .hp{flex:1}.hp .meter{height:14px;border:1px solid #4a0a12}.hp .meter i{background:linear-gradient(90deg,#ff3b3b,#ff9a3b)}.hearts{font-size:1.2em;letter-spacing:2px}
-.flash{position:fixed;inset:0;pointer-events:none;z-index:40;animation:fl .5s forwards}.flash.r{background:radial-gradient(circle,transparent 30%,rgba(200,0,20,.55))}.flash.g{background:radial-gradient(circle,transparent 40%,rgba(54,224,122,.35))}@keyframes fl{to{opacity:0}}
+.flash{position:fixed;top:0;right:0;bottom:0;left:0;pointer-events:none;z-index:40;animation:fl .5s forwards}.flash.r{background:radial-gradient(circle,transparent 30%,rgba(200,0,20,.55))}.flash.g{background:radial-gradient(circle,transparent 40%,rgba(54,224,122,.35))}@keyframes fl{to{opacity:0}}
 .shake{animation:sh .4s}@keyframes sh{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
 .prog{display:flex;align-items:center;gap:10px}.prog .meter{flex:1}
-.cardv{border:3px solid var(--rc);border-radius:18px;padding:12px 8px;text-align:center;background:linear-gradient(180deg,rgba(255,255,255,.05),transparent),#0d160f;box-shadow:0 0 14px color-mix(in srgb,var(--rc) 30%,transparent)}
+.cardv{border:3px solid var(--rc);border-radius:18px;padding:12px 8px;text-align:center;background:linear-gradient(180deg,rgba(255,255,255,.05),transparent),#0d160f;box-shadow:0 0 14px rgba(0,0,0,.4)}
 .cardv .ic{font-size:34px}.cardv .t{font-weight:800;font-size:.85em;line-height:1.35}.cardv .rk{font-size:.7em;color:var(--rc);font-weight:800}.cardv.locked{filter:grayscale(1);opacity:.5}
 .victory{text-align:center}.victory .crown{font-size:76px}.victory .bigs{font-size:2.2em;font-weight:800;color:var(--gold)}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#123a1d;border:1px solid var(--zom);color:#fff;padding:10px 18px;border-radius:14px;font-weight:800;z-index:50;max-width:90vw;text-align:center;animation:tp .25s;box-shadow:0 0 20px rgba(125,255,106,.3)}
@@ -189,8 +189,8 @@ var WORLDS = [
    q: [Q('√{144} = ؟', '12', ['14', '72', '11']), Q('∛{27} = ؟', '3', ['9', '6', '27']), Q('√{2} ≈ ؟', '1.4', ['1.7', '2.2', '1.2']), Q('√{225} = ؟', '15', ['25', '105', '22.5'])] },
  { id: 'roots2', ic: '🌿', t: 'العمليات على الجذور',
    learn: ['**لا نجمع ولا نطرح إلا الجذور المتشابهة:**', '3√{5} + 6√{5} = 9√{5}  ،  5√{2} − 8√{2} = −3√{2}', '2√{3} + 5√{2} ← (لا يمكن الجمع)', '**نضرب ونقسم الجذور بتعميم الجذر:** √{2} × √{3} × √{6} = √{36} = 6  ،  √{75} ÷ √{3} = √{{75|3}} = √{25} = 5', '**تبسيط الجذور:** نبحث عن عددين أحدهما له جذر، والآخر ليس له جذر:', '√{20} = √{4 × 5} = 2√{5}  ،  √{27} = 3√{3}  ،  √{50} = 5√{2}  ،  ∛{16} = 2∛{2}  ،  ∛{54} = 3∛{2}'],
-   trap: [['√{2} + √{3} = √{5}', 'لا نجمع ولا نطرح إلا الجذور المتشابهة'], ['√{16} + √{9} = √{25} = 5', '√{16} + √{9} = 4 + 3 = 7'], ['√{50} = 25', '√{50} = √{25 × 2} = 5√{2}']],
-   q: [Q('3√{5} + 6√{5} = ؟', '9√{5}', ['9√{10}', '18√{5}', '3√{5}']), Q('√{2} × √{8} = ؟', '4', ['√{10}', '16', '8'], '√{16} = 4'), Q('√{20} = ؟', '2√{5}', ['4√{5}', '5√{2}', '10']), Q('√{16} + √{9} = ؟', '7', ['5', '25', '√{25}'])] },
+   trap: [['√{2} + √{3} = √{5}', 'لا نجمع ولا نطرح إلا الجذور المتشابهة'], ['√{16 + 9} = √{16} + √{9} = 4 + 3 = 7', '√{16 + 9} = √{25} = 5'], ['√{50} = 25', '√{50} = √{25 × 2} = 5√{2}']],
+   q: [Q('3√{5} + 6√{5} = ؟', '9√{5}', ['9√{10}', '18√{5}', '3√{5}']), Q('√{2} × √{8} = ؟', '4', ['√{10}', '16', '8'], '√{16} = 4'), Q('√{20} = ؟', '2√{5}', ['4√{5}', '5√{2}', '10']), Q('√{16 + 9} = ؟', '5', ['7', '25', '13'], 'نجمع أولاً: √{25} = 5')] },
  { id: 'conj', ic: '🪞', t: 'العدد والمرافق',
    learn: ['مرافق √{2} − 5 هو √{2} + 5', 'مرافق √{4} + √{3} هو √{4} − √{3}', '**قاعدة الضرب:** العدد × المرافق = مربع الجزء الأول − مربع الجزء الثاني', '(√{2} − 5)(√{2} + 5) = 2 − 25 = −23', '(√{4} + √{3})(√{4} − √{3}) = 4 − 3 = 1'],
    q: [Q('مرافق 3 + √{2} هو:', '3 − √{2}', ['−3 − √{2}', '3 + √{2}', '√{3} + 2']), Q('(√{5} − 2)(√{5} + 2) = ؟', '1', ['9', '3', '21'], '5 − 4 = 1'), Q('(√{7} + √{3})(√{7} − √{3}) = ؟', '4', ['10', '√{4}', '21'], '7 − 3 = 4')] },
@@ -257,8 +257,8 @@ var WORLDS = [
    learn: ['**مساحة الدائرة** = ط نق^{2} ، **محيط الدائرة** = 2 ط نق', 'نق = نصف القطر ، ط = {22|7} أو 3.14', '**أشهر المضلعات داخل الدائرة:**', 'المثلث المتطابق الأضلاع: ل = نق √{3}', 'المربع: ل = نق √{2}', 'السداسي المنتظم: ل = نق'],
    q: [Q('دائرة نصف قطرها 7 (ط = {22|7})، محيطها:', '44', ['154', '22', '49']), Q('نفس الدائرة، مساحتها:', '154', ['44', '49', '22']), Q('سداسي منتظم داخل دائرة نصف قطرها 5، طول ضلعه:', '5', ['5√{3}', '5√{2}', '10']), Q('مربع داخل دائرة نصف قطرها 3، طول ضلعه:', '3√{2}', ['3√{3}', '3', '6'])] },
  { id: 'clock', ic: '🕒', t: 'قراءة الساعة', widget: 'clock',
-   learn: ['كل دقيقة يتحركها عقرب الدقائق = {360|60} = 6 درجات', '**قياس الزاوية** = [عدد الساعات × 30] − [عدد الدقائق × ({11|2})]', '1 ساعة = 360°', '💡 عندما يُطلب قياس زاوية فمعناها قياس **الزاوية الصغرى**، ما لم يُطلب غير ذلك.'],
-   q: [Q('كم درجة يتحركها عقرب الدقائق في دقيقة واحدة؟', '6', ['30', '12', '60']), Q('الزاوية بين العقربين الساعة 3:00', '90°', ['180°', '30°', '45°'], '3 × 30 − 0 = 90'), Q('الزاوية بين العقربين الساعة 6:00', '180°', ['90°', '360°', '0°']), Q('الزاوية بين العقربين الساعة 2:30', '105°', ['75°', '120°', '165°'], '(2 × 30) − (30 × {11|2}) = 60 − 165 ← 105')] },
+   learn: ['كل دقيقة يتحركها عقرب الدقائق = {360|60} = 6 درجات', '**قياس الزاوية** = [عدد الساعات × 30] − [عدد الدقائق × ({11|2})]', 'إذا خرج الناتج سالباً نحذف الإشارة (مثال: −105 ← 105°)', '1 ساعة = 360°', '💡 عندما يُطلب قياس زاوية فمعناها قياس **الزاوية الصغرى**، ما لم يُطلب غير ذلك.'],
+   q: [Q('كم درجة يتحركها عقرب الدقائق في دقيقة واحدة؟', '6', ['30', '12', '60']), Q('الزاوية بين العقربين الساعة 3:00', '90°', ['180°', '30°', '45°'], '3 × 30 − 0 = 90'), Q('الزاوية بين العقربين الساعة 6:00', '180°', ['90°', '360°', '0°']), Q('الزاوية بين العقربين الساعة 2:30', '105°', ['75°', '120°', '165°'], '(2 × 30) − (30 × {11|2}) = 60 − 165 = −105 ← نحذف الإشارة = 105°')] },
  { id: 'shade', ic: '🎨', t: 'مساحة الجزء المظلل',
    learn: ['نعدّ الأجزاء المظللة من الأجزاء المتساوية: {2|6} = {1|3} ، {1|2} ، {1|4} ، {1|12} ، {3|5}', '**ملاحظات هامة جداً:**', '360° ← دائرة كاملة ، 180° ← نصف دائرة', '90° ← {1|4} ، 45° ← {1|8}', '120° ← {1|3} ، 60° ← {1|6}', '270° ← {3|4} ، 36° ← {1|10}'],
    q: [Q('قطاع زاويته 90° من الدائرة =', '{1|4}', ['{1|2}', '{1|3}', '{1|8}']), Q('قطاع زاويته 120° =', '{1|3}', ['{1|4}', '{1|6}', '{2|3}']), Q('قطاع زاويته 45° =', '{1|8}', ['{1|4}', '{1|6}', '{1|5}']), Q('مستطيل مقسوم إلى 5 أجزاء متساوية، ظُلّل منها 3:', '{3|5}', ['{2|5}', '{3|2}', '{5|3}'])] },
@@ -318,7 +318,7 @@ function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(M
 function pick(a,n){return shuffle(a).slice(0,n)}
 function toast(t){var o=$('.toast');if(o)o.remove();var e=el('div','toast',t);document.body.appendChild(e);setTimeout(function(){e.remove()},2400)}
 // ---------- sound: synth effects now, recorded phrases later (VOICE) ----------
-var AC=null;function ac(){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)()}catch(e){}return AC}
+var AC=null;function ac(){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){}return AC}
 function tone(f,d,tp,v,at,f2){if(!S.sound||!ac())return;try{var o=AC.createOscillator(),g=AC.createGain();o.type=tp||'sine';var t=AC.currentTime+(at||0);o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(v||.12,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d)}catch(e){}}
 function sfx(k){if(k==='ok'){tone(520,.1,'square',.06);tone(780,.1,'square',.06,.08);tone(1040,.18,'square',.06,.16)}
   else if(k==='bad'){tone(160,.5,'sawtooth',.09,0,70);tone(110,.6,'sawtooth',.06,.05,60)}
