@@ -172,7 +172,7 @@
     choice('🎯 ما المطلوب في السؤال؟', q.need, 0, function (box) {
       box.querySelector('.msg').innerHTML = '<span class="g">✔ صحيح، هذا هو المطلوب.</span>';
       opStage();
-    }, function (box) { box.querySelector('.msg').innerHTML = '<span class="r">' + L.reread + '</span>'; say(L.reread); });
+    }, function (box) { box.querySelector('.msg').innerHTML = '<div class="why blk"><b>🤔 ليس هذا هو المطلوب.</b><br>هذه معلومة أو سؤال آخر. ابحثي في آخر السؤال عن كلمة «كم» أو «ما» أو «مَن»: الذي بعدها هو المطلوب.</div><span class="r">' + L.reread + '</span>'; say(L.reread); });
   }
   function opStage() {
     var q = R.list[R.i].inst, std = ['طرح', 'جمع', 'جمع ثم طرح'];
@@ -181,7 +181,7 @@
     choice('🧮 ماذا نستعمل؟', list, list.indexOf(q.op), function (box) {
       box.querySelector('.msg').innerHTML = '<span class="g">✔ ' + (q.opWhy || '') + '</span>';
       ansStage();
-    }, function (box) { box.querySelector('.msg').innerHTML = '<span class="r">' + L.reread + '</span>'; say(L.reread); });
+    }, function (box, o) { box.querySelector('.msg').innerHTML = '<div class="why blk"><b>🤔 فكّري مرة ثانية.</b><br>انظري إلى الكلمة الملوّنة في السؤال: «يتبقّى، الباقي، الفرق، يزيد، أقلّ» تدلّ على الطرح، و«المجموع، الكل، معًا» تدلّ على الجمع.</div><span class="r">' + L.reread + '</span>'; say(L.reread); });
   }
   function ansStage() {
     var Q = R.list[R.i], q = Q.inst;
@@ -216,16 +216,29 @@
       o.classList.remove('sel'); o.classList.add('bad'); o.disabled = true;
       var a = pick(q.kind === 'calc' ? AGAIN_CALC : AGAIN);
       say(a, L.reread);
-      msg.innerHTML = '<div class="again">💪 ' + a + '<br>' + L.reread + '</div>';
+      msg.innerHTML = '<div class="why blk"><b>🤔 لماذا ليست ' + fmt(q.opts[+o.dataset.i]) + '؟</b><br>' + whyWrong(q, q.opts[+o.dataset.i]) + '</div><div class="again">💪 ' + a + '<br>' + L.reread + '</div>';
     } else {
       o.classList.remove('sel'); o.classList.add('bad'); box.dataset.lock = 1;
       box.querySelectorAll('.opt').forEach(function (x) { if (x.dataset.i === '0') x.classList.add('good'); });
       S.wrong[it.id] = 1; save();
       if (!Q.retry && !R.quick) R.list.push({ it: it, inst: it.gen ? it.gen() : it.orig(), retry: 1 });
       say(L.show);
-      msg.innerHTML = '<div class="again">👀 ' + L.show + '</div>';
+      msg.innerHTML = '<div class="why blk"><b>🤔 لماذا ليست ' + fmt(q.opts[+o.dataset.i]) + '؟</b><br>' + whyWrong(q, q.opts[+o.dataset.i]) + '</div><div class="again">👀 ' + L.show + '</div>';
       afterAnswer(q, true);
     }
+  }
+  // لماذا هذه الإجابة خطأ؟ — شرح يظهر تحت الخيار مباشرة
+  var PL = { 10: 'العشرات', 100: 'المئات', 1000: 'الألوف', 10000: 'عشرات الألوف' };
+  function whyWrong(q, v) {
+    var w = q.wr && q.wr[v]; if (w) return w;
+    if (q.sub && typeof v === 'number') {
+      var a = q.sub.a, b = q.sub.b, ans = a - b, d = Math.abs(v - ans), t = '';
+      if (v === a + b) t = 'هذا ناتج الجمع، لكن السؤال يحتاج طرحًا. ';
+      else if (v === M.noBorrow(a, b)) t = 'يبدو أنكِ طرحتِ الرقم الأصغر من الأكبر في كل منزلة. لكن إذا كان الرقم العلوي أصغر، نعيد التجميع: نستلف من المنزلة التي على اليسار. ';
+      else if (PL[d]) t = 'قريبة جدًا! الخطأ في منزلة ' + PL[d] + ': راجعي إعادة التجميع (الاستلاف) في هذه المنزلة. ';
+      return t + 'تحقّقي بالجمع: ' + M.eq(v + ' + ' + b + ' = ' + (v + b)) + '، وليس ' + M.N(a) + '.';
+    }
+    return q.hint || 'ارجعي إلى الكلمة الملوّنة في السؤال، واقرئي المطلوب بالضبط.';
   }
   function afterAnswer(q, open) {
     var sol = q.steps ? '<b>١ أفهم:</b> ' + q.steps.fahm + '<br><b>٢ أخطّط:</b> ' + q.steps.plan + '<br><b>٣ أحلّ:</b><br>' + q.steps.hal + '<b>٤ أتحقّق:</b> ' + q.steps.check : (q.why || '');

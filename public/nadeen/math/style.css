@@ -100,3 +100,5 @@ mark{background:#FFE58A;border-radius:6px;padding:0 4px;color:inherit}
 #endS{font:600 18px/1.8 R}
 .tip{padding:12px 14px;margin-bottom:10px;font:800 19px/1.7 B}
 @media (max-width:420px){.opts{grid-template-columns:1fr}.qtext{font-size:19px}.vert{font-size:26px}h1.t{font-size:29px}}
+.why{background:#FFFBEA;padding:10px 12px;margin:6px 0;font:400 17px/1.8 R;box-shadow:0 3px 0 var(--line)}
+.why b{font:800 18px B;color:#B45309}
