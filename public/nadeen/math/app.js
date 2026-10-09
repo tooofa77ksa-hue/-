@@ -36,24 +36,20 @@
   var AGAIN_CALC = ['تحقّقي من إعادةِ التجميع، ثم جرّبي من جديد.', 'حاولي مرّةً أخرى، أنتِ قادرة.', 'الخطأُ يعلّمُنا. جرّبي مرّةً أخرى.'];
 
   // ---------- الصوت ----------
-  var cur = null, muted = false, queue = [];
+  // صوت مسجَّل فقط — لا يوجد صوت كمبيوتر أبدًا. عنصر صوت واحد يُفتح بأول ضغطة (مهم لآيفون وآيباد).
+  var AU = new Audio(), muted = false, queue = [];
+  AU.preload = 'auto';
   try { muted = localStorage.getItem('math_mute') === '1'; } catch (e) {}
-  function vkey(w) { return String(w).replace(/[ً-ْٰـ]/g, '').replace(/[إأآا]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').replace(/ؤ/g, 'و').replace(/ئ/g, 'ي').replace(/[^ء-ي]/g, ''); }
-  function stop() { queue = []; if (cur) { try { cur.pause(); } catch (e) {} cur = null; } if (window.speechSynthesis) speechSynthesis.cancel(); }
+  function vkey(w) { return String(w).replace(/[\u064B-\u0652\u0670\u0640]/g, '').replace(/[إأآا]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').replace(/ؤ/g, 'و').replace(/ئ/g, 'ي').replace(/[^\u0621-\u064A]/g, ''); }
+  function stop() { queue = []; try { AU.pause(); } catch (e) {} }
   function say() { stop(); queue = Array.prototype.slice.call(arguments); next(); }
   function next() {
     if (muted || !queue.length) return; var t = queue.shift();
     var f = (window.VMAP || {})[vkey(t)];
-    if (f) { var a = new Audio('voice/' + f + '.mp3'); cur = a; a.onended = function () { cur = null; next(); }; a.play().catch(function () { tts(t, next); }); return; }
-    tts(t, next);
+    if (!f) return next();
+    AU.onended = next; AU.src = 'voice/' + f + '.mp3';
+    var p = AU.play(); if (p && p.catch) p.catch(function () {});
   }
-  function tts(t, then) {
-    if (!window.speechSynthesis) { if (then) setTimeout(then, 300); return; }
-    var u = new SpeechSynthesisUtterance(t); u.lang = 'ar-SA'; u.rate = .9;
-    var v = speechSynthesis.getVoices().filter(function (x) { return /^ar/i.test(x.lang); }); if (v.length) u.voice = v[0];
-    u.onend = function () { if (then) then(); }; speechSynthesis.speak(u);
-  }
-  if (window.speechSynthesis) speechSynthesis.getVoices();
   function muteBtn() { $('#mute').textContent = muted ? '🔇' : '🔊'; }
   $('#mute').onclick = function () { muted = !muted; try { localStorage.setItem('math_mute', muted ? '1' : '0'); } catch (e) {} stop(); muteBtn(); };
   muteBtn();
