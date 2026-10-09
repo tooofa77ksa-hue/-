@@ -34,7 +34,10 @@
   }
 
   // ---------- voice and sounds ----------
-  var cur = null;
+  var cur = null, last = null;
+  function play(fn) { last = fn; fn(); }   // everything played through play() can be repeated
+  var rb = document.createElement('button'); rb.id = 'rep'; rb.innerHTML = '🔁<small>أعيدي</small>'; rb.title = 'أعيدي الصوت';
+  rb.onclick = function () { if (last) last(); }; document.body.appendChild(rb);
   function stop() { if (cur) { cur.pause(); cur = null; } if (window.speechSynthesis) speechSynthesis.cancel(); }
   // recorded voice (voice/<clip>.mp3) when the sentence was recorded, otherwise the device voice
   function vkey(w) { return String(w).replace(/[\u064B-\u0652\u0670\u0640]/g, '').replace(/[إأآا]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').replace(/ؤ/g, 'و').replace(/ئ/g, 'ي').replace(/[^\u0621-\u064A]/g, ''); }
@@ -86,7 +89,7 @@
         '<div class="row"><label>الإكسسوار <small style="font:600 13px R;color:#5B6280">(تفتحينه بالنجوم ⭐)</small></label><div class="sw">' + ACC.map(function (a) { var lk = stars < a[2]; return '<button data-a="' + a[0] + '" class="' + (c.acc === a[0] ? 'on ' : '') + (lk ? 'lock' : '') + '" title="' + (lk ? AR(a[2]) + ' نجمة' : '') + '">' + (lk ? '🔒' : a[1]) + '</button>'; }).join('') + '</div></div>' +
         '<button class="btn g" id="go" style="width:100%;margin-top:10px">' + (edit ? 'حفظ ✓' : 'ابدئي المغامرة ▶') + '</button></div></div></div>';
       document.getElementById('nm').oninput = function () { c.name = this.value; };
-      if (!edit && !maker.said) { maker.said = 1; setTimeout(function () { speak('أهلًا بكِ في مغامرةِ عالمِ الحيوانات!', function () { speak('صمِّمي شخصيّتَكِ، ثمَّ ابدئي المغامرة.'); }); }, 400); }
+      if (!edit && !maker.said) { maker.said = 1; setTimeout(function () { play(function () { speak('أهلًا بكِ في مغامرةِ عالمِ الحيوانات!', function () { speak('صمِّمي شخصيّتَكِ، ثمَّ ابدئي المغامرة.'); }); }); }, 400); }
       [].forEach.call(app.querySelectorAll('[data-h]'), function (b) { b.onclick = function () { c.hair = +b.dataset.h; draw(); }; });
       [].forEach.call(app.querySelectorAll('[data-s]'), function (b) { b.onclick = function () { c.shirt = +b.dataset.s; draw(); }; });
       [].forEach.call(app.querySelectorAll('[data-a]'), function (b) { b.onclick = function () { if (b.classList.contains('lock')) { speak('تحتاجين ' + b.title + ' لفتحه'); return; } c.acc = b.dataset.a; draw(); }; });
@@ -133,20 +136,22 @@
         '<div id="fb"></div></div><div class="nav"><span></span><button class="btn v hidden" id="nx">' + (qi < list.length - 1 ? 'التالي ←' : 'النتيجة 🏆') + '</button></div></div>';
       wireBack();
       var say = document.getElementById('say');
-      if (say) { say.onclick = function () { sound(it.say.id, it.say.text, say); }; setTimeout(function () { sound(it.say.id, it.say.text, say, function () { speak(it.askSay || it.ask); }); }, 350); }
-      else setTimeout(function () { speak(it.askSay || it.ask); }, 300);
+      var askIt = say ? function () { sound(it.say.id, it.say.text, say, function () { speak(it.askSay || it.ask); }); } : function () { speak(it.askSay || it.ask); };
+      if (say) say.onclick = function () { play(askIt); };
+      setTimeout(function () { play(askIt); }, 350);
       if (it.onShow) it.onShow();
       [].forEach.call(app.querySelectorAll('[data-k]'), function (b) {
         b.onclick = function () {
           var v = o[+b.dataset.k], ok = v === it.ans;
-          if (!ok && !tried && o.length > 2) { tried = true; b.disabled = true; b.classList.add('wrong'); var m = nm(pick(AGAIN)); document.getElementById('fb').innerHTML = '<div class="again">' + m + '</div>'; speak(m); return; }
+          if (!ok && !tried && o.length > 2) { tried = true; b.disabled = true; b.classList.add('wrong'); var m = nm(pick(AGAIN)); document.getElementById('fb').innerHTML = '<div class="again">' + m + '</div>'; play(function () { speak(m, function () { askIt(); }); }); return; }
           [].forEach.call(app.querySelectorAll('[data-k]'), function (x) { x.disabled = true; if (o[+x.dataset.k] === it.ans) x.classList.add('right'); });
           if (!ok) b.classList.add('wrong');
           var first = !tried && ok; if (first) { score++; P.stars++; save(); confetti(8); }
           if (!first) wrongs.push(it);
           var head = ok ? nm(pick(GOOD)) : 'الإجابةُ الصحيحة: ' + it.ans;
           document.getElementById('fb').innerHTML = '<div class="why"><b>' + (ok ? '✅ ' : '💡 ') + head + '</b>' + (it.why ? 'لماذا؟ ' + it.why : '') + (it.img ? '<img src="img/' + it.img + '.jpg" alt="">' : '') + (it.extra || '') + '</div>';
-          speak(head, function () { speak(it.whyLine || it.why || '', ok && it.onRight2 ? it.onRight2 : null); });
+          var onR2 = ok && it.onRight2 ? it.onRight2 : null;
+          play(function () { speak(head, function () { speak(it.whyLine || it.why || '', onR2); }); });
           if (ok && it.onRight) it.onRight();
           document.getElementById('nx').classList.remove('hidden');
           document.getElementById('nx').scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -169,7 +174,7 @@
       '<div style="font:800 20px B">أصبتِ في ' + AR(score) + ' من ' + AR(n) + '</div><div style="font:600 15px R;color:#5B6280;margin-top:6px">📸 صوِّري هذه البطاقة وأرسليها لصديقتك!</div></div>' +
       (wrongs.length ? '<button class="btn p" id="fix" style="width:100%;margin-top:14px">🔁 أعيدي الأسئلةَ التي أخطأتِ فيها (' + AR(wrongs.length) + ')</button>' : '') +
       '<div class="nav"><button class="btn w" id="ag">🔄 جولة جديدة</button><button class="btn g" id="mp">🗺️ العوالم</button></div></div>';
-    wireBack(); speak(msg);
+    wireBack(); play(function () { speak(msg); });
     if (wrongs.length) document.getElementById('fix').onclick = fix;
     document.getElementById('ag').onclick = again; document.getElementById('mp').onclick = map;
   }
@@ -228,7 +233,7 @@
           open.forEach(function (x) { x.classList.add('m'); }); found++; P.stars++; save(); confetti(8);
           var p = Z.pairs.filter(function (q) { return q[0] === a.id; })[0];
           document.getElementById('fb').innerHTML = '<div class="why"><b>✅ ' + p[1] + ' ← وأنثاه: ' + p[2] + '</b><img src="img/m_' + p[0] + '.jpg" alt=""></div>';
-          speak(p[1] + '، وأنثاه: ' + p[2] + '.'); open = []; lock = false;
+          play(function () { speak(p[1] + '، وأنثاه: ' + p[2] + '.'); }); open = []; lock = false;
           if (found === prs.length) setTimeout(function () { var st = moves <= 9 ? 3 : moves <= 13 ? 2 : 1; P.best.w5 = Math.max(P.best.w5 || 0, st); save(); achievement('💞 لعبةُ الذاكرة', st, prs.length, prs.length, [], null, memoryWorld); }, 1600);
         } else setTimeout(function () { open.forEach(function (x) { x.classList.remove('f'); }); open = []; lock = false; }, 900);
       };
@@ -253,11 +258,11 @@
       var q = qs[qi], tried = false, o = shuffle([q.ans].concat(others(q.all.filter(function (v, i, a) { return a.indexOf(v) === i; }), q.ans, 2)));
       app.innerHTML = '<div class="wrap">' + bar(true) + '<h1 class="t">🏃‍♀️ اهربي من الذئب!</h1><div id="sc">' + scene(false) + '</div>' +
         '<div class="q blk" style="margin-top:12px"><div class="big">' + q.ask + '</div><div class="opts">' + o.map(function (x, k) { return '<button class="opt" data-k="' + k + '">' + x + '</button>'; }).join('') + '</div><div id="fb"></div></div></div>';
-      wireBack(); positionWolf(); speak(q.ask);
+      wireBack(); positionWolf(); play(function () { speak(q.ask); });
       [].forEach.call(app.querySelectorAll('[data-k]'), function (b) {
         b.onclick = function () {
           var ok = o[+b.dataset.k] === q.ans;
-          if (!ok) { b.disabled = true; b.classList.add('wrong'); gap = Math.max(1, gap - 1); positionWolf(); if (!tried) wrongs.push(q); tried = true; var m = 'الذئبُ يقترب يا ' + P.name + '! ركِّزي وفكِّري جيّدًا.'; document.getElementById('fb').innerHTML = '<div class="again">' + m + '</div>'; speak(m); return; }
+          if (!ok) { b.disabled = true; b.classList.add('wrong'); gap = Math.max(1, gap - 1); positionWolf(); if (!tried) wrongs.push(q); tried = true; var m = 'الذئبُ يقترب يا ' + P.name + '! ركِّزي وفكِّري جيّدًا.'; document.getElementById('fb').innerHTML = '<div class="again">' + m + '</div>'; play(function () { speak(m, function () { speak(q.ask); }); }); return; }
           if (!tried) { score++; P.stars++; save(); gap = Math.min(5, gap + 1); }
           [].forEach.call(app.querySelectorAll('[data-k]'), function (x) { x.disabled = true; });
           b.classList.add('right'); document.getElementById('hero').classList.add('jump'); positionWolf();
@@ -278,5 +283,5 @@
     wireBack();
   }
 
-  if (P) { map(); setTimeout(function () { var h = document.querySelector('.hello'); if (h) speak(h.textContent, function () { speak('كلُّ إجابةٍ صحيحةٍ تمنحُكِ نجمة.'); }); }, 500); } else maker(false);
+  if (P) { map(); setTimeout(function () { var h = document.querySelector('.hello'); if (h) { var t = h.textContent; play(function () { speak(t, function () { speak('كلُّ إجابةٍ صحيحةٍ تمنحُكِ نجمة.'); }); }); } }, 500); } else maker(false);
 })();

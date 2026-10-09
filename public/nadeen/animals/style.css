@@ -145,3 +145,7 @@ input.name{width:100%;font:800 24px B;padding:10px 14px;border:4px solid var(--l
 .fx{position:fixed;inset:0;pointer-events:none;z-index:50;overflow:hidden}
 .fx i{position:absolute;top:-40px;font-style:normal;font-size:30px;animation:fall 2.2s ease-in forwards}
 @keyframes fall{to{transform:translateY(110vh) rotate(500deg)}}
+
+#rep{position:fixed;left:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:40;width:74px;height:74px;border-radius:50%;border:4px solid var(--line);box-shadow:0 5px 0 var(--line);background:var(--gold);font-size:28px;line-height:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#rep small{font:800 13px B;margin-top:2px}
+#rep:active{transform:translateY(4px);box-shadow:0 1px 0 var(--line)}
