@@ -51,8 +51,11 @@
     a.play().catch(function () { off(); speak(fallback); });
   }
   function confetti(n) { var fx = document.getElementById('fx'); for (var i = 0; i < (n || 10); i++) { var e = document.createElement('i'); e.textContent = pick(['⭐', '✨', '💖', '🐾']); e.style.left = Math.random() * 100 + 'vw'; e.style.animationDelay = Math.random() * .4 + 's'; fx.appendChild(e); setTimeout(function (x) { x.remove(); }, 2700, e); } }
-  var GOOD = ['أحسنتِ يا ' + '{n}' + '! 🌟', 'رائعة! 👏', 'إجابةٌ ذكيّة! 💡', 'بطلة! ⭐', 'ممتاز! 🏆'];
-  var AGAIN = ['ليست هذه، فكِّري مرّةً أخرى 💪', 'قريبة! جرِّبي إجابةً ثانية 🔍', 'لا تستسلمي، حاولي من جديد 🌱'];
+  // phrases that call each girl by her own name ({n})
+  var GOOD = ['أحسنتِ يا {n}! 🌟', 'رائعةٌ يا بطلة {n}! 👏', 'إجابةٌ ذكيّة يا {n}! 💡', 'المستكشفةُ {n} لا يفوتُها شيء! 🔍', '{n} بطلةُ عالمِ الحيوانات! 🏆',
+    'ممتازة يا {n}! الحيواناتُ فخورةٌ بكِ 🦁', 'هكذا تفعلُ البطلات يا {n}! ⭐', 'عقلُكِ لامعٌ يا {n}! ✨'];
+  var AGAIN = ['ليست هذه يا {n}، فكِّري مرّةً أخرى 💪', 'قريبة يا {n}! جرِّبي إجابةً ثانية 🔍', 'البطلةُ {n} لا تستسلم، حاولي من جديد 🌱', 'ركِّزي يا {n}، أنتِ تعرفين الجواب ⭐'];
+  var HELLO = ['أهلًا يا بطلة {n}! 🦸‍♀️ أيُّ عالمٍ نستكشفُ اليوم؟', 'مرحبًا يا مستكشفة {n}! 🧭 الحيواناتُ تنتظرُكِ', 'هيّا يا {n}! 🌟 كلُّ إجابةٍ تقرِّبُكِ من التاج 👑', 'يا {n}، أنتِ بطلةُ الغابة اليوم! 🌳'];
   function nm(s) { return s.replace('{n}', P.name); }
 
   // ---------- top bar ----------
@@ -98,7 +101,7 @@
   ];
   function map() {
     stop();
-    app.innerHTML = '<div class="wrap">' + bar(false) + '<h1 class="t">🗺️ عوالمُ المغامرة</h1><div class="sub">اختاري عالمًا وابدئي! كلُّ إجابةٍ صحيحة = نجمة ⭐</div>' +
+    app.innerHTML = '<div class="wrap">' + bar(false) + '<h1 class="t">🗺️ عوالمُ المغامرة</h1><div class="hello blk">' + nm(pick(HELLO)) + '</div><div class="sub">كلُّ إجابةٍ صحيحة = نجمة ⭐</div>' +
       '<div class="worlds">' + W.map(function (w, i) { var b = P.best[w[0]] || 0; return '<button class="tile blk" data-w="' + i + '" style="--c:' + w[4] + '"><span class="ic">' + w[1] + '</span><span><b>' + w[2] + '</b><small>' + w[3] + '</small></span><span class="st">' + '⭐'.repeat(b) + '☆'.repeat(3 - b) + '</span></button>'; }).join('') + '</div>' +
       '<div class="nav" style="margin-top:16px"><button class="btn w" id="col">🐾 حيواناتي</button><button class="btn w" id="ed">👗 شخصيّتي</button></div></div>';
     [].forEach.call(app.querySelectorAll('[data-w]'), function (b) { b.onclick = function () { W[+b.dataset.w][5](); }; });
@@ -128,7 +131,7 @@
       [].forEach.call(app.querySelectorAll('[data-k]'), function (b) {
         b.onclick = function () {
           var v = o[+b.dataset.k], ok = v === it.ans;
-          if (!ok && !tried && o.length > 2) { tried = true; b.disabled = true; b.classList.add('wrong'); var m = pick(AGAIN); document.getElementById('fb').innerHTML = '<div class="again">' + m + '</div>'; speak(m); return; }
+          if (!ok && !tried && o.length > 2) { tried = true; b.disabled = true; b.classList.add('wrong'); var m = nm(pick(AGAIN)); document.getElementById('fb').innerHTML = '<div class="again">' + m + '</div>'; speak(m); return; }
           [].forEach.call(app.querySelectorAll('[data-k]'), function (x) { x.disabled = true; if (o[+x.dataset.k] === it.ans) x.classList.add('right'); });
           if (!ok) b.classList.add('wrong');
           var first = !tried && ok; if (first) { score++; P.stars++; save(); confetti(8); }
@@ -153,7 +156,7 @@
   }
   function achievement(title, st, score, n, wrongs, fix, again) {
     stop(); if (st >= 2) confetti(26);
-    var msg = st === 3 ? 'ممتازة يا ' + P.name + '! 🏆' : st === 2 ? 'أحسنتِ يا ' + P.name + '! 👏' : 'تحتاجين تدريبًا أكثر يا ' + P.name + ' 💪';
+    var msg = st === 3 ? 'البطلةُ ' + P.name + ' أنهت العالمَ بثلاثِ نجوم! 🏆' : st === 2 ? 'أحسنتِ يا ' + P.name + '، أنتِ تتقدَّمين بثبات! 👏' : 'يا ' + P.name + '، البطلاتُ يتدرَّبن أكثر، أعيدي الأسئلةَ التي أخطأتِ فيها 💪';
     app.innerHTML = '<div class="wrap">' + bar(true) + '<div class="ach blk">' + avatar(P) + '<h2>' + msg + '</h2><div class="sub">' + title + '</div><div class="s">' + '⭐'.repeat(st) + '☆'.repeat(3 - st) + '</div>' +
       '<div style="font:800 20px B">أصبتِ في ' + AR(score) + ' من ' + AR(n) + '</div><div style="font:600 15px R;color:#5B6280;margin-top:6px">📸 صوِّري هذه البطاقة وأرسليها لصديقتك!</div></div>' +
       (wrongs.length ? '<button class="btn p" id="fix" style="width:100%;margin-top:14px">🔁 أعيدي الأسئلةَ التي أخطأتِ فيها (' + AR(wrongs.length) + ')</button>' : '') +
@@ -245,7 +248,7 @@
       [].forEach.call(app.querySelectorAll('[data-k]'), function (b) {
         b.onclick = function () {
           var ok = o[+b.dataset.k] === q.ans;
-          if (!ok) { b.disabled = true; b.classList.add('wrong'); gap = Math.max(1, gap - 1); positionWolf(); if (!tried) wrongs.push(q); tried = true; var m = 'الذئبُ يقترب! ' + pick(AGAIN); document.getElementById('fb').innerHTML = '<div class="again">' + m + '</div>'; speak(m); return; }
+          if (!ok) { b.disabled = true; b.classList.add('wrong'); gap = Math.max(1, gap - 1); positionWolf(); if (!tried) wrongs.push(q); tried = true; var m = 'الذئبُ يقترب! ' + nm(pick(AGAIN)); document.getElementById('fb').innerHTML = '<div class="again">' + m + '</div>'; speak(m); return; }
           if (!tried) { score++; P.stars++; save(); gap = Math.min(5, gap + 1); }
           [].forEach.call(app.querySelectorAll('[data-k]'), function (x) { x.disabled = true; });
           b.classList.add('right'); document.getElementById('hero').classList.add('jump'); positionWolf();
@@ -266,5 +269,5 @@
     wireBack();
   }
 
-  P ? map() : maker(false);
+  if (P) { map(); setTimeout(function () { var h = document.querySelector('.hello'); if (h) speak(h.textContent); }, 500); } else maker(false);
 })();
