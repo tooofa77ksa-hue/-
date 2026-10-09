@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>مراجعة الرياضيات — الجمع والطرح</title>
+<meta name="theme-color" content="#7B5CFF">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
+<link rel="stylesheet" href="style.css?v=2">
+</head>
+<body>
+<button id="mute" class="mute blk" aria-label="الصوت">🔊</button>
+<div class="wrap">
+
+<section id="start" class="scr">
+  <h1 class="t">مراجعة الرياضيات</h1>
+  <div class="sub">الفصل الثاني: الجمع والطرح — «تأكَّد» والمسائل اللفظية التي حللناها مع المعلّمة</div>
+  <div class="duaC blk" id="dua">
+    <small>نبدأ بالدعاء 🤲</small>
+    <p>رَبِّ أَدْخِلْنِي مُدْخَلَ صِدْقٍ، وَأَخْرِجْنِي مُخْرَجَ صِدْقٍ، وَاجْعَلْ لِي مِنْ لَدُنْكَ سُلْطَانًا نَصِيرًا</p>
+    <small class="ref">سورة الإسراء: ٨٠</small>
+  </div>
+  <div class="rule blk">
+    <b>قاعدة البطلة 🏅</b>
+    <div class="r3"><span>١ أقرأ على مهل</span><span>٢ أفكّر: ما المطلوب؟</span><span>٣ أحلّ وأتحقّق</span></div>
+  </div>
+  <button class="btn big g" id="go">▶ ابدئي</button>
+</section>
+
+<section id="home" class="scr hidden">
+  <h1 class="t">ماذا نراجع؟</h1>
+  <div class="hello blk">البطلة لا تستعجل: تقرأ، ثم تفكّر، ثم تجيب ✨</div>
+  <div class="tiles" id="secs"></div>
+</section>
+
+<section id="sec" class="scr hidden">
+  <div class="bar"><button class="back blk" id="secBack">→</button><div><h2 id="secT"></h2><small id="secS"></small></div></div>
+  <button class="btn v wide" id="all"></button>
+  <div class="hint">أو اختاري مسألة لتري حلّ المعلّمة خطوةً خطوة، ثم مسائل شبيهة:</div>
+  <div id="rows"></div>
+</section>
+
+<section id="ex" class="scr hidden">
+  <div class="bar"><button class="back blk" id="exBack">→</button><div><h2>مثال محلول</h2><small id="exSrc"></small></div><span class="sp"></span><button class="back blk homeB">🏠</button></div>
+  <div class="card blk" id="exBody"></div>
+  <button class="btn g wide" id="exGo">✏️ الآن دوري: مسائل شبيهة</button>
+</section>
+
+<section id="q" class="scr hidden">
+  <div class="bar"><button class="back blk" id="qBack">→</button><div><h2 id="qTitle"></h2><small id="qSrc"></small></div><span class="sp"></span><span class="prog blk" id="qProg"></span></div>
+  <div class="card blk" id="qBody"></div>
+  <div id="qStage"></div>
+  <div id="qFoot"></div>
+</section>
+
+<section id="end" class="scr hidden">
+  <div class="card blk endC"><div class="trophy">🏆</div><h2 id="endT"></h2><p id="endS"></p>
+  <button class="btn g" id="endHome">🏠 الصفحة الرئيسية</button> <button class="btn w" id="endBack">↩ القسم</button></div>
+</section>
+
+<section id="tips" class="scr hidden">
+  <div class="bar"><button class="back blk" id="tipsBack">→</button><h2>نصائح يوم الاختبار</h2><span class="sp"></span><button class="back blk" id="tipsPlay">🔈</button></div>
+  <div id="tipsBody"></div>
+</section>
+
+</div>
+<script src="voice/map.js?v=1"></script>
+<script src="data.js?v=1"></script>
+<script src="app.js?v=2"></script>
+</body>
+</html>
