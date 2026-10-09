@@ -36,18 +36,25 @@
   // ---------- voice and sounds ----------
   var cur = null;
   function stop() { if (cur) { cur.pause(); cur = null; } if (window.speechSynthesis) speechSynthesis.cancel(); }
-  function speak(t) {
+  // recorded voice (voice/<clip>.mp3) when the sentence was recorded, otherwise the device voice
+  function vkey(w) { return String(w).replace(/[\u064B-\u0652\u0670\u0640]/g, '').replace(/[إأآا]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').replace(/ؤ/g, 'و').replace(/ئ/g, 'ي').replace(/[^\u0621-\u064A]/g, ''); }
+  function speak(t, then) {
+    var f = (window.VMAP || {})[vkey(plain(t))];
+    if (f) { stop(); var a = new Audio('voice/' + f + '.mp3'); cur = a; a.onended = function () { cur = null; if (then) then(); }; a.play().catch(function () { tts(t); }); return; }
+    tts(t); if (then) setTimeout(then, 1800);
+  }
+  function tts(t) {
     if (!window.speechSynthesis) return; speechSynthesis.cancel();
     var u = new SpeechSynthesisUtterance(plain(t)); u.lang = 'ar-SA'; u.rate = .92;
     var v = speechSynthesis.getVoices().filter(function (x) { return /^ar/i.test(x.lang); }); if (v.length) u.voice = v[0];
     speechSynthesis.speak(u);
   }
   if (window.speechSynthesis) speechSynthesis.getVoices();
-  function sound(id, fallback, btn) {   // real recording sfx/<id>.mp3 when present
+  function sound(id, fallback, btn, then) {   // real recording sfx/<id>.mp3 when present
     stop(); if (btn) btn.classList.add('on');
     var a = new Audio('sfx/' + id + '.mp3'); cur = a;
     var off = function () { if (btn) btn.classList.remove('on'); };
-    a.onended = off; a.onerror = function () { off(); speak(fallback); };
+    a.onended = function () { off(); if (then) setTimeout(then, 250); }; a.onerror = function () { off(); speak(fallback); };
     a.play().catch(function () { off(); speak(fallback); });
   }
   function confetti(n) { var fx = document.getElementById('fx'); for (var i = 0; i < (n || 10); i++) { var e = document.createElement('i'); e.textContent = pick(['⭐', '✨', '💖', '🐾']); e.style.left = Math.random() * 100 + 'vw'; e.style.animationDelay = Math.random() * .4 + 's'; fx.appendChild(e); setTimeout(function (x) { x.remove(); }, 2700, e); } }
@@ -79,6 +86,7 @@
         '<div class="row"><label>الإكسسوار <small style="font:600 13px R;color:#5B6280">(تفتحينه بالنجوم ⭐)</small></label><div class="sw">' + ACC.map(function (a) { var lk = stars < a[2]; return '<button data-a="' + a[0] + '" class="' + (c.acc === a[0] ? 'on ' : '') + (lk ? 'lock' : '') + '" title="' + (lk ? AR(a[2]) + ' نجمة' : '') + '">' + (lk ? '🔒' : a[1]) + '</button>'; }).join('') + '</div></div>' +
         '<button class="btn g" id="go" style="width:100%;margin-top:10px">' + (edit ? 'حفظ ✓' : 'ابدئي المغامرة ▶') + '</button></div></div></div>';
       document.getElementById('nm').oninput = function () { c.name = this.value; };
+      if (!edit && !maker.said) { maker.said = 1; setTimeout(function () { speak('أهلًا بكِ في مغامرةِ عالمِ الحيوانات!', function () { speak('صمِّمي شخصيّتَكِ، ثمَّ ابدئي المغامرة.'); }); }, 400); }
       [].forEach.call(app.querySelectorAll('[data-h]'), function (b) { b.onclick = function () { c.hair = +b.dataset.h; draw(); }; });
       [].forEach.call(app.querySelectorAll('[data-s]'), function (b) { b.onclick = function () { c.shirt = +b.dataset.s; draw(); }; });
       [].forEach.call(app.querySelectorAll('[data-a]'), function (b) { b.onclick = function () { if (b.classList.contains('lock')) { speak('تحتاجين ' + b.title + ' لفتحه'); return; } c.acc = b.dataset.a; draw(); }; });
@@ -125,8 +133,8 @@
         '<div id="fb"></div></div><div class="nav"><span></span><button class="btn v hidden" id="nx">' + (qi < list.length - 1 ? 'التالي ←' : 'النتيجة 🏆') + '</button></div></div>';
       wireBack();
       var say = document.getElementById('say');
-      if (say) { say.onclick = function () { sound(it.say.id, it.say.text, say); }; setTimeout(function () { sound(it.say.id, it.say.text, say); }, 350); }
-      else setTimeout(function () { speak(it.ask); }, 300);
+      if (say) { say.onclick = function () { sound(it.say.id, it.say.text, say); }; setTimeout(function () { sound(it.say.id, it.say.text, say, function () { speak(it.askSay || it.ask); }); }, 350); }
+      else setTimeout(function () { speak(it.askSay || it.ask); }, 300);
       if (it.onShow) it.onShow();
       [].forEach.call(app.querySelectorAll('[data-k]'), function (b) {
         b.onclick = function () {
@@ -138,7 +146,7 @@
           if (!first) wrongs.push(it);
           var head = ok ? nm(pick(GOOD)) : 'الإجابةُ الصحيحة: ' + it.ans;
           document.getElementById('fb').innerHTML = '<div class="why"><b>' + (ok ? '✅ ' : '💡 ') + head + '</b>' + (it.why ? 'لماذا؟ ' + it.why : '') + (it.img ? '<img src="img/' + it.img + '.jpg" alt="">' : '') + (it.extra || '') + '</div>';
-          speak(head + '. ' + (it.why || ''));
+          speak(head, function () { speak(it.whyLine || it.why || '', ok && it.onRight2 ? it.onRight2 : null); });
           if (ok && it.onRight) it.onRight();
           document.getElementById('nx').classList.remove('hidden');
           document.getElementById('nx').scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -171,8 +179,8 @@
   function soundsWorld() {
     var S = Z.sounds, names = S.map(function (s) { return s[2]; }), animals = S.map(function (s) { return s[1]; });
     var items = shuffle(S).slice(0, 10).map(function (s, k) {
-      if (k % 3 === 2) return { head: '<div style="font-size:64px">🔊</div>', say: { id: s[0], text: s[2] }, ask: 'مَن صاحبُ صوتِ «' + s[2] + '»؟', opts: [s[1]].concat(others(animals, s[1], 2)), ans: s[1], why: s[3], img: 's_' + s[0] };
-      return { head: '<img class="pic" src="img/s_' + s[0] + '.jpg" alt="">', say: { id: s[0], text: 'صوتُ ' + s[1] }, ask: 'ماذا نسمّي صوتَ ' + s[1] + '؟', opts: [s[2]].concat(others(names, s[2], 2)), ans: s[2], why: s[3] };
+      if (k % 3 === 2) return { head: '<div style="font-size:64px">🔊</div>', say: { id: s[0], text: s[2] }, ask: 'مَن صاحبُ صوتِ «' + s[2] + '»؟', opts: [s[1]].concat(others(animals, s[1], 2)), ans: s[1], why: s[3], whyLine: 'صوتُ ' + s[1] + ' اسمُه: ' + s[2] + '. ' + s[3], img: 's_' + s[0] };
+      return { head: '<img class="pic" src="img/s_' + s[0] + '.jpg" alt="">', say: { id: s[0], text: 'صوتُ ' + s[1] }, ask: 'ماذا نسمّي صوتَ ' + s[1] + '؟', opts: [s[2]].concat(others(names, s[2], 2)), ans: s[2], why: s[3], whyLine: 'صوتُ ' + s[1] + ' اسمُه: ' + s[2] + '. ' + s[3] };
     });
     quiz('w1', '🦁 أصواتُ الحيوانات', items, { again: soundsWorld });
   }
@@ -180,7 +188,7 @@
   function thingsWorld() {
     var T = Z.things, names = T.map(function (s) { return s[2]; });
     var items = shuffle(T).slice(0, 10).map(function (s) {
-      return { head: '<div class="anim a-' + s[4] + '"><img class="pic" src="img/s_' + s[0] + '.jpg" alt=""></div>', say: { id: s[0], text: 'صوتُ ' + s[1] }, ask: 'ماذا نسمّي صوتَ ' + s[1] + '؟', opts: [s[2]].concat(others(names, s[2], 2)), ans: s[2], why: s[3] };
+      return { head: '<div class="anim a-' + s[4] + '"><img class="pic" src="img/s_' + s[0] + '.jpg" alt=""></div>', say: { id: s[0], text: 'صوتُ ' + s[1] }, ask: 'ماذا نسمّي صوتَ ' + s[1] + '؟', opts: [s[2]].concat(others(names, s[2], 2)), ans: s[2], why: s[3], whyLine: 'صوتُ ' + s[1] + ' اسمُه: ' + s[2] + '. ' + s[3] };
     });
     quiz('w2', '🌬️ أصواتٌ من حولنا', items, { again: thingsWorld });
   }
@@ -188,7 +196,8 @@
   function eggWorld() {
     var Y = Z.young, names = Y.map(function (s) { return s[2]; });
     var items = shuffle(Y).slice(0, 8).map(function (s) {
-      return { head: '<div><span class="egg" id="egg">🥚</span></div>' + (s[4] ? '<img class="pic" style="width:140px" src="img/' + s[4] + '.jpg" alt="">' : ''), ask: 'بيضةٌ مفاجأة! ما اسمُ صغيرِ ' + s[1] + '؟', opts: [s[2]].concat(others(names, s[2], 2)), ans: s[2], why: s[3], img: 'y_' + s[0],
+      return { head: '<div><span class="egg" id="egg">🥚</span></div>' + (s[4] ? '<img class="pic" style="width:140px" src="img/' + s[4] + '.jpg" alt="">' : ''), ask: 'بيضةٌ مفاجأة! ما اسمُ صغيرِ ' + s[1] + '؟', askSay: 'ما اسمُ صغيرِ ' + s[1] + '؟', opts: [s[2]].concat(others(names, s[2], 2)), ans: s[2], why: s[3], whyLine: 'صغيرُ ' + s[1] + ' اسمُه: ' + s[2] + '. ' + s[3], img: 'y_' + s[0],
+        onRight2: function () { speak('أضفتِ صغيرًا جديدًا إلى مجموعتِكِ يا ' + P.name + '!'); },
         extra: '<div style="font:800 19px B;margin-top:8px;color:#BE185D">🐾 أضفتِ «' + s[2] + '» إلى مجموعتِكِ!</div>',
         onRight: function () { var e = document.getElementById('egg'); if (e) { e.classList.add('crack'); setTimeout(function () { e.textContent = '🐣'; e.classList.remove('crack'); }, 600); } if (P.coll.indexOf(s[0]) < 0) { P.coll.push(s[0]); save(); } } };
     });
@@ -198,7 +207,7 @@
   function homesWorld() {
     var H = Z.homes, names = H.map(function (s) { return s[2]; }).filter(function (v, i, a) { return a.indexOf(v) === i; });
     var items = shuffle(H).slice(0, 8).map(function (s) {
-      return { head: s[4] ? '<img class="pic" src="img/' + s[4] + '.jpg" alt="">' : '<div style="font:800 40px B;margin:20px 0">' + s[1] + '</div>', ask: 'أين يسكنُ ' + s[1] + '؟', houses: true, opts: [s[2]].concat(others(names, s[2], 2)), ans: s[2], why: s[3], img: 'h_' + s[0] };
+      return { head: s[4] ? '<img class="pic" src="img/' + s[4] + '.jpg" alt="">' : '<div style="font:800 40px B;margin:20px 0">' + s[1] + '</div>', ask: 'أين يسكنُ ' + s[1] + '؟', houses: true, opts: [s[2]].concat(others(names, s[2], 2)), ans: s[2], why: s[3], whyLine: 'يسكنُ ' + s[1] + ' في: ' + s[2] + '. ' + s[3], img: 'h_' + s[0] };
     });
     quiz('w4', '🏠 أوصلي الحيوانَ لبيته', items, { again: homesWorld });
   }
@@ -219,7 +228,7 @@
           open.forEach(function (x) { x.classList.add('m'); }); found++; P.stars++; save(); confetti(8);
           var p = Z.pairs.filter(function (q) { return q[0] === a.id; })[0];
           document.getElementById('fb').innerHTML = '<div class="why"><b>✅ ' + p[1] + ' ← وأنثاه: ' + p[2] + '</b><img src="img/m_' + p[0] + '.jpg" alt=""></div>';
-          speak(p[1] + '، وأنثاه ' + p[2]); open = []; lock = false;
+          speak(p[1] + '، وأنثاه: ' + p[2] + '.'); open = []; lock = false;
           if (found === prs.length) setTimeout(function () { var st = moves <= 9 ? 3 : moves <= 13 ? 2 : 1; P.best.w5 = Math.max(P.best.w5 || 0, st); save(); achievement('💞 لعبةُ الذاكرة', st, prs.length, prs.length, [], null, memoryWorld); }, 1600);
         } else setTimeout(function () { open.forEach(function (x) { x.classList.remove('f'); }); open = []; lock = false; }, 900);
       };
@@ -248,7 +257,7 @@
       [].forEach.call(app.querySelectorAll('[data-k]'), function (b) {
         b.onclick = function () {
           var ok = o[+b.dataset.k] === q.ans;
-          if (!ok) { b.disabled = true; b.classList.add('wrong'); gap = Math.max(1, gap - 1); positionWolf(); if (!tried) wrongs.push(q); tried = true; var m = 'الذئبُ يقترب! ' + nm(pick(AGAIN)); document.getElementById('fb').innerHTML = '<div class="again">' + m + '</div>'; speak(m); return; }
+          if (!ok) { b.disabled = true; b.classList.add('wrong'); gap = Math.max(1, gap - 1); positionWolf(); if (!tried) wrongs.push(q); tried = true; var m = 'الذئبُ يقترب يا ' + P.name + '! ركِّزي وفكِّري جيّدًا.'; document.getElementById('fb').innerHTML = '<div class="again">' + m + '</div>'; speak(m); return; }
           if (!tried) { score++; P.stars++; save(); gap = Math.min(5, gap + 1); }
           [].forEach.call(app.querySelectorAll('[data-k]'), function (x) { x.disabled = true; });
           b.classList.add('right'); document.getElementById('hero').classList.add('jump'); positionWolf();
@@ -258,7 +267,7 @@
       });
     }
     function positionWolf() { var w = document.getElementById('wolf'); if (w) w.style.right = (112 - gap * 26) + 'px'; }
-    function finish() { var st = score >= 9 ? 3 : score >= 6 ? 2 : 1; P.best.w6 = Math.max(P.best.w6 || 0, st); save(); achievement('🏃‍♀️ نجوتِ من الذئب!', st, score, qs.length, [], null, runWorld); }
+    function finish() { var st = score >= 9 ? 3 : score >= 6 ? 2 : 1; P.best.w6 = Math.max(P.best.w6 || 0, st); save(); achievement('🏃‍♀️ نجوتِ من الذئب!', st, score, qs.length, [], null, runWorld); setTimeout(function () { speak('نجوتِ من الذئب يا ' + P.name + '! أنتِ بطلةٌ حقيقيّة.'); }, 2600); }
     show();
   }
   // ---------- collection ----------
@@ -269,5 +278,5 @@
     wireBack();
   }
 
-  if (P) { map(); setTimeout(function () { var h = document.querySelector('.hello'); if (h) speak(h.textContent); }, 500); } else maker(false);
+  if (P) { map(); setTimeout(function () { var h = document.querySelector('.hello'); if (h) speak(h.textContent, function () { speak('كلُّ إجابةٍ صحيحةٍ تمنحُكِ نجمة.'); }); }, 500); } else maker(false);
 })();
