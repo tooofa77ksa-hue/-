@@ -323,6 +323,14 @@
   mc('x75_8', 'ص٧٥ — ٨', 'ما العدد الذي إذا أُضيف إلى ٧٩٨٢ أصبح الناتج ٢٥٠٠٠؟', ['١٧٠١٨', '١٨٠١٨', '١٧٠٢٨', '٣٢٩٨٢'], 'نطرح: ٢٥٠٠٠ − ٧٩٨٢ = ١٧٠١٨. التحقق: ١٧٠١٨ + ٧٩٨٢ = ٢٥٠٠٠ ✔');
 
 
+  mc('x75_10', 'ص٧٥ — ١٠', 'في عملية الجمع التالية: قيمة المستطيل الضيّق <span class="nr"></span> = ٦، وقيمة المثلث △ = ٢. أوجدي قيمة باقي الأشكال.',
+    ['<span dir="rtl" class="pr2"><span class="wr"></span> = ٣</span> ، <span dir="rtl" class="pr2">○ = ٤</span> ، <span dir="rtl" class="pr2">☆ = ٨</span>', '<span dir="rtl" class="pr2"><span class="wr"></span> = ٦</span> ، <span dir="rtl" class="pr2">○ = ٤</span> ، <span dir="rtl" class="pr2">☆ = ٨</span>', '<span dir="rtl" class="pr2"><span class="wr"></span> = ٣</span> ، <span dir="rtl" class="pr2">○ = ٢</span> ، <span dir="rtl" class="pr2">☆ = ٨</span>', '<span dir="rtl" class="pr2"><span class="wr"></span> = ٣</span> ، <span dir="rtl" class="pr2">○ = ٤</span> ، <span dir="rtl" class="pr2">☆ = ٦</span>'],
+    'نبدأ من اليمين (الآحاد): ○ + △ = <span class="nr"></span> أي ○ + ٢ = ٦، إذن ○ = ٤.<br>العشرات: <span class="wr"></span> + <span class="wr"></span> = <span class="nr"></span> أي <span class="wr"></span> + <span class="wr"></span> = ٦، إذن <span class="wr"></span> = ٣.<br>المئات: <span class="nr"></span> + △ = ☆ أي ٦ + ٢ = ٨، إذن ☆ = ٨.<br>التحقق: ٤٦٣٤ + ٤٢٣٢ = ٨٨٦٦ ✔<br>انتبهي: المستطيل الضيّق <span class="nr"></span> = ٦، والمستطيل العريض <span class="wr"></span> = ٣.',
+    '<table class="shp" dir="ltr"><tr><td></td><td>○</td><td><span class="nr"></span></td><td><span class="wr"></span></td><td>○</td></tr><tr><td>+</td><td>○</td><td>△</td><td><span class="wr"></span></td><td>△</td></tr><tr class="ln"><td></td><td>☆</td><td>☆</td><td><span class="nr"></span></td><td><span class="nr"></span></td></tr></table>',
+    { '<span dir="rtl" class="pr2"><span class="wr"></span> = ٦</span> ، <span dir="rtl" class="pr2">○ = ٤</span> ، <span dir="rtl" class="pr2">☆ = ٨</span>': 'الستة هي قيمة المستطيل الضيّق <span class="nr"></span> (معطاة في السؤال). المستطيل العريض <span class="wr"></span> مختلف: <span class="wr"></span> + <span class="wr"></span> = ٦، إذن <span class="wr"></span> = ٣.',
+      '<span dir="rtl" class="pr2"><span class="wr"></span> = ٣</span> ، <span dir="rtl" class="pr2">○ = ٢</span> ، <span dir="rtl" class="pr2">☆ = ٨</span>': 'في الآحاد: ○ + △ = <span class="nr"></span> أي ○ + ٢ = ٦، إذن ○ = ٤ وليس ٢.',
+      '<span dir="rtl" class="pr2"><span class="wr"></span> = ٣</span> ، <span dir="rtl" class="pr2">○ = ٤</span> ، <span dir="rtl" class="pr2">☆ = ٦</span>': 'في المئات: <span class="nr"></span> + △ = ☆ أي ٦ + ٢ = ٨، إذن ☆ = ٨.' });
+
   // شرح الإجابات الخاطئة لأسئلة صفحات الاختبار: [رقم الخيار] = السبب
   var XW = {
     x71_1: { 1: 'في الطرح نبدأ دائمًا من اليمين، أي من منزلة الآحاد، ثم العشرات، ثم المئات. فالعبارة صحيحة.' },

@@ -102,3 +102,11 @@ mark{background:#FFE58A;border-radius:6px;padding:0 4px;color:inherit}
 @media (max-width:420px){.opts{grid-template-columns:1fr}.qtext{font-size:19px}.vert{font-size:26px}h1.t{font-size:29px}}
 .why{background:#FFFBEA;padding:10px 12px;margin:6px 0;font:400 17px/1.8 R;box-shadow:0 3px 0 var(--line)}
 .why b{font:800 18px B;color:#B45309}
+.shp{border-collapse:collapse;font:800 38px/1.2 R;margin:8px auto}
+.shp td{width:52px;text-align:center}
+.shp tr.ln td{border-top:3px solid var(--ink)}
+.nr,.wr{display:inline-block;border:2.5px solid currentColor;vertical-align:middle}
+.nr{width:.45em;height:.95em}
+.wr{width:1.1em;height:.6em}
+.shp .nr{width:18px;height:36px}.shp .wr{width:42px;height:22px}
+.pr2{display:inline-block;margin:0 4px}
