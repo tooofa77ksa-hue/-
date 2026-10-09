@@ -5,9 +5,14 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>خطة تحسين النهروان</title>
 <meta name="description" content="لوحة متابعة خطة التحسين المدرسية - مدرسة النهروان الثانوية 1448هـ">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+/* Baloo Bhaijaan 2 — local files bundled with the Nahrawan plan only (public/fonts/nahrawan-baloo-*.ttf).
+   No Google Fonts dependency: Regular=body text, SemiBold=sub-headings, ExtraBold=main headings
+   (mirrors the three weights actually used across this page's CSS). */
+@font-face{font-family:'Baloo Bhaijaan 2';src:url('fonts/nahrawan-baloo-regular.ttf') format('truetype');font-weight:400;font-display:block;}
+@font-face{font-family:'Baloo Bhaijaan 2';src:url('fonts/nahrawan-baloo-semibold.ttf') format('truetype');font-weight:600;font-display:block;}
+@font-face{font-family:'Baloo Bhaijaan 2';src:url('fonts/nahrawan-baloo-extrabold.ttf') format('truetype');font-weight:800;font-display:block;}
+</style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -31,7 +36,7 @@ img{max-width:100%}
   --shadow:0 10px 30px rgba(21,68,90,.10); --shadow-lg:0 20px 50px rgba(21,68,90,.16);
   --radius:14px; --radius-sm:9px;
 }
-body{background:var(--bg);color:var(--ink);font-family:Tajawal,'Segoe UI',Cairo,system-ui,sans-serif;line-height:1.55}
+body{background:var(--bg);color:var(--ink);font-family:'Baloo Bhaijaan 2','Segoe UI',Tajawal,Cairo,system-ui,sans-serif;line-height:1.55}
 .tabular{font-variant-numeric:tabular-nums}
 button{font-family:inherit;cursor:pointer}
 a{color:inherit}
@@ -64,6 +69,7 @@ a{color:inherit}
   .actions .btn{flex:1;justify-content:center}
 }
 .brand .school{font-weight:800;font-size:16px;line-height:1.35}
+.brand .tagline{font-size:11.5px;font-weight:600;color:var(--teal);margin-top:3px}
 .brand .rule{width:34px;height:3px;background:var(--gold);border-radius:2px;margin-top:8px}
 .nav{display:flex;flex-direction:column;gap:4px;margin-top:4px}
 .nav button{
@@ -74,10 +80,10 @@ a{color:inherit}
 .nav button.active{background:rgba(255,255,255,.08);color:#fff;border-inline-start-color:var(--gold)}
 .ic{width:18px;height:18px;flex:none}
 .sidebar-footer{margin-top:auto;font-size:11px;opacity:.75;padding-top:14px;border-top:1px solid rgba(255,255,255,.15)}
-.sidebar-org{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;opacity:.9;line-height:1.4}
+.sidebar-org{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;opacity:.9;line-height:1.4}
 .sidebar-org img{height:26px;width:auto;flex:none}
 .mode-pill{
-  font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
+  font-size:12px;font-weight:600;padding:6px 12px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
 }
 .mode-pill.dash{background:var(--idle-bg);color:var(--ink-2)}
 .mode-pill.admin{background:var(--gold);color:#3a3320}
@@ -86,7 +92,7 @@ a{color:inherit}
 .clock-bar{
   background:var(--navy);color:#fff;padding:8px 26px;
   display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap;
-  font-size:12.5px;font-weight:700;
+  font-size:12.5px;font-weight:600;
 }
 .clock-item{display:flex;align-items:center;gap:8px}
 .clock-label{opacity:.75;font-weight:600}
@@ -122,7 +128,7 @@ a{color:inherit}
 }
 .anthem-bar button:hover{background:var(--surface-2)}
 .anthem-bar input[type=range]{width:70px;accent-color:var(--teal)}
-.anthem-bar .anthem-label{font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;padding-inline-start:2px}
+.anthem-bar .anthem-label{font-size:11px;font-weight:600;color:var(--muted);white-space:nowrap;padding-inline-start:2px}
 @media (max-width:640px){
   .anthem-bar{left:8px;bottom:8px;padding:5px 8px;gap:4px}
   .anthem-bar input[type=range]{width:52px}
@@ -132,8 +138,10 @@ a{color:inherit}
   background:var(--surface);border-bottom:1px solid var(--border);padding:12px 26px;
   display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
 }
-.orgbar-brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:13.5px;color:var(--ink-2)}
+.orgbar-brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:13.5px;color:var(--ink-2)}
 .orgbar-brand img{height:34px;width:auto}
+.orientation-pick{display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;color:var(--ink-2);padding:0 4px}
+.orientation-pick label{display:flex;align-items:center;gap:4px;cursor:pointer}
 .topbar{
   position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--border);
   padding:16px 26px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
@@ -144,7 +152,7 @@ a{color:inherit}
 .actions{display:flex;gap:10px;flex-wrap:wrap}
 .btn{
   border:1px solid var(--border);background:var(--surface);color:var(--ink);padding:9px 16px;border-radius:10px;
-  font-size:13.5px;font-weight:700;display:inline-flex;align-items:center;gap:7px;transition:.15s;
+  font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:7px;transition:.15s;
 }
 .btn:hover{border-color:var(--blue);color:var(--blue)}
 .btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
@@ -169,7 +177,7 @@ a{color:inherit}
 .kpi-hero-hd h3{margin:0;font-size:14.5px;font-weight:800}
 .kpi-hero-icon{width:34px;height:34px;border-radius:9px;background:var(--blue-bg);color:var(--blue);display:flex;align-items:center;justify-content:center;flex:none}
 .kpi-hero .val{font-size:38px;font-weight:800;color:var(--green)}
-.kpi-hero .lbl{font-size:12.5px;color:var(--ink-2);font-weight:700}
+.kpi-hero .lbl{font-size:12.5px;color:var(--ink-2);font-weight:600}
 .kpi-hero .sub{font-size:11.5px;color:var(--muted)}
 .kpi-row{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
 @media (max-width:1100px){.kpi-row{grid-template-columns:repeat(2,1fr)}}
@@ -204,35 +212,35 @@ a{color:inherit}
 }
 .pri-item.active .pri-num{background:var(--teal);color:#fff}
 .pri-txt{flex:1;font-size:13.5px;font-weight:600;line-height:1.4}
-.pri-dom{font-size:11px;color:var(--muted);margin-top:2px;font-weight:700}
+.pri-dom{font-size:11px;color:var(--muted);margin-top:2px;font-weight:600}
 .pri-chevron{flex:none;color:var(--muted);opacity:.6}
 
 /* ============ Domain pills ============ */
 .domain-row{display:flex;flex-wrap:wrap;gap:10px}
 .domain-pill{
   display:inline-flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--border);
-  padding:8px 14px;border-radius:999px;font-size:13px;font-weight:700;color:var(--ink-2);
+  padding:8px 14px;border-radius:999px;font-size:13px;font-weight:600;color:var(--ink-2);
 }
 .domain-pill .dot{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;color:#fff}
 .domain-pill.active{background:var(--teal-bg);border-color:var(--teal);color:var(--ink)}
 
 /* ============ Indicator detail ============ */
 .detail-title{font-size:16.5px;font-weight:800;line-height:1.5;margin:0 0 6px}
-.detail-tag{display:inline-flex;font-size:12px;font-weight:700;color:#fff;background:var(--blue);padding:3px 11px;border-radius:999px;margin-inline-end:6px}
+.detail-tag{display:inline-flex;font-size:12px;font-weight:600;color:#fff;background:var(--blue);padding:3px 11px;border-radius:999px;margin-inline-end:6px}
 .metric-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}
 .metric{background:var(--surface-2);border-radius:10px;padding:12px;text-align:center}
 .metric .n{font-size:20px;font-weight:800;color:var(--navy)}
-.metric .l{font-size:11.5px;color:var(--muted);font-weight:700;margin-top:2px}
+.metric .l{font-size:11.5px;color:var(--muted);font-weight:600;margin-top:2px}
 .field{margin-bottom:12px}
-.field label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:5px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px}
 .field .val{font-size:13.5px;line-height:1.6}
-.status-pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;padding:5px 12px;border-radius:999px}
+.status-pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:5px 12px;border-radius:999px}
 .status-pill.ok{background:var(--ok-bg);color:var(--ok-ink)}
 .status-pill.warn{background:var(--warn-bg);color:var(--warn-ink)}
 .status-pill.idle{background:var(--idle-bg);color:var(--idle-ink)}
 .actions-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
 .action-row{border:1px solid var(--border);border-radius:10px;padding:10px 12px}
-.action-row .m{font-weight:700;font-size:13px}
+.action-row .m{font-weight:600;font-size:13px}
 .action-row .meta{font-size:11.5px;color:var(--muted);margin-top:4px;display:flex;gap:10px;flex-wrap:wrap}
 
 /* ============ Tables ============ */
@@ -245,7 +253,7 @@ thead th{
 }
 tbody td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top}
 tbody tr:hover{background:var(--surface-2)}
-.chip{display:inline-flex;font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.chip{display:inline-flex;font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:999px;white-space:nowrap}
 .chip.high{background:var(--ok-bg);color:var(--ok-ink)}
 .chip.mid{background:var(--warn-bg);color:var(--warn-ink)}
 .chip.low{background:var(--idle-bg);color:var(--idle-ink)}
@@ -256,7 +264,7 @@ tbody tr:hover{background:var(--surface-2)}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media (max-width:760px){.form-grid{grid-template-columns:1fr}}
 .form-grid .full{grid-column:1/-1}
-.f-field label{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:6px}
+.f-field label{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:6px}
 .f-field input,.f-field select,.f-field textarea{
   width:100%;border:1px solid var(--border);border-radius:9px;padding:9px 11px;font-family:inherit;font-size:13.5px;
   background:var(--surface);color:var(--ink);outline:none;
@@ -264,7 +272,7 @@ tbody tr:hover{background:var(--surface-2)}
 .f-field input:focus,.f-field select:focus,.f-field textarea:focus{border-color:var(--teal)}
 .f-field textarea{resize:vertical;min-height:64px}
 .save-bar{display:flex;align-items:center;gap:10px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
-.save-msg{font-size:12.5px;font-weight:700}
+.save-msg{font-size:12.5px;font-weight:600}
 .save-msg.ok{color:var(--ok-ink)}
 .save-msg.err{color:#a33}
 
@@ -279,7 +287,7 @@ tbody tr:hover{background:var(--surface-2)}
   margin-bottom:10px;outline:none;text-align:center;letter-spacing:.03em;
 }
 .gate-card input:focus{border-color:var(--teal)}
-.gate-err{color:#a33;font-size:12.5px;font-weight:700;min-height:18px;margin-bottom:6px}
+.gate-err{color:#a33;font-size:12.5px;font-weight:600;min-height:18px;margin-bottom:6px}
 
 /* ============ Misc ============ */
 .empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:13.5px}
@@ -288,14 +296,14 @@ tbody tr:hover{background:var(--surface-2)}
 .team-card{border:1px solid var(--border);border-radius:12px;padding:14px}
 .team-card .name{font-weight:800;font-size:14px}
 .team-card .role{font-size:12.5px;color:var(--muted);margin-top:3px}
-.team-card .task{font-size:11.5px;color:var(--teal);font-weight:700;margin-top:8px}
+.team-card .task{font-size:11.5px;color:var(--teal);font-weight:600;margin-top:8px}
 
 /* ============ Evidence / QR ============ */
 .evidence-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}
 .evidence-card{border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;transition:.2s;background:var(--surface)}
 .evidence-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px)}
-.evidence-card .txt{font-weight:700;font-size:13px;line-height:1.4;margin:8px 0;min-height:36px}
-.evidence-src{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;color:var(--muted)}
+.evidence-card .txt{font-weight:600;font-size:13px;line-height:1.4;margin:8px 0;min-height:36px}
+.evidence-src{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:600;color:var(--muted)}
 .evidence-src .ic{width:13px;height:13px}
 .qr-box{
   width:118px;height:118px;margin:6px auto;border-radius:10px;overflow:hidden;background:#fff;padding:6px;
@@ -321,14 +329,14 @@ tbody tr:hover{background:var(--surface-2)}
     border-bottom:3px solid #15445A;
   }
   .print-header img{height:64px;width:auto}
-  .print-header .ph-kingdom{font-size:12px;color:#5b6b73;font-weight:700}
+  .print-header .ph-kingdom{font-size:12px;color:#5b6b73;font-weight:600}
   .print-header .ph-school{font-size:19px;font-weight:800;color:#15445A;margin-top:2px}
-  .print-header .ph-title{font-size:13px;color:#0DA9A6;font-weight:700;margin-top:3px}
+  .print-header .ph-title{font-size:13px;color:#0DA9A6;font-weight:600;margin-top:3px}
   .print-footer{
     display:flex!important;flex-direction:column;align-items:flex-end;gap:4px;
     position:fixed;bottom:0;right:0;left:0;padding:10px 0 6px;border-top:2px solid #d9e3de;background:#fff;
   }
-  .print-footer .pf-row{display:flex;align-items:center;gap:8px;font-size:11px;color:#3d5a68;font-weight:700}
+  .print-footer .pf-row{display:flex;align-items:center;gap:8px;font-size:11px;color:#3d5a68;font-weight:600}
   .print-footer .pf-row img{height:22px;width:auto}
   .print-footer .pf-school{width:100%;text-align:center;font-size:12px;font-weight:800;color:#15445A;margin-top:4px;padding-top:4px;border-top:1px dashed #d9e3de}
   .content{padding-bottom:90px!important}
@@ -346,14 +354,14 @@ tbody tr:hover{background:var(--surface-2)}
   border-bottom:3px solid #15445A;
 }
 .pdf-capture-mode .print-header img{height:64px;width:auto}
-.pdf-capture-mode .print-header .ph-kingdom{font-size:12px;color:#5b6b73;font-weight:700}
+.pdf-capture-mode .print-header .ph-kingdom{font-size:12px;color:#5b6b73;font-weight:600}
 .pdf-capture-mode .print-header .ph-school{font-size:19px;font-weight:800;color:#15445A;margin-top:2px}
-.pdf-capture-mode .print-header .ph-title{font-size:13px;color:#0DA9A6;font-weight:700;margin-top:3px}
+.pdf-capture-mode .print-header .ph-title{font-size:13px;color:#0DA9A6;font-weight:600;margin-top:3px}
 .pdf-capture-mode .print-footer{
   display:flex!important; flex-direction:column; align-items:flex-end; gap:4px;
   position:static; padding:8px 0 2px; border-top:2px solid #d9e3de; background:#fff;
 }
-.pdf-capture-mode .print-footer .pf-row{display:flex;align-items:center;gap:8px;font-size:11px;color:#3d5a68;font-weight:700}
+.pdf-capture-mode .print-footer .pf-row{display:flex;align-items:center;gap:8px;font-size:11px;color:#3d5a68;font-weight:600}
 .pdf-capture-mode .print-footer .pf-row img{height:22px;width:auto}
 .pdf-capture-mode .print-footer .pf-school{width:100%;text-align:center;font-size:12px;font-weight:800;color:#15445A;margin-top:4px;padding-top:4px;border-top:1px dashed #d9e3de}
 .pdf-capture-mode .grid-2{display:block!important}
@@ -404,6 +412,29 @@ tbody tr:hover{background:var(--surface-2)}
 const SUPABASE_URL = 'https://fqmovedqgfmshfkfebrh.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_ArurQy2vxoD7Edwytx0_Yg_74M-Q-F-';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* ---------------- save reliability: network timeout + duplicate-submit guard ----------------
+   Root cause this fixes: a stalled/very slow connection left the save/delete request pending
+   forever (verified: this Supabase client never times out a hung request on its own), so the
+   UI stayed stuck on "جارِ الحفظ…" with no failure shown and no way to retry. withTimeout()
+   makes every write resolve (never hang) within TIMEOUT_MS, as a normal {error} result the
+   existing success/failure branches already understand. guardedAction() stops a double click
+   / double tap from firing the same insert/update twice while the first request is still in
+   flight — the actual cause of duplicate rows and lost-update races on rapid clicks. */
+const SAVE_TIMEOUT_MS = 15000;
+function withTimeout(promise, ms = SAVE_TIMEOUT_MS){
+  let timer;
+  const timeout = new Promise(resolve => {
+    timer = setTimeout(() => resolve({data:null, error:{message:'انتهت مهلة الاتصال — تحقّقي من الشبكة وحاولي مجددًا', timeout:true}}), ms);
+  });
+  return Promise.race([promise, timeout]).finally(()=>clearTimeout(timer));
+}
+async function guardedAction(btn, fn){
+  if (!btn || btn.disabled) return;
+  btn.disabled = true;
+  try{ await fn(); }
+  finally{ btn.disabled = false; }
+}
 const MINISTRY_LOGO = 'data:image/png;base64,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';
 
 // The login screen still asks for a simple "username" (not an email) to keep the exact
@@ -431,6 +462,8 @@ const DOMAIN_LIST = ["التدريس","نواتج التعلم","الأنشطة 
 const state = {
   session: null,
   authed: MODE !== 'admin',
+  loadError: false,
+  printOrientation: 'landscape',
   meta: null,
   team: [],
   priorities: [],
@@ -565,15 +598,23 @@ function metaPatchToDb(patch){
 /* ---------------- data loading ---------------- */
 async function loadAll(){
   const [metaRes, teamRes, priRes, actRes, progRes, daRes, dnRes, piRes] = await Promise.all([
-    sb.from('meta').select('*').eq('id','main').maybeSingle(),
-    sb.from('team').select('*').order('id'),
-    sb.from('priorities').select('*').order('id'),
-    sb.from('actions').select('*').order('id'),
-    sb.from('programs').select('*').order('id'),
-    sb.from('domain_analysis').select('*').order('id'),
-    sb.from('domain_notes').select('*').order('id'),
-    sb.from('plan_improvements').select('*').order('id'),
+    withTimeout(sb.from('meta').select('*').eq('id','main').maybeSingle()),
+    withTimeout(sb.from('team').select('*').order('id')),
+    withTimeout(sb.from('priorities').select('*').order('id')),
+    withTimeout(sb.from('actions').select('*').order('id')),
+    withTimeout(sb.from('programs').select('*').order('id')),
+    withTimeout(sb.from('domain_analysis').select('*').order('id')),
+    withTimeout(sb.from('domain_notes').select('*').order('id')),
+    withTimeout(sb.from('plan_improvements').select('*').order('id')),
   ]);
+  // A stalled/failed read must never silently show an empty plan as if it were
+  // real data — surface it as a load error with a retry instead.
+  if ([metaRes, teamRes, priRes, actRes, progRes, daRes, dnRes, piRes].some(r => r && r.error)){
+    state.loadError = true;
+    render();
+    return;
+  }
+  state.loadError = false;
   state.meta = metaFromDb(metaRes.data);
   const allTeam = (teamRes.data||[]).map(teamFromDb);
   const allPri = (priRes.data||[]).map(priorityFromDb);
@@ -603,11 +644,11 @@ async function loadAll(){
 const TRASH_LABELS = {priorities:'مؤشر', programs:'برنامج', team:'عضو فريق', actions:'إجراء', domainAnalysis:'عنصر تحليل واقع', planImprovements:'عنصر تحسين خطة'};
 async function softDelete(table, id, confirmMsg){
   if (!confirm(confirmMsg)) return false;
-  const {error} = await sb.from(table).update({deleted:true, deleted_at: new Date().toISOString()}).eq('id', id);
+  const {error} = await withTimeout(sb.from(table).update({deleted:true, deleted_at: new Date().toISOString()}).eq('id', id));
   return !error;
 }
 async function restoreFromTrash(table, id){
-  const {error} = await sb.from(table).update({deleted:false, deleted_at:null}).eq('id', id);
+  const {error} = await withTimeout(sb.from(table).update({deleted:false, deleted_at:null}).eq('id', id));
   return !error;
 }
 
@@ -631,6 +672,14 @@ function priorityActions(p){
 /* ---------------- render: shell ---------------- */
 function render(){
   if (MODE === 'admin' && !state.authed){ renderGate(); return; }
+  if (state.loadError && !state.loaded){
+    root.innerHTML = `<div class="loading" style="flex-direction:column;gap:14px">
+      <div>تعذّر تحميل بيانات الخطة — تحقّقي من الاتصال بالإنترنت</div>
+      <button type="button" class="btn primary" id="retryLoadBtn">إعادة المحاولة</button>
+    </div>`;
+    document.getElementById('retryLoadBtn').addEventListener('click', loadAll);
+    return;
+  }
   if (!state.loaded){ root.innerHTML = `<div class="loading">جارِ تحميل بيانات خطة التحسين…</div>`; return; }
 
   const sections = [
@@ -653,6 +702,7 @@ function render(){
       <aside class="sidebar">
         <div class="brand">
           <div class="school">${esc(state.meta?.schoolName || 'مدرسة النهروان الثانوية')}</div>
+          <div class="tagline">مسارات</div>
           <div class="rule"></div>
         </div>
         <nav class="nav" id="nav">
@@ -670,6 +720,10 @@ function render(){
         </div>
         <div class="orgbar">
           <div class="actions">
+            <div class="orientation-pick" role="radiogroup" aria-label="اتجاه الطباعة">
+              <label><input type="radio" name="printOrientation" value="landscape" ${state.printOrientation!=='portrait'?'checked':''}> أفقي</label>
+              <label><input type="radio" name="printOrientation" value="portrait" ${state.printOrientation==='portrait'?'checked':''}> عمودي</label>
+            </div>
             <button class="btn primary" id="btnExcel">${icon('excel')} تصدير Excel</button>
             <button class="btn" id="btnPrint">${icon('print')} طباعة / PDF</button>
             ${MODE==='admin'?`<button class="btn ${state.editMode?'teal':'primary'}" id="btnEditToggle">${icon(state.editMode?'doc':'lock')} ${state.editMode?'التحرير مفعّل — إيقاف مؤقت':'تفعيل التحرير'}</button>`:''}
@@ -705,6 +759,7 @@ function render(){
   `;
 
   document.querySelectorAll('#nav button').forEach(b=>b.addEventListener('click', ()=>{ state.activeSection=b.dataset.section; state.selectedPriority=null; render(); }));
+  document.querySelectorAll('input[name=printOrientation]').forEach(r=>r.addEventListener('change', e=>{ state.printOrientation = e.target.value; }));
   document.getElementById('btnExcel').addEventListener('click', exportExcel);
   document.getElementById('btnPrint').addEventListener('click', exportPdfReal);
   const logoutBtn = document.getElementById('btnLogout');
@@ -872,7 +927,7 @@ function overviewSchoolInfoCard(){
     <div class="card" style="margin-top:18px">
       <div class="card-hd"><h3>بيانات المدرسة ونتائج التقويم</h3>${canEdit()?`<button class="btn sm" data-goto="settings">تعديل من الإعدادات</button>`:''}</div>
       <div class="card-bd">
-        ${badges.length ? `<div class="domain-row" style="margin-bottom:14px">${badges.map(([l,v])=>`<span class="chip low" style="font-weight:700">${esc(l)}: ${esc(v)}</span>`).join('')}</div>` : ''}
+        ${badges.length ? `<div class="domain-row" style="margin-bottom:14px">${badges.map(([l,v])=>`<span class="chip low" style="font-weight:600">${esc(l)}: ${esc(v)}</span>`).join('')}</div>` : ''}
         ${Object.keys(staff).length ? `<div class="metric-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px">
           ${Object.entries(staff).filter(([k])=>k!=='الوصف').map(([k,v])=>`<div class="metric"><div class="n tabular" style="font-size:16px">${esc(v)}</div><div class="l">${esc(k)}</div></div>`).join('')}
         </div>` : ''}
@@ -947,7 +1002,7 @@ function renderDetail(el, p, opts){
     <div class="card">
       <div class="card-hd"><h3>تفاصيل المؤشر</h3>${icon('list')}</div>
       <div class="card-bd">
-        <div class="field"><label>مجال المؤشر</label><div class="val" style="display:inline-flex;background:var(--blue-bg);color:var(--blue-ink);padding:4px 12px;border-radius:999px;font-weight:700;font-size:12.5px">${esc(normDomain(p.domain))}</div></div>
+        <div class="field"><label>مجال المؤشر</label><div class="val" style="display:inline-flex;background:var(--blue-bg);color:var(--blue-ink);padding:4px 12px;border-radius:999px;font-weight:600;font-size:12.5px">${esc(normDomain(p.domain))}</div></div>
         <h2 class="detail-title">${esc(p.text)}</h2>
 
         <div class="metric-row" style="grid-template-columns:1fr 1fr">
@@ -961,7 +1016,7 @@ function renderDetail(el, p, opts){
 
         <div class="field"><label>حالة التنفيذ</label><div class="val"><span class="status-pill ${statusCls}">${esc(statusLabel)}</span></div></div>
         <div class="field"><label>المسؤول عن التنفيذ</label><div class="val">${esc(p.responsible||'—')}</div></div>
-        ${p.evidenceUrl?`<div class="field"><label>الشواهد</label><div class="val"><a href="${esc(p.evidenceUrl)}" target="_blank" rel="noopener" style="color:var(--blue);font-weight:700">فتح رابط الشاهد ↗</a></div></div>`:''}
+        ${p.evidenceUrl?`<div class="field"><label>الشواهد</label><div class="val"><a href="${esc(p.evidenceUrl)}" target="_blank" rel="noopener" style="color:var(--blue);font-weight:600">فتح رابط الشاهد ↗</a></div></div>`:''}
         ${p.notes?`<div class="field"><label>ملاحظات</label><div class="val">${esc(p.notes)}</div></div>`:''}
 
         <button type="button" class="btn primary" id="toggleActionsBtn" style="width:100%;justify-content:center;margin-top:8px">${icon('doc')} عرض الإجراءات والشواهد (${acts.length})</button>
@@ -988,7 +1043,7 @@ function renderDetail(el, p, opts){
     document.querySelectorAll('[data-edit-action]').forEach(b=>b.addEventListener('click', ()=>{
       openActionEditor(state.actions.find(a=>a.id===b.dataset.editAction), p, el);
     }));
-    document.querySelectorAll('[data-delete-action]').forEach(b=>b.addEventListener('click', async ()=>{
+    document.querySelectorAll('[data-delete-action]').forEach(b=>b.addEventListener('click', ()=>guardedAction(b, async ()=>{
       const id = b.dataset.deleteAction;
       const ok = await softDelete('actions', id, 'هل تريدين حذف هذا الإجراء؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
       if (ok){
@@ -997,7 +1052,7 @@ function renderDetail(el, p, opts){
         if (item) state.trash.actions.push(Object.assign({}, item, {deleted:true}));
         renderDetail(el, p, opts);
       }
-    }));
+    })));
     const addActionBtn = document.getElementById('addActionBtn');
     if (addActionBtn) addActionBtn.addEventListener('click', ()=>{ openActionEditor(null, p, el); });
   }
@@ -1031,8 +1086,10 @@ function openActionEditor(a, p, el){
   `;
   document.getElementById('actModalClose').addEventListener('click', ()=>modal.innerHTML='');
   document.getElementById('actModalBg').addEventListener('click', e=>{ if(e.target.id==='actModalBg') modal.innerHTML=''; });
-  document.getElementById('actForm').addEventListener('submit', async e=>{
+  document.getElementById('actForm').addEventListener('submit', e=>{
     e.preventDefault();
+    const submitBtn = e.target.querySelector('button[type=submit]');
+    guardedAction(submitBtn, async ()=>{
     const fd = new FormData(e.target);
     const patch = Object.fromEntries(fd.entries());
     const msg = document.getElementById('actSaveMsg');
@@ -1040,20 +1097,21 @@ function openActionEditor(a, p, el){
     if (isNew){
       const newId = 'a' + String(Date.now()).slice(-8);
       const row = Object.assign({id:newId, domain:p.domain, indicatorText:p.text}, patch);
-      const {error} = await sb.from('actions').insert(actionPatchToDb(row));
+      const {error} = await withTimeout(sb.from('actions').insert(actionPatchToDb(row)));
       if (!error){
         state.actions.push(row);
         msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
         setTimeout(()=>{ modal.innerHTML=''; renderDetail(el, p, {showAdminForm:true}); }, 500);
       } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
     } else {
-      const {error} = await sb.from('actions').update(actionPatchToDb(patch)).eq('id', a.id);
+      const {error} = await withTimeout(sb.from('actions').update(actionPatchToDb(patch)).eq('id', a.id));
       if (!error){
         Object.assign(a, patch);
         msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
         setTimeout(()=>{ modal.innerHTML=''; renderDetail(el, p, {showAdminForm:true}); }, 500);
       } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
     }
+    });
   });
 }
 
@@ -1095,28 +1153,31 @@ function adminPriorityForm(p){
 function wireAdminPriorityForm(p){
   const form = document.getElementById('priForm');
   if (!form) return;
-  form.addEventListener('submit', async e=>{
+  form.addEventListener('submit', e=>{
     e.preventDefault();
-    const fd = new FormData(form);
-    const patch = Object.fromEntries(fd.entries());
-    const msg = document.getElementById('priSaveMsg');
-    msg.textContent = 'جارِ الحفظ…'; msg.className='save-msg';
-    const {error} = await sb.from('priorities').update(priorityPatchToDb(patch)).eq('id', p.id);
-    if (!error){
-      Object.assign(p, patch);
-      msg.textContent = 'تم الحفظ ✓'; msg.className='save-msg ok';
-    } else {
-      msg.textContent = 'تعذّر الحفظ — حاولي مجددًا'; msg.className='save-msg err';
-    }
+    const submitBtn = form.querySelector('button[type=submit]');
+    guardedAction(submitBtn, async ()=>{
+      const fd = new FormData(form);
+      const patch = Object.fromEntries(fd.entries());
+      const msg = document.getElementById('priSaveMsg');
+      msg.textContent = 'جارِ الحفظ…'; msg.className='save-msg';
+      const {error} = await withTimeout(sb.from('priorities').update(priorityPatchToDb(patch)).eq('id', p.id));
+      if (!error){
+        Object.assign(p, patch);
+        msg.textContent = 'تم الحفظ ✓'; msg.className='save-msg ok';
+      } else {
+        msg.textContent = 'تعذّر الحفظ — حاولي مجددًا'; msg.className='save-msg err';
+      }
+    });
   });
   const archiveBtn = document.getElementById('archiveBtn');
-  if (archiveBtn) archiveBtn.addEventListener('click', async ()=>{
+  if (archiveBtn) archiveBtn.addEventListener('click', ()=>guardedAction(archiveBtn, async ()=>{
     const newVal = !p.archived;
-    const {error} = await sb.from('priorities').update({archived:newVal}).eq('id', p.id);
+    const {error} = await withTimeout(sb.from('priorities').update({archived:newVal}).eq('id', p.id));
     if (!error){ p.archived = newVal; state.selectedPriority=null; renderPriorities(document.getElementById('content')); }
-  });
+  }));
   const deleteBtn = document.getElementById('deletePriBtn');
-  if (deleteBtn) deleteBtn.addEventListener('click', async ()=>{
+  if (deleteBtn) deleteBtn.addEventListener('click', ()=>guardedAction(deleteBtn, async ()=>{
     const ok = await softDelete('priorities', p.id, 'هل تريدين حذف هذا المؤشر؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
     if (ok){
       state.priorities = state.priorities.filter(x=>x.id!==p.id);
@@ -1124,7 +1185,7 @@ function wireAdminPriorityForm(p){
       state.selectedPriority = null;
       renderPriorities(document.getElementById('content'));
     }
-  });
+  }));
 }
 
 /* ---------------- programs ---------------- */
@@ -1203,26 +1264,31 @@ function openProgramEditor(p){
   `;
   document.getElementById('modalClose').addEventListener('click', ()=>modal.innerHTML='');
   document.getElementById('modalBg').addEventListener('click', e=>{ if(e.target.id==='modalBg') modal.innerHTML=''; });
-  document.getElementById('progForm').addEventListener('submit', async e=>{
+  document.getElementById('progForm').addEventListener('submit', e=>{
     e.preventDefault();
+    const submitBtn = e.target.querySelector('button[type=submit]');
+    guardedAction(submitBtn, async ()=>{
     const fd = new FormData(e.target);
     const patch = Object.fromEntries(fd.entries());
     if (patch.executed==='true') patch.executed = true; else if (patch.executed==='false') patch.executed=false; else patch.executed=null;
     const msg = document.getElementById('progSaveMsg');
     msg.textContent='جارِ الحفظ…'; msg.className='save-msg';
-    const {error} = await sb.from('programs').update(programPatchToDb(patch)).eq('id', p.id);
+    const {error} = await withTimeout(sb.from('programs').update(programPatchToDb(patch)).eq('id', p.id));
     if (!error){
       Object.assign(p, patch);
       msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
       setTimeout(()=>{modal.innerHTML='';}, 700);
     } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+    });
   });
-  document.getElementById('archiveProgBtn').addEventListener('click', async ()=>{
+  const archiveProgBtn = document.getElementById('archiveProgBtn');
+  archiveProgBtn.addEventListener('click', ()=>guardedAction(archiveProgBtn, async ()=>{
     const newVal = !p.archived;
-    const {error} = await sb.from('programs').update({archived:newVal}).eq('id', p.id);
+    const {error} = await withTimeout(sb.from('programs').update({archived:newVal}).eq('id', p.id));
     if (!error){ p.archived = newVal; modal.innerHTML=''; renderPrograms(document.getElementById('content')); }
-  });
-  document.getElementById('deleteProgBtn').addEventListener('click', async ()=>{
+  }));
+  const deleteProgBtn = document.getElementById('deleteProgBtn');
+  deleteProgBtn.addEventListener('click', ()=>guardedAction(deleteProgBtn, async ()=>{
     const ok = await softDelete('programs', p.id, 'هل تريدين حذف هذا البرنامج؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
     if (ok){
       state.programs = state.programs.filter(x=>x.id!==p.id);
@@ -1230,7 +1296,7 @@ function openProgramEditor(p){
       modal.innerHTML='';
       renderPrograms(document.getElementById('content'));
     }
-  });
+  }));
 }
 
 /* ---------------- evidence ---------------- */
@@ -1291,8 +1357,10 @@ function wireEvidenceAddForm(){
     evUrlWrap.classList.toggle('hidden', isText);
     evTextWrap.classList.toggle('hidden', !isText);
   });
-  form.addEventListener('submit', async e=>{
+  form.addEventListener('submit', e=>{
     e.preventDefault();
+    const submitBtn = form.querySelector('button[type=submit]');
+    guardedAction(submitBtn, async ()=>{
     const fd = new FormData(form);
     const id = fd.get('priorityId');
     const evType = fd.get('evType');
@@ -1302,7 +1370,7 @@ function wireEvidenceAddForm(){
     if (evType !== 'text' && !url){ msg.textContent='أدخلي رابطًا صحيحًا'; msg.className='save-msg err'; return; }
     if (evType === 'text' && !note){ msg.textContent='أدخلي نصًا'; msg.className='save-msg err'; return; }
     msg.textContent = 'جارِ الحفظ…'; msg.className = 'save-msg';
-    const {error} = await sb.from('priorities').update({evidence_url: url, evidence_type: evType, evidence_note: note}).eq('id', id);
+    const {error} = await withTimeout(sb.from('priorities').update({evidence_url: url, evidence_type: evType, evidence_note: note}).eq('id', id));
     if (!error){
       const p = state.priorities.find(x=>x.id===id);
       if (p){ p.evidenceUrl = url; p.evidenceType = evType; p.evidenceNote = note; }
@@ -1312,6 +1380,7 @@ function wireEvidenceAddForm(){
     } else {
       msg.textContent = 'تعذّر الحفظ — حاولي مجددًا'; msg.className = 'save-msg err';
     }
+    });
   });
 }
 
@@ -1349,15 +1418,15 @@ function renderEvidence(c){
   `;
   if (canEdit()){
     wireEvidenceAddForm();
-    c.querySelectorAll('[data-remove-ev]').forEach(b=>b.addEventListener('click', async ()=>{
+    c.querySelectorAll('[data-remove-ev]').forEach(b=>b.addEventListener('click', ()=>guardedAction(b, async ()=>{
       const id = b.dataset.removeEv;
-      const {error} = await sb.from('priorities').update({evidence_url: '', evidence_type: 'link', evidence_note: ''}).eq('id', id);
+      const {error} = await withTimeout(sb.from('priorities').update({evidence_url: '', evidence_type: 'link', evidence_note: ''}).eq('id', id));
       if (!error){
         const p = state.priorities.find(x=>x.id===id);
         if (p){ p.evidenceUrl = ''; p.evidenceType = 'link'; p.evidenceNote = ''; }
         renderEvidence(c);
       }
-    }));
+    })));
   }
   renderQRCodes(withEvidence.filter(p=>p.evidenceType!=='text' && !(detectEvidenceSource(p).label==='يوتيوب' && youtubeEmbedUrl(p.evidenceUrl))));
 }
@@ -1404,33 +1473,36 @@ function renderTeam(c){
   `;
   if (canEdit()){
     const form = document.getElementById('teamAddForm');
-    form.addEventListener('submit', async e=>{
+    form.addEventListener('submit', e=>{
       e.preventDefault();
+      const submitBtn = form.querySelector('button[type=submit]');
+      guardedAction(submitBtn, async ()=>{
       const fd = new FormData(form);
       const name = fd.get('name'), role = fd.get('role')||'', task = fd.get('task')||'';
       const msg = document.getElementById('teamSaveMsg');
       msg.textContent = 'جارِ الحفظ…'; msg.className='save-msg';
       const newId = 't' + String(Date.now()).slice(-8);
-      const {error} = await sb.from('team').insert({id:newId, name, role, task});
+      const {error} = await withTimeout(sb.from('team').insert({id:newId, name, role, task}));
       if (!error){
         state.team.push({id:newId, name, role, task});
         msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
         form.reset();
         renderTeam(c);
       } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+      });
     });
-    c.querySelectorAll('[data-team-field]').forEach(inp=>inp.addEventListener('change', async ()=>{
+    c.querySelectorAll('[data-team-field]').forEach(inp=>inp.addEventListener('change', ()=>guardedAction(inp, async ()=>{
       const id = inp.dataset.id, field = inp.dataset.teamField, val = inp.value;
       const t = state.team.find(x=>x.id===id);
       const msg = document.getElementById('teamRowMsg-'+id);
       if (msg){ msg.textContent='جارِ الحفظ…'; msg.className='save-msg'; }
-      const {error} = await sb.from('team').update({[field]: val}).eq('id', id);
+      const {error} = await withTimeout(sb.from('team').update({[field]: val}).eq('id', id));
       if (!error){
         if (t) t[field] = val;
         if (msg){ msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok'; }
       } else if (msg){ msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
-    }));
-    c.querySelectorAll('[data-remove-team]').forEach(b=>b.addEventListener('click', async ()=>{
+    })));
+    c.querySelectorAll('[data-remove-team]').forEach(b=>b.addEventListener('click', ()=>guardedAction(b, async ()=>{
       const id = b.dataset.removeTeam;
       const ok = await softDelete('team', id, 'هل تريدين حذف هذا العضو؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
       if (ok){
@@ -1439,7 +1511,7 @@ function renderTeam(c){
         if (item) state.trash.team.push(Object.assign({}, item, {deleted:true}));
         renderTeam(c);
       }
-    }));
+    })));
   }
 }
 
@@ -1530,8 +1602,10 @@ function renderSettings(c){
       </form>
     </div></div>
   `;
-  document.getElementById('settingsForm').addEventListener('submit', async e=>{
+  document.getElementById('settingsForm').addEventListener('submit', e=>{
     e.preventDefault();
+    const submitBtn = e.target.querySelector('button[type=submit]');
+    guardedAction(submitBtn, async ()=>{
     const fd = new FormData(e.target);
     const patch = Object.fromEntries(fd.entries());
     const msg = document.getElementById('settingsSaveMsg');
@@ -1553,12 +1627,13 @@ function renderSettings(c){
     const dbPatch = Object.assign(metaPatchToDb(patch), {
       staff: newStaff, learning_outcomes: newLo, quick_summary: newQs, monitoring_officials: newMo,
     });
-    const {error} = await sb.from('meta').update(dbPatch).eq('id','main');
+    const {error} = await withTimeout(sb.from('meta').update(dbPatch).eq('id','main'));
     if (!error){
       Object.assign(state.meta, patch, {staff:newStaff, learningOutcomes:newLo, quickSummary:newQs, monitoringOfficials:newMo});
       msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
       render();
     } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+    });
   });
 }
 
@@ -1646,8 +1721,10 @@ function openAnalysisEditor(a, c){
   `;
   document.getElementById('anModalClose').addEventListener('click', ()=>modal.innerHTML='');
   document.getElementById('anModalBg').addEventListener('click', e=>{ if(e.target.id==='anModalBg') modal.innerHTML=''; });
-  document.getElementById('anForm').addEventListener('submit', async e=>{
+  document.getElementById('anForm').addEventListener('submit', e=>{
     e.preventDefault();
+    const submitBtn = e.target.querySelector('button[type=submit]');
+    guardedAction(submitBtn, async ()=>{
     const fd = new FormData(e.target);
     const patch = Object.fromEntries(fd.entries());
     const msg = document.getElementById('anSaveMsg');
@@ -1655,23 +1732,25 @@ function openAnalysisEditor(a, c){
     if (isNew){
       const newId = 'da' + String(Date.now()).slice(-8);
       const row = Object.assign({id:newId}, patch);
-      const {error} = await sb.from('domain_analysis').insert(Object.assign({id:newId}, domainAnalysisPatchToDb(patch)));
+      const {error} = await withTimeout(sb.from('domain_analysis').insert(Object.assign({id:newId}, domainAnalysisPatchToDb(patch))));
       if (!error){
         state.domainAnalysis.push(row);
         msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
         setTimeout(()=>{ modal.innerHTML=''; renderAnalysis(c); }, 500);
       } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
     } else {
-      const {error} = await sb.from('domain_analysis').update(domainAnalysisPatchToDb(patch)).eq('id', a.id);
+      const {error} = await withTimeout(sb.from('domain_analysis').update(domainAnalysisPatchToDb(patch)).eq('id', a.id));
       if (!error){
         Object.assign(a, patch);
         msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
         setTimeout(()=>{ modal.innerHTML=''; renderAnalysis(c); }, 500);
       } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
     }
+    });
   });
   if (!isNew){
-    document.getElementById('deleteAnalysisBtn').addEventListener('click', async ()=>{
+    const deleteAnalysisBtn = document.getElementById('deleteAnalysisBtn');
+    deleteAnalysisBtn.addEventListener('click', ()=>guardedAction(deleteAnalysisBtn, async ()=>{
       const ok = await softDelete('domain_analysis', a.id, 'هل تريدين حذف هذا العنصر؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
       if (ok){
         state.domainAnalysis = state.domainAnalysis.filter(x=>x.id!==a.id);
@@ -1679,7 +1758,7 @@ function openAnalysisEditor(a, c){
         modal.innerHTML='';
         renderAnalysis(c);
       }
-    });
+    }));
   }
 }
 function openNoteEditor(domain, c){
@@ -1700,21 +1779,24 @@ function openNoteEditor(domain, c){
   `;
   document.getElementById('noteModalClose').addEventListener('click', ()=>modal.innerHTML='');
   document.getElementById('noteModalBg').addEventListener('click', e=>{ if(e.target.id==='noteModalBg') modal.innerHTML=''; });
-  document.getElementById('noteForm').addEventListener('submit', async e=>{
+  document.getElementById('noteForm').addEventListener('submit', e=>{
     e.preventDefault();
+    const submitBtn = e.target.querySelector('button[type=submit]');
+    guardedAction(submitBtn, async ()=>{
     const notesText = new FormData(e.target).get('notesText');
     const msg = document.getElementById('noteSaveMsg');
     msg.textContent='جارِ الحفظ…'; msg.className='save-msg';
     if (note){
-      const {error} = await sb.from('domain_notes').update({notes_text:notesText}).eq('id', note.id);
+      const {error} = await withTimeout(sb.from('domain_notes').update({notes_text:notesText}).eq('id', note.id));
       if (!error){ note.notesText = notesText; msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok'; setTimeout(()=>{modal.innerHTML='';renderAnalysis(c);},500); }
       else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
     } else {
       const newId = 'dn' + String(Date.now()).slice(-8);
-      const {error} = await sb.from('domain_notes').insert({id:newId, domain, title:domain, notes_text:notesText});
+      const {error} = await withTimeout(sb.from('domain_notes').insert({id:newId, domain, title:domain, notes_text:notesText}));
       if (!error){ state.domainNotes.push({id:newId, domain, title:domain, notesText}); msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok'; setTimeout(()=>{modal.innerHTML='';renderAnalysis(c);},500); }
       else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
     }
+    });
   });
 }
 
@@ -1783,8 +1865,10 @@ function openImprovementEditor(p, c){
   `;
   document.getElementById('impModalClose').addEventListener('click', ()=>modal.innerHTML='');
   document.getElementById('impModalBg').addEventListener('click', e=>{ if(e.target.id==='impModalBg') modal.innerHTML=''; });
-  document.getElementById('impForm').addEventListener('submit', async e=>{
+  document.getElementById('impForm').addEventListener('submit', e=>{
     e.preventDefault();
+    const submitBtn = e.target.querySelector('button[type=submit]');
+    guardedAction(submitBtn, async ()=>{
     const fd = new FormData(e.target);
     const patch = Object.fromEntries(fd.entries());
     const msg = document.getElementById('impSaveMsg');
@@ -1792,23 +1876,25 @@ function openImprovementEditor(p, c){
     if (isNew){
       const newId = 'pi' + String(Date.now()).slice(-8);
       const row = Object.assign({id:newId}, patch);
-      const {error} = await sb.from('plan_improvements').insert(Object.assign({id:newId}, planImprovementPatchToDb(patch)));
+      const {error} = await withTimeout(sb.from('plan_improvements').insert(Object.assign({id:newId}, planImprovementPatchToDb(patch))));
       if (!error){
         state.planImprovements.push(row);
         msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
         setTimeout(()=>{ modal.innerHTML=''; renderImprovement(c); }, 500);
       } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
     } else {
-      const {error} = await sb.from('plan_improvements').update(planImprovementPatchToDb(patch)).eq('id', p.id);
+      const {error} = await withTimeout(sb.from('plan_improvements').update(planImprovementPatchToDb(patch)).eq('id', p.id));
       if (!error){
         Object.assign(p, patch);
         msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
         setTimeout(()=>{ modal.innerHTML=''; renderImprovement(c); }, 500);
       } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
     }
+    });
   });
   if (!isNew){
-    document.getElementById('deleteImpBtn').addEventListener('click', async ()=>{
+    const deleteImpBtn = document.getElementById('deleteImpBtn');
+    deleteImpBtn.addEventListener('click', ()=>guardedAction(deleteImpBtn, async ()=>{
       const ok = await softDelete('plan_improvements', p.id, 'هل تريدين حذف هذا العنصر؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
       if (ok){
         state.planImprovements = state.planImprovements.filter(x=>x.id!==p.id);
@@ -1816,7 +1902,7 @@ function openImprovementEditor(p, c){
         modal.innerHTML='';
         renderImprovement(c);
       }
-    });
+    }));
   }
 }
 
@@ -1844,7 +1930,7 @@ function renderTrash(c){
       </div>
     </div>
   `;
-  c.querySelectorAll('[data-restore]').forEach(b=>b.addEventListener('click', async ()=>{
+  c.querySelectorAll('[data-restore]').forEach(b=>b.addEventListener('click', ()=>guardedAction(b, async ()=>{
     const id = b.dataset.restore, type = b.dataset.restoreType;
     const tableMap = {priorities:'priorities', programs:'programs', team:'team', actions:'actions', domainAnalysis:'domain_analysis', planImprovements:'plan_improvements'};
     const ok = await restoreFromTrash(tableMap[type], id);
@@ -1862,14 +1948,15 @@ function renderTrash(c){
       }
       renderTrash(c);
     }
-  }));
+  })));
 }
 
 /* ---------------- Excel export (styled workbook via ExcelJS, real browser download) ---------------- */
 const XL_NAVY='FF15445A', XL_WHITE='FFFFFFFF', XL_BORDER='FFD9E3DE', XL_STRIPE='FFF4F6F6';
 const XL_PAGE_MARGINS = {left:0.35, right:0.35, top:0.5, bottom:0.5, header:0.2, footer:0.2};
 function xlPageSetup(withTitlesRow){
-  const setup = {paperSize:9, orientation:'landscape', fitToPage:true, fitToWidth:1, fitToHeight:0, margins:XL_PAGE_MARGINS, horizontalCentered:true};
+  const orientation = state.printOrientation === 'portrait' ? 'portrait' : 'landscape';
+  const setup = {paperSize:9, orientation, fitToPage:true, fitToWidth:1, fitToHeight:0, margins:XL_PAGE_MARGINS, horizontalCentered:true};
   if (withTitlesRow) setup.printTitlesRow = '1:1';
   return setup;
 }
@@ -2107,11 +2194,19 @@ async function exportExcel(){
 
 /* ---------------- real PDF export (html2canvas + jsPDF, row-safe pagination) ---------------- */
 const PDF_MARGIN_MM = 10;
-const PDF_PAGE_W_MM = 297, PDF_PAGE_H_MM = 210;
-const PDF_CONTENT_W_MM = PDF_PAGE_W_MM - PDF_MARGIN_MM*2;
-const PDF_CONTENT_H_MM = PDF_PAGE_H_MM - PDF_MARGIN_MM*2;
-const PDF_CAPTURE_WIDTH_PX = 1400;
-const PDF_MM_PER_PX = PDF_CONTENT_W_MM / PDF_CAPTURE_WIDTH_PX;
+const PDF_PX_PER_MM = 1400 / (297 - PDF_MARGIN_MM*2); // fixed physical scale (~128dpi), same in both orientations
+let PDF_PAGE_W_MM = 297, PDF_PAGE_H_MM = 210;
+let PDF_CONTENT_W_MM = PDF_PAGE_W_MM - PDF_MARGIN_MM*2;
+let PDF_CONTENT_H_MM = PDF_PAGE_H_MM - PDF_MARGIN_MM*2;
+let PDF_CAPTURE_WIDTH_PX = 1400;
+let PDF_MM_PER_PX = 1 / PDF_PX_PER_MM;
+function configurePdfGeometry(orientation){
+  if (orientation === 'portrait'){ PDF_PAGE_W_MM = 210; PDF_PAGE_H_MM = 297; }
+  else { PDF_PAGE_W_MM = 297; PDF_PAGE_H_MM = 210; }
+  PDF_CONTENT_W_MM = PDF_PAGE_W_MM - PDF_MARGIN_MM*2;
+  PDF_CONTENT_H_MM = PDF_PAGE_H_MM - PDF_MARGIN_MM*2;
+  PDF_CAPTURE_WIDTH_PX = Math.round(PDF_CONTENT_W_MM * PDF_PX_PER_MM);
+}
 const PDF_RENDER_SCALE = 2;
 
 async function waitForPendingSaves(){
@@ -2255,6 +2350,7 @@ async function exportPdfReal(){
   btn.disabled = true;
   let capture = null;
   try{
+    configurePdfGeometry(state.printOrientation);
     btn.innerHTML = `${icon('print')} جارِ تحديث البيانات…`;
     await waitForPendingSaves();
     await loadAll();
@@ -2323,7 +2419,7 @@ async function exportPdfReal(){
     if (!pages.length) throw new Error('تعذّر تقسيم المحتوى إلى صفحات');
 
     const {jsPDF} = window.jspdf;
-    const pdf = new jsPDF({orientation:'landscape', unit:'mm', format:'a4'});
+    const pdf = new jsPDF({orientation: state.printOrientation === 'portrait' ? 'portrait' : 'landscape', unit:'mm', format:'a4'});
 
     pages.forEach((segs, pageIdx)=>{
       if (pageIdx > 0) pdf.addPage();
