@@ -206,14 +206,20 @@
     say(q.opList ? LF.ask : L.op);
     choice(q.opTitle || '🧮 ماذا نستعمل؟', list, list.indexOf(q.op), function (box) {
       box.querySelector('.msg').innerHTML = (q.opList ? '<div class="lampon">💡 ' + (q.op === 'إجابة تقريبية' ? 'قرّبي!' : 'احسبي بالضبط!') + '</div>' : '') + '<span class="g">✔ ' + (q.opWhy || '') + '</span>';
-      ansStage();
+      if (q.pre) preStage(); else ansStage();
     }, function (box, o) { if (q.opHint) { box.querySelector('.msg').innerHTML = '<div class="why blk"><b>🤔 فكّري مرة ثانية.</b><br>' + q.opHint + '</div>'; say(q.op === 'إجابة تقريبية' ? LF.approx : LF.exact); return; }
       box.querySelector('.msg').innerHTML = '<div class="why blk"><b>🤔 فكّري مرة ثانية.</b><br>انظري إلى الكلمة الملوّنة في السؤال: «يتبقّى، الباقي، الفرق، يزيد، أقلّ» تدلّ على الطرح، و«المجموع، الكل، معًا» تدلّ على الجمع.</div><span class="r">' + L.reread + '</span>'; say(L.reread); });
+  }
+  // خطوة صغيرة قبل الإجابة (تقريب العدد أو الجمع بالضبط)
+  function preStage() {
+    var q = R.list[R.i].inst, pr = q.pre;
+    choice(pr.title, pr.opts.map(fmt), 0, function (box) { box.querySelector('.msg').innerHTML = '<span class="g">✔ أحسنتِ! اكتبيها فوق المسألة.</span>'; ansStage(); },
+      function (box) { box.querySelector('.msg').innerHTML = '<div class="why blk"><b>🤔 فكّري مرة ثانية.</b><br>' + pr.hint + '</div>'; say(pick(AGAIN)); });
   }
   function ansStage() {
     var Q = R.list[R.i], q = Q.inst;
     say(q.kind === 'calc' ? L.order : L.solve);
-    var box = el('<div class="stage"><h3>✏️ ' + (q.opList ? 'اكتبي الحل في ورقتكِ <u>فوق المسألة</u> أولًا، ثم اختاري:' : q.kind === 'mc' ? 'اختاري الإجابة:' : 'حُلّي في ورقتكِ، ثم اختاري الإجابة:') + '</h3><div class="opts"></div><div class="msg"></div></div>');
+    var box = el('<div class="stage"><h3>✏️ ' + (q.ansTitle ? q.ansTitle : q.opList ? 'اكتبي الحل في ورقتكِ <u>فوق المسألة</u> أولًا، ثم اختاري:' : q.kind === 'mc' ? 'اختاري الإجابة:' : 'حُلّي في ورقتكِ، ثم اختاري الإجابة:') + '</h3><div class="opts"></div><div class="msg"></div></div>');
     var order = shuffle(q.opts.map(function (x, i) { return i; }));
     order.forEach(function (i) {
       var o = el('<button class="opt blk" data-i="' + i + '">' + fmt(q.opts[i]) + '</button>');
