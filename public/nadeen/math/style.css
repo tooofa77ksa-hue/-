@@ -128,3 +128,7 @@ mark{background:#FFE58A;border-radius:6px;padding:0 4px;color:inherit}
 .exam{padding:12px;margin-bottom:12px;background:#EFF6FF;border-color:#1D4ED8}
 .exam b{font:800 17px/1.6 B}
 .exam ol{margin:6px 0 8px;padding-right:20px;font:600 15px/1.9 R}
+.plan{padding:10px 14px;margin:6px 0 12px;background:#FFFBEA;font:600 16px/1.8 R}
+.plan b{font:800 18px B;display:block}
+.plan div{font:800 17px/1.8 B;color:#7B5CFF}
+.plan small{color:var(--ink2)}
