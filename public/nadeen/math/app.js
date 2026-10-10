@@ -83,7 +83,8 @@
     h += '<button class="tile blk" style="--c:#0F766E" id="tips"><span class="ic">💡</span><span><b>نصائح يوم الاختبار</b><small>اقرئيها ليلة الاختبار</small></span></button>';
     $('#secs').innerHTML = h;
     document.querySelectorAll('[data-sec]').forEach(function (b) { b.onclick = function () { secList(b.dataset.sec); }; });
-    $('#quick').onclick = function () { stop(); var p = shuffle(M.ITEMS.filter(function (i) { return i.gen; })).slice(0, 10); run(p.map(function (i) { return { it: i, inst: i.gen(), quick: 1 }; }), 'اختبار سريع', true); };
+    $('#quick').onclick = function () { stop(); // كل اختبار سريع فيه مسألتا «ركّزي هنا» (٤ و٥) + ٨ من باقي الموقع
+      var p = shuffle([BY.f55_4, BY.f55_5].concat(shuffle(M.ITEMS.filter(function (i) { return i.gen && i.sec !== 'f'; })).slice(0, 8))); run(p.map(function (i) { return { it: i, inst: i.gen(), quick: 1 }; }), 'اختبار سريع', true); };
     $('#mist').onclick = function () { stop(); var p = Object.keys(S.wrong).map(function (id) { return BY[id]; }).filter(Boolean); say(L.redo); run(p.map(function (i) { return { it: i, inst: i.gen ? i.gen() : i.orig() }; }), 'أسئلة نتدرّب عليها'); };
     $('#tips').onclick = tips;
     show('home');
