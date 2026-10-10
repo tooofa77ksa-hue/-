@@ -66,6 +66,7 @@ textarea{width:100%;min-height:220px;border:2px solid var(--line);border-radius:
 </style>
 </head>
 <body>
+<div id="nojs" style="background:#ffe08a;border:3px solid #e2a400;border-radius:16px;margin:12px;padding:12px;font-size:18px;line-height:1.7;text-align:center">⚠️ إذا الأزرار ما تشتغل: الجوال فتح الملف كصورة بس.<br>افتح الرابط هذا في Safari أو Chrome:<br><a href="https://tooofa77ksa-hue.github.io/-/saleh/animal-environments/" style="font-weight:800;direction:ltr;display:inline-block">tooofa77ksa-hue.github.io/-/saleh/animal-environments/</a></div>
 <main id="main"></main>
 <div class="nav"><button class="btn w" id="prev" type="button">→ السابق</button><button class="btn g" id="next" type="button">التالي ←</button></div>
 <script>
@@ -144,6 +145,7 @@ function write(){var c=el('div','card');c.appendChild(el('h2',null,'✍️ ان�
   function chk(){S.text=ta.value;save();var t=' '+norm(ta.value)+' ',n=0;ck.innerHTML='';ESS.forEach(function(s,i){var ok=t.indexOf(' '+norm(s[0])+' ')>=0;if(ok)n++;ck.appendChild(el('div',null,(ok?'✅ ':'⬜ ')+(i+1)+'. '+s[0]))});if(n===ESS.length){if(!chk.done){chk.done=1;cheer()}ck.appendChild(el('div',null,'<b>🏆 كتبت التعبير كامل! برافو عليك!</b>'))}}
   ta.oninput=chk;chk();
   var r=el('div','row');r.appendChild(btn('btn g','✅ كتبته في الورقة',function(){cheer();play(['a17'])}));main.appendChild(r)}
+var nj=document.getElementById('nojs');if(nj)nj.remove();
 go(0);
 })();
 </script>
