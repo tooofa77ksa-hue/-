@@ -175,7 +175,11 @@
     setTimeout(function () { b.classList.add('go'); }, 30);
     if (R.i === 0 || Math.random() < .35) say(L.read);
     setTimeout(function () { b.disabled = false; b.querySelector('.lb').textContent = '✔ قرأتُ السؤال'; }, ms);
-    b.onclick = function () { b.remove(); if (q.kind === 'word' && !R.quick) needStage(); else ansStage(); };
+    b.onclick = function () { b.remove();
+      if (q.pre) { // مسائل «ركّزي هنا»: خطوتان بسيطتان فقط
+        $('#qStage').appendChild(el('<div class="lampon">' + q.lampTxt + '</div>'));
+        say(q.op === 'إجابة تقريبية' ? LF.approx : LF.exact); preStage(); return; }
+      if (q.kind === 'word' && !R.quick) needStage(); else ansStage(); };
   }
   function choice(title, list, okIdx, onOk, onBad) {
     var box = el('<div class="stage"><h3>' + title + '</h3><div class="opts"></div><div class="msg"></div></div>');
