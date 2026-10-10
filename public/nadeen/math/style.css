@@ -120,3 +120,11 @@ mark{background:#FFE58A;border-radius:6px;padding:0 4px;color:inherit}
 .rr span{background:#fff;border:2px solid #FCD34D;border-radius:12px;padding:8px;font:600 15px/1.8 R}
 .exsay{margin-bottom:10px}
 @media (max-width:420px){.rr{grid-template-columns:1fr}}
+.lamps{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0}
+.lampb{background:#FEF3C7;border:2px solid #F59E0B;border-radius:20px;padding:4px 10px;font:600 15px R;animation:lamp 1.6s ease-in-out infinite}
+.lampon{display:inline-block;background:#FDE68A;border:2px solid #F59E0B;border-radius:20px;padding:4px 12px;font:800 18px B;margin:4px 0;animation:lamp 1.2s ease-in-out infinite}
+.lampon.sm{font-size:15px;padding:1px 8px;margin:0 4px}
+@keyframes lamp{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,.0);filter:brightness(1)}50%{box-shadow:0 0 14px 4px rgba(251,191,36,.75);filter:brightness(1.12)}}
+.exam{padding:12px;margin-bottom:12px;background:#EFF6FF;border-color:#1D4ED8}
+.exam b{font:800 17px/1.6 B}
+.exam ol{margin:6px 0 8px;padding-right:20px;font:600 15px/1.9 R}

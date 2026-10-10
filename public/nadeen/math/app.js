@@ -31,8 +31,8 @@
     ex3: 'وقبلَ أن تسلّمي الورقة، راجعيها من أوّلِها إلى آخرِها.',
     bye: 'وفّقكِ اللهُ يا بطلة.'
   };
-  var LF = { intro: 'هذه المسائلُ طلبتِ المعلّمةُ منّا التركيزَ عليها، فلنركّزْ جيّدًا.', ask: 'أوّلًا نسأل: هل المطلوبُ إجابةٌ تقريبيّة، أم إجابةٌ دقيقة؟',
-    approx: 'إذا وجدتِ كلمةَ «تقريبًا»، فالمطلوبُ إجابةٌ تقريبيّة: نقرّبُ الأعدادَ أوّلًا، ثم نحسب.', exact: 'وإذا كان السؤال: هل يكفي؟ أو: هل يمكنهم؟ فنحسبُ الإجابةَ الدقيقة.' };
+  var FL = ["ركّزي هنا، هذه المسائلُ مهمّة، طلبتِ المعلّمةُ منّا التركيزَ عليها.", "قبل أن نحلَّ أيَّ مسألة، نسألُ سؤالًا واحدًا: هل المطلوبُ إجابةٌ تقريبيّة، أم إجابةٌ دقيقة؟", "احفظي هذه الجملة: «تقريبًا» يعني: قَرِّبي.", "كلمةُ «تقريبًا» فيها حروفُ كلمةِ «قرّبي»، فإذا رأيتِها، قرّبي الأعدادَ أوّلًا، ثم احسبي.", "تخيّلي لمبةً صغيرةً تُضيءُ في رأسِكِ كلّما رأيتِ كلمةَ «تقريبًا»، واللمبةُ تقولُ لكِ: قرّبي!", "وإذا رأيتِ: هل يكفي؟ أو: هل يمكنهم؟ تُضيءُ اللمبةُ وتقول: احسبي بالضبط!", "المسألةُ الرابعة: شاركت خمسون طالبةً في رحلةٍ إلى المتحفِ الوطنيّ السعوديّ، منهنّ ستٌّ وثلاثون طالبةً من الصفّ الرابع.", "والسؤال: ما عددُ طالباتِ الصفّ الخامس تقريبًا؟", "رأينا كلمةَ «تقريبًا»، فأضاءتِ اللمبة: قرّبي أوّلًا.", "نقرّبُ ستًّا وثلاثين إلى أقربِ عشرة: الآحادُ ستّة، والستّةُ أكبرُ من خمسة، فنصعدُ إلى العشرةِ التالية، فتصبحُ أربعين.", "الآن نطرح: خمسون ناقصَ أربعين يساوي عشرة.", "إذن عددُ طالباتِ الصفّ الخامس عشرُ طالباتٍ تقريبًا.", "المسألةُ الخامسة: مجموعتان من الطلّاب، الأولى اثنان وتسعون طالبًا، والثانيةُ مئةٌ وسبعةُ طلّاب، والمدرّجُ يتّسعُ لمئتي شخص.", "والسؤال: هل يمكنهم حضورُ الحفل؟", "رأينا: هل يمكنهم؟ فأضاءتِ اللمبة: احسبي بالضبط.", "لماذا لا نقرّبُ هنا؟ لو قرّبنا لصار المجموعُ مئتين، وهو نفسُ عددِ المقاعد، فلا نعرفُ هل يكفي أم لا.", "نجمعُ بالضبط: اثنان وتسعون زائدَ مئةٍ وسبعة يساوي مئةً وتسعةً وتسعين.", "مئةٌ وتسعةٌ وتسعون أقلُّ من مئتين، إذن نعم، يمكنهم حضورُ الحفل، ويبقى مقعدٌ واحدٌ فارغ.", "وفي الاختبار، حتى لو كانتِ الإجابةُ اختيارًا من متعدّد، لا تختاري مباشرة.", "اكتبي فوقَ المسألةِ بقلمِ الرصاص: تقريبيّة أم دقيقة، ثم قرّبي الأعدادَ إذا كان المطلوبُ تقريبًا، ثم احسبي.", "بعدَ أن تكتبي الحلَّ فوقَ المسألة، ابحثي عن إجابتِكِ بين الاختيارات، وضعي عليها دائرة.", "تذكّري دائمًا: «تقريبًا» يعني قرّبي، و«هل يكفي؟» يعني احسبي بالضبط.", "وفي النهاية تحقّقي: هل إجابتُكِ منطقيّة؟", "أحسنتِ! الآن جرّبي مسائلَ شبيهة: مرّةً بالأرقامِ نفسِها، ومرّةً بأرقامٍ جديدة."];
+  var LF = { intro: FL[0], ask: FL[1], approx: FL[4], exact: FL[5], rule: [FL[1], FL[2], FL[3], FL[4], FL[5], FL[21]], exam: [FL[18], FL[19], FL[20]] };
   var GOOD = ['ممتازة! قرأتِ، وتمهّلتِ، ثم أجبتِ.', 'أحسنتِ! إجابةٌ صحيحة.', 'برافو عليكِ! هكذا تفعلُ البطلات.', 'رائعة! تمهُّلُكِ صنعَ الفرق.', 'ما شاءَ الله! حلٌّ دقيق.', 'أحسنتِ، لأنكِ تحقّقتِ من إجابتِكِ.'];
   var AGAIN = ['حاولي مرّةً أخرى، أنتِ قادرة.', 'ارجعي إلى الكلمةِ المهمّةِ في السؤال.', 'الخطأُ يعلّمُنا. جرّبي مرّةً أخرى.'];
   var AGAIN_CALC = ['تحقّقي من إعادةِ التجميع، ثم جرّبي من جديد.', 'حاولي مرّةً أخرى، أنتِ قادرة.', 'الخطأُ يعلّمُنا. جرّبي مرّةً أخرى.'];
@@ -95,7 +95,9 @@
     $('#secT').textContent = s.t; $('#secS').textContent = s.s;
     var h = k === 'f' ? '<div class="rule blk"><b>📌 القاعدة: قبل أن تحلّي اسألي نفسك: تقريبية أم دقيقة؟</b>' +
       '<div class="rr"><span>🎯 في السؤال كلمة <mark>«تقريبًا»</mark><br>← قرّبي الأعداد أولًا، ثم احسبي</span><span>✅ السؤال <mark>«هل يكفي؟ هل يمكنهم؟ بالضبط»</mark><br>← احسبي الإجابة الدقيقة</span></div>' +
-      '<button class="btn sm" id="ruleSay">🔊 اسمعي القاعدة</button> <button class="btn sm v" id="typeR">⚡ جولة: تقدير أم دقيقة؟</button></div>' : '';
+      '<div class="lamps"><span class="lampb">💡 «تقريبًا» ← <b>قرّبي!</b></span><span class="lampb">💡 «هل يكفي؟» ← <b>احسبي بالضبط!</b></span></div>' +
+      '<button class="btn sm" id="ruleSay">🔊 اسمعي القاعدة</button> <button class="btn sm v" id="typeR">⚡ جولة: تقدير أم دقيقة؟</button></div>' +
+      '<div class="exam blk"><b>📝 تعليمة الاختبار — حتى لو كانت الإجابة اختيارًا من متعدّد:</b><ol><li>✏️ اكتبي <b>فوق المسألة</b> بقلم الرصاص: <b>تقريبية أم دقيقة؟</b></li><li>🔢 قرّبي الأعداد (إذا كان المطلوب تقريبًا)، ثم احسبي <b>فوق المسألة</b>.</li><li>⭕ ابحثي عن إجابتكِ بين الاختيارات، وضعي عليها دائرة.</li></ol><button class="btn sm" id="examSay">🔊 اسمعي تعليمة الاختبار</button></div>' : '';
     its.forEach(function (i) {
       var q = i.orig(), txt = (q.q || '').replace(/<[^>]+>/g, '');
       h += '<button class="row blk" data-id="' + i.id + '"><span class="ok">' + (S.done[i.id] ? '✅' : '⬜') + '</span><span class="rt"><small>' + i.src + '</small>' + (q.kind === 'calc' ? '<span class="mini">' + q.big + '</span>' : '<span>' + txt.slice(0, 70) + (txt.length > 70 ? '…' : '') + '</span>') + '</span></button>';
@@ -103,7 +105,8 @@
     $('#rows').innerHTML = h;
     if (k === 'f') {
       say(LF.intro);
-      $('#ruleSay').onclick = function () { say(LF.ask, LF.approx, LF.exact); };
+      $('#ruleSay').onclick = function () { say.apply(null, LF.rule); };
+      $('#examSay').onclick = function () { say.apply(null, LF.exam); };
       $('#typeR').onclick = function () { var t = BY.f55_t, p = []; for (var i = 0; i < 6; i++) p.push({ it: t, inst: t.gen() }); run(p, 'تقدير أم دقيقة؟'); };
     }
     document.querySelectorAll('[data-id]').forEach(function (b) { b.onclick = function () { var it = BY[b.dataset.id]; if (it.gen) example(it); else run([{ it: it, inst: it.orig() }], it.src); }; });
@@ -124,6 +127,7 @@
     var st = [['١', 'أفهم', q.steps.fahm], ['٢', 'أخطّط', q.steps.plan], ['٣', 'أحلّ', q.steps.hal], ['٤', 'أتحقّق', q.steps.check]];
     h += '<div class="steps">' + st.map(function (s, i) { return '<div class="step blk" data-i="' + i + '"><button class="sh"><span class="n">' + s[0] + '</span> ' + s[1] + ' <span class="tap">اضغطي لتري</span></button><div class="sb hidden">' + s[2] + '</div></div>'; }).join('') + '</div>';
     if (it.sayEx) h = '<button class="btn sm v exsay" id="exSay">🔊 اسمعي شرح المسألة</button>' + h;
+    if (it.sayEx) h = h.replace('<mark>تقريبًا</mark>', '<mark>تقريبًا</mark><span class="lampon sm">💡 قرّبي!</span>').replace('<mark>فهل يمكنهم ذلك؟</mark>', '<mark>فهل يمكنهم ذلك؟</mark><span class="lampon sm">💡 احسبي بالضبط!</span>');
     $('#exBody').innerHTML = h;
     if (it.sayEx) $('#exSay').onclick = function () { say.apply(null, it.sayEx); };
     $('#exBody').querySelectorAll('.step').forEach(function (d) { d.querySelector('.sh').onclick = function () { d.querySelector('.sb').classList.toggle('hidden'); d.classList.toggle('open'); }; });
@@ -194,7 +198,7 @@
     var list = q.opList || (std.indexOf(q.op) >= 0 ? std : [q.op, 'جمع', 'طرح']);
     say(q.opList ? LF.ask : L.op);
     choice(q.opTitle || '🧮 ماذا نستعمل؟', list, list.indexOf(q.op), function (box) {
-      box.querySelector('.msg').innerHTML = '<span class="g">✔ ' + (q.opWhy || '') + '</span>';
+      box.querySelector('.msg').innerHTML = (q.opList ? '<div class="lampon">💡 ' + (q.op === 'إجابة تقريبية' ? 'قرّبي!' : 'احسبي بالضبط!') + '</div>' : '') + '<span class="g">✔ ' + (q.opWhy || '') + '</span>';
       ansStage();
     }, function (box, o) { if (q.opHint) { box.querySelector('.msg').innerHTML = '<div class="why blk"><b>🤔 فكّري مرة ثانية.</b><br>' + q.opHint + '</div>'; say(q.op === 'إجابة تقريبية' ? LF.approx : LF.exact); return; }
       box.querySelector('.msg').innerHTML = '<div class="why blk"><b>🤔 فكّري مرة ثانية.</b><br>انظري إلى الكلمة الملوّنة في السؤال: «يتبقّى، الباقي، الفرق، يزيد، أقلّ» تدلّ على الطرح، و«المجموع، الكل، معًا» تدلّ على الجمع.</div><span class="r">' + L.reread + '</span>'; say(L.reread); });
@@ -202,7 +206,7 @@
   function ansStage() {
     var Q = R.list[R.i], q = Q.inst;
     say(q.kind === 'calc' ? L.order : L.solve);
-    var box = el('<div class="stage"><h3>✏️ ' + (q.kind === 'mc' ? 'اختاري الإجابة:' : 'حُلّي في ورقتكِ، ثم اختاري الإجابة:') + '</h3><div class="opts"></div><div class="msg"></div></div>');
+    var box = el('<div class="stage"><h3>✏️ ' + (q.opList ? 'اكتبي الحل في ورقتكِ <u>فوق المسألة</u> أولًا، ثم اختاري:' : q.kind === 'mc' ? 'اختاري الإجابة:' : 'حُلّي في ورقتكِ، ثم اختاري الإجابة:') + '</h3><div class="opts"></div><div class="msg"></div></div>');
     var order = shuffle(q.opts.map(function (x, i) { return i; }));
     order.forEach(function (i) {
       var o = el('<button class="opt blk" data-i="' + i + '">' + fmt(q.opts[i]) + '</button>');
