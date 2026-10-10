@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>مراجعة الإنجليزي — My Family</title>
+<meta name="theme-color" content="#E11D48">
+<link rel="apple-touch-icon" href="icon.png"><link rel="icon" href="icon.png">
+<link rel="stylesheet" href="style.css?v=4">
+</head>
+<body>
+<div id="start" class="wrap">
+  <h1 class="t">مراجعة الإنجليزي 💗</h1>
+  <div class="sub">نفس ورقة المعلمة بالضبط — نسمع، نفهم، ثم نحلّ على نفس الورقة</div>
+  <div class="duaC blk"><small>نبدأ بالدعاء 🤲</small><p>رَبِّ أَدْخِلْنِي مُدْخَلَ صِدْقٍ، وَأَخْرِجْنِي مُخْرَجَ صِدْقٍ، وَاجْعَلْ لِي مِنْ لَدُنْكَ سُلْطَانًا نَصِيرًا</p><small>سورة الإسراء: ٨٠</small></div>
+  <div class="how blk">
+    <div><span>📖</span><b>تعلّمي</b>اضغطي أي سؤال: تسمعين الإنجليزي بهدوء، ثم المعنى بالعربي</div>
+    <div><span>▶️</span><b>اسمعي الورقة</b>من أولها إلى آخرها، مع وقفة للتفكير قبل كل جواب</div>
+    <div><span>✏️</span><b>حلّي</b>على نفس الورقة، والشرح يظهر تحت الخطأ</div>
+    <div><span>⭐</span><b>ثبّتي</b>كل سؤال يثبت بعد ٣ نجوم في ٣ جولات</div>
+  </div>
+  <button class="btn big g" id="go">▶ ابدئي</button>
+</div>
+<div id="main" class="hidden">
+  <div class="top">
+    <div class="modes"><button class="mode on" data-m="learn">📖 تعلّمي</button><button class="mode" data-m="solve">✏️ حلّي</button></div>
+    <button class="btn v" id="lis">▶️ اسمعي الورقة كاملة</button>
+  </div>
+  <div class="wrap">
+    <div class="hint blk" id="hint"></div>
+    <div class="prog" id="prog"></div>
+    <button class="btn w hidden" id="newR">🔄 جولة جديدة (نفس الأسئلة بترتيب مختلف)</button>
+    <div class="paper" id="paper"></div>
+  </div>
+</div>
+<div id="picker" class="hidden"></div>
+<div id="think" class="hidden">🤔 فكّري…</div>
+<script src="voice/map.js?v=1"></script>
+<script src="data.js?v=2"></script>
+<script src="app.js?v=6"></script>
+</body>
+</html>
