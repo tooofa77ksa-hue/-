@@ -12,3 +12,4 @@ window.SONG = [
   ['Spelling', ['B, U, S, bus! B, U, S, bus!', 'S, H, Y, shy! S, H, Y, shy!', 'C, H, A, T, T, Y, chatty!', 'F, A, M, I, L, Y, family!']],
   ['Outro', ['I like my family, I like my family!', 'أنا أحبُّ عائلتي، أنا أحبُّ عائلتي!']]
 ];
+window.SONG_FILE = 'song.mp3';

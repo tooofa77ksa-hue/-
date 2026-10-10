@@ -303,6 +303,7 @@
     render();
   }
   document.querySelectorAll('.mode').forEach(function (b) { b.onclick = function () { review = false; setMode(b.dataset.m); }; });
+  $('#songB').onclick = function () { if (mode !== 'learn' || review) { review = false; setMode('learn'); } var e = $('#song'); if (e) e.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
   $('#newR').onclick = function () { round++; render(); window.scrollTo(0, 0); };
   $('#lis').onclick = function () {
     if (playing) { stop(); $('#lis').textContent = '▶️ اسمعي الورقة كاملة'; return; }
