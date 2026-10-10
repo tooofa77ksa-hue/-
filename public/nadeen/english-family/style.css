@@ -94,3 +94,56 @@ b.g{padding:0 6px;border-radius:3px}
 .thp{float:right;margin-left:6px;font-size:13px}
 .whyc{overflow:hidden}
 .pic{padding-top:26px}
+/* memory tools */
+.box{display:inline-block;margin:2px 4px 2px 0;font-size:14px;background:#fff;border-radius:8px;padding:2px 8px;border:1.5px solid #ddd}
+#prog .btn{margin:4px 4px 0 0}
+#prog .small{font:400 13px/1.6 R;color:var(--ink2);margin-top:4px}
+.dots.b1,.dots.b2{color:#EAB308}.dots.b3{color:#16A34A}
+.cov{display:block;margin:0 0 8px;font:800 15px B;background:#EDE9FF;border:2px solid #7B5CFF;border-radius:10px;padding:4px 10px}
+.cover b.g,.cover .op.g,.cover .ans.g,.cover .line.g{color:transparent!important;background:#E5E7EB!important;text-shadow:none}
+.cover .rev b.g,.cover .rev .op.g,.cover .rev .ans.g,.cover td.rev b.g{color:inherit!important;background:var(--green)!important}
+.rep3{margin-top:6px;background:#EDE9FF}
+.revbar{background:#EDE9FF;border:2px solid #7B5CFF;border-radius:12px;padding:8px;margin-bottom:10px;font-weight:600}
+.done{text-align:center;font:800 20px B;padding:30px}
+.teach{padding:12px;margin:10px 0;background:#F0FDF4}.teach ol{text-align:left;font:600 16px/1.9 R}
+#quick{position:fixed;inset:0;background:rgba(30,35,64,.55);z-index:30;display:flex;align-items:center;justify-content:center;padding:12px}
+.qc{width:min(420px,100%);padding:14px;text-align:center;display:flex;flex-direction:column;gap:8px}
+.qc img{max-height:140px;object-fit:contain;margin:0 auto}
+.qen{font:800 24px B}.qn{color:var(--ink2);font-weight:600}.qm{color:#9A3412;font-weight:600}
+.qo{display:grid;gap:8px}.qo .op{text-align:center;font-size:18px}
+.qc .big{font-size:60px}
+.song .benefit{background:#FFFBEA;border-radius:10px;padding:8px 10px;font:400 15px/1.8 R;margin:6px 0}
+.song audio{width:100%;margin:6px 0}
+.part{margin:8px 0;padding:6px 8px;border-right:4px solid #F9A8D4;background:#FFF7FB;border-radius:6px}
+.pt{font:800 13px B;color:#BE185D}
+.part .en{direction:ltr;text-align:left;font:600 17px R}
+.part .arl{font:600 16px R;color:#7B5CFF}
+.part .mix{font:600 16px R}
+/* moving pictures */
+.pic{overflow:hidden}
+.fx{position:absolute;left:6px;top:26px;font-size:22px;animation:rise 2.2s ease-in infinite;pointer-events:none}
+@keyframes rise{0%{transform:translateY(12px);opacity:0}30%{opacity:1}100%{transform:translateY(-20px);opacity:0}}
+.an-fishing img{animation:rock 2.4s ease-in-out infinite;transform-origin:30% 90%}
+@keyframes rock{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+.an-beach img{animation:hop 1s ease-in-out infinite}
+@keyframes hop{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.an-cycling img,.an-bus img{animation:ride 3s ease-in-out infinite}
+@keyframes ride{0%,100%{transform:translateX(-10%)}50%{transform:translateX(10%)}}
+.an-strong img{animation:lift 1.4s ease-in-out infinite;transform-origin:50% 100%}
+@keyframes lift{0%,100%{transform:translateY(3px) scaleY(.97)}50%{transform:translateY(-6px) scaleY(1.03)}}
+.an-helping img{animation:pull 2s ease-in-out infinite}
+@keyframes pull{0%,100%{transform:rotate(0)}50%{transform:rotate(-3deg) translateX(-4px)}}
+.an-grandparents img,.an-pizza img{animation:beat 2.2s ease-in-out infinite}
+@keyframes beat{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.an-lazy img{animation:breathe 3s ease-in-out infinite}
+@keyframes breathe{50%{transform:scale(1.03,.97)}}
+.an-tired img{animation:droop 2.5s ease-in-out infinite}
+@keyframes droop{0%,100%{transform:rotate(0)}50%{transform:rotate(2deg) translateY(3px)}}
+.an-tired .fx{animation:blink 1s steps(2) infinite;top:24px}
+@keyframes blink{50%{opacity:0}}
+.an-shy img{animation:peek 3s ease-in-out infinite}
+@keyframes peek{0%,100%{transform:translateX(0)}40%,60%{transform:translateX(-14px) scale(.92)}}
+.an-chatty img{animation:talk .5s ease-in-out infinite alternate}
+@keyframes talk{to{transform:rotate(1.5deg) scale(1.02)}}
+.st{display:inline-block;animation:twinkle 1.6s ease-in-out infinite}
+@keyframes twinkle{50%{opacity:.6;transform:scale(1.08)}}

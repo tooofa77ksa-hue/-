@@ -34,43 +34,66 @@
     if (!id) return; var e = document.querySelector('[data-k="' + id + '"]');
     if (e) { e.classList.add('hl'); e.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
   }
-  function think(on) { $('#think').classList.toggle('hidden', !on); }
+  function think(on) { $('#think').textContent = typeof on === 'string' ? on : '🤔 فكّري…'; $('#think').classList.toggle('hidden', !on); }
 
   // ---------- التقدّم: كل سؤال يحتاج ٣ نجوم (٣ جولات) ليثبت ----------
-  var KEY = 'eng_review_v1', S = { m: {} };
-  try { var s0 = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s0 && s0.m) S = s0; } catch (e) {}
+  var KEY = 'eng_review_v1', S = { m: {}, d: {} };
+  try { var s0 = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s0 && s0.m) { S = s0; S.d = S.d || {}; } } catch (e) {}
+  // الصناديق: ٠ أحمر (جديد/خطأ) ← ١ أصفر (بعد ١٠ دقائق) ← ٢ أصفر (بعد ٨ ساعات) ← ٣ أخضر ثبت (بعد يومين)
+  var GAP = [0, 10 * 60e3, 8 * 3600e3, 2 * 86400e3];
+  function due(id) { return (S.d[id] || 0) <= Date.now(); }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
   var ALL = [];
   D.forEach(function (s) { (s.left || s.items || (s.item ? [s.item] : [])).forEach(function (it) { ALL.push(it.id); if (s.spell) ALL.push(it.id + 'w'); }); });
-  function star(id) { S.m[id] = Math.min(3, (S.m[id] || 0) + 1); save(); prog(); }
-  function dots(id) { var n = S.m[id] || 0, h = ''; for (var i = 0; i < 3; i++) h += i < n ? '★' : '☆'; return '<span class="dots" data-dots="' + id + '">' + h + '</span>'; }
+  function star(id) { if (!due(id) && (S.m[id] || 0) > 0) { prog(); return; } S.m[id] = Math.min(3, (S.m[id] || 0) + 1); S.d[id] = Date.now() + GAP[S.m[id]]; save(); prog(); }
+  function miss(id) { S.m[id] = 0; S.d[id] = 0; save(); prog(); upDots(id); }
+  function dots(id) { var n = S.m[id] || 0, h = ''; for (var i = 0; i < 3; i++) h += i < n ? '★' : '☆'; return '<span class="dots b' + n + '" data-dots="' + id + '">' + h + (n < 3 && due(id) && n > 0 ? ' 🔔' : '') + '</span>'; }
   function upDots(id) { var e = document.querySelector('[data-dots="' + id + '"]'); if (e) e.outerHTML = dots(id); }
   function prog() {
-    var done = ALL.filter(function (id) { return (S.m[id] || 0) >= 3; }).length;
-    $('#prog').innerHTML = 'ثبّتِ <b>' + done + '</b> من <b>' + ALL.length + '</b> <small>(كل سؤال يثبت بعد ٣ نجوم ★★★ في ٣ جولات)</small>';
+    var r = 0, y = 0, g = 0, dn = 0;
+    ALL.forEach(function (id) { var n = S.m[id] || 0; if (n >= 3) g++; else if (n) y++; else r++; if (n < 3 && due(id)) dn++; });
+    $('#prog').innerHTML = '<span class="box b0">🟥 تحتاج تدريب ' + r + '</span><span class="box b1">🟨 في الطريق ' + y + '</span><span class="box b3">🟩 ثبتت ' + g + '</span>' +
+      '<button class="btn sm v" id="revB">📅 مراجعة الآن (' + dn + ')</button><button class="btn sm" id="quickB">⚡ جولة سريعة</button>' +
+      '<div class="small">كل سؤال يصعد صندوقًا كلما أجبتِه صحيحًا في وقته: الآن ← بعد ١٠ دقائق ← بعد ٨ ساعات ← ثبت ✔. والخطأ يرجعه للأحمر.</div>';
+    $('#revB').onclick = function () { review = true; setMode('solve'); };
+    $('#quickB').onclick = quick;
   }
 
   // ---------- الرسم ----------
-  var mode = 'learn', round = 0, firstTry = {};
+  var mode = 'learn', round = 0, firstTry = {}, review = false;
+  function secDue(s) { return (s.left || s.items || (s.item ? [s.item] : [])).some(function (it) { return (S.m[it.id] || 0) < 3 && due(it.id) || (s.spell && (S.m[it.id + 'w'] || 0) < 3 && due(it.id + 'w')); }); }
   function sayBtn(list, cls) { return '<button class="say ' + (cls || '') + '" data-say=\'' + JSON.stringify(list).replace(/'/g, '&#39;') + '\'>🔊</button>'; }
   function head(s) {
     return '<div class="sh"><span class="t">' + s.title + '</span>' + sayBtn(s.inst) + '</div><div class="tip">' + s.tip + ' — ' + s.inst[1].replace('المطلوب: ', '') + '</div>';
   }
   function info(it, extra) {
     return '<div class="info"><div><span class="lb">🇸🇦 المعنى</span> ' + it.ar + '</div><div><span class="lb">🗣️ النطق</span> <span class="pr">' + it.pr + '</span></div>' +
-      (extra || '') + '<div class="hook">💡 ' + it.hook + '</div></div>';
+      (extra || '') + '<div class="hook">💡 ' + it.hook + '</div>' + '<button class="btn sm rep3" data-rep=\'' + JSON.stringify(it.say[0]).replace(/'/g, '&#39;') + '\'>🗣️ اسمعي وردّدي ٣ مرات</button></div>';
   }
   function render() {
     stop(); firstTry = {};
     var h = '';
-    D.forEach(function (s) {
-      if (s.h) { h += '<h2 class="sec">' + s.h + '</h2>'; return; }
-      h += '<section class="blk" data-s="' + s.id + '">' + head(s) + R[s.type](s) + '</section>';
+    var shown = 0;
+    D.forEach(function (s, i) {
+      if (s.h) { var nx = D.slice(i + 1); var any = false; for (var k = 0; k < nx.length && !nx[k].h; k++) if (!review || secDue(nx[k])) any = true; if (any) h += '<h2 class="sec">' + s.h + '</h2>'; return; }
+      if (review && !secDue(s)) return; shown++;
+      h += '<section class="blk" data-s="' + s.id + '">' + head(s) + (mode === 'learn' ? '<button class="cov" data-cov="' + s.id + '">🙈 غطّي الإجابات واسترجعيها</button>' : '') + R[s.type](s) + '</section>';
     });
+    if (review) h = '<div class="revbar">📅 مراجعة الآن: الأقسام التي حان وقت مراجعتها فقط. <button class="btn sm w" id="revX">عرض الورقة كاملة</button></div>' + (shown ? h : '<div class="done">🎉 لا توجد أسئلة حان وقتها الآن. ارجعي بعد قليل!</div>');
+    if (mode === 'learn' && !review) h += '<div class="teach blk"><b>👩‍🏫 علّمي ماما أو صاحبتك</b><p>اسأليهم هذه الأسئلة، وإذا ما عرفوا اشرحي لهم أنتِ:</p><ol dir="ltr"><li>How many family members do you have?</li><li>My dad\'s brother is my …?</li><li>★★★★★ = ?</li><li>She → ?</li><li>🪫 = ?</li><li>Spell: shy</li></ol></div>';
+    if (mode === 'learn' && !review && window.SONG) {
+      h += '<section class="blk song" id="song"><div class="sh"><span class="t">🎵 أغنية الورقة — My Family Song</span></div>' +
+        '<div class="benefit"><b>💡 فائدة الأغنية</b><br>تجمع كلمات الورقة كلّها في لحنٍ واحد يتكرّر. اللحن والإيقاع يساعدان على حفظ الكلمات وتذكّرها بسهولة لمدّة طويلة، وبعد كل جملة إنجليزية معناها بالعربي، فتفهمين وأنتِ تغنّين. بعض الكلمات أُضيفت لتوضيح المعنى فقط، مثل <bdi>take your time</bdi> (على مهلك) و<bdi>battery low</bdi> (البطارية فاضية)، وليست من أسئلة الورقة.</div>' +
+        (window.SONG_FILE ? '<audio controls preload="none" src="' + window.SONG_FILE + '"></audio>' : '<div class="note">🎧 صوت الأغنية يُضاف هنا قريبًا.</div>') +
+        window.SONG.map(function (p) { return '<div class="part"><span class="pt">' + p[0] + '</span>' + p[1].map(function (l) { var k = l.search(/[\u0621-\u064A]/); if (k < 0) return '<div class="en">' + l + '</div>'; if (k === 0) return '<div class="arl">' + l + '</div>';
+          return '<div class="en">' + l.slice(0, k).replace(/[,\s]+$/, '') + '</div><div class="arl">' + l.slice(k) + '</div>'; }).join('') + '</div>'; }).join('') + '</section>';
+    }
     h += '<div class="posters"><img src="img/poster_ar.jpg" alt=""><img src="img/poster_en.jpg" alt=""></div><div class="bye">بالتوفيق My dear students 💗</div>';
     $('#paper').innerHTML = h;
     bind();
   }
+  var FX = { fishing: '🐟', beach: '🫧', helping: '💗', grandparents: '❤️', lazy: '💤', tired: '🪫', bus: '💨', pizza: '♨️', shy: '🙈', chatty: '💬', strong: '💪', cycling: '' };
+  function fx(k) { return FX[k] ? '<span class="fx">' + FX[k] + '</span>' : ''; }
   function whys(items) { return mode === 'solve' ? items.map(function (it) { return '<div class="whyc hidden" data-whyc="' + it.id + '">' + '</div>'; }).join('') : ''; }
   function thumb(it) { return it.img ? '<img class="th" src="img/' + it.img + '.jpg" alt="">' : (it.pic ? '<span class="thp">' + it.pic + '</span>' : ''); }
   var R = {
@@ -90,12 +113,12 @@
     choose: function (s) {
       var cols = s.items.map(function (it) {
         var opts = mode === 'solve' && round ? shuffle(it.opts) : it.opts;
-        var top = it.img ? '<img src="img/' + it.img + '.jpg" alt="">' : it.pic;
+        var top = it.img ? '<img src="img/' + it.img + '.jpg" alt="">' + fx(it.img) : it.pic;
         var o = opts.map(function (w, i) {
           var cls = mode === 'learn' && w === it.ok ? ' g' : '';
           return '<button class="op' + cls + '" data-it="' + it.id + '" data-w="' + w + '">' + (i + 1) + '- ' + w + '</button>';
         }).join('');
-        return '<div class="col" data-k="' + it.id + '"><div class="pic">' + top + sayBtn(it.say, 'sm') + '</div>' + o + (mode === 'solve' ? dots(it.id) + (s.spell ? '<input class="win" data-win="' + it.id + 'w" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="✏️ اكتبيها"><button class="btn sm g wchk" data-wchk="' + it.id + 'w">✔</button>' + dots(it.id + 'w') + '<div class="lt" data-lt="' + it.id + 'w"></div>' : '') : '') + '</div>';
+        return '<div class="col" data-k="' + it.id + '"><div class="pic' + (it.img ? ' an-' + it.img : '') + '">' + top + sayBtn(it.say, 'sm') + '</div>' + o + (mode === 'solve' ? dots(it.id) + (s.spell ? '<input class="win" data-win="' + it.id + 'w" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="✏️ اكتبيها"><button class="btn sm g wchk" data-wchk="' + it.id + 'w">✔</button>' + dots(it.id + 'w') + '<div class="lt" data-lt="' + it.id + 'w"></div>' : '') : '') + '</div>';
       }).join('');
       var det = mode === 'learn' ? s.items.map(function (it) { return '<div class="det hidden" data-det="' + it.id + '">' + '<b dir="ltr">' + it.ok + '</b>' + info(it) + '</div>'; }).join('') : '';
       return '<div class="grid' + (s.pics ? ' pics' : '') + '" dir="ltr">' + cols + '</div>' + det + whys(s.items) + (s.spell ? whys(s.items.map(function (it) { return BY[it.id + 'w']; })) : '');
@@ -105,7 +128,7 @@
       var cols = s.items.map(function (it) {
         var low = mode === 'learn' ? '<div class="ans g">' + it.ok + '</div>' :
           '<input class="win" data-win="' + it.id + '" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="✏️ اكتبي هنا"><button class="btn sm g wchk" data-wchk="' + it.id + '">✔</button>' + dots(it.id) + '<div class="lt" data-lt="' + it.id + '"></div>';
-        return '<div class="col" data-k="' + it.id + '"><div class="pic"><img src="img/' + it.img + '.jpg" alt="">' + sayBtn(it.say, 'sm') + '</div>' + low + '</div>';
+        return '<div class="col" data-k="' + it.id + '"><div class="pic an-' + it.img + '"><img src="img/' + it.img + '.jpg" alt="">' + fx(it.img) + sayBtn(it.say, 'sm') + '</div>' + low + '</div>';
       }).join('');
       var det = mode === 'learn' ? s.items.map(function (it) { return '<div class="det hidden" data-det="' + it.id + '"><b dir="ltr">' + it.ok + '</b>' + info(it) + '</div>'; }).join('') +
         '<div class="note">الكلمة الرابعة <b dir="ltr">cook pizza</b> (طبخ البيتزا 🍕) ما لها صورة هنا، لكن احفظيها لأن الترتيب ممكن يتغيّر ' + sayBtn(s.extra.say, 'sm') + '</div>' : '';
@@ -126,10 +149,16 @@
     if (s.spell) BY[it.id + 'w'] = { id: it.id + 'w', ok: it.ok, say: it.say, img: it.img, why: '' }; }); });
   function bind() {
     document.querySelectorAll('[data-say]').forEach(function (b) { b.onclick = function (e) { e.stopPropagation(); play(JSON.parse(b.dataset.say)); }; });
+    var rx = $('#revX'); if (rx) rx.onclick = function () { review = false; render(); };
     if (mode === 'learn') {
       document.querySelectorAll('[data-k]').forEach(function (r) {
-        r.onclick = function () { var id = r.dataset.k, d = document.querySelector('[data-det="' + id + '"]'); if (d) d.classList.toggle('hidden'); play(BY[id].say); };
+        r.onclick = function () { var id = r.dataset.k, sec = r.closest('section'); if (sec && sec.classList.contains('cover')) { r.classList.add('rev'); var it0 = BY[id];
+            if (it0.n) sec.querySelectorAll('td.r b.g').forEach(function (g) { if (g.textContent === String(it0.n)) g.parentNode.classList.add('rev'); }); }
+          var d = document.querySelector('[data-det="' + id + '"]'); if (d) d.classList.toggle('hidden'); play(BY[id].say); };
       });
+      document.querySelectorAll('[data-rep]').forEach(function (b) { b.onclick = function (e) { e.stopPropagation(); var t = JSON.parse(b.dataset.rep), q = []; for (var i = 0; i < 3; i++) q.push(t, { pause: 2200, think: '🗣️ قوليها بصوت عالٍ!' }); play(q); }; });
+      document.querySelectorAll('[data-cov]').forEach(function (b) { b.onclick = function () { var sec = b.closest('section'), on = sec.classList.toggle('cover'); sec.querySelectorAll('.rev').forEach(function (x) { x.classList.remove('rev'); });
+        b.textContent = on ? '👀 أظهري الإجابات' : '🙈 غطّي الإجابات واسترجعيها'; if (on) play(['فكّري قليلًا، ثم أجيبي.']); }; });
       document.querySelectorAll('.op').forEach(function (b) { b.onclick = function (e) { e.stopPropagation(); var it = BY[b.dataset.it], w = b.dataset.w; play(w === it.ok ? it.say : ((it.other || {})[w] || [])); }; });
       document.querySelectorAll('[data-bw]').forEach(function (b) { b.onclick = function () { var w = b.dataset.bw, it = null; D.forEach(function (s) { if (s.type === 'write') { s.items.forEach(function (x) { if (x.ok === w) it = x; }); if (!it && s.extra.w === w) it = s.extra; } }); if (it) play(it.say); }; });
       return;
@@ -158,7 +187,7 @@
             sl.classList.add('ok'); w.classList.add('hidden');
             if (!firstTry[L.id]) { star(L.id); upDots(L.id); } firstTry[L.id] = 1;
           } else {
-            bad++; firstTry[L.id] = 1; sl.classList.add('bad');
+            bad++; if (!firstTry[L.id]) miss(L.id); firstTry[L.id] = 1; sl.classList.add('bad');
             w.firstElementChild.innerHTML = '<div class="whyb">🤔 الرقم ' + sl.dataset.v + ' مو صحيح هنا. ' + L.why + '</div>';
             w.classList.remove('hidden'); delete sl.dataset.v; sl.innerHTML = '&nbsp;';
           }
@@ -176,7 +205,7 @@
           if (!firstTry[it.id]) { star(it.id); upDots(it.id); }
           firstTry[it.id] = 1; play([pick(GOOD)].concat(it.say));
         } else {
-          firstTry[it.id] = 1; b.classList.add('bad'); b.disabled = true;
+          if (!firstTry[it.id]) miss(it.id); firstTry[it.id] = 1; b.classList.add('bad'); b.disabled = true;
           wc.innerHTML = thumb(it) + '🤔 ' + it.why; wc.classList.remove('hidden'); play([pick(AGAIN)]);
         }
       };
@@ -192,16 +221,16 @@
       b.onclick = function () {
         var id = b.dataset.wchk, it = BY[id], inp = document.querySelector('[data-win="' + id + '"]'), lt = document.querySelector('[data-lt="' + id + '"]'), wc = document.querySelector('[data-whyc="' + id + '"]');
         var target = it.ok || it.text, v = inp.value.replace(/\s+/g, ' ').replace(/[.。]$/, '').trim();
-        if (!v) { wc.innerHTML = '✏️ اكتبي أولًا في الخانة.'; wc.classList.remove('hidden'); return; }
+        if (!v) { wc.innerHTML = '✏️ اكتبي الكلمة في الخانة، ثم اضغطي ✔ تحقّقي.'; wc.classList.remove('hidden'); play(['اكتبي الكلمة في الخانة، ثم اضغطي تحقّقي.']); return; }
         if (v.toLowerCase() === target.toLowerCase()) {
           var capNote = it.text && v[0] !== 'I' ? ' تذكّري: <b>I</b> تُكتب كبيرة دائمًا.' : '';
           inp.disabled = true; inp.classList.add('ok'); lt.innerHTML = ''; wc.innerHTML = thumb(it) + '🌟 صحيحة!' + capNote; wc.classList.remove('hidden'); wc.classList.add('okc');
-          if (!firstTry[id]) { star(id); upDots(id); } firstTry[id] = 1; play([pick(GOOD)].concat(it.say.slice(0, 1)));
+          if (!firstTry[id]) { star(id); upDots(id); } firstTry[id] = 1; play([pick(GOOD)].concat(it.say.slice(0, 1), ['أحسنتِ! الآن قوليها بصوتٍ عالٍ مرّة.']));
         } else {
-          firstTry[id] = 1;
+          if (!firstTry[id]) miss(id); firstTry[id] = 1;
           lt.innerHTML = '<span dir="ltr">' + diff(v, target) + '</span>';
           wc.innerHTML = thumb(it) + '🤔 الحرف الأحمر يحتاج تصحيح (والمربع الأحمر _ حرف ناقص). الكلمة الصحيحة تُكتب هكذا: <b dir="ltr" class="nw">' + target.split('').join(' ') + '</b> . ' + (it.why || '') + ' اسمعيها حرفًا حرفًا من زرّ 🔊 ثم اكتبيها مرّة ثانية.';
-          wc.classList.remove('hidden'); play([pick(AGAIN)]);
+          wc.classList.remove('hidden'); play(['انتبهي للحرف الملوّن، وجرّبي مرّةً أخرى.']);
         }
       };
     });
@@ -242,6 +271,28 @@
     play(q, function () { $('#lis').textContent = '▶️ اسمعي الورقة كاملة'; });
   }
 
+  // ---------- جولة سريعة: أسئلة مخلوطة من كل الورقة ----------
+  function strip(h) { return String(h).replace(/<[^>]+>/g, '').replace(/…+|\.{3,}/g, '…'); }
+  function card(it) { return { id: it.id, en: it.ok || it.text || (it.ans && it._s.type === 'match' && it._s.id === 'grB' ? strip(it.html) + ' → ' + strip(it.ans) : strip(it.html)), ar: String(it.ar).replace(/<[^>]+>/g, ''), img: it.img, say: [it.say[0]] }; }
+  function quick() {
+    stop(); var pool = shuffle(ALL.filter(function (id) { return BY[id] && BY[id].say && !/w$/.test(id); }).map(function (id) { return card(BY[id]); })), list = pool.slice(0, 8), i = 0, ok = 0;
+    var ov = $('#quick'); ov.classList.remove('hidden');
+    function show() {
+      if (i >= list.length) { ov.innerHTML = '<div class="qc blk"><div class="big">🏁</div><b>' + ok + ' من ' + list.length + ' صحيحة!</b><p>الأسئلة الخاطئة رجعت للصندوق الأحمر 🟥 لتتكرر أكثر.</p><button class="btn g" id="qx">تمام</button></div>'; $('#qx').onclick = function () { ov.classList.add('hidden'); render(); }; play([ok >= 6 ? pick(GOOD) : pick(AGAIN)]); return; }
+      var c = list[i], opts = shuffle([c.ar].concat(shuffle(pool.filter(function (x) { return x.ar !== c.ar; })).slice(0, 2).map(function (x) { return x.ar; })));
+      ov.innerHTML = '<div class="qc blk"><div class="qn">' + (i + 1) + ' / ' + list.length + '</div>' + (c.img ? '<img src="img/' + c.img + '.jpg" alt="">' : '') + '<div class="qen" dir="ltr">' + c.en + ' ' + sayBtn(c.say, 'sm') + '</div><b>ما معناها؟</b><div class="qo">' + opts.map(function (o) { return '<button class="op">' + o + '</button>'; }).join('') + '</div><div class="qm"></div><button class="btn w sm" id="qx">✖ إغلاق</button></div>';
+      ov.querySelector('[data-say]').onclick = function () { play(c.say); };
+      $('#qx').onclick = function () { stop(); ov.classList.add('hidden'); render(); };
+      var tried = false;
+      ov.querySelectorAll('.qo .op').forEach(function (b) { b.onclick = function () {
+        if (b.textContent === c.ar) { b.classList.add('g'); if (!tried) { ok++; star(c.id); } play([pick(GOOD)]); setTimeout(function () { i++; show(); }, 1600); ov.querySelectorAll('.qo .op').forEach(function (x) { x.disabled = true; }); }
+        else { b.classList.add('bad'); b.disabled = true; if (!tried) miss(c.id); tried = true; ov.querySelector('.qm').innerHTML = '🤔 اسمعيها مرّة ثانية وفكّري: ' + c.en; play(c.say); }
+      }; });
+      play(c.say);
+    }
+    show();
+  }
+
   // ---------- الأزرار ----------
   function setMode(m) {
     mode = m;
@@ -251,7 +302,7 @@
       '✏️ حلّي على نفس الورقة. إذا أخطأتِ يظهر الشرح تحت الخانة، ثم جرّبي مرّة ثانية. كل إجابة صحيحة من أول مرّة = نجمة ★';
     render();
   }
-  document.querySelectorAll('.mode').forEach(function (b) { b.onclick = function () { setMode(b.dataset.m); }; });
+  document.querySelectorAll('.mode').forEach(function (b) { b.onclick = function () { review = false; setMode(b.dataset.m); }; });
   $('#newR').onclick = function () { round++; render(); window.scrollTo(0, 0); };
   $('#lis').onclick = function () {
     if (playing) { stop(); $('#lis').textContent = '▶️ اسمعي الورقة كاملة'; return; }
