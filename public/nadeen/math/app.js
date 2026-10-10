@@ -31,6 +31,8 @@
     ex3: 'وقبلَ أن تسلّمي الورقة، راجعيها من أوّلِها إلى آخرِها.',
     bye: 'وفّقكِ اللهُ يا بطلة.'
   };
+  var LF = { intro: 'هذه المسائلُ طلبتِ المعلّمةُ منّا التركيزَ عليها، فلنركّزْ جيّدًا.', ask: 'أوّلًا نسأل: هل المطلوبُ إجابةٌ تقريبيّة، أم إجابةٌ دقيقة؟',
+    approx: 'إذا وجدتِ كلمةَ «تقريبًا»، فالمطلوبُ إجابةٌ تقريبيّة: نقرّبُ الأعدادَ أوّلًا، ثم نحسب.', exact: 'وإذا كان السؤال: هل يكفي؟ أو: هل يمكنهم؟ فنحسبُ الإجابةَ الدقيقة.' };
   var GOOD = ['ممتازة! قرأتِ، وتمهّلتِ، ثم أجبتِ.', 'أحسنتِ! إجابةٌ صحيحة.', 'برافو عليكِ! هكذا تفعلُ البطلات.', 'رائعة! تمهُّلُكِ صنعَ الفرق.', 'ما شاءَ الله! حلٌّ دقيق.', 'أحسنتِ، لأنكِ تحقّقتِ من إجابتِكِ.'];
   var AGAIN = ['حاولي مرّةً أخرى، أنتِ قادرة.', 'ارجعي إلى الكلمةِ المهمّةِ في السؤال.', 'الخطأُ يعلّمُنا. جرّبي مرّةً أخرى.'];
   var AGAIN_CALC = ['تحقّقي من إعادةِ التجميع، ثم جرّبي من جديد.', 'حاولي مرّةً أخرى، أنتِ قادرة.', 'الخطأُ يعلّمُنا. جرّبي مرّةً أخرى.'];
@@ -62,6 +64,7 @@
 
   // ---------- الأقسام ----------
   var SECS = [
+    { k: 'f', ic: '⭐', t: 'ركّزي هنا — هذه مهمة', s: 'طلبت المعلمة منّا التركيز على هذه المسائل (الدرس ٢-٣: التقدير أم الإجابة الدقيقة؟ صفحة ٥٥)', c: '#F59E0B', focus: 1 },
     { k: 'k5', ic: '➖', t: '«تأكَّد» و«تدرّب» — الطرح', s: 'الدرس ٢-٥ (صفحة ٦٤ و٦٥)', c: '#7B5CFF' },
     { k: 'k6', ic: '0️⃣', t: '«تأكَّد» و«تدرّب» — الطرح عبر الأصفار', s: 'الدرس ٢-٦ (صفحة ٦٨ و٦٩)', c: '#0EA5E9' },
     { k: 'w', ic: '📖', t: 'المسائل اللفظية', s: 'التي حلَلْناها مع المعلّمة', c: '#F97316' },
@@ -71,8 +74,8 @@
   function home() {
     var h = '';
     SECS.forEach(function (s) {
-      var its = items(s.k), d = its.filter(function (i) { return S.done[i.id]; }).length;
-      h += '<button class="tile blk" style="--c:' + s.c + '" data-sec="' + s.k + '"><span class="ic">' + s.ic + '</span><span><b>' + s.t + '</b><small>' + s.s + '</small><small class="pr">' + ar(d) + ' / ' + ar(its.length) + ' ✔</small></span></button>';
+      var its = items(s.k).filter(function (i) { return !i.hidden; }), d = its.filter(function (i) { return S.done[i.id]; }).length;
+      h += '<button class="tile blk' + (s.focus ? ' focus' : '') + '" style="--c:' + s.c + '" data-sec="' + s.k + '"><span class="ic">' + s.ic + '</span><span><b>' + s.t + '</b><small>' + s.s + '</small><small class="pr">' + ar(d) + ' / ' + ar(its.length) + ' ✔</small></span></button>';
     });
     var nw = Object.keys(S.wrong).length;
     h += '<button class="tile blk" style="--c:#E11D48" id="quick"><span class="ic">⚡</span><span><b>اختبار سريع</b><small>١٠ مسائل شبيهة مختلطة</small></span></button>';
@@ -87,16 +90,25 @@
   }
   function secList(k) {
     stop();
-    var s = SECS.filter(function (x) { return x.k === k; })[0], its = items(k);
+    var s = SECS.filter(function (x) { return x.k === k; })[0], its = items(k).filter(function (i) { return !i.hidden; });
     $('#secT').textContent = s.t; $('#secS').textContent = s.s;
-    var h = '';
+    var h = k === 'f' ? '<div class="rule blk"><b>📌 القاعدة: قبل أن تحلّي اسألي نفسك: تقريبية أم دقيقة؟</b>' +
+      '<div class="rr"><span>🎯 في السؤال كلمة <mark>«تقريبًا»</mark><br>← قرّبي الأعداد أولًا، ثم احسبي</span><span>✅ السؤال <mark>«هل يكفي؟ هل يمكنهم؟ بالضبط»</mark><br>← احسبي الإجابة الدقيقة</span></div>' +
+      '<button class="btn sm" id="ruleSay">🔊 اسمعي القاعدة</button> <button class="btn sm v" id="typeR">⚡ جولة: تقدير أم دقيقة؟</button></div>' : '';
     its.forEach(function (i) {
       var q = i.orig(), txt = (q.q || '').replace(/<[^>]+>/g, '');
       h += '<button class="row blk" data-id="' + i.id + '"><span class="ok">' + (S.done[i.id] ? '✅' : '⬜') + '</span><span class="rt"><small>' + i.src + '</small>' + (q.kind === 'calc' ? '<span class="mini">' + q.big + '</span>' : '<span>' + txt.slice(0, 70) + (txt.length > 70 ? '…' : '') + '</span>') + '</span></button>';
     });
     $('#rows').innerHTML = h;
+    if (k === 'f') {
+      say(LF.intro);
+      $('#ruleSay').onclick = function () { say(LF.ask, LF.approx, LF.exact); };
+      $('#typeR').onclick = function () { var t = BY.f55_t, p = []; for (var i = 0; i < 6; i++) p.push({ it: t, inst: t.gen() }); run(p, 'تقدير أم دقيقة؟'); };
+    }
     document.querySelectorAll('[data-id]').forEach(function (b) { b.onclick = function () { var it = BY[b.dataset.id]; if (it.gen) example(it); else run([{ it: it, inst: it.orig() }], it.src); }; });
-    $('#all').onclick = function () { var p = its.map(function (i) { return { it: i, inst: i.gen ? i.gen() : i.orig() }; }); if (k === 'x') p = shuffle(p); run(p, s.t); };
+    $('#all').onclick = function () { var p = its.map(function (i) { return { it: i, inst: i.gen ? i.gen() : i.orig() }; }); if (k === 'x') p = shuffle(p);
+      if (k === 'f') p = [{ it: BY.f55_4, inst: BY.f55_4.orig() }, { it: BY.f55_5, inst: BY.f55_5.orig() }, { it: BY.f55_4, inst: BY.f55_4.gen() }, { it: BY.f55_5, inst: BY.f55_5.gen() }, { it: BY.f55_4, inst: BY.f55_4.gen() }, { it: BY.f55_5, inst: BY.f55_5.gen() }];
+      run(p, s.t); };
     $('#all').textContent = k === 'x' ? '▶ حلّي كل الأسئلة' : '▶ تدرّبي على مسائل شبيهة بالكل';
     show('sec'); $('#sec').dataset.k = k;
   }
@@ -110,7 +122,9 @@
     var h = '<div class="qtext">' + q.q + '</div>' + table(q.table) + (q.big ? '<div class="big">' + q.big + '</div>' : '');
     var st = [['١', 'أفهم', q.steps.fahm], ['٢', 'أخطّط', q.steps.plan], ['٣', 'أحلّ', q.steps.hal], ['٤', 'أتحقّق', q.steps.check]];
     h += '<div class="steps">' + st.map(function (s, i) { return '<div class="step blk" data-i="' + i + '"><button class="sh"><span class="n">' + s[0] + '</span> ' + s[1] + ' <span class="tap">اضغطي لتري</span></button><div class="sb hidden">' + s[2] + '</div></div>'; }).join('') + '</div>';
+    if (it.sayEx) h = '<button class="btn sm v exsay" id="exSay">🔊 اسمعي شرح المسألة</button>' + h;
     $('#exBody').innerHTML = h;
+    if (it.sayEx) $('#exSay').onclick = function () { say.apply(null, it.sayEx); };
     $('#exBody').querySelectorAll('.step').forEach(function (d) { d.querySelector('.sh').onclick = function () { d.querySelector('.sb').classList.toggle('hidden'); d.classList.toggle('open'); }; });
     $('#exGo').onclick = function () { run([{ it: it, inst: it.gen() }, { it: it, inst: it.gen() }], it.src + ' — مسائل شبيهة'); };
     $('#exBack').onclick = function () { secList(it.sec); };
@@ -124,7 +138,7 @@
   // ---------- جولة أسئلة ----------
   var R = null;
   function run(list, title, quick) {
-    R = { list: list, i: 0, ok: 0, first: 0, title: title, quick: !!quick, back: $('#sec').classList.contains('hidden') ? null : $('#sec').dataset.k };
+    R = { list: list, i: 0, ok: 0, first: 0, title: title, quick: !!quick, back: !$('#sec').classList.contains('hidden') ? $('#sec').dataset.k : (!$('#ex').classList.contains('hidden') && list[0] ? list[0].it.sec : null) };
     R.total = list.length; ask();
   }
   function fmt(v) { return typeof v === 'number' ? ar(v) : v; }
@@ -135,7 +149,7 @@
     Q.tries = 0; show('q');
     $('#qTitle').textContent = R.title;
     $('#qProg').textContent = ar(Math.min(R.i + 1, R.list.length)) + ' / ' + ar(R.list.length);
-    $('#qSrc').textContent = Q.retry ? '🔁 نعيدها' : (Q.inst === null ? '' : (it.gen && !Q.orig ? 'مسألة شبيهة بـ ' + it.src : it.src));
+    $('#qSrc').textContent = it.hidden ? 'المطلوب: تقريبية أم دقيقة؟' : Q.retry ? '🔁 نعيدها' : (Q.inst === null ? '' : (it.gen && !Q.orig ? 'مسألة شبيهة بـ ' + it.src : it.src));
     var h = '<div class="qtext">' + q.q + '</div>' + table(q.table) + (q.big ? '<div class="big">' + q.big + '</div>' : '');
     $('#qBody').innerHTML = h;
     $('#qStage').innerHTML = '';
@@ -176,12 +190,13 @@
   }
   function opStage() {
     var q = R.list[R.i].inst, std = ['طرح', 'جمع', 'جمع ثم طرح'];
-    var list = std.indexOf(q.op) >= 0 ? std : [q.op, 'جمع', 'طرح'];
-    say(L.op);
-    choice('🧮 ماذا نستعمل؟', list, list.indexOf(q.op), function (box) {
+    var list = q.opList || (std.indexOf(q.op) >= 0 ? std : [q.op, 'جمع', 'طرح']);
+    say(q.opList ? LF.ask : L.op);
+    choice(q.opTitle || '🧮 ماذا نستعمل؟', list, list.indexOf(q.op), function (box) {
       box.querySelector('.msg').innerHTML = '<span class="g">✔ ' + (q.opWhy || '') + '</span>';
       ansStage();
-    }, function (box, o) { box.querySelector('.msg').innerHTML = '<div class="why blk"><b>🤔 فكّري مرة ثانية.</b><br>انظري إلى الكلمة الملوّنة في السؤال: «يتبقّى، الباقي، الفرق، يزيد، أقلّ» تدلّ على الطرح، و«المجموع، الكل، معًا» تدلّ على الجمع.</div><span class="r">' + L.reread + '</span>'; say(L.reread); });
+    }, function (box, o) { if (q.opHint) { box.querySelector('.msg').innerHTML = '<div class="why blk"><b>🤔 فكّري مرة ثانية.</b><br>' + q.opHint + '</div>'; say(q.op === 'إجابة تقريبية' ? LF.approx : LF.exact); return; }
+      box.querySelector('.msg').innerHTML = '<div class="why blk"><b>🤔 فكّري مرة ثانية.</b><br>انظري إلى الكلمة الملوّنة في السؤال: «يتبقّى، الباقي، الفرق، يزيد، أقلّ» تدلّ على الطرح، و«المجموع، الكل، معًا» تدلّ على الجمع.</div><span class="r">' + L.reread + '</span>'; say(L.reread); });
   }
   function ansStage() {
     var Q = R.list[R.i], q = Q.inst;
