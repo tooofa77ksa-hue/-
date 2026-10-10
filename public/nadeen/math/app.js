@@ -72,6 +72,7 @@
   ];
   function items(k) { return M.ITEMS.filter(function (i) { return i.sec === k; }); }
   function home() {
+    if (window.APP_CHECK) window.APP_CHECK();
     var h = '';
     SECS.forEach(function (s) {
       var its = items(s.k).filter(function (i) { return !i.hidden; }), d = its.filter(function (i) { return S.done[i.id]; }).length;

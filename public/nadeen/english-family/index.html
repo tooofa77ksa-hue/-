@@ -7,6 +7,24 @@
 <meta name="theme-color" content="#E11D48">
 <link rel="apple-touch-icon" href="icon.png"><link rel="icon" href="icon.png">
 <link rel="stylesheet" href="style.css?v=6">
+<script>window.APP_V='20261010125351';
+window.APP_SAFE=function(){var a=document.activeElement;return !(a&&a.tagName==='INPUT')&&!document.querySelector('#quick:not(.hidden)');};
+// تحديث تلقائي: إذا نُشرت نسخة جديدة، تتحدّث الصفحة وحدها في لحظة آمنة (بدون ما تضغطين تحديث)
+(function () {
+  var pending = null;
+  function safe() { return window.APP_SAFE ? window.APP_SAFE() : true; }
+  function go(v) { var u = location.pathname + '?u=' + v + location.hash; location.replace(u); }
+  function chk() {
+    fetch('version.json?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (j) {
+      if (j && j.v && j.v !== window.APP_V) { pending = j.v; if (safe()) go(j.v); }
+    }).catch(function () {});
+  }
+  setInterval(function () { if (pending && safe()) go(pending); else chk(); }, 60000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) chk(); });
+  window.addEventListener('pageshow', chk);
+  window.APP_CHECK = function () { if (pending && safe()) go(pending); };
+})();
+</script>
 </head>
 <body>
 <div id="start" class="wrap">

@@ -8,6 +8,24 @@
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="icon" href="icon.png">
 <link rel="stylesheet" href="style.css?v=14">
+<script>window.APP_V='20261010125351';
+window.APP_SAFE=function(){var s=['start','home','sec','end','tips'];for(var i=0;i<s.length;i++){var e=document.getElementById(s[i]);if(e&&!e.classList.contains('hidden'))return true;}return false;};
+// تحديث تلقائي: إذا نُشرت نسخة جديدة، تتحدّث الصفحة وحدها في لحظة آمنة (بدون ما تضغطين تحديث)
+(function () {
+  var pending = null;
+  function safe() { return window.APP_SAFE ? window.APP_SAFE() : true; }
+  function go(v) { var u = location.pathname + '?u=' + v + location.hash; location.replace(u); }
+  function chk() {
+    fetch('version.json?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (j) {
+      if (j && j.v && j.v !== window.APP_V) { pending = j.v; if (safe()) go(j.v); }
+    }).catch(function () {});
+  }
+  setInterval(function () { if (pending && safe()) go(pending); else chk(); }, 60000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) chk(); });
+  window.addEventListener('pageshow', chk);
+  window.APP_CHECK = function () { if (pending && safe()) go(pending); };
+})();
+</script>
 </head>
 <body>
 <button id="mute" class="mute blk" aria-label="الصوت">🔊</button>
@@ -67,6 +85,6 @@
 </div>
 <script src="voice/map.js?v=4"></script>
 <script src="data.js?v=14"></script>
-<script src="app.js?v=16"></script>
+<script src="app.js?v=17"></script>
 </body>
 </html>
