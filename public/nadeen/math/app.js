@@ -217,7 +217,7 @@
   // خطوة صغيرة قبل الإجابة (تقريب العدد أو الجمع بالضبط)
   function preStage() {
     var q = R.list[R.i].inst, pr = q.pre;
-    choice(pr.title, pr.opts.map(fmt), 0, function (box) { box.querySelector('.msg').innerHTML = '<span class="g">✔ أحسنتِ! اكتبيها فوق المسألة.</span>'; ansStage(); },
+    choice(pr.title, pr.opts.map(fmt), 0, function (box) { box.querySelector('.msg').innerHTML = '<span class="g">✔ أحسنتِ!</span>'; ansStage(); },
       function (box) { box.querySelector('.msg').innerHTML = '<div class="why blk"><b>🤔 فكّري مرة ثانية.</b><br>' + pr.hint + '</div>'; say(pick(AGAIN)); });
   }
   function ansStage() {
