@@ -93,7 +93,14 @@
     stop();
     var s = SECS.filter(function (x) { return x.k === k; })[0], its = items(k).filter(function (i) { return !i.hidden; });
     $('#secT').textContent = s.t; $('#secS').textContent = s.s;
-    var h = k === 'f' ? '<div class="rule blk"><b>📌 القاعدة: قبل أن تحلّي اسألي نفسك: تقريبية أم دقيقة؟</b>' +
+    var KEYS = '<div class="keys blk"><b>🗝️ إذا جاكِ في السؤال…</b>' +
+      '<div class="kg sub"><h4>➖ إذا جاكِ هذي الكلمات ← المطلوب <u>طرح</u></h4><span>يتبقّى · بقي · الباقي</span><span>الفرق بين</span><span>كم يزيد…؟</span><span>كم أكثر…؟ · أكثر ممّا</span><span>كم قلّ…؟ · أقل بـ</span><span>عليها أن… لتُتمّ</span><span>من بينهنّ · منهم (والمطلوب الباقي)</span></div>' +
+      '<div class="kg add"><h4>➕ إذا جاكِ هذي الكلمات ← المطلوب <u>جمع</u></h4><span>مجموع</span><span>معًا · كلّهم</span><span>كل تلك القطع</span><span>مجموعتان (والسؤال عنهم كلهم)</span><span>يزيد بمقدار (والمطلوب العدد الجديد)</span></div>' +
+      '<div class="kg apx"><h4>💡 إذا جاكِ هذي الكلمة ← المطلوب <u>تقريب</u></h4><span>تقريبًا ← قرّبي الأعداد أولًا، ثم احسبي</span></div>' +
+      '<div class="kg exa"><h4>✅ إذا جاكِ هذي الكلمات ← المطلوب <u>إجابة دقيقة</u></h4><span>هل يكفي؟</span><span>هل يمكنهم؟</span><span>بالضبط</span><small>احسبي بالضبط، ثم قارني</small></div>' +
+      '<div class="kg warn"><h4>⚠️ انتبهي، هذي تلخبط:</h4><p>«<b>كم يزيد</b>؟» ← ➖ طرح (مو جمع!)</p><p>«<b>إذا أُضيف</b>… <b>أصبح</b>…» ← ➖ طرح (مو جمع!)</p><p>«<b>بقي معها</b>… فكم <b>ثمن</b> الساعة؟» ← ➖ طرح</p></div>' +
+      '<div class="kno">وتذكّري: «<b>كم</b>» أو «<b>فكم</b>» تقول لكِ بس: ابحثي عن عدد. ما تعني جمع ولا طرح ولا تقريب.</div></div>';
+    var h = k === 'f' ? KEYS + '<div class="rule blk"><b>📌 القاعدة: قبل أن تحلّي اسألي نفسك: تقريبية أم دقيقة؟</b>' +
       '<div class="rr"><span>🎯 في السؤال كلمة <mark>«تقريبًا»</mark><br>← قرّبي الأعداد أولًا، ثم احسبي</span><span>✅ السؤال <mark>«هل يكفي؟ هل يمكنهم؟ بالضبط»</mark><br>← احسبي الإجابة الدقيقة</span></div>' +
       '<div class="lamps"><span class="lampb">💡 «تقريبًا» ← <b>قرّبي!</b></span><span class="lampb">💡 «هل يكفي؟» ← <b>احسبي بالضبط!</b></span></div>' +
       '<button class="btn sm" id="ruleSay">🔊 اسمعي القاعدة</button> <button class="btn sm v" id="typeR">⚡ جولة: تقدير أم دقيقة؟</button></div>' +
