@@ -778,6 +778,7 @@ function render(){
             <button class="btn primary" id="btnExcel">${icon('excel')} تصدير Excel</button>
             <button class="btn" id="btnWord">${icon('doc')} تصدير Word</button>
             <button class="btn" id="btnPrint">${icon('print')} طباعة / PDF</button>
+            <button class="btn" id="btnFullReport">${icon('print')} تقرير كامل PDF</button>
             ${MODE==='admin'?`<button class="btn ${state.editMode?'teal':'primary'}" id="btnEditToggle">${icon(state.editMode?'doc':'lock')} ${state.editMode?'التحرير مفعّل — إيقاف مؤقت':'تفعيل التحرير'}</button>`:''}
             ${MODE==='admin'?`<button class="btn ghost" id="btnLogout">${icon('logout')} تسجيل خروج</button>`:''}
           </div>
@@ -816,6 +817,7 @@ function render(){
   document.getElementById('btnExcel').addEventListener('click', exportExcel);
   document.getElementById('btnWord').addEventListener('click', exportWordReal);
   document.getElementById('btnPrint').addEventListener('click', exportPdfReal);
+  document.getElementById('btnFullReport').addEventListener('click', exportFullReportPdf);
   const logoutBtn = document.getElementById('btnLogout');
   if (logoutBtn) logoutBtn.addEventListener('click', async ()=>{ await sb.auth.signOut(); state.authed=false; state.loaded=false; state.editMode=true; render(); });
   const editToggleBtn = document.getElementById('btnEditToggle');
@@ -2117,7 +2119,8 @@ async function exportExcel(){
     ].forEach(([label,val])=>{
       cover.getCell(`B${r}`).value = label;
       cover.getCell(`C${r}`).value = val;
-      cover.getCell(`C${r}`).alignment = {horizontal:'center'};
+      cover.getCell(`B${r}`).alignment = {horizontal:'right', vertical:'top', wrapText:true};
+      cover.getCell(`C${r}`).alignment = {horizontal:'center', vertical:'top', wrapText:true};
       cover.getCell(`B${r}`).border = {bottom:{style:'thin',color:{argb:XL_BORDER}}};
       cover.getCell(`C${r}`).border = {bottom:{style:'thin',color:{argb:XL_BORDER}}};
       r++;
@@ -2129,7 +2132,8 @@ async function exportExcel(){
       r++;
       Object.entries(m.staff).filter(([k])=>k!=='الوصف').forEach(([k,v])=>{
         cover.getCell(`B${r}`).value = k; cover.getCell(`C${r}`).value = v;
-        cover.getCell(`C${r}`).alignment = {horizontal:'center'};
+        cover.getCell(`B${r}`).alignment = {horizontal:'right', vertical:'top', wrapText:true};
+        cover.getCell(`C${r}`).alignment = {horizontal:'center', vertical:'top', wrapText:true};
         cover.getCell(`B${r}`).border = {bottom:{style:'thin',color:{argb:XL_BORDER}}};
         cover.getCell(`C${r}`).border = {bottom:{style:'thin',color:{argb:XL_BORDER}}};
         r++;
@@ -2140,15 +2144,47 @@ async function exportExcel(){
       cover.getCell(`B${r}`).value = 'نواتج التعلم عبر الأعوام';
       cover.getCell(`B${r}`).font = {bold:true, size:13, color:{argb:XL_NAVY}};
       r++;
-      m.learningOutcomes.forEach(row=>{
-        cover.getCell(`B${r}`).value = `${row.domain}: 2024=${row.y2024||'—'}  2025=${row.y2025||'—'}  2026=${row.y2026||'—'}`;
+      const loHeaderRow = cover.getRow(r);
+      loHeaderRow.getCell('B').value = 'المجال'; loHeaderRow.getCell('C').value = 2024; loHeaderRow.getCell('D').value = 2025; loHeaderRow.getCell('E').value = 2026;
+      ['B','C','D','E'].forEach(col=>{
+        const cell = loHeaderRow.getCell(col);
+        cell.font = {bold:true, color:{argb:XL_WHITE}, size:11, name:'Calibri'};
+        cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:XL_NAVY}};
+        cell.alignment = {horizontal:'center', vertical:'middle'};
+        cell.border = {top:{style:'thin',color:{argb:XL_BORDER}},bottom:{style:'thin',color:{argb:XL_BORDER}},left:{style:'thin',color:{argb:XL_BORDER}},right:{style:'thin',color:{argb:XL_BORDER}}};
+      });
+      r++;
+      m.learningOutcomes.forEach((row,i)=>{
+        const dataRow = cover.getRow(r);
+        dataRow.getCell('B').value = row.domain||'';
+        dataRow.getCell('C').value = row.y2024||'—'; dataRow.getCell('D').value = row.y2025||'—'; dataRow.getCell('E').value = row.y2026||'—';
+        ['B','C','D','E'].forEach(col=>{
+          const cell = dataRow.getCell(col);
+          cell.alignment = {horizontal: col==='B'?'right':'center', vertical:'middle'};
+          cell.border = {top:{style:'thin',color:{argb:XL_BORDER}},bottom:{style:'thin',color:{argb:XL_BORDER}},left:{style:'thin',color:{argb:XL_BORDER}},right:{style:'thin',color:{argb:XL_BORDER}}};
+          if (i % 2 === 1) cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:XL_STRIPE}};
+        });
         r++;
       });
     }
     if (m.quickSummary && (m.quickSummary.overall_value || m.quickSummary.learning_value)){
       r += 1;
-      if (m.quickSummary.overall_value){ cover.getCell(`B${r}`).value = m.quickSummary.overall_label; cover.getCell(`C${r}`).value = m.quickSummary.overall_value; r++; }
-      if (m.quickSummary.learning_value){ cover.getCell(`B${r}`).value = m.quickSummary.learning_label; cover.getCell(`C${r}`).value = m.quickSummary.learning_value; r++; }
+      if (m.quickSummary.overall_value){
+        cover.getCell(`B${r}`).value = m.quickSummary.overall_label; cover.getCell(`C${r}`).value = m.quickSummary.overall_value;
+        cover.getCell(`B${r}`).alignment = {horizontal:'right', vertical:'top', wrapText:true};
+        cover.getCell(`C${r}`).alignment = {horizontal:'center', vertical:'top', wrapText:true};
+        cover.getCell(`B${r}`).border = {bottom:{style:'thin',color:{argb:XL_BORDER}}};
+        cover.getCell(`C${r}`).border = {bottom:{style:'thin',color:{argb:XL_BORDER}}};
+        r++;
+      }
+      if (m.quickSummary.learning_value){
+        cover.getCell(`B${r}`).value = m.quickSummary.learning_label; cover.getCell(`C${r}`).value = m.quickSummary.learning_value;
+        cover.getCell(`B${r}`).alignment = {horizontal:'right', vertical:'top', wrapText:true};
+        cover.getCell(`C${r}`).alignment = {horizontal:'center', vertical:'top', wrapText:true};
+        cover.getCell(`B${r}`).border = {bottom:{style:'thin',color:{argb:XL_BORDER}}};
+        cover.getCell(`C${r}`).border = {bottom:{style:'thin',color:{argb:XL_BORDER}}};
+        r++;
+      }
     }
     if (m.monitoringOfficials && (m.monitoringOfficials.followup_responsible || m.monitoringOfficials.evaluator)){
       r += 1;
@@ -2156,9 +2192,18 @@ async function exportExcel(){
       cover.getCell(`B${r}`).font = {bold:true, size:13, color:{argb:XL_NAVY}};
       r++;
       const mo = m.monitoringOfficials;
-      if (mo.followup_responsible){ cover.getCell(`B${r}`).value = 'مسؤول المتابعة'; cover.getCell(`C${r}`).value = mo.followup_responsible; r++; }
-      if (mo.academic_affairs_deputy){ cover.getCell(`B${r}`).value = 'وكيل الشؤون التعليمية'; cover.getCell(`C${r}`).value = mo.academic_affairs_deputy; r++; }
-      if (mo.evaluator){ cover.getCell(`B${r}`).value = 'مسؤول التقويم'; cover.getCell(`C${r}`).value = mo.evaluator; r++; }
+      const moRows = [];
+      if (mo.followup_responsible) moRows.push(['مسؤول المتابعة', mo.followup_responsible]);
+      if (mo.academic_affairs_deputy) moRows.push(['وكيل الشؤون التعليمية', mo.academic_affairs_deputy]);
+      if (mo.evaluator) moRows.push(['مسؤول التقويم', mo.evaluator]);
+      moRows.forEach(([label,val])=>{
+        cover.getCell(`B${r}`).value = label; cover.getCell(`C${r}`).value = val;
+        cover.getCell(`B${r}`).alignment = {horizontal:'right', vertical:'top', wrapText:true};
+        cover.getCell(`C${r}`).alignment = {horizontal:'center', vertical:'top', wrapText:true};
+        cover.getCell(`B${r}`).border = {bottom:{style:'thin',color:{argb:XL_BORDER}}};
+        cover.getCell(`C${r}`).border = {bottom:{style:'thin',color:{argb:XL_BORDER}}};
+        r++;
+      });
     }
 
     const analysisSheet = wb.addWorksheet('تحليل الواقع', {views:[{rightToLeft:true, state:'frozen', ySplit:1}]});
@@ -2679,6 +2724,183 @@ async function exportPdfReal(){
   }finally{
     if (capture && capture.parentNode) capture.parentNode.removeChild(capture);
     btn.disabled = false; btn.innerHTML = origHtml;
+  }
+}
+
+/* ---------------- full-report PDF: every report section, one continuous paginated file ----------------
+   Reuses exportPdfReal's exact capture/segment/paginate pipeline (buildPdfSegments,
+   paginatePdfSegments, sliceCanvasVertical, the same header/footer clones) unchanged — it is
+   never modified by this function, so the existing single-section "طباعة/PDF" button keeps
+   behaving exactly as before. This loops the same per-section capture across every report
+   section (overview, domain analysis, priorities, programs, plan improvements, evidence, team —
+   excluding FAQ/settings/trash, which aren't report content), collects every section's pages
+   first, then writes them all into one jsPDF so page numbers ("x / total") are correct across
+   the whole document instead of restarting per section. */
+const FULL_REPORT_SECTIONS = ['overview','analysis','priorities','programs','improvement','evidence','team'];
+const FULL_REPORT_SECTION_LABELS = {overview:'نظرة عامة', analysis:'تحليل الواقع', priorities:'مجالات التحسين', programs:'البرامج والإجراءات', improvement:'تحسين الخطة', evidence:'الشواهد', team:'فريق العمل'};
+async function captureSectionPdfPages(){
+  const sourceHeader = document.querySelector('.print-header');
+  const sourceContent = document.getElementById('content');
+  const sourceFooter = document.querySelector('.print-footer');
+  if (!sourceHeader || !sourceContent || !sourceFooter) throw new Error('تعذّر العثور على محتوى الصفحة للتصدير');
+
+  const capture = document.createElement('div');
+  capture.className = 'pdf-capture-mode';
+  capture.style.cssText = `position:fixed;top:0;left:-99999px;width:${PDF_CAPTURE_WIDTH_PX}px;background:#fff;`;
+  const headerClone = sourceHeader.cloneNode(true);
+  const contentClone = document.createElement('div');
+  contentClone.className = 'content';
+  contentClone.innerHTML = sourceContent.innerHTML;
+  const footerClone = sourceFooter.cloneNode(true);
+  capture.appendChild(headerClone);
+  capture.appendChild(contentClone);
+  capture.appendChild(footerClone);
+  document.body.appendChild(capture);
+
+  try{
+    inlinePdfFormValues(contentClone);
+    flattenGridsForCapture(contentClone);
+    contentClone.querySelectorAll('[id$="Modal"]').forEach(m=>{ if(!m.textContent.trim()) m.remove(); });
+
+    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+
+    if (!contentClone.children.length) return null; // empty section (e.g. no evidence yet) — skip it
+
+    const headerHeightPx = headerClone.getBoundingClientRect().height;
+    const footerHeightPx = footerClone.getBoundingClientRect().height;
+    const fullBudgetPx = (PDF_CONTENT_H_MM / PDF_MM_PER_PX) - footerHeightPx - 10;
+    const firstBudgetPx = fullBudgetPx - headerHeightPx;
+
+    const {segments, theadsNeeded} = buildPdfSegments(contentClone, fullBudgetPx);
+    const headerHeightsPx = new Map();
+    const headerCanvases = new Map();
+    for (const thead of theadsNeeded){
+      const rect = thead.getBoundingClientRect();
+      headerHeightsPx.set(thead, rect.height);
+      const wrapTable = thead.closest('table');
+      const miniTable = document.createElement('table');
+      miniTable.className = wrapTable ? wrapTable.className : '';
+      miniTable.style.cssText = 'width:100%;border-collapse:collapse;';
+      miniTable.appendChild(thead.cloneNode(true));
+      const miniWrap = document.createElement('div');
+      miniWrap.className = 'pdf-capture-mode table-wrap';
+      miniWrap.style.cssText = `position:fixed;top:0;left:-99999px;width:${PDF_CAPTURE_WIDTH_PX}px;background:#fff;`;
+      miniWrap.appendChild(miniTable);
+      document.body.appendChild(miniWrap);
+      const c = await html2canvas(miniWrap, {scale: PDF_RENDER_SCALE, backgroundColor:'#ffffff', useCORS:true});
+      headerCanvases.set(thead, c);
+      document.body.removeChild(miniWrap);
+    }
+
+    const headerCanvas = await html2canvas(headerClone, {scale: PDF_RENDER_SCALE, backgroundColor:'#ffffff', useCORS:true});
+    const footerCanvas = await html2canvas(footerClone, {scale: PDF_RENDER_SCALE, backgroundColor:'#ffffff', useCORS:true});
+    const contentCanvas = await html2canvas(contentClone, {scale: PDF_RENDER_SCALE, backgroundColor:'#ffffff', useCORS:true});
+
+    const pages = paginatePdfSegments(segments, firstBudgetPx, fullBudgetPx, headerHeightsPx);
+    if (!pages.length) return null;
+
+    return {pages, headerCanvas, footerCanvas, contentCanvas, headerHeightPx, footerHeightPx, headerCanvases, headerHeightsPx};
+  } finally {
+    document.body.removeChild(capture);
+  }
+}
+async function exportFullReportPdf(){
+  const btn = document.getElementById('btnFullReport');
+  if (!window.html2canvas || !window.jspdf){
+    alert('تعذّر تحميل أدوات إنشاء PDF (تحقّقي من الاتصال بالإنترنت).');
+    return;
+  }
+  const origHtml = btn.innerHTML;
+  btn.disabled = true;
+  const savedSection = state.activeSection;
+  const savedPriority = state.selectedPriority;
+  try{
+    configurePdfGeometry(state.printOrientation);
+    btn.innerHTML = `${icon('print')} جارِ تحديث البيانات…`;
+    await waitForPendingSaves();
+    await loadAll();
+
+    const sectionResults = [];
+    for (const sectionId of FULL_REPORT_SECTIONS){
+      btn.innerHTML = `${icon('print')} جارِ تجهيز: ${FULL_REPORT_SECTION_LABELS[sectionId]||sectionId}…`;
+      state.activeSection = sectionId;
+      state.selectedPriority = null;
+      renderContent();
+      await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+      const result = await captureSectionPdfPages();
+      if (result) sectionResults.push(result);
+    }
+    if (!sectionResults.length) throw new Error('لا يوجد محتوى لتصديره');
+
+    btn.innerHTML = `${icon('print')} جارِ إنشاء PDF…`;
+    const totalPages = sectionResults.reduce((n,s)=>n+s.pages.length, 0);
+    const {jsPDF} = window.jspdf;
+    const pdf = new jsPDF({orientation: state.printOrientation === 'portrait' ? 'portrait' : 'landscape', unit:'mm', format:'a4'});
+
+    let globalPageIdx = 0;
+    sectionResults.forEach(res=>{
+      res.pages.forEach((segs, pageIdxInSection)=>{
+        if (globalPageIdx > 0) pdf.addPage();
+        let cursorMm = PDF_MARGIN_MM;
+        if (pageIdxInSection === 0){
+          const hHmm = res.headerHeightPx * PDF_MM_PER_PX;
+          pdf.addImage(res.headerCanvas.toDataURL('image/jpeg', 0.95), 'JPEG', PDF_MARGIN_MM, cursorMm, PDF_CONTENT_W_MM, hHmm);
+          cursorMm += hHmm;
+        }
+        segs.forEach(seg=>{
+          if (seg.headerImgEl){
+            const hc = res.headerCanvases.get(seg.headerImgEl);
+            const hHmm = (res.headerHeightsPx.get(seg.headerImgEl) || 0) * PDF_MM_PER_PX;
+            if (hc && hHmm > 0){
+              pdf.addImage(hc.toDataURL('image/jpeg', 0.95), 'JPEG', PDF_MARGIN_MM, cursorMm, PDF_CONTENT_W_MM, hHmm);
+              cursorMm += hHmm;
+            }
+          }
+          const segHpx = seg.bottom - seg.top;
+          if (segHpx <= 0) return;
+          const segHmm = segHpx * PDF_MM_PER_PX;
+          const slice = sliceCanvasVertical(res.contentCanvas, seg.top*PDF_RENDER_SCALE, seg.bottom*PDF_RENDER_SCALE);
+          pdf.addImage(slice.toDataURL('image/jpeg', 0.95), 'JPEG', PDF_MARGIN_MM, cursorMm, PDF_CONTENT_W_MM, segHmm);
+          cursorMm += segHmm;
+        });
+        const footerHmm = res.footerHeightPx * PDF_MM_PER_PX;
+        const footerY = PDF_PAGE_H_MM - PDF_MARGIN_MM - footerHmm;
+        pdf.addImage(res.footerCanvas.toDataURL('image/jpeg', 0.95), 'JPEG', PDF_MARGIN_MM, footerY, PDF_CONTENT_W_MM, footerHmm);
+        pdf.setFontSize(8);
+        pdf.setTextColor(120,120,120);
+        pdf.text(`${globalPageIdx+1} / ${totalPages}`, PDF_PAGE_W_MM/2, PDF_PAGE_H_MM - 4, {align:'center'});
+        globalPageIdx++;
+      });
+    });
+
+    const school = (state.meta?.schoolName || 'مدرسة-النهروان-الثانوية').replace(/\s+/g,'-');
+    const now = new Date();
+    const y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0'), d = String(now.getDate()).padStart(2,'0');
+    const filename = `${school}-تقرير-كامل-${y}-${m}-${d}.pdf`.replace(/[\\/:*?"<>|]/g,'-');
+    const blob = pdf.output('blob');
+    let shared = false;
+    if (navigator.canShare && navigator.share){
+      try{
+        const file = new File([blob], filename, {type:'application/pdf'});
+        if (navigator.canShare({files:[file]})){
+          await navigator.share({files:[file], title: filename});
+          shared = true;
+        }
+      }catch(shareErr){
+        if (shareErr && shareErr.name === 'AbortError') shared = true;
+      }
+    }
+    if (!shared) downloadPdfBlob(blob, filename);
+
+  }catch(err){
+    alert('تعذّر إنشاء التقرير الكامل: ' + (err?.message || 'حدث خطأ غير متوقع') + '\nجرّبي مرة أخرى.');
+  }finally{
+    state.activeSection = savedSection;
+    state.selectedPriority = savedPriority;
+    render();
+    const freshBtn = document.getElementById('btnFullReport');
+    if (freshBtn){ freshBtn.disabled = false; freshBtn.innerHTML = origHtml; }
   }
 }
 
