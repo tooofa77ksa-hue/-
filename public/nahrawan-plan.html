@@ -18,6 +18,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@9.9.0/dist/index.umd.cjs"></script>
 <style>
 :root{color-scheme:light;box-sizing:border-box}
 *{box-sizing:border-box}
@@ -464,6 +465,7 @@ const state = {
   authed: MODE !== 'admin',
   loadError: false,
   printOrientation: 'landscape',
+  numeralSystem: 'latn',
   meta: null,
   team: [],
   priorities: [],
@@ -485,6 +487,51 @@ const state = {
 function canEdit(){ return MODE==='admin' && state.editMode; }
 const root = document.getElementById('root');
 const esc = s => (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ---------------- numeral system: Arabic-Indic digit display toggle ----------------
+   Walks only rendered text nodes (SHOW_TEXT) under #root, so it structurally cannot touch
+   ids, data attributes or style, nor <input>/<textarea> values — those stay plain Latin digits
+   so forms, saves, exports and Supabase values are never affected, only what's displayed. */
+const ARABIC_INDIC_DIGITS = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+function toArabicDigits(s){ return String(s).replace(/[0-9]/g, d => ARABIC_INDIC_DIGITS[d]); }
+function applyNumeralSystem(){
+  if (state.numeralSystem !== 'arab') return;
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+  const nodes = [];
+  let n;
+  while ((n = walker.nextNode())) nodes.push(n);
+  nodes.forEach(node => { if (/[0-9]/.test(node.nodeValue)) node.nodeValue = toArabicDigits(node.nodeValue); });
+}
+
+/* ---------------- site colors: self-service theme editing ----------------
+   Overrides CSS custom properties already defined on :root (design tokens, untouched)
+   via documentElement.style.setProperty — instant, reversible, never edits the stylesheet.
+   Persisted in this browser's localStorage only (per-device, not shared across visitors —
+   there is no live Supabase schema change available to make it shared). */
+const THEME_STORAGE_KEY = 'nahrawanThemeColors';
+const THEME_DEFAULTS = {navy:'#15445A', teal:'#0DA9A6', blue:'#3D7EB9', green:'#07A869', gold:'#C1B489'};
+const THEME_LABELS = {navy:'اللون الأساسي (الأزرق الداكن)', teal:'لون التمييز (التركواز)', blue:'الأزرق', green:'الأخضر', gold:'الذهبي'};
+function loadTheme(){
+  try{
+    const saved = JSON.parse(localStorage.getItem(THEME_STORAGE_KEY) || '{}');
+    return Object.assign({}, THEME_DEFAULTS, saved);
+  }catch(e){ return Object.assign({}, THEME_DEFAULTS); }
+}
+function applyTheme(theme){
+  Object.keys(THEME_DEFAULTS).forEach(key => {
+    document.documentElement.style.setProperty('--'+key, theme[key] || THEME_DEFAULTS[key]);
+  });
+}
+function saveThemeColor(key, value){
+  const theme = loadTheme();
+  theme[key] = value;
+  try{ localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(theme)); }catch(e){}
+  applyTheme(theme);
+}
+function resetTheme(){
+  try{ localStorage.removeItem(THEME_STORAGE_KEY); }catch(e){}
+  applyTheme(THEME_DEFAULTS);
+}
 
 function icon(name){
   const paths = {
@@ -724,7 +771,12 @@ function render(){
               <label><input type="radio" name="printOrientation" value="landscape" ${state.printOrientation!=='portrait'?'checked':''}> أفقي</label>
               <label><input type="radio" name="printOrientation" value="portrait" ${state.printOrientation==='portrait'?'checked':''}> عمودي</label>
             </div>
+            <div class="orientation-pick" role="radiogroup" aria-label="نظام الأرقام">
+              <label><input type="radio" name="numeralSystem" value="latn" ${state.numeralSystem!=='arab'?'checked':''}> أرقام إنجليزية</label>
+              <label><input type="radio" name="numeralSystem" value="arab" ${state.numeralSystem==='arab'?'checked':''}> أرقام عربية</label>
+            </div>
             <button class="btn primary" id="btnExcel">${icon('excel')} تصدير Excel</button>
+            <button class="btn" id="btnWord">${icon('doc')} تصدير Word</button>
             <button class="btn" id="btnPrint">${icon('print')} طباعة / PDF</button>
             ${MODE==='admin'?`<button class="btn ${state.editMode?'teal':'primary'}" id="btnEditToggle">${icon(state.editMode?'doc':'lock')} ${state.editMode?'التحرير مفعّل — إيقاف مؤقت':'تفعيل التحرير'}</button>`:''}
             ${MODE==='admin'?`<button class="btn ghost" id="btnLogout">${icon('logout')} تسجيل خروج</button>`:''}
@@ -760,7 +812,9 @@ function render(){
 
   document.querySelectorAll('#nav button').forEach(b=>b.addEventListener('click', ()=>{ state.activeSection=b.dataset.section; state.selectedPriority=null; render(); }));
   document.querySelectorAll('input[name=printOrientation]').forEach(r=>r.addEventListener('change', e=>{ state.printOrientation = e.target.value; }));
+  document.querySelectorAll('input[name=numeralSystem]').forEach(r=>r.addEventListener('change', e=>{ state.numeralSystem = e.target.value; render(); }));
   document.getElementById('btnExcel').addEventListener('click', exportExcel);
+  document.getElementById('btnWord').addEventListener('click', exportWordReal);
   document.getElementById('btnPrint').addEventListener('click', exportPdfReal);
   const logoutBtn = document.getElementById('btnLogout');
   if (logoutBtn) logoutBtn.addEventListener('click', async ()=>{ await sb.auth.signOut(); state.authed=false; state.loaded=false; state.editMode=true; render(); });
@@ -773,6 +827,7 @@ function render(){
   updateClock();
 
   renderContent();
+  applyNumeralSystem();
 }
 
 function updateClock(){
@@ -1601,7 +1656,28 @@ function renderSettings(c){
         </div>
       </form>
     </div></div>
+    <div class="card" style="margin-top:18px">
+      <div class="card-hd"><h3>ألوان الموقع</h3></div>
+      <div class="card-bd">
+        <p style="margin:0 0 14px;font-size:12.5px;color:var(--muted)">غيّري ألوان الموقع بنفسك مباشرة — التغيير فوري، ومحفوظ في هذا الجهاز/المتصفح فقط.</p>
+        <div class="form-grid" id="themeColorGrid">
+          ${Object.keys(THEME_DEFAULTS).map(key => `
+            <div class="f-field">
+              <label>${esc(THEME_LABELS[key])}</label>
+              <input type="color" data-theme-color="${key}" value="${esc(loadTheme()[key])}" style="width:100%;height:40px;padding:2px;cursor:pointer;border:1px solid var(--border);border-radius:9px">
+            </div>
+          `).join('')}
+        </div>
+        <div class="save-bar">
+          <button type="button" class="btn ghost" id="resetThemeBtn">استعادة الألوان الافتراضية</button>
+        </div>
+      </div>
+    </div>
   `;
+  c.querySelectorAll('[data-theme-color]').forEach(inp=>{
+    inp.addEventListener('input', ()=>{ saveThemeColor(inp.dataset.themeColor, inp.value); });
+  });
+  document.getElementById('resetThemeBtn').addEventListener('click', ()=>{ resetTheme(); renderSettings(c); });
   document.getElementById('settingsForm').addEventListener('submit', e=>{
     e.preventDefault();
     const submitBtn = e.target.querySelector('button[type=submit]');
@@ -2192,6 +2268,135 @@ async function exportExcel(){
   }
 }
 
+/* ---------------- real Word export (.docx) ----------------
+   Uses the docx library (CDN, like the other export libraries already in this file) to build
+   a genuine, editable, native OOXML Word document client-side — not an HTML-to-doc hack.
+   Mirrors the same sections/data already in the Excel export, in the same scope: meta info,
+   priorities, actions, programs, domain analysis, team. Page size is always the base A4
+   portrait dimensions (11906x16838 twips); the `orientation` flag alone drives the actual
+   landscape/portrait swap, matching how jsPDF's own orientation handling already works here —
+   passing pre-swapped dimensions produces incorrect output. */
+function wPara(text, opts){
+  opts = opts || {};
+  const { Paragraph, TextRun, HeadingLevel, AlignmentType } = window.docx;
+  return new Paragraph({
+    heading: opts.heading,
+    alignment: AlignmentType.RIGHT,
+    bidirectional: true,
+    spacing: opts.spacing || {after: 120},
+    children: [new TextRun({text: text==null?'':String(text), bold: !!opts.bold, size: opts.size, rightToLeft: true})],
+  });
+}
+function wCell(text, opts){
+  opts = opts || {};
+  const { TableCell, WidthType, VerticalAlign } = window.docx;
+  return new TableCell({
+    width: opts.width ? {size: opts.width, type: WidthType.PERCENTAGE} : undefined,
+    verticalAlign: VerticalAlign.CENTER,
+    shading: opts.header ? {fill: 'EEF3F2'} : undefined,
+    children: [wPara(text, {bold: !!opts.header, spacing: {after: 0}})],
+  });
+}
+function wTable(headers, rows){
+  const { Table, TableRow, WidthType } = window.docx;
+  const widthEach = Math.floor(100 / headers.length);
+  return new Table({
+    width: {size: 100, type: WidthType.PERCENTAGE},
+    rows: [
+      new TableRow({tableHeader: true, children: headers.map(h=>wCell(h, {header:true, width:widthEach}))}),
+      ...rows.map(r => new TableRow({children: r.map(v=>wCell(v, {width:widthEach}))})),
+    ],
+  });
+}
+function wSectionTitle(text){
+  const { HeadingLevel } = window.docx;
+  return wPara(text, {heading: HeadingLevel.HEADING_1, spacing: {before: 300, after: 160}});
+}
+function wEmptyNote(text){
+  return wPara(text, {spacing: {after: 200}});
+}
+function buildWordChildren(){
+  const m = state.meta || {};
+  const children = [];
+
+  children.push(wPara(`خطة تحسين ${m.schoolName||''}`, {heading: window.docx.HeadingLevel.TITLE, spacing:{after:80}}));
+  children.push(wPara(`${m.stage||''} — للعام ${m.year||''}`, {spacing:{after:240}}));
+
+  children.push(wSectionTitle('مؤشرات الأداء العام (التقويم الخارجي)'));
+  const perf = m.performance || [];
+  if (perf.length){
+    children.push(wTable(['المجال','نسبة الأداء'], perf.map(p=>[p.domain||'', (p.externalEval!=null && p.externalEval!=='') ? (p.externalEval+'%') : '—'])));
+  } else children.push(wEmptyNote('لا توجد بيانات'));
+
+  children.push(wSectionTitle(`أولويات التحسين (${state.priorities.length})`));
+  if (state.priorities.length){
+    children.push(wTable(
+      ['المجال','المؤشر','خط الأساس','المستهدف','حالة التنفيذ','المسؤول'],
+      state.priorities.filter(p=>!p.archived).map(p=>[normDomain(p.domain)||'', p.text||'', p.baseline||'—', p.target||'—', p.executionStatus||'—', p.responsible||'—'])
+    ));
+  } else children.push(wEmptyNote('لا توجد أولويات'));
+
+  children.push(wSectionTitle(`إجراءات التحسين (${state.actions.length})`));
+  if (state.actions.length){
+    children.push(wTable(
+      ['المجال','المؤشر','إجراء التحسين','الطريقة','تاريخ الاستحقاق','المسؤول'],
+      state.actions.map(a=>[normDomain(a.domain)||'', a.indicatorText||'', a.improvementAction||'', a.method||'—', a.dueDate||'—', a.responsible||'—'])
+    ));
+  } else children.push(wEmptyNote('لا توجد إجراءات'));
+
+  children.push(wSectionTitle(`البرامج والمتابعة (${state.programs.length})`));
+  if (state.programs.length){
+    children.push(wTable(
+      ['اسم البرنامج','المجال','تاريخ التنفيذ','التنفيذ','مستوى الإنجاز'],
+      state.programs.filter(p=>!p.archived).map(p=>[p.name||'', normDomain(p.domain)||'', p.executionDate||'—', p.executed===true?'نُفّذ':(p.executed===false?'لم يُنفّذ':'—'), p.achievementLevel||'—'])
+    ));
+  } else children.push(wEmptyNote('لا توجد برامج'));
+
+  children.push(wSectionTitle(`تحليل الواقع (${state.domainAnalysis.length})`));
+  if (state.domainAnalysis.length){
+    children.push(wTable(
+      ['المجال','الرمز','المؤشر','نقطة قوة','نقطة ضعف'],
+      state.domainAnalysis.filter(a=>!a.archived).map(a=>[normDomain(a.domain)||'', a.code||'—', a.indicatorText||'', a.strengthPct||'—', a.weaknessPct||'—'])
+    ));
+  } else children.push(wEmptyNote('لا توجد بيانات تحليل واقع'));
+
+  children.push(wSectionTitle(`فريق العمل (${state.team.length})`));
+  if (state.team.length){
+    children.push(wTable(['الاسم','الدور','المهمة'], state.team.map(t=>[t.name||'', t.role||'', t.task||'—'])));
+  } else children.push(wEmptyNote('لا يوجد فريق عمل مسجّل'));
+
+  return children;
+}
+async function exportWordReal(){
+  const btn = document.getElementById('btnWord');
+  if (!window.docx){ alert('تعذّر تحميل مكتبة Word. جرّبي إعادة فتح الصفحة.'); return; }
+  const origHtml = btn.innerHTML;
+  btn.disabled = true; btn.innerHTML = 'جارِ التجهيز…';
+  try{
+    const { Document, Packer, PageOrientation } = window.docx;
+    const orientation = state.printOrientation === 'portrait' ? PageOrientation.PORTRAIT : PageOrientation.LANDSCAPE;
+    const doc = new Document({
+      sections: [{
+        properties: {
+          page: { size: { width: 11906, height: 16838, orientation } },
+        },
+        children: buildWordChildren(),
+      }],
+    });
+    const blob = await Packer.toBlob(doc);
+    const filename = `خطة-تحسين-${(state.meta?.schoolName||'المدرسة').replace(/\s+/g,'-')}-${state.meta?.year||''}.docx`;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+  }catch(err){
+    alert('تعذّر إنشاء ملف Word: ' + (err?.message || 'حدث خطأ غير متوقع'));
+  }finally{
+    btn.disabled = false; btn.innerHTML = origHtml;
+  }
+}
+
 /* ---------------- real PDF export (html2canvas + jsPDF, row-safe pagination) ---------------- */
 const PDF_MARGIN_MM = 10;
 const PDF_PX_PER_MM = 1400 / (297 - PDF_MARGIN_MM*2); // fixed physical scale (~128dpi), same in both orientations
@@ -2575,6 +2780,7 @@ function renderGate(){
 
 /* ---------------- boot ---------------- */
 async function boot(){
+  applyTheme(loadTheme());
   render();
   initAnthem();
   const {data:{session}} = await sb.auth.getSession();
