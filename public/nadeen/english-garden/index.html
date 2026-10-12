@@ -885,6 +885,8 @@ $('#b-home').onclick=lobby;$('#b-parent').onclick=parent;$('#b-sound').onclick=f
 try{speechSynthesis.getVoices()}catch(e){}
 window.__e={S:function(){return S},D:D,VOICE:VOICE};
 hud();lobby();
+// deep link from the printed unit sheets: #u0 … #u4 opens that unit
+(function(){var m=(location.hash||'').match(/^#u([0-4])$/);if(!m)return;var uu=D.units.filter(function(x){return x.id==='u'+m[1]})[0];if(uu)unit(uu,'map')})();
 var hi=cheer('start');if(hi)setTimeout(function(){toast(hi)},500);
 })();
 </script>
