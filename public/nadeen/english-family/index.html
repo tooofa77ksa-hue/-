@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#E11D48">
 <link rel="apple-touch-icon" href="icon.png"><link rel="icon" href="icon.png">
 <link rel="stylesheet" href="style.css?v=6">
-<script>window.APP_V='20261010125351';
+<script>window.APP_V='20261012184410';
 window.APP_SAFE=function(){var a=document.activeElement;return !(a&&a.tagName==='INPUT')&&!document.querySelector('#quick:not(.hidden)');};
 // تحديث تلقائي: إذا نُشرت نسخة جديدة، تتحدّث الصفحة وحدها في لحظة آمنة (بدون ما تضغطين تحديث)
 (function () {
@@ -47,7 +47,10 @@ window.APP_SAFE=function(){var a=document.activeElement;return !(a&&a.tagName===
   <div class="wrap">
     <div class="hint blk" id="hint"></div>
     <div class="prog" id="prog"></div>
-    <button class="btn w hidden" id="newR">🔄 جولة جديدة (نفس الأسئلة بترتيب مختلف)</button>
+    <div class="ord blk hidden" id="ord">
+      <div class="ordrow"><button class="btn w on" id="ordA" type="button">📄 مرتّب: نفس ترتيب الورقة</button><button class="btn w" id="ordB" type="button">🔀 مخربط: ترتيب مختلف</button></div>
+      <div class="note" id="ordNote">في الاختبار ممكن المعلمة تغيّر أماكن الكلمات والصور. جرّبي «مخربط» عشان تتعوّدين: المهم الإجابة، مو مكانها! 💡</div>
+    </div>
     <div class="paper" id="paper"></div>
   </div>
 </div>

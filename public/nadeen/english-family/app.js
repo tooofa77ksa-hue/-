@@ -111,7 +111,7 @@
       return '<table class="tb' + (s.small ? ' small' : '') + '" dir="ltr">' + rows + '</table>' + (mode === 'solve' ? '<button class="btn g chk" data-chk="' + s.id + '">✔ تحقّقي</button><div class="msg" data-msg="' + s.id + '"></div>' : '');
     },
     choose: function (s) {
-      var cols = s.items.map(function (it) {
+      var cols = (mode === 'solve' && round ? shuffle(s.items) : s.items).map(function (it) {
         var opts = mode === 'solve' && round ? shuffle(it.opts) : it.opts;
         var top = it.img ? '<img src="img/' + it.img + '.jpg" alt="">' + fx(it.img) : it.pic;
         var o = opts.map(function (w, i) {
@@ -124,8 +124,8 @@
       return '<div class="grid' + (s.pics ? ' pics' : '') + '" dir="ltr">' + cols + '</div>' + det + whys(s.items) + (s.spell ? whys(s.items.map(function (it) { return BY[it.id + 'w']; })) : '');
     },
     write: function (s) {
-      var bank = '<div class="bank" dir="ltr">( ' + s.bank.map(function (w) { return '<button class="bw" data-bw="' + w + '">' + w + '</button>'; }).join(' – ') + ' )</div>';
-      var cols = s.items.map(function (it) {
+      var bank = '<div class="bank" dir="ltr">( ' + (mode === 'solve' && round ? shuffle(s.bank) : s.bank).map(function (w) { return '<button class="bw" data-bw="' + w + '">' + w + '</button>'; }).join(' – ') + ' )</div>';
+      var cols = (mode === 'solve' && round ? shuffle(s.items) : s.items).map(function (it) {
         var low = mode === 'learn' ? '<div class="ans g">' + it.ok + '</div>' :
           '<input class="win" data-win="' + it.id + '" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="✏️ اكتبي هنا"><button class="btn sm g wchk" data-wchk="' + it.id + '">✔</button>' + dots(it.id) + '<div class="lt" data-lt="' + it.id + '"></div>';
         return '<div class="col" data-k="' + it.id + '"><div class="pic an-' + it.img + '"><img src="img/' + it.img + '.jpg" alt="">' + fx(it.img) + sayBtn(it.say, 'sm') + '</div>' + low + '</div>';
@@ -297,14 +297,18 @@
   function setMode(m) {
     mode = m;
     document.querySelectorAll('.mode').forEach(function (b) { b.classList.toggle('on', b.dataset.m === m); });
-    $('#newR').classList.toggle('hidden', m !== 'solve');
+    $('#ord').classList.toggle('hidden', m !== 'solve');
     $('#hint').innerHTML = m === 'learn' ? '👆 اضغطي على أي سؤال أو صورة: تسمعين الإنجليزي بهدوء ثم المعنى بالعربي، ويظهر النطق وطريقة الحفظ.' :
       '✏️ حلّي على نفس الورقة. إذا أخطأتِ يظهر الشرح تحت الخانة، ثم جرّبي مرّة ثانية. كل إجابة صحيحة من أول مرّة = نجمة ★';
     render();
   }
   document.querySelectorAll('.mode').forEach(function (b) { b.onclick = function () { review = false; setMode(b.dataset.m); }; });
   $('#songB').onclick = function () { if (mode !== 'learn' || review) { review = false; setMode('learn'); } var e = $('#song'); if (e) e.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
-  $('#newR').onclick = function () { round++; render(); window.scrollTo(0, 0); };
+  // 📄 مرتّب = نفس ترتيب الورقة · 🔀 مخربط = نفس الأسئلة، والإجابات والصور والخيارات بترتيب جديد كل مرة
+  function setOrder(mixed) { round = mixed ? round + 1 : 0; $('#ordA').classList.toggle('on', !mixed); $('#ordB').classList.toggle('on', mixed);
+    $('#ordB').textContent = mixed ? '🔀 مخربط: خربطيها مرة ثانية' : '🔀 مخربط: ترتيب مختلف'; render(); window.scrollTo(0, 0); }
+  $('#ordA').onclick = function () { setOrder(false); };
+  $('#ordB').onclick = function () { setOrder(true); };
   $('#lis').onclick = function () {
     if (playing) { stop(); $('#lis').textContent = '▶️ اسمعي الورقة كاملة'; return; }
     if (mode !== 'learn') setMode('learn');
