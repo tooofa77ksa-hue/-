@@ -1,0 +1,11 @@
+/* EduPlayer controls — big touch targets, RTL friendly, light/dark */
+.edu-player{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;direction:rtl;margin:10px 0}
+.edu-player .ep-btn{min-width:48px;min-height:48px;padding:0 14px;border-radius:14px;border:2px solid var(--ep-line,#cfd8e3);
+  background:var(--ep-bg,#fff);color:var(--ep-ink,#1d2b3a);font:600 17px/1 inherit;cursor:pointer;touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;transition:transform .12s ease,background .2s}
+.edu-player .ep-btn:active{transform:scale(.94)}
+.edu-player .ep-btn:focus-visible{outline:3px solid var(--ep-focus,#2f7de1);outline-offset:2px}
+.edu-player .ep-play{background:var(--ep-accent,#2f7de1);border-color:var(--ep-accent,#2f7de1);color:#fff;min-width:64px;font-size:22px}
+.edu-player .ep-btn[aria-pressed="true"].ep-reduce{background:var(--ep-soft,#eef5ff)}
+.edu-player [hidden]{display:none!important}
+@media (prefers-color-scheme:dark){.edu-player{--ep-bg:#1f2833;--ep-ink:#eef3f8;--ep-line:#3a4756;--ep-soft:#26364a}}

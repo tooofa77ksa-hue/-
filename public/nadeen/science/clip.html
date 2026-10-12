@@ -1,0 +1,20 @@
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><link rel="stylesheet" href="style.css">
+<style>html,body{margin:0;background:#f3f7fc}#b{width:800px;height:560px;position:relative}.scene-svg{border-radius:0;height:560px;width:800px}.c3{height:560px!important;border-radius:0}#cap{position:absolute;bottom:0;left:0;right:0;background:rgba(255,255,255,.88);font:700 22px Tahoma,sans-serif;text-align:center;padding:10px;color:#1c2a39;min-height:30px}</style>
+<script type="importmap">{"imports":{"three":"./lib/three.module.min.js"}}</script></head><body><div id="b"></div><div id="cap"></div>
+<script src="lib/gsap.min.js"></script><script src="lib/MotionPathPlugin.min.js"></script><script src="lib/DrawSVGPlugin.min.js"></script><script src="lib/MorphSVGPlugin.min.js"></script>
+<script src="data.js"></script><script src="scenes/svgscenes.js"></script>
+<script type="module">
+gsap.registerPlugin(MotionPathPlugin, DrawSVGPlugin, MorphSVGPlugin);
+const k = new URLSearchParams(location.search).get('s'), box = document.getElementById('b'), cap = document.getElementById('cap');
+if (k === 'cell3d') {
+  const { mountCell } = await import('./scenes/cell3d.js');
+  const c = mountCell(box, { data: DATA.parts3d }); const P = DATA.parts3d; const say = t => cap.textContent = t;
+  const seq = [[0, () => say('خلية حيوانية: دوّريها وكبّريها')], [2500, () => { c.focus('nucleus'); say('النواة: ' + P.nucleus.fn); }], [5000, () => { c.focus('mito'); say('الميتوكندريا: ' + P.mito.fn); }],
+    [7500, () => { c.explode(true); say('نفصل الأجزاء…'); }], [9500, () => { c.explode(false); say('…ونعيدها'); }], [11000, () => { c.setMode('plant'); c.focus(null); say('خلية نباتية: لها جدار وبلاستيدات خضراء'); }],
+    [13500, () => { c.cut(true); c.focus('vacuole'); say('مقطع للداخل: الفجوة العصارية كبيرة'); }], [16500, () => { c.cut(false); c.setMode('compare'); c.focus('wall'); say('جدار الخلية: في النباتية فقط'); }], [19500, () => window.done = true]];
+  seq.forEach(([t, f]) => setTimeout(f, t));
+} else {
+  const sc = SVGScenes[k](box); sc.tl.eventCallback('onUpdate', () => { const l = sc.tl.currentLabel(); if (l && sc.captions[l]) cap.textContent = sc.captions[l]; });
+  sc.tl.eventCallback('onComplete', () => setTimeout(() => window.done = true, 900)); setTimeout(() => sc.tl.play(), 300);
+}
+</script></body></html>

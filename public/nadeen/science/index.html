@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>مراجعة العلوم</title>
+<link rel="icon" href="img/fe/1f52c.webp">
+<link rel="stylesheet" href="edu-player.css">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">{ "imports": { "three": "./lib/three.module.min.js" } }</script>
+</head>
+<body>
+<header class="top">
+  <button class="ic" id="homeBtn" type="button" aria-label="الرئيسية">🏠</button>
+  <div class="ttl" id="topTitle">مراجعة العلوم</div>
+  <button class="ic" id="muteBtn" type="button" aria-label="كتم الصوت">🔊</button>
+</header>
+<main id="app"></main>
+
+<div class="modal" id="sceneModal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="scTitle">
+    <div class="sheet-head"><b id="scTitle">مشهد</b><button class="ic" id="scClose" type="button" aria-label="إغلاق">✕</button></div>
+    <div id="scBox" class="scbox"></div>
+    <p class="sc-cap" id="scCap" aria-live="polite"></p>
+    <div id="scCtl"></div>
+    <p class="sc-note" id="scNote"></p>
+  </div>
+</div>
+
+<script src="lib/gsap.min.js"></script>
+<script src="lib/MotionPathPlugin.min.js"></script>
+<script src="lib/DrawSVGPlugin.min.js"></script>
+<script src="lib/MorphSVGPlugin.min.js"></script>
+<script src="lib/howler.core.min.js"></script>
+<script src="audio-sync.js"></script>
+<script src="edu-player.js"></script>
+<script src="data.js"></script>
+<script src="scenes/svgscenes.js"></script>
+<script src="app.js"></script>
+<script type="module">
+  import { mountCell } from './scenes/cell3d.js';
+  import { mountAnimal, ANIMALS } from './scenes/animal3d.js';
+  window.mountCell = mountCell; window.mountAnimal = mountAnimal; window.ANIMALS = ANIMALS;
+  window.dispatchEvent(new Event('cell3d-ready'));
+</script>
+</body>
+</html>

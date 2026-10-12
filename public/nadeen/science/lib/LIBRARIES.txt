@@ -1,0 +1,6 @@
+Vendored libraries (free; no paid service, no API key)
+gsap 3.13.0 + MotionPath/DrawSVG/MorphSVG plugins — GSAP Standard 'no charge' license: https://gsap.com/standard-license
+howler 2.2.4 (core) — MIT
+three 0.169.0 — MIT
+three examples OrbitControls.js, RoundedBoxGeometry.js r169 — MIT
+three examples GLTFLoader.js, BufferGeometryUtils.js r169 — MIT
