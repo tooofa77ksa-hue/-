@@ -449,6 +449,13 @@ function unit(u,tab){screen();
   h.innerHTML='<div class="uhead"><div class="ic">'+u.ic+'</div><div><h2><bdi class="en" dir="ltr"><span style="color:var(--red)">'+(u.lbl||'Unit '+u.n)+':</span> '+esc(u.en)+'</bdi></h2><div class="muted">'+esc(u.ar)+'</div></div></div>';
   var tabs=el('div','tabs');[['map','🗂️','الوحدة','كل شيء بالترتيب'],['learn','📖','تعلّمي','الكلمات والقواعد'],['battle','🎮','معركة','ألعاب وتحديات'],['write','✍️','اكتبي','إملاء وكتابة'],['exam','🏆','اختبري','بنفس شكل الاختبار']].forEach(function(t){var b=el('button','tab'+(t[0]===tab?' on':''),'<span class="e">'+t[1]+'</span>'+t[2]+'<small>'+t[3]+'</small>');b.type='button';b.onclick=function(){unit(u,t[0])};tabs.appendChild(b)});
   h.appendChild(tabs);h.appendChild(pathCard(u));main.appendChild(h);
+  // 🖨️ printable unit sheets (A4 portrait PDFs in print/)
+  (function(){var PR={"u0": ["words", "grammar"], "u1": ["words", "grammar", "reading", "story"], "u2": ["words", "grammar", "reading", "story"], "u3": ["words", "grammar", "story"], "u4": ["words", "grammar", "story"]},L={words:'🔤 الكلمات',grammar:'🧠 القواعد',reading:'📖 القراءة',story:'✍️ القطعة'},ks=PR[u.id];if(!ks)return;
+    var pc=el('div','card');pc.style.borderColor=u.c;
+    var html='<div style="font-weight:800;margin-bottom:6px">🖨️ اطبعي الوحدة <span class="muted" style="font-weight:400">(ورق A4 عمودي)</span></div><div class="row" style="justify-content:flex-start;flex-wrap:wrap;gap:8px">'
+      +'<a class="btn" style="text-decoration:none" target="_blank" rel="noopener" href="print/'+u.id+'_all.pdf">📄 الوحدة كاملة</a>';
+    ks.forEach(function(k){html+='<a class="btn ghost" style="text-decoration:none" target="_blank" rel="noopener" href="print/'+u.id+'_'+k+'.pdf">'+L[k]+'</a>'});
+    pc.innerHTML=html+'</div><div class="muted" style="margin-top:6px;font-size:.9em">يفتح الملف، ثم اضغطي زر المشاركة ⬆️ ثم «طباعة».</div>';main.appendChild(pc)})();
   ({map:mapTab,learn:learnTab,battle:battleTab,write:writeTab,exam:examTab})[tab](u);
 }
 
@@ -886,7 +893,8 @@ try{speechSynthesis.getVoices()}catch(e){}
 window.__e={S:function(){return S},D:D,VOICE:VOICE};
 hud();lobby();
 // deep link from the printed unit sheets: #u0 … #u4 opens that unit
-(function(){var m=(location.hash||'').match(/^#u([0-4])$/);if(!m)return;var uu=D.units.filter(function(x){return x.id==='u'+m[1]})[0];if(uu)unit(uu,'map')})();
+function openHash(){var m=(location.hash||'').match(/^#u([0-4])$/);if(!m)return;var uu=D.units.filter(function(x){return x.id==='u'+m[1]})[0];if(uu)unit(uu,'map')}
+openHash();window.addEventListener('hashchange',openHash);
 var hi=cheer('start');if(hi)setTimeout(function(){toast(hi)},500);
 })();
 </script>
