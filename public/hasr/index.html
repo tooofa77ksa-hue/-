@@ -177,12 +177,22 @@ td.m{color:var(--muted);font-size:13px;white-space:nowrap}
   .charts{grid-template-columns:1fr 1.5fr}
   .cbox{height:auto}
   .cbox canvas{width:100%!important;height:auto!important;max-height:210px;object-fit:contain}
-  .panel,.kpis,.exec,.charts,.qrsec,.sign{break-inside:avoid}
-  .panel.tablep{break-inside:auto}
+  /* لا شيء يُقص: كل الحاويات تمتد بطولها الكامل وتنقسم على الصفحات */
+  html,body,#app,.wrap,#reportView,#report,.tw{height:auto!important;max-height:none!important;overflow:visible!important}
+  .kpis,.exec,.charts,.qrsec,.sign,.hdr{break-inside:avoid}
+  .charts .panel,.qrsec{break-inside:avoid}
+  .panel.tablep,.panel.incp{break-inside:auto}
+  .panel h3{break-after:avoid}
+  table{width:100%!important;min-width:0!important}
   table{font-size:10pt}
   thead{display:table-header-group}
   tr,td,th{break-inside:avoid}
-  .inc{grid-template-columns:repeat(3,1fr)}
+  .inc{display:block;column-count:3;column-gap:8px}
+  .inc div{display:block;margin-bottom:6px;break-inside:avoid}
+  :root.landscape .inc{column-count:4}
+  .kpis{grid-template-columns:repeat(4,1fr)!important}
+  :root.landscape .cbox canvas{max-height:150px}
+  :root.landscape .exec{padding:8px 14px}
   body.qr-mode #app{display:none!important}
   body.qr-mode #poster{display:flex}
 }
@@ -270,7 +280,8 @@ td.m{color:var(--muted);font-size:13px;white-space:nowrap}
         <div class="tb">
           <button type="button" class="tbtn" id="bRefresh">↻ تحديث</button>
           <button type="button" class="tbtn x" id="bExcel">⬇ تصدير Excel</button>
-          <button type="button" class="tbtn" id="bPdf">⬇ تصدير PDF</button>
+          <button type="button" class="tbtn" id="bPdf">⬇ PDF عمودي</button>
+          <button type="button" class="tbtn" id="bPdfL">⬇ PDF أفقي</button>
           <button type="button" class="tbtn p" id="bQr">▦ طباعة الباركود</button>
         </div>
       </div>
@@ -299,7 +310,7 @@ td.m{color:var(--muted);font-size:13px;white-space:nowrap}
         </table></div>
       </div>
 
-      <div class="panel">
+      <div class="panel incp">
         <h3>غير المكتملات <small id="incCount"></small></h3>
         <div class="inc" id="incList"></div>
       </div>
@@ -584,11 +595,23 @@ function afterPrint() {
   document.documentElement.classList.remove("printing");
   document.body.classList.remove("qr-mode");
   const st = $("posterPage"); if (st) st.remove();
+  const sp = $("pdfPage"); if (sp) sp.remove();
+  document.documentElement.classList.remove("landscape");
   if (!$("report").hidden) { renderTable(); drawCharts(); }
 }
 window.addEventListener("beforeprint", beforePrint);
 window.addEventListener("afterprint", afterPrint);
-$("bPdf").addEventListener("click", () => { toast("من نافذة الطباعة اختاري «حفظ كملف PDF»", 3500); setTimeout(() => window.print(), 300); });
+// PDF عمودي أو أفقي: نضبط اتجاه الصفحة قبل فتح نافذة الطباعة
+function printPdf(landscape) {
+  const st = document.createElement("style"); st.id = "pdfPage";
+  st.textContent = "@page{size:A4 " + (landscape ? "landscape" : "portrait") + "}";
+  document.head.appendChild(st);
+  document.documentElement.classList.toggle("landscape", landscape);
+  toast("من نافذة الطباعة اختاري «حفظ كملف PDF» وفعّلي «رسومات الخلفية»", 3500);
+  setTimeout(() => window.print(), 300);
+}
+$("bPdf").addEventListener("click", () => printPdf(false));
+$("bPdfL").addEventListener("click", () => printPdf(true));
 $("bQr").addEventListener("click", () => {
   drawQR(); document.body.classList.add("qr-mode");
   const st = document.createElement("style"); st.id = "posterPage"; st.textContent = "@page{margin:12mm;@bottom-center{content:none}}"; document.head.appendChild(st);
@@ -615,7 +638,9 @@ async function buildExcel() {
   const dateTxt = "تاريخ الإصدار: " + new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura-nu-latn", { day: "numeric", month: "long", year: "numeric" }).format(d) + " — " + new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn", { day: "numeric", month: "long", year: "numeric" }).format(d) + "م";
 
   function sheet(name, cols) {
-    const ws = wb.addWorksheet(name, { views: [{ rightToLeft: true, state: "frozen", ySplit: 4 }], pageSetup: { paperSize: 9, orientation: "portrait", fitToPage: true, fitToWidth: 1, fitToHeight: 0, horizontalCentered: true } });
+    const ws = wb.addWorksheet(name, { views: [{ rightToLeft: true, state: "frozen", ySplit: 4 }], pageSetup: { paperSize: 9, orientation: "portrait", fitToPage: true, fitToWidth: 1, fitToHeight: 0, horizontalCentered: true,
+      printTitlesRow: "1:4", margins: { left: 0.4, right: 0.4, top: 0.5, bottom: 0.6, header: 0.2, footer: 0.3 } },
+      headerFooter: { oddFooter: "&C&9صفحة &P من &N" } });
     ws.columns = cols.map(w => ({ width: w }));
     const last = String.fromCharCode(64 + cols.length);
     ws.mergeCells(`A1:${last}1`); ws.mergeCells(`A2:${last}2`); ws.mergeCells(`A3:${last}3`);
