@@ -140,18 +140,19 @@ let view = {};
 
 /* ---------- home ---------- */
 const SECS = [
+  ...(D.sheet && D.sheet.length ? [['sheet', '📄', '⭐ ورقة الأستاذ (ابدأ هنا)', 'نفس الورقة، مع شرح كل سؤال', '#0f766e']] : []),
   ['words', '🔤', 'الكلمات', AR(D.words.length) + ' كلمة بحيلة للحفظ', '#1f6fd1'],
   ['grammar', '🧩', 'القواعد', D.unit.gsub, '#e0603a'],
   ['reading', '📖', 'القطعة والقصة', D.unit.rsub, '#1e8a4f'],
   ['writing', '✍️', 'التعبير', D.unit.wsub, '#f08a24'],
   ['test', '🏁', 'اختبار الوحدة', 'بنفس شكل اختبار المعلمة', '#14263f'],
-  ...(D.sheet && D.sheet.length ? [['sheet', '📄', 'ورقة الأستاذ: اختبار الفترة', 'نفس الورقة، مع شرح كل سؤال', '#0f766e']] : []),
   ...(D.period && D.period.length ? [['period', '📝', 'اختبار الفترة الأولى', 'اختبار المعلمة · الوحدة ١ و٢', '#c0392b']] : [])];
 function home() {
   stop(); view = {}; $('#bar').hidden = true; $('#ttl').textContent = 'Unit ' + D.unit.n + ' · ' + D.unit.title;
   $('#m').innerHTML = `<div class="units">${[1, 2, 3, 4].map(n => `<a class="un${n === D.unit.n ? ' on' : ''}" href="../u${n}/">Unit ${n}</a>`).join('')}</div><div class="hero"><div style="font-size:2.6rem">${D.unit.hero}</div><h2 class="en">Unit ${D.unit.n} · ${esc(D.unit.title)}</h2><p>يلا يا بطل! ابدأ من الكلمات ثم امشِ بالترتيب 💪</p></div>
   <details class="guide" ${S.guided ? '' : 'open'}><summary>📋 ابدأ هنا: كيف أذاكر؟</summary><ol>
-    <li><b>🔤 الكلمات أولاً:</b> اسمع كل كلمة ومعناها، ثم حلّ: اختر المعنى ← اختر الكلمة ← أكمل الجملة ← الإملاء.</li>
+    ${D.sheet && D.sheet.length ? '<li><b>📄 ورقة الأستاذ أولاً:</b> نفس ورقة الاختبار التي راجعها الأستاذ. اسمع السؤال، اختر، ثم اسمع الشرح.</li>' : ''}
+    <li><b>🔤 الكلمات:</b> اسمع كل كلمة ومعناها، ثم حلّ: اختر المعنى ← اختر الكلمة ← أكمل الجملة ← الإملاء.</li>
     <li><b>🧩 القواعد:</b> احفظ القاعدة في المربع الأسود، ثم حلّ التدريب.</li>
     <li><b>📖 القطعة والقصة:</b> اقرأ كل جملة ومعناها، ثم أجب صح أو خطأ.</li>
     <li><b>✍️ التعبير:</b> افهم كل جملة بالمعنى والنطق، ثم ابنِها بنفسك، ثم اكتبها في دفترك.</li>
@@ -395,7 +396,7 @@ function zombie(c) {
 }
 let AC; function zapSound() { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); const o = AC.createOscillator(), g = AC.createGain(); o.type = 'triangle'; o.frequency.setValueAtTime(880, AC.currentTime); o.frequency.exponentialRampToValueAtTime(220, AC.currentTime + .25); g.gain.setValueAtTime(.12, AC.currentTime); g.gain.exponentialRampToValueAtTime(.001, AC.currentTime + .3); o.connect(g).connect(AC.destination); o.start(); o.stop(AC.currentTime + .32); } catch (e) {} }
 // the sheet's explanation opens with 💡, and by itself once he answers
-function exWire(c, q) { const b = $('#exb', c), x = $('#ex', c); if (!b) return; const show = () => { x.hidden = false; b.hidden = true; }; b.onclick = () => { show(); say([[A('R|' + D.tex[q][1])]]); }; let told = false; $$('.opt,[data-v]', c).forEach(o => o.addEventListener('click', () => { show(); if (!told) { told = true; setTimeout(() => say([[A('R|' + D.tex[q][1])]]), 2600); } })); }
+function exWire(c, q) { const b = $('#exb', c), x = $('#ex', c); if (!b) return; const show = () => { x.hidden = false; b.hidden = true; }; b.onclick = () => { show(); say([[A('E|' + D.tex[q][0])], [A('R|' + D.tex[q][1])]]); }; let told = false; $$('.opt,[data-v]', c).forEach(o => o.addEventListener('click', () => { show(); if (!told) { told = true; setTimeout(() => say([[A('E|' + D.tex[q][0])], [A('R|' + D.tex[q][1])]]), 2600); } })); }
 function tfCard(c, done, q, a, ev) {
   c.innerHTML = `<div class="ct"><span>✓ / ✗ صح أم خطأ</span></div><p class="sent">${esc(q)}</p>${D.tar && D.tar[q] ? `<p class="ar" style="font-size:1.1rem;font-weight:400">${esc(D.tar[q])}</p>` : ''}<div class="mt" style="direction:rtl"><button data-v="1" style="font-size:1.6rem">✓ True</button><button data-v="0" style="font-size:1.6rem">✗ False</button></div><div id="fb"></div>${D.tex && D.tex[q] ? `<button class="chip" id="exb">💡 الشرح</button><div class="bro" id="ex" hidden style="text-align:right"><span class="en" style="display:block">${esc(D.tex[q][0])}</span>${esc(D.tex[q][1])}</div>` : ''}`;
   exWire(c, q); zombie(c);
