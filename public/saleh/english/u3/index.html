@@ -201,21 +201,28 @@ function wordCards() {
         if (a === 'w') say([[A('E|' + w.en)], [A('R|' + w.ar)]]); else if (a === 's') say([...spell(), [null, () => sp.forEach(x => x.classList.remove('on'))]]); else say([[A('E|' + w.ex)], [A('R|' + w.exar)]]); };
       view.replay = run; run();
     }));
-    // quick checks for the group: picture → word, and spell with letter tiles
-    ws.forEach((w, k) => out.push(k % 2 === 0 ? (c, done) => {
-      const ops = shuf([w, ...shuf(D.words.filter(x => x !== w)).slice(0, 3)]);
-      c.innerHTML = `<div class="ct"><span>🧠 اختبر نفسك · ${esc(g)}</span></div><div class="big" style="font-size:4rem">${w.e}</div><p class="ar">${esc(w.ar)}</p><p style="text-align:center">اختر الكلمة الصحيحة:</p>${ops.map(o => `<button class="opt" data-w="${esc(o.en)}">${esc(o.en)}</button>`).join('')}<div id="fb"></div>`;
-      say([[A('R|' + w.ar)]]);
-      $$('.opt', c).forEach(b => b.onclick = () => { const ok = b.dataset.w === w.en; b.classList.add(ok ? 'ok' : 'no');
-        if (ok) { $$('.opt', c).forEach(x => x.disabled = true); $('#fb', c).innerHTML = `<div class="fb ok">👏 ${pick(D.praise)}</div>`; say([[A('E|' + w.en)], [A('R|' + pick(D.praise))]], done); }
-        else say([[A('R|' + D.retry)]]); });
-    } : (c, done) => spellCard(c, done, w.en, w.e, w.ar)));
+    // the words must be known for a choices-only exam: 4 rounds per group, each word in every round
+    const gEn = ws.map(x => x.en), gAr = ws.map(x => x.ar);
+    const three = (right, pool) => shuf([right, ...shuf(pool.filter(x => x !== right)).slice(0, 2)]);
+    // 1) English → choose the meaning
+    shuf(ws).forEach(w => out.push((c, done) => choiceCard(c, done, '🧠 اختر المعنى · ' + g,
+      `<div class="word en" style="margin-top:14px">${esc(w.en)}</div>`, [[A('E|' + w.en)]], three(w.ar, gAr), w.ar, false, [[A('E|' + w.en)], [A('R|' + w.ar)]])));
+    // 2) picture + meaning → choose the English word
+    shuf(ws).forEach(w => out.push((c, done) => choiceCard(c, done, '🧠 اختر الكلمة · ' + g,
+      `<div class="big" style="font-size:4rem">${w.e}</div><p class="ar">${esc(w.ar)}</p>`, [[A('R|' + w.ar)]], three(w.en, gEn), w.en, true, [[A('E|' + w.en)]])));
+    // 3) the word in a sentence (exam style: fill the blank)
+    shuf(ws).forEach(w => { const m = w.ex.match(new RegExp('\\b' + w.en.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\w*', 'i')); if (!m) return;
+      const q = w.ex.slice(0, m.index) + '______' + w.ex.slice(m.index + m[0].length), right = m[0];
+      const pool = [right, ...gEn.filter(x => x.toLowerCase() !== w.en.toLowerCase())];
+      out.push((c, done) => choiceCard(c, done, '📝 أكمل الجملة · ' + g, `<p class="sent en">${esc(q)}</p><p class="cnt">${esc(w.exar)}</p>`, [[A('R|' + w.exar)]], three(right, pool), right, true, [[A('E|' + w.ex)]])); });
+    // 4) dictation: hear it only, then build it
+    shuf(ws).forEach(w => out.push((c, done) => spellCard(c, done, w.en, '🎧', '', null, true)));
   });
   return out;
 }
-function spellCard(c, done, word, emoji, ar, scrambled) {
+function spellCard(c, done, word, emoji, ar, scrambled, dict) {
   const letters = [...word.replace(/ /g, '')], pool = scrambled ? [...scrambled] : shuf(letters);
-  c.innerHTML = `<div class="ct"><span>🔡 رتّب الحروف</span></div><div class="big" style="font-size:3.6rem">${emoji}</div>${ar ? `<p class="ar">${esc(ar)}</p>` : ''}
+  c.innerHTML = `<div class="ct"><span>${dict ? '🎧 إملاء: اسمع واكتب' : '🔡 رتّب الحروف'}</span></div><div class="big" style="font-size:3.6rem">${emoji}</div>${ar ? `<p class="ar">${esc(ar)}</p>` : ''}
     <div class="built" id="bt"></div><div class="tiles2">${pool.map((ch, k) => `<button data-k="${k}">${esc(ch)}</button>`).join('')}</div>
     <div class="row"><button class="chip" id="rs">↺ من جديد</button><button class="chip" id="hint">💡 أول حرف</button><button class="chip" id="hear">🔊 اسمع الكلمة</button></div><div id="fb"></div>`;
   let got = '';
@@ -226,6 +233,15 @@ function spellCard(c, done, word, emoji, ar, scrambled) {
   $('#rs', c).onclick = () => { got = ''; bt.textContent = ''; bt.classList.remove('ok'); fb.innerHTML = ''; $$('.tiles2 button', c).forEach(x => x.disabled = false); };
   $('#hint', c).onclick = () => toast('أول حرف: ' + letters[0]);
   $('#hear', c).onclick = () => say([[A('E|' + word)]]);
+  if (dict) { view.replay = () => say([[A('E|' + word)], [A('E|' + word)]]); view.replay(); }
+}
+// a choice question: right answer turns green and is read aloud, a wrong one shakes and he tries again
+function choiceCard(c, done, head, body, ask, ops, right, en, onRight) {
+  c.innerHTML = `<div class="ct"><span>${esc(head)}</span></div>${body}${ops.map(o => `<button class="opt${en ? ' en' : ''}" data-o="${esc(o)}">${esc(o)}</button>`).join('')}<div id="fb"></div>`;
+  $$('.opt', c).forEach(b => b.onclick = () => { const ok = b.dataset.o === right; b.classList.add(ok ? 'ok' : 'no');
+    if (ok) { $$('.opt', c).forEach(x => x.disabled = true); $('#fb', c).innerHTML = `<div class="fb ok">👏 ${pick(D.praise)}</div>`; say([...onRight, [A('R|' + pick(D.praise))]], done); }
+    else { $('#fb', c).innerHTML = `<div class="fb no">قريبة! جرّب مرة ثانية</div>`; say([[A('R|' + D.retry)]]); } });
+  view.replay = () => say(ask); view.replay();
 }
 
 /* ---------- 🧩 grammar ---------- */
