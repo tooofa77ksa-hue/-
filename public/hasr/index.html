@@ -7,6 +7,8 @@
 <!-- تُملأ تلقائيًا عند تشغيل الصفحة من Google Apps Script، اتركيها كما هي -->
 <meta name="gas-url" content="<?= url ?>">
 <meta name="gas-page" content="<?= page ?>">
+<!-- form = نموذج فقط، report = تقرير فقط، فارغ = حسب ?page=form -->
+<meta name="hasr-mode" content="form">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
@@ -362,7 +364,9 @@ const CONFIG = {
   API_URL: "https://script.google.com/macros/s/AKfycbwdkU2Wd3gZFpvH2AL8cram6FOAwRxWI9VVwy16HdB9wSK_Z1RTxhDDhNdek1gMgUyigw/exec",
   AMBASSADOR: "عالية الأنصاري",
   PRINCIPAL: "جازي أسميري",
-  FILE_NAME: "حصر-منصة-الأبعاد"
+  FILE_NAME: "حصر-منصة-الأبعاد",
+  // رابط النموذج الذي يذهب إليه الباركود (رابط الموظفات)
+  FORM_URL: "https://tooofa77ksa-hue.github.io/-/hasr/"
 };
 
 /* ---------- أدوات عامة ---------- */
@@ -387,9 +391,9 @@ const DEMO = !IN_GAS && !API;
 // الصفحة منشورة على موقع حقيقي لكن لم تُربط بعد بجدول Google: لا نقبل ردودًا حتى لا تضيع
 const NOT_CONNECTED = DEMO && /github\.io$/.test(location.hostname);
 
-const PAGE = (meta("gas-page") || new URLSearchParams(location.search).get("page") || "").toLowerCase();
-const BASE_URL = GAS_URL || API || (location.origin + location.pathname);
-const FORM_URL = BASE_URL + "?page=form";
+const MODE = meta("hasr-mode");
+const PAGE = (MODE || meta("gas-page") || new URLSearchParams(location.search).get("page") || "").toLowerCase();
+const FORM_URL = (!DEMO && CONFIG.FORM_URL) || (GAS_URL || (location.origin + location.pathname)) + "?page=form";
 
 // بيانات تجريبية للوضع التجريبي فقط
 const now = Date.now(), day = 864e5;
