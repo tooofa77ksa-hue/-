@@ -11,6 +11,7 @@ import {
   liveAchievements,
   liveActivity,
   liveDoc,
+  liveAllProjects,
   liveEvaluations,
   liveEvaluationsByStudent,
   liveInvites,
@@ -161,6 +162,9 @@ export const useActivity = () => useLiveList<ActivityLog>(liveActivity);
    التقييمات. لا تستعملها صفحة أخرى — ملف الطالبة يقرأ مشاريعها هي. */
 export const usePublicProjects = () => useLiveList<Project>(livePublicProjects);
 export const useEvaluations = () => useLiveList<Evaluation>(liveEvaluations);
+
+/** للمشرفة وحدها: كل المشاريع بلا قيد — تحتاجه شاشة الصيانة. */
+export const useAllProjects = () => useLiveList<Project>(liveAllProjects);
 
 /*
   الوسيط الثاني (onError) كان يُهمَل في هذه الأربعة وحدها — وهي بالذات

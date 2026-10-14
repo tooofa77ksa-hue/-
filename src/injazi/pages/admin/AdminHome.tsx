@@ -9,7 +9,15 @@ import { ClayButton } from "@/injazi/components/ClayButton";
 import { EmptyState } from "@/injazi/components/EmptyState";
 import { MetricCard, Panel, SectionTitle, Skeleton } from "@/injazi/ui/primitives";
 import { FirstRunImport } from "@/injazi/features/admin/FirstRunImport";
-import { useActivity, useSession, useStudents, useSubjects, useTeachers } from "@/injazi/hooks/useLive";
+import { MaintenancePanel } from "@/injazi/features/admin/MaintenancePanel";
+import {
+  useActivity,
+  useAllProjects,
+  useSession,
+  useStudents,
+  useSubjects,
+  useTeachers,
+} from "@/injazi/hooks/useLive";
 import { pageVariants, riseItem, staggerContainer } from "@/injazi/motion/motion";
 
 const RELATIVE = new Intl.RelativeTimeFormat("ar", { numeric: "auto" });
@@ -28,11 +36,21 @@ export function AdminHome() {
   const { data: teachers } = useTeachers();
   const { data: subjects } = useSubjects();
   const { data: activity, loading, error } = useActivity();
+  const { data: projects } = useAllProjects();
   const { profile } = useSession();
 
   return (
     <motion.div className="iz-page" variants={pageVariants} initial="initial" animate="enter" exit="exit">
       <FirstRunImport students={students} teachers={teachers} subjects={subjects} profile={profile} />
+
+      {/* لا تظهر إلا حين يوجد ما يُصلَح. */}
+      <MaintenancePanel
+        students={students}
+        teachers={teachers}
+        subjects={subjects}
+        projects={projects}
+        profile={profile}
+      />
 
       <motion.section className="iz-summary iz-summary--4" variants={staggerContainer} aria-label="مؤشرات">
         <MetricCard icon={<Users size={20} strokeWidth={2.4} />} value={students.length} label="طالبة" tone="lilac" />

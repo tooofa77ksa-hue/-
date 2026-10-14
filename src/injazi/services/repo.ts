@@ -399,6 +399,20 @@ export function livePublicProjects(onData: (rows: Project[]) => void, onError?: 
   );
 }
 
+/**
+ * كل المشاريع بلا قيد — للصيانة في لوحة الإدارة وحدها.
+ * القواعد تسمح بهذا التعداد للمشرفة فقط (izCanRead تمرّ لها على كل
+ * مستند)، ويفشل لغيرها بـ permission-denied كما يجب.
+ */
+export function liveAllProjects(onData: (rows: Project[]) => void, onError?: (e: Error) => void) {
+  return liveCollection<Project>(
+    COL.projects,
+    [],
+    (rows) => onData([...rows].sort((a, b) => a.createdAt.localeCompare(b.createdAt))),
+    onError,
+  );
+}
+
 export async function createProject(input: Partial<Project> & { studentId: string; subjectId: string; title: string }) {
   assertReady();
   return create<Omit<Project, "id" | "createdAt" | "updatedAt">>(COL.projects, {
