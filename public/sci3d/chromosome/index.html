@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>أنا الكروموسوم</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+/* A friendly 3D chromosome tells its own story (lesson «الخلية والوراثة»): where it lives, what it carries, then it copies
+   itself, lines up, splits and makes two cells (equal division); last, the sex cells with half the number.
+   It speaks with a generated voice and its mouth follows the sound. Source kept internally: data-src. */
+:root{--ink:#eef2ff;--g:#7c4dff;--y:#ffd84d;--muted:#c3c9e6;--f:'SciBaloo','Segoe UI',Tahoma,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#140f33;color:var(--ink);font-family:var(--f);-webkit-text-size-adjust:100%}
+button{font:inherit;cursor:pointer;touch-action:manipulation;color:inherit}
+#stage{position:fixed;inset:0;touch-action:none}
+.top{position:fixed;top:0;left:0;right:0;z-index:5;display:flex;align-items:center;gap:8px;padding:8px 12px;background:linear-gradient(#140f33f0,#140f3300)}
+.top h1{flex:1;margin:0;font-size:1.02rem}
+.ib{border:0;background:rgba(255,255,255,.12);color:#fff;border-radius:12px;min-width:44px;min-height:44px;font-size:1.05rem}
+.modes{position:fixed;top:58px;left:8px;right:8px;z-index:5;display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+.modes button{flex:none;border:1.5px solid rgba(255,255,255,.25);background:rgba(20,15,51,.7);color:#fff;border-radius:14px;min-height:44px;padding:0 12px;font-size:.92rem}
+.modes button.on{background:var(--y);border-color:var(--y);color:#22203a;font-weight:700}
+#dock{position:fixed;left:10px;right:10px;bottom:calc(70px + env(safe-area-inset-bottom));z-index:5;display:flex;flex-direction:column;gap:6px}
+#say{background:rgba(255,255,255,.95);color:#22203a;border-radius:16px;padding:8px 12px;font-size:1.1rem;line-height:1.75;min-height:2.6em}
+#say .who{color:#3d6fe0;font-weight:700}
+#say .fx{display:block;font-size:.76rem;color:#66707d}
+.pred{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.pred button{border:2px solid #d9d3f5;background:#fff;color:#22203a;border-radius:12px;min-height:44px;padding:0 10px;font-size:.95rem}
+.pred button.ok{border-color:#1f8a4c;background:#e6f6ec}.pred button.no{border-color:#c2412d;background:#fbebe8}
+#eq{position:fixed;left:8px;right:8px;top:118px;z-index:4;text-align:center;font-size:1.45rem;line-height:2.2;font-weight:700;opacity:0;transition:opacity .6s;pointer-events:none;text-shadow:0 2px 12px #000a}
+#eq.on{opacity:1}
+#eq span{display:inline-block;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.35);border-radius:16px;padding:2px 14px;margin:0 3px}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:6;padding:8px 8px calc(8px + env(safe-area-inset-bottom));display:flex;gap:6px;justify-content:center;background:rgba(20,15,51,.95);border-top:1px solid rgba(255,255,255,.1)}
+.bar button{border:1.5px solid rgba(255,255,255,.25);background:rgba(255,255,255,.06);color:#fff;border-radius:14px;min-height:46px;min-width:46px;padding:0 12px;font-size:1rem}
+.bar .p{background:var(--g);border-color:var(--g);min-width:96px}
+#start{position:fixed;inset:0;z-index:7;display:flex;align-items:center;justify-content:center;background:rgba(20,15,51,.35)}
+#start button{border:0;background:var(--y);color:#22203a;border-radius:20px;padding:14px 22px;font-size:1.2rem;font-weight:700;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.panel{position:fixed;inset:0;z-index:8;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center}
+.panel.on{display:flex}
+.panel .box{background:#fff;color:#22203a;border-radius:22px 22px 0 0;max-width:640px;width:100%;max-height:86vh;overflow:auto;padding:14px 16px calc(16px + env(safe-area-inset-bottom))}
+.opt{display:block;width:100%;text-align:right;border:2px solid #e2e6df;background:#fff;color:#22203a;border-radius:14px;padding:8px 12px;margin:7px 0;min-height:52px;font-size:1.02rem}
+.opt.ok{border-color:#1f8a4c;background:#e6f6ec}.opt.no{border-color:#c2412d;background:#fbebe8}
+.fb{border-radius:14px;padding:8px 12px;margin:8px 0}.fb.ok{background:#e6f6ec}.fb.no{background:#fbebe8}.fb.in{background:#eaf1fa}
+.note{font-size:.78rem;color:#5d6874;line-height:1.6}
+.big{display:block;width:100%;min-height:50px;border-radius:14px;border:0;background:var(--g);color:#fff;font-size:1.05rem;margin-top:8px}
+#loading{position:fixed;inset:0;z-index:9;display:flex;align-items:center;justify-content:center;background:#140f33;font-size:1.1rem}
+@media (min-width:760px){#dock{left:auto;right:16px;width:470px}}
+</style>
+</head>
+<body data-src="L06 «الخلية والوراثة» p.54–56 (الانقسام المتساوي والمنصّف) + L03 p.36">
+<div id="loading">جاري تجهيز المشهد…</div>
+<div id="stage"></div>
+<header class="top"><h1>🧬 أنا الكروموسوم</h1><button class="ib" id="info" aria-label="عن المشهد">ℹ️</button></header>
+<nav class="modes" id="modes"></nav>
+<div id="eq"></div>
+<div id="dock"><div id="say">اضغط ▶️ ليحكي لك الكروموسوم قصته.</div></div>
+<div class="bar">
+  <button class="p" id="play">▶️ القصة</button>
+  <button id="again" aria-label="أعد المقطع">↺</button>
+  <button id="qz">✏️ اختبر نفسك</button>
+  <button id="mute" aria-label="كتم الصوت">🔊</button>
+</div>
+<div id="start"><button id="go">👋 اضغط ليتكلم الكروموسوم</button></div>
+<div class="panel" id="qp"><div class="box" id="qb"></div></div>
+<div class="panel" id="ip"><div class="box"><b>عن هذا المشهد</b>
+  <p class="note">• شخصية ثلاثية الأبعاد صنعناها لهذا الدرس. الكروموسوم الحقيقي ليس له وجه ولا يدان؛ أضفناهما ليحكي قصته بنفسه.<br>
+  • شكل X هو الكروموسوم بعد أن تضاعف: نسختان متماثلتان ملتصقتان من الوسط.<br>
+  • الألوان والأحجام والأعداد في الرسم للتوضيح فقط؛ في خلية الإنسان ٤٦ كروموسومًا، رسمنا أربعة فقط ليسهل النظر.<br>
+  • الصوت مولّد بالذكاء الاصطناعي (ElevenLabs)، وصوت الفقاعة عند التضاعف مؤثر مولّد.<br>
+  • نتيجة الاختبار تُحفظ في هذا الجهاز فقط.</p>
+  <button class="big" id="ix">إغلاق</button></div></div>
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
+<script src="vendor/gsap.min.js"></script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from './vendor/OrbitControls.js';
+const $ = s => document.querySelector(s);
+const AR = n => String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const lowEnd = (navigator.hardwareConcurrency || 4) <= 4;
+
+/* ---------- renderer: soft lavender world inside a cell ---------- */
+const renderer = new THREE.WebGLRenderer({antialias: true}); renderer.setPixelRatio(Math.min(devicePixelRatio, lowEnd ? 1.5 : 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.1; $('#stage').appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+{ const c = document.createElement('canvas'); c.width = 4; c.height = 256; const g = c.getContext('2d'), gr = g.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, '#5b5aa8'); gr.addColorStop(.5, '#3a2f7a'); gr.addColorStop(1, '#140f33'); g.fillStyle = gr; g.fillRect(0, 0, 4, 256); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; scene.background = t; }
+const camera = new THREE.PerspectiveCamera(45, 1, .1, 200);
+const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.enablePan = false; controls.minDistance = 2.5; controls.maxDistance = 20;
+scene.add(new THREE.HemisphereLight(0xe8e6ff, 0x3a2f7a, 1.5));
+const key = new THREE.DirectionalLight(0xffffff, 2.4); key.position.set(2.5, 4, 6); scene.add(key);
+const rim = new THREE.DirectionalLight(0xc9a8ff, 1.8); rim.position.set(-4, 2, -5); scene.add(rim);
+let portrait = true;
+function fit() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; portrait = camera.aspect < 1; camera.fov = portrait ? 60 : 42; camera.updateProjectionMatrix(); }
+addEventListener('resize', fit); fit();
+
+/* ---------- helpers ---------- */
+const mat = (c, o = {}) => new THREE.MeshPhysicalMaterial({color: c, roughness: .3, clearcoat: 1, clearcoatRoughness: .2, sheen: .4, ...o});
+const tube = (pts, r, m) => new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 24, r, 10), m);
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+const glowTex = (inner, outer) => { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'), r = g.createRadialGradient(32, 32, 0, 32, 32, 32); r.addColorStop(0, inner); r.addColorStop(1, outer); g.fillStyle = r; g.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); };
+// a see-through shell that glows at its edge (nuclear envelope, cell membrane)
+function shell(r, col, op = .9) {
+  const m = new THREE.ShaderMaterial({transparent: true, depthWrite: false, side: THREE.DoubleSide, uniforms: {c: {value: new THREE.Color(col)}, o: {value: op}},
+    vertexShader: 'varying vec3 n; varying vec3 v; void main(){ vec4 p = modelViewMatrix * vec4(position,1.); n = normalize(normalMatrix*normal); v = normalize(-p.xyz); gl_Position = projectionMatrix*p; }',
+    fragmentShader: 'uniform vec3 c; uniform float o; varying vec3 n; varying vec3 v; void main(){ float f = pow(1.-abs(dot(n,v)), 2.2); gl_FragColor = vec4(c, (f*.85+.06)*o); }'});
+  return new THREE.Mesh(new THREE.SphereGeometry(r, 64, 40), m);
+}
+// banded skin for a chromatid: blue with soft purple patches, like the films
+function skinTex(base, spot) {
+  const c = document.createElement('canvas'); c.width = 64; c.height = 256; const g = c.getContext('2d'); g.fillStyle = base; g.fillRect(0, 0, 64, 256);
+  for (let i = 0; i < 7; i++) { const y = 20 + Math.random() * 216, r = g.createRadialGradient(32, y, 0, 32, y, 26 + Math.random() * 16); r.addColorStop(0, spot); r.addColorStop(1, 'rgba(0,0,0,0)'); g.globalAlpha = .85; g.fillStyle = r; g.fillRect(0, y - 44, 64, 88); }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+
+/* ---------- the character: two chromatids (copies) that cross in an X, a face, arms and little feet ---------- */
+function face(big) {
+  const f = new THREE.Group(), white = mat(0xffffff, {roughness: .15}), black = new THREE.MeshBasicMaterial({color: 0x10131f});
+  const eyes = new THREE.Group(); f.add(eyes);
+  for (const s of [-1, 1]) {
+    const e = new THREE.Group(); e.position.set(s * .165, .12, 0);
+    const ball = new THREE.Mesh(new THREE.SphereGeometry(.15, 28, 20), white); ball.scale.set(1, 1.12, .7); e.add(ball);
+    const iris = new THREE.Mesh(new THREE.SphereGeometry(.085, 24, 16), mat(0x2f9fd8, {roughness: .1})); iris.scale.z = .5; iris.position.set(s * -.02, -.01, .09); e.add(iris);
+    const pup = new THREE.Mesh(new THREE.SphereGeometry(.05, 20, 14), black); pup.scale.z = .5; pup.position.set(s * -.02, -.01, .125); e.add(pup);
+    const hl = new THREE.Mesh(new THREE.SphereGeometry(.018, 12, 8), new THREE.MeshBasicMaterial({color: 0xffffff})); hl.position.set(s * -.02 + .025, .02, .15); e.add(hl);
+    eyes.add(e);
+    if (big) { const br = tube([V(s * .08, .32, .04), V(s * .17, .36, .06), V(s * .27, .31, .02)], .022, mat(0x1d1b3a)); f.add(br); f.userData['brow' + s] = br; }
+  }
+  const mouth = new THREE.Group(); mouth.position.set(0, -.13, .02); f.add(mouth);
+  const inside = new THREE.Mesh(new THREE.SphereGeometry(.13, 28, 16, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), new THREE.MeshPhysicalMaterial({color: 0x5a1020, roughness: .6, side: THREE.DoubleSide})); inside.scale.set(1.35, 1, .45); mouth.add(inside);
+  const tongue = new THREE.Mesh(new THREE.SphereGeometry(.06, 16, 10), mat(0xff7a8a)); tongue.scale.set(1.4, .5, .6); tongue.position.set(0, -.08, .02); mouth.add(tongue);
+  if (big) { const teeth = new THREE.Mesh(new THREE.BoxGeometry(.2, .028, .02), white); teeth.position.set(0, -.012, .045); mouth.add(teeth); }
+  const cheek = new THREE.SpriteMaterial({map: glowTex('rgba(255,120,160,.55)', 'rgba(255,120,160,0)'), depthWrite: false, transparent: true});
+  for (const s of [-1, 1]) { const ch = new THREE.Sprite(cheek); ch.scale.setScalar(.16); ch.position.set(s * .28, -.05, .05); f.add(ch); }
+  f.userData.eyes = eyes; f.userData.mouth = mouth; return f;
+}
+function makeChromo({s = 1, base = '#4a8df0', spot = '#9b6bff', big = false}) {
+  const g = new THREE.Group(), skin = mat(0xffffff, {map: skinTex(base, spot), roughness: .35, clearcoat: .8}), R = .3, LEN = 1.6;
+  const bub = mat(0xdff1ff, {transparent: true, opacity: .55, roughness: .05});
+  const chromatid = () => { const c = new THREE.Group(); c.add(new THREE.Mesh(new THREE.CapsuleGeometry(R, LEN, 12, 28), skin));
+    for (let i = 0; i < 26; i++) { const a = Math.random() * Math.PI * 2, y = (Math.random() - .5) * (LEN + .3), rr = R * (Math.abs(y) > LEN / 2 ? Math.sqrt(Math.max(0, 1 - ((Math.abs(y) - LEN / 2) / R) ** 2)) : 1); const b = new THREE.Mesh(new THREE.SphereGeometry(.018 + Math.random() * .03, 10, 8), bub); b.position.set(Math.cos(a) * rr, y, Math.sin(a) * rr); c.add(b); }
+    const foot = new THREE.Mesh(new THREE.SphereGeometry(.16, 20, 14), mat(new THREE.Color(base).multiplyScalar(.7))); foot.scale.set(1.2, .55, 1.5); foot.position.set(0, -LEN / 2 - R - .02, .08); c.add(foot);
+    const mini = face(false); mini.scale.setScalar(.62); mini.position.set(0, .05, R - .02); mini.visible = false; c.add(mini); c.userData.mini = mini; return c; };
+  const A = chromatid(), B = chromatid(); g.add(A, B);
+  const cen = new THREE.Mesh(new THREE.SphereGeometry(R * 1.02, 24, 18), skin); cen.scale.set(1.25, .8, 1); g.add(cen);
+  const F = face(big); F.position.set(0, 0, R + .02); g.add(F);
+  const arms = new THREE.Group(); g.add(arms);
+  if (big) {
+    const am = mat(new THREE.Color(base).multiplyScalar(.9));
+    for (const sd of [-1, 1]) { const a = new THREE.Group(); a.position.set(sd * .36, -.12, .05);
+      const pts = sd < 0 ? [V(0, 0, 0), V(-.32, .05, .05), V(-.52, .32, .1)] : [V(0, 0, 0), V(.28, -.12, .06), V(.38, -.38, .1)];
+      a.add(tube(pts, .055, am)); const hand = new THREE.Mesh(new THREE.SphereGeometry(.1, 18, 14), am); hand.scale.set(1, 1.15, .7); hand.position.copy(pts[2]); a.add(hand);
+      const th = new THREE.Mesh(new THREE.CapsuleGeometry(.032, .06, 6, 10), am); th.position.copy(pts[2]).add(V(sd * -.08, .03, .02)); th.rotation.z = sd * .9; a.add(th);
+      arms.add(a); arms.userData[sd] = a; }
+  }
+  g.scale.setScalar(s);
+  // state: x = how much the two copies cross (0 one rod, 1 an X), copy = second copy grown, sep = how far the copies moved apart (world units, along ax)
+  const st = {x: 1, copy: 1, sep: 0, faceOn: 1, armsOn: big ? 1 : 0, ax: 'x'};
+  return {g, A, B, cen, F, arms, st, big};
+}
+function applyChromo(c) {
+  const {st, A, B, cen, F, arms} = c, k = st.x, sc = c.g.scale.x || 1, d = st.sep / sc;
+  A.rotation.z = -.5 * k; B.rotation.z = .5 * k; B.visible = st.copy > .02; B.scale.setScalar(Math.max(.001, st.copy));
+  B.position.x = (1 - st.copy) * 0; A.position.set(0, 0, 0); B.position.set(0, 0, 0);
+  if (st.ax === 'x') { A.position.x = -d; B.position.x = d; } else { A.position.y = d; B.position.y = -d; }
+  if (st.copy < 1 && st.copy > .02) B.position.x += .55 * Math.sin(st.copy * Math.PI);   // the new copy slides out, then joins
+  const apart = st.sep > .05; cen.visible = !apart; F.visible = st.faceOn > .5 && !apart; arms.visible = st.armsOn > .5 && !apart;
+  A.userData.mini.visible = apart; B.userData.mini.visible = apart;
+}
+
+/* ---------- the world: DNA in the background, bubbles, the nucleus and the cell ---------- */
+function helix(n, col) {
+  const g = new THREE.Group(), m = mat(col, {transparent: true, opacity: .35, depthWrite: false, emissive: col, emissiveIntensity: .3});
+  const ball = new THREE.SphereGeometry(.16, 12, 10), rod = new THREE.CylinderGeometry(.04, .04, 1, 6);
+  for (let i = 0; i < n; i++) { const a = i * .5, y = i * .22 - n * .11, p1 = V(Math.cos(a) * .7, y, Math.sin(a) * .7), p2 = p1.clone().multiply(V(-1, 1, -1));
+    for (const p of [p1, p2]) { const s = new THREE.Mesh(ball, m); s.position.copy(p); g.add(s); }
+    const r = new THREE.Mesh(rod, m); r.position.copy(p1).add(p2).multiplyScalar(.5); r.scale.y = 1.4; r.lookAt(p1); r.rotateX(Math.PI / 2); g.add(r); }
+  return g;
+}
+const dna = [helix(40, 0x7fb6ff), helix(36, 0xb48cff)]; dna[0].position.set(-6, 1, -12); dna[0].rotation.z = .6; dna[1].position.set(7, -1, -14); dna[1].rotation.z = -.5; scene.add(...dna);
+const bubbles = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(Array.from({length: 360}, () => (Math.random() - .5) * 26), 3)), new THREE.PointsMaterial({map: glowTex('rgba(255,255,255,.9)', 'rgba(255,255,255,0)'), color: 0xd9ccff, size: .3, transparent: true, opacity: .55, depthWrite: false, blending: THREE.AdditiveBlending})); scene.add(bubbles);
+const nucleus = shell(2.5, 0xc9a8ff, 1); scene.add(nucleus);
+const cellM = shell(3.6, 0xff9ad5, .9); scene.add(cellM);
+const daughters = [shell(1.9, 0xff9ad5, .9), shell(1.9, 0xff9ad5, .9)], dNuc = [shell(1.05, 0xc9a8ff, 1), shell(1.05, 0xc9a8ff, 1)]; scene.add(...daughters, ...dNuc);
+const four = [0, 1, 2, 3].map(() => shell(1.05, 0x8fe3ff, .9)); scene.add(...four);
+const fade = (o, v) => gsap.to(o.material.uniforms.o, {value: v ? o.userData.op : 0, duration: calm ? .01 : 1});
+[nucleus, cellM, ...daughters, ...dNuc, ...four].forEach(o => { o.userData.op = o.material.uniforms.o.value; o.material.uniforms.o.value = 0; });
+const sparkle = new THREE.Sprite(new THREE.SpriteMaterial({map: glowTex('rgba(255,250,210,1)', 'rgba(255,200,90,0)'), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0})); sparkle.scale.setScalar(2.4); scene.add(sparkle);
+// spindle fibres from the two poles to each copy
+const fib = new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(8 * 2 * 3), 3)), new THREE.LineBasicMaterial({color: 0xfff1a8, transparent: true, opacity: 0})); scene.add(fib);
+
+const hero = makeChromo({s: 1, big: true});
+const sibs = [['#ff6fa8', '#ffb36b'], ['#4fcf8f', '#2f8f9e'], ['#ffb84d', '#ff6f3c']].map(([b, s]) => makeChromo({s: .5, base: b, spot: s}));
+const all = [hero, ...sibs]; all.forEach(c => scene.add(c.g));
+
+/* ---------- steps: each is a moment of the story with its own camera, layout and narration ---------- */
+const AXIS = () => portrait ? 'y' : 'x';
+const ln = i => portrait ? V(-2.1 + i * 1.4, 0, 0) : V(0, 2.1 - i * 1.4, 0);   // the line in the middle of the cell
+const pole = s => portrait ? V(0, s * 3.3, 0) : V(s * 3.3, 0, 0);
+function place(c, p, s, d = 1.6) { gsap.to(c.g.position, {x: p.x, y: p.y, z: p.z, duration: calm ? .01 : d, ease: 'power2.inOut'}); gsap.to(c.g.scale, {x: s, y: s, z: s, duration: calm ? .01 : d, ease: 'power2.inOut'}); }
+const camTo = (p, t, d = 2) => { gsap.to(camera.position, {...p, duration: calm ? .01 : d, ease: 'power2.inOut'}); gsap.to(controls.target, {...t, duration: calm ? .01 : d, ease: 'power2.inOut'}); };
+const showSibs = on => sibs.forEach(c => { c.g.visible = on; });
+const setSt = (c, o, d = 1.2) => { c.st.ax = AXIS(); gsap.to(c.st, {...o, duration: calm ? .01 : d, ease: 'power2.inOut'}); };
+function lay({nuc = 0, cell = 0, two = 0, sex = 0, fibre = 0}) { fade(nucleus, nuc); fade(cellM, cell); daughters.forEach(o => fade(o, two)); dNuc.forEach(o => fade(o, two)); four.forEach(o => fade(o, sex)); gsap.to(fib.material, {opacity: fibre ? .55 : 0, duration: 1}); }
+let eqT = null; const eq = h => { $('#eq').innerHTML = h || ''; $('#eq').classList.toggle('on', !!h); };
+const STEPS = {
+  me: {n: '👋 أنا', a: ['L06-chr-1', 'L06-chr-2', 'L06-chr-3'], t: ['أهلًا يا بطل! أنا الكروموسوم. أعيشُ داخلَ نواةِ الخلية.', 'أنا شريطٌ صغير، أحملُ في داخلي تفاصيلَ كاملةً عن المخلوقِ الحيّ.', 'ولستُ وحدي! معظمُ خلايا الإنسان فيها ٤٦ كروموسومًا.'],
+    set() { eq(); lay({nuc: 1}); all.forEach(c => gsap.killTweensOf(c.st)); setSt(hero, {x: 1, copy: 1, sep: 0, faceOn: 1, armsOn: 1}); place(hero, V(0, 0, 0), 1); showSibs(false);
+      sibs.forEach((c, i) => { setSt(c, {x: 1, copy: 1, sep: 0}); c.g.position.copy([V(-1.55, 1.15, -.7), V(1.6, .9, -.9), V(1.4, -1.25, -.5)][i]); c.g.scale.setScalar(.42); });
+      camTo({x: 0, y: .3, z: 4.6}, {x: 0, y: 0, z: 0}); wave = 1; },
+    on: [null, null, () => { showSibs(true); sibs.forEach(c => gsap.from(c.g.scale, {x: .01, y: .01, z: .01, duration: .8, ease: 'back.out(2)'})); camTo({x: 0, y: .4, z: 6.2}, {x: 0, y: 0, z: 0}); }]},
+  copy: {n: '✨ أتضاعف', a: ['L06-chr-4'], t: ['قبلَ أن تنقسمَ الخلية، أتضاعف، فتصيرُ لي نسخةٌ ثانيةٌ مماثلةٌ تمامًا.'], fx: 'فقاعة التضاعف: مؤثر مولّد',
+    set() { eq(); lay({nuc: 1}); showSibs(false); place(hero, V(0, 0, 0), 1, .8); camTo({x: 0, y: .3, z: 5}, {x: 0, y: 0, z: 0});
+      gsap.killTweensOf(hero.st); Object.assign(hero.st, {x: 0, copy: 0, sep: 0, faceOn: 1, armsOn: 1});
+      gsap.timeline({delay: calm ? 0 : 1.6}).to(hero.st, {copy: 1, duration: calm ? .01 : 1.6, ease: 'power1.inOut', onStart: () => { fx(); gsap.fromTo(sparkle.material, {opacity: 1}, {opacity: 0, duration: 1.2}); sparkle.position.set(.4, 0, .5); }})
+        .to(hero.st, {x: 1, duration: calm ? .01 : 1, ease: 'back.out(2)'}); }},
+  line: {n: '📏 أصطف', a: ['L06-chr-5'], t: ['ثم أظهرُ بوضوح، وأصطفُّ مع إخوتي في وسطِ الخلية.'],
+    set() { eq(); lay({cell: 1, fibre: 1}); showSibs(true); [hero, ...sibs].forEach((c, i) => { setSt(c, {x: 1, copy: 1, sep: 0, armsOn: c.big ? 1 : 0}); place(c, ln(i), .42); }); camTo({x: 0, y: 0, z: 11.5}, {x: 0, y: 0, z: 0}); }},
+  split: {n: '↔️ ننفصل', a: ['L06-chr-6'], t: ['بعدَها تنفصلُ نسختاي، وتذهبُ كلُّ نسخةٍ إلى طرف.'], predict: true,
+    set() { eq(); lay({cell: 1, fibre: 1}); showSibs(true); [hero, ...sibs].forEach((c, i) => { c.st.ax = AXIS(); place(c, ln(i), .42, .8); gsap.killTweensOf(c.st); Object.assign(c.st, {x: 1, copy: 1, sep: 0});
+      gsap.to(c.st, {x: .2, sep: 2.2, duration: calm ? .01 : 2.4, delay: calm ? 0 : .8 + i * .12, ease: 'power2.inOut'}); }); camTo({x: 0, y: 0, z: 11.5}, {x: 0, y: 0, z: 0}); }},
+  two: {n: '🟣🟣 خليتان', a: ['L06-chr-7'], t: ['فتتكوّنُ خليتانِ متماثلتان، في نواةِ كلٍّ منهما مجموعةٌ كاملة. هذا هو الانقسامُ المتساوي!'],
+    set() { eq(); lay({two: 1}); showSibs(true); const ax = AXIS();
+      daughters.forEach((o, k) => o.position.copy(pole(k ? -1 : 1).multiplyScalar(.66))); dNuc.forEach((o, k) => o.position.copy(pole(k ? -1 : 1).multiplyScalar(.66)));
+      [hero, ...sibs].forEach((c, i) => { c.st.ax = ax; gsap.killTweensOf(c.st); Object.assign(c.st, {x: .2, copy: 1, sep: 2.2}); const p = ln(i).multiplyScalar(.36); place(c, p, .3); gsap.to(c.st, {sep: 2.2, duration: .1}); });
+      camTo({x: 0, y: 0, z: 11.5}, {x: 0, y: 0, z: 0}); }},
+  sex: {n: '🧩 الخلايا الجنسية', a: ['L06-chr-8', 'L06-chr-9'], t: ['أما الخلايا الجنسية، فتنقسمُ النواةُ مرتين، فتنتجُ أربعُ خلايا، في كلٍّ منها نصفُ العدد: ٢٣.', '٢٣ من الأب، و٢٣ من الأم، فتصبحُ ٤٦ في الخليةِ المخصبة.'],
+    set() { lay({sex: 1}); showSibs(true); four.forEach((o, k) => o.position.set((k % 2 ? 1.25 : -1.25), (k < 2 ? 1.25 : -1.25), 0));
+      // two pairs (blue/pink and green/orange): each of the four cells gets one copy from each pair = half the number
+      [[hero, -.2, 1.25], [sibs[1], .2, 1.25], [sibs[0], -.2, -1.25], [sibs[2], .2, -1.25]].forEach(([c, x, y]) => { gsap.killTweensOf(c.st); Object.assign(c.st, {x: 0, copy: 1, sep: 0, armsOn: 0}); c.st.ax = 'x'; place(c, V(x, y, 0), .32); gsap.to(c.st, {sep: 1.25, duration: calm ? .01 : 1.6, delay: calm ? 0 : .4}); });
+      camTo({x: 0, y: .7, z: 9.5}, {x: 0, y: .7, z: 0}); eq('<span>٤ خلايا، في كلٍّ منها ٢٣</span>'); },
+    on: [null, () => { eq('<span>٢٣ من الأب</span> + <span>٢٣ من الأم</span> = <span style="background:#ffd84d;color:#22203a">٤٦</span>'); gather(); }]},
+};
+function gather() {   // one cell from the father + one from the mother: the full number again
+  four.forEach((o, k) => fade(o, 0)); daughters.forEach((o, k) => { o.position.set(0, 0, 0); fade(o, k ? 0 : 1); });
+  [[hero, -.3, .3], [sibs[1], .3, .3], [sibs[0], -.3, -.45], [sibs[2], .3, -.45]].forEach(([c, x, y]) => { place(c, V(x, y, 0), .32); gsap.to(c.st, {sep: 0, copy: .001, duration: calm ? .01 : 1.2}); });
+  camTo({x: 0, y: .4, z: 7.5}, {x: 0, y: .2, z: 0}); }
+const ORDER = ['me', 'copy', 'line', 'split', 'two', 'sex'];
+ORDER.forEach(k => { const b = document.createElement('button'); b.textContent = STEPS[k].n; b.dataset.m = k; b.onclick = () => { setPlay(false); go(k); }; $('#modes').appendChild(b); });
+
+/* ---------- voice with lip sync: the mouth opens with the loudness of the sound ---------- */
+let voice = null, muted = false, tour = false, seqTok = 0, actx = null, an = null, buf = null, wave = 0, talking = 0, fxA = null;
+function ensureAudio() { if (actx) return; try { actx = new (window.AudioContext || window.webkitAudioContext)(); an = actx.createAnalyser(); an.fftSize = 512; buf = new Uint8Array(an.fftSize); an.connect(actx.destination); } catch (e) { actx = null; } }
+function fx() { if (muted || !fxA) return; const a = fxA.cloneNode(); a.volume = .35; a.play().catch(() => {}); }
+const STATE = (() => { try { return JSON.parse(localStorage.getItem('sci-L06-chr') || '{}'); } catch (e) { return {}; } })();
+const save = () => { try { localStorage.setItem('sci-L06-chr', JSON.stringify(STATE)); } catch (e) {} };
+function say(m, done) {
+  const tok = ++seqTok; let k = 0;
+  const nx = () => { if (tok !== seqTok) return; if (k >= m.a.length) { done && done(); return; }
+    $('#say').innerHTML = '<span class="who">🧬 الكروموسوم:</span> ' + m.t[k] + (m.fx ? `<span class="fx">🔈 ${m.fx}</span>` : ''); m.on && m.on[k] && m.on[k]();
+    if (voice) voice.pause(); voice = new Audio('audio/' + m.a[k] + '.mp3'); voice.muted = muted; k++;
+    if (actx) { try { actx.createMediaElementSource(voice).connect(an); } catch (e) {} }
+    voice.onplay = () => talking = 1; voice.onpause = voice.onended = () => talking = 0;
+    voice.onended = () => { talking = 0; setTimeout(nx, 600); }; voice.play().catch(() => { talking = 0; setTimeout(nx, 3000); }); };
+  nx();
+}
+function predict(done) {   // before the copies part: what do you expect?
+  $('#say').innerHTML = `<b>🤔 توقّع قبل أن ترى:</b> بعد أن اصطفّت الكروموسومات في الوسط، إلى أين ستذهب النسختان؟<div class="pred"><button data-j="1">كل نسخة إلى طرف</button><button data-j="0">تبقيان في الوسط</button><button data-j="2">تخرجان من الخلية</button></div>`;
+  $('#say').querySelectorAll('.pred button').forEach(b => b.onclick = () => { const ok = b.dataset.j === '1'; b.classList.add(ok ? 'ok' : 'no'); STATE.pred = (STATE.pred || 0) + (ok ? 1 : 0); save();
+    setTimeout(done, ok ? 700 : 1400); if (!ok) $('#say').querySelector('[data-j="1"]').classList.add('ok'); });
+}
+function go(k, done) {
+  document.querySelectorAll('#modes button').forEach(b => b.classList.toggle('on', b.dataset.m === k));
+  const S = STEPS[k], run = () => { S.set(); say(S, done); };
+  if (S.predict && !(STATE.seen || {}).split) { seqTok++; voice && voice.pause(); STEPS.line.set(); predict(run); } else run();
+  STATE.seen = {...(STATE.seen || {}), [k]: 1}; save();
+}
+function setPlay(on) { tour = on; $('#play').textContent = on ? '⏸ إيقاف' : '▶️ القصة'; if (!on) { seqTok++; voice && voice.pause(); talking = 0; } }
+$('#play').onclick = () => { ensureAudio(); actx && actx.resume(); if (tour) return setPlay(false); setPlay(true); let i = 0; const next = () => { if (!tour) return; if (i >= ORDER.length) { setPlay(false); setTimeout(() => quiz(0), 1000); return; } go(ORDER[i++], () => setTimeout(next, 2200)); }; next(); };
+$('#again').onclick = () => { ensureAudio(); go(document.querySelector('#modes .on')?.dataset.m || 'me'); };
+$('#mute').onclick = () => { muted = !muted; $('#mute').textContent = muted ? '🔇' : '🔊'; if (voice) voice.muted = muted; };
+$('#info').onclick = () => $('#ip').classList.add('on'); $('#ix').onclick = () => $('#ip').classList.remove('on');
+$('#go').onclick = () => { ensureAudio(); actx && actx.resume(); $('#start').remove(); $('#play').onclick(); };
+$('#qz').onclick = () => quiz(0);
+
+/* ---------- check: book facts, a hint after a wrong answer, then the right moment again ---------- */
+const QS = [
+  {t: 'أين يعيش الكروموسوم في الخلية؟', o: ['في الغشاء البلازمي', 'داخل النواة', 'داخل الميتوكندريا', 'في السيتوبلازم خارج النواة'], a: 1, why: ['الغشاء يحيط بالخلية، والكروموسومات ليست فيه.', 'صحيح: الكروموسومات داخل النواة، مركز التحكم.', 'الميتوكندريا تنتج الطاقة، والكروموسومات ليست فيها.', 'الكروموسومات داخل النواة لا خارجها.'], hint: 'تذكّر أول جملة قالها الكروموسوم.', redo: 'me'},
+  {t: 'في خلايا جسم القط ٣٨ كروموسومًا. كم كروموسومًا في كل خلية جديدة بعد الانقسام المتساوي؟', o: ['١٩ كروموسومًا', '٧٦ كروموسومًا', '٣٨ كروموسومًا', '٤٦ كروموسومًا'], a: 2, why: ['هذا نصف العدد، ويحدث في الخلايا الجنسية لا في الانقسام المتساوي.', 'الخلية تتضاعف ثم تنقسم، فلا يبقى العدد مضاعفًا.', 'صحيح: تتضاعف الكروموسومات ثم تنقسم الخلية، فتأخذ كل خلية مجموعة كاملة.', '٤٦ عدد كروموسومات معظم خلايا الإنسان، لا القط.'], hint: 'في الانقسام المتساوي تأخذ كل خلية جديدة مجموعة كاملة.', redo: 'two'},
+  {t: 'ماذا يحدث مباشرة بعد اصطفاف الكروموسومات في وسط الخلية؟', o: ['تتضاعف الكروموسومات', 'تنفصل النسختان وتذهب كل نسخة إلى طرف', 'تتكوّن أربع خلايا جنسية', 'تختفي الكروموسومات من الخلية'], a: 1, why: ['التضاعف يحدث قبل الانقسام، لا بعد الاصطفاف.', 'صحيح: بعد الاصطفاف تنفصل النسختان إلى الطرفين.', 'الخلايا الأربع تنتج من الانقسام المنصّف للخلايا الجنسية.', 'الكروموسومات لا تختفي؛ تنتقل إلى الخليتين الجديدتين.'], hint: 'شاهد لحظة «ننفصل».', redo: 'split'},
+  {t: 'لماذا تحتوي الخلية المخصبة عند الإنسان على ٤٦ كروموسومًا لا ٩٢؟', o: ['لأن الخلية المخصبة تتخلص من نصف كروموسوماتها', 'لأن الأب وحده يعطي الكروموسومات', 'لأن كل خلية جنسية فيها ٢٣ كروموسومًا فقط', 'لأن الانقسام المتساوي يُنقص العدد'], a: 2, why: ['لا تتخلص الخلية المخصبة من شيء؛ العدد نصف من البداية.', 'الكروموسومات تأتي من الأب والأم معًا.', 'صحيح: ٢٣ من الأب و٢٣ من الأم = ٤٦.', 'الانقسام المتساوي لا يُنقص العدد.'], hint: 'كم كروموسومًا في كل خلية جنسية؟', redo: 'sex'},
+];
+function quiz(k) {
+  const q = QS[k]; $('#qp').classList.add('on'); let tries = (STATE.q?.[k]?.ok === false) ? STATE.q[k].tries : 0;
+  $('#qb').innerHTML = `<b>✏️ اختبر نفسك ${AR(k + 1)} من ${AR(QS.length)}</b><p style="font-size:1.08rem;margin:6px 0">${q.t}</p>${q.o.map((x, j) => `<button class="opt" data-j="${j}">${'أبجد'[j]}. ${x}</button>`).join('')}<div id="fb"></div>`;
+  $('#qb').querySelectorAll('.opt').forEach(b => b.onclick = () => {
+    const j = +b.dataset.j, ok = j === q.a; tries++; b.classList.add(ok ? 'ok' : 'no'); STATE.q = STATE.q || {};
+    if (ok) { $('#qb').querySelectorAll('.opt').forEach(x => x.disabled = true); STATE.q[k] = {ok: true, tries}; save();
+      $('#fb').innerHTML = `<div class="fb ok">⚡ أحسنت! ${tries === 1 ? 'ركّزت فوصلت.' : 'حاولت حتى وصلت.'} والتوفيق من الله.<br><b>لماذا؟</b> ${q.why[j]}</div>` + (k + 1 < QS.length ? `<button class="big" id="nq">السؤال التالي ←</button>` : `<div class="fb in">أجبت عن ${AR(Object.values(STATE.q).filter(x => x.ok && x.tries === 1).length)} من ${AR(QS.length)} من أول محاولة.</div><button class="big" id="cl">رجوع للقصة</button>`);
+      $('#nq') && ($('#nq').onclick = () => quiz(k + 1)); $('#cl') && ($('#cl').onclick = () => $('#qp').classList.remove('on')); }
+    else { STATE.q[k] = {ok: false, tries}; save(); $('#fb').innerHTML = `<div class="fb no">${q.why[j]}<br>💡 <b>تلميح:</b> ${q.hint}</div><button class="big" style="background:#2563a6" id="see">👀 شاهد اللحظة ثم ارجع</button>`;
+      $('#see').onclick = () => { $('#qp').classList.remove('on'); setPlay(false); go(q.redo, () => setTimeout(() => quiz(k), 1200)); }; }
+  });
+}
+
+/* ---------- loop ---------- */
+fetch('audio/L06-chr-fx-copy.mp3').then(r => r.ok && (fxA = new Audio('audio/L06-chr-fx-copy.mp3'))).catch(() => {});
+const clock = new THREE.Clock(); let tt = 0, blink = 3, mouthV = 0;
+STEPS.me.set(); seqTok++; $('#loading').remove();
+window.__go = go; window.__quiz = quiz; window.__all = all;
+renderer.setAnimationLoop(() => {
+  const dt = Math.min(.05, clock.getDelta()) * (calm ? .4 : 1); tt += dt;
+  all.forEach(applyChromo);
+  // talking: loudness -> mouth; idle: small smile and breathing
+  let lvl = 0; if (talking && an) { an.getByteTimeDomainData(buf); let s = 0; for (let i = 0; i < buf.length; i++) { const v = (buf[i] - 128) / 128; s += v * v; } lvl = Math.min(1, Math.sqrt(s / buf.length) * 6); }
+  else if (talking) lvl = .5 + Math.sin(tt * 18) * .4;
+  mouthV += ((talking ? .25 + lvl * .95 : .22) - mouthV) * Math.min(1, dt * 18); hero.F.userData.mouth.scale.y = mouthV;
+  for (const s of [-1, 1]) { const b = hero.F.userData['brow' + s]; if (b) b.position.y = talking ? lvl * .04 : Math.max(0, Math.sin(tt * .7)) * .02; }
+  if ((blink -= dt) < 0) { blink = 2.5 + Math.random() * 3; all.forEach(c => [c.F, c.A.userData.mini, c.B.userData.mini].forEach(f => gsap.fromTo(f.userData.eyes.scale, {y: 1}, {y: .08, duration: .07, yoyo: true, repeat: 1}))); }
+  all.forEach((c, i) => { if (!c.g.visible) return; c.g.rotation.z = Math.sin(tt * 1.4 + i) * .03; c.g.rotation.y = Math.sin(tt * .6 + i) * .12; });
+  hero.g.position.y += Math.sin(tt * 2) * .0015;   // a little bounce
+  const L = hero.arms.userData[-1]; if (L) L.rotation.z = wave ? Math.sin(tt * 7) * .35 + .1 : Math.sin(tt * 1.5) * .05; if (wave && !talking && tt > 6) wave = 0;
+  // spindle fibres follow the copies
+  if (fib.material.opacity > .01) { const p = fib.geometry.attributes.position; let j = 0; const w = new THREE.Vector3();
+    [hero, ...sibs].forEach(c => { for (const [ch, s] of [[c.A, 1], [c.B, -1]]) { const P = pole(AXIS() === 'y' ? s : -s); ch.getWorldPosition(w); p.setXYZ(j++, P.x, P.y, P.z); p.setXYZ(j++, w.x, w.y, w.z); } }); p.needsUpdate = true; }
+  dna.forEach((d, i) => d.rotation.y += dt * (i ? -.15 : .12)); bubbles.rotation.y = tt * .02; bubbles.position.y = Math.sin(tt * .3) * .3;
+  nucleus.rotation.y = tt * .05; controls.update(); renderer.render(scene, camera);
+});
+</script>
+</body>
+</html>
