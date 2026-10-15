@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الأرنب والثعلب</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+/* Voice + motion sample for «الحركة والإحساس» p.124: each narration line drives one step of the picture */
+:root{--bg:#f6f3ec;--ink:#1d2733;--g:#2e7d4f;--y:#ffd84d;--muted:#66707d;--f:'SciBaloo','Segoe UI',Tahoma,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);-webkit-text-size-adjust:100%}
+button{font:inherit;cursor:pointer;touch-action:manipulation;color:inherit}
+.top{position:sticky;top:0;z-index:5;background:var(--g);color:#fff;padding:8px 14px}
+.top h1{margin:0;font-size:1.05rem}.top small{opacity:.9}
+main{max-width:720px;margin:0 auto;padding:10px 14px 150px}
+.goal{background:#fff4e5;border-inline-start:6px solid #e3871c;border-radius:14px;padding:8px 12px;margin:6px 0 10px;font-size:1rem}
+.stage{position:relative;margin:0 auto;max-width:430px;border-radius:18px;overflow:hidden;background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+.stage svg{display:block;width:100%;height:auto}
+.say{min-height:3.4em;font-size:1.2rem;line-height:1.8;background:#e8f4ec;border-radius:16px;padding:8px 12px;margin:10px 0}
+.steps{display:flex;gap:5px;justify-content:center;margin:6px 0}.steps i{width:22px;height:8px;border-radius:4px;background:#e7e0d2}.steps i.on{background:var(--g)}.steps i.done{background:#9fd1b1}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:6;background:rgba(246,243,236,.97);border-top:1px solid #e7e0d2;padding:8px 10px calc(8px + env(safe-area-inset-bottom));display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.bar button,.bar select{border:2px solid #e7e0d2;background:#fff;border-radius:14px;min-height:50px;min-width:50px;padding:0 12px;font:inherit;font-size:1.05rem}
+.bar .p{background:var(--g);border-color:var(--g);color:#fff;min-width:90px}
+.fx{font-size:.8rem;color:var(--muted);text-align:center;margin:4px 0}
+.q{background:#fff;border-radius:18px;padding:12px 14px;margin:14px 0;box-shadow:0 2px 10px rgba(0,0,0,.06);display:none}
+.q.on{display:block}
+.q h3{margin:0 0 6px;font-size:1.05rem}
+.opt{display:block;width:100%;text-align:right;border:2px solid #e7e0d2;background:#fff;border-radius:14px;padding:8px 12px;margin:7px 0;min-height:52px;font-size:1.05rem}
+.opt.ok{border-color:#1f8a4c;background:#e6f6ec}.opt.no{border-color:#c2412d;background:#fbebe8}
+.fb{border-radius:14px;padding:8px 12px;margin:8px 0;font-size:1rem}.fb.ok{background:#e6f6ec}.fb.no{background:#fbebe8}.fb.in{background:#eaf1fa}
+.tag{font-size:.75rem;color:var(--muted)}
+.lbl{font-family:var(--f);font-weight:700;paint-order:stroke;stroke:#fff;stroke-width:6px;fill:#1d2733;font-size:30px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><h1>🐇 الأرنب والثعلب: كيف يستجيب الجسم للخطر؟</h1><small>درس «الحركة والإحساس» · صفحة الكتاب ١٢٤</small></header>
+<main>
+  <div class="goal">🎯 <b>هدف التعلّم:</b> أشرح كيف يستجيب جسم الأرنب عندما يرى الخطر: العين ← الدماغ ← عضلات الأرجل، والأدرينالين ← القلب.</div>
+  <div class="stage"><svg id="sv" viewBox="0 0 455 1007" role="img" aria-label="الجهاز العصبي والغدتان في الأرنب (رسم الكتاب ص١٢٤)">
+    <image href="fig/f124a.webp" x="0" y="0" width="455" height="1007"/>
+    <defs><radialGradient id="gl"><stop offset="0" stop-color="#fff59d" stop-opacity=".95"/><stop offset="1" stop-color="#ffd84d" stop-opacity="0"/></radialGradient></defs>
+    <path id="pEye" d="M300 386 Q300 362 298 345" fill="none"/>
+    <path id="pCord" d="M335 392 C320 470 300 560 276 650 S246 830 240 975" fill="none"/>
+    <g id="eye" opacity="0"><circle cx="300" cy="386" r="34" fill="url(#gl)"/><text class="lbl" x="300" y="440" text-anchor="middle">العين</text></g>
+    <g id="brain" opacity="0"><ellipse cx="300" cy="345" rx="80" ry="55" fill="url(#gl)"/><text class="lbl" x="300" y="300" text-anchor="middle">الدماغ</text></g>
+    <g id="legs" opacity="0"><ellipse cx="250" cy="940" rx="120" ry="70" fill="url(#gl)"/><text class="lbl" x="250" y="1000" text-anchor="middle">عضلات الأرجل</text></g>
+    <g id="glands" opacity="0"><ellipse cx="216" cy="800" rx="40" ry="44" fill="url(#gl)"/><ellipse cx="294" cy="794" rx="40" ry="44" fill="url(#gl)"/><text class="lbl" x="440" y="760" text-anchor="end">الغدتان الكظريتان</text></g>
+    <g id="heart" opacity="0" transform="translate(150 600)"><path id="hp" d="M0 -18 C-14 -40 -48 -30 -44 -2 C-40 22 -10 38 0 52 C10 38 40 22 44 -2 C48 -30 14 -40 0 -18Z" fill="#d8344f" stroke="#fff" stroke-width="4"/><text class="lbl" x="0" y="90" text-anchor="middle">القلب</text></g>
+    <g id="sig"></g>
+    <text id="fox" x="470" y="215" font-size="90" opacity="0">🦊</text>
+  </svg></div>
+  <div class="steps" id="dots"></div>
+  <div class="say" id="say">اضغط ▶️ لتبدأ.</div>
+  <p class="fx" id="fxl"></p>
+  <div class="q" id="q"></div>
+  <p class="fx">الشرح بصوت «محمد» من ElevenLabs (صوت مولّد بالذكاء الاصطناعي، النص من كتاب الطالب ص١٢٤). المؤثرات الصوتية مولّدة وليست تسجيلًا حقيقيًا. الثعلب هنا رمز توضيحي، والرسم من الكتاب.</p>
+</main>
+<div class="bar">
+  <button id="prev" aria-label="الخطوة السابقة">⏮</button>
+  <button class="p" id="play">▶️ تشغيل</button>
+  <button id="again" aria-label="أعد الخطوة">↺</button>
+  <button id="next" aria-label="الخطوة التالية">⏭</button>
+  <select id="spd" aria-label="السرعة"><option value=".75">🐢 بطيء</option><option value="1" selected>عادي</option><option value="1.2">أسرع</option></select>
+  <button id="mute" aria-label="كتم الصوت">🔊</button>
+</div>
+<script src="vendor/gsap.min.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const NS = 'http://www.w3.org/2000/svg';
+// the steps: narration clip (from the book text, p.124) + what the picture does at the same time
+const S = [
+  {a: 'L18-124-goal', t: 'هدفنا اليوم: نعرف كيف يستجيب جسمُ الأرنب عندما يرى الخطر.', go() { reset(); }},
+  {a: 'L18-124-s1', t: 'رأى الأرنبُ ثعلبًا يركضُ نحوه ليفترسه.', go() { gsap.fromTo('#fox', {attr: {x: 470}, opacity: 1}, {attr: {x: 350}, duration: 2.4, ease: 'power1.out'}); }},
+  {a: 'L18-124-s2', t: 'الخلايا العصبية في عينَيِ الأرنب ترسل المعلومات إلى الدماغ.', go() { show('#eye'); pulse('#pEye', 1.6, () => show('#brain')); }},
+  {a: 'L18-124-s3', t: 'يرسل الدماغُ أوامرَ، ينقلها الجهازُ العصبيّ إلى عضلات الأرجل.', go() { show('#brain'); pulse('#pCord', 2.4, () => show('#legs')); }},
+  {a: 'L18-124-s4', t: 'يحدث هذا في أقلَّ من جزءٍ من الثانية، فيبدأ الأرنبُ الركض.', fx: 'L18-124-fx-run', fxl: '🔈 مؤثر مولّد: خطوات ركض', go() { show('#legs'); gsap.fromTo('#sv', {x: 0}, {x: -10, duration: .09, yoyo: true, repeat: 7}); }},
+  {a: 'L18-124-s5', t: 'وفي الوقت نفسِه، يُفرز جهازُ الغدد الصَّمّاء هرمونًا اسمُه الأدرينالين.', go() { hideAll(); show('#glands'); }},
+  {a: 'L18-124-s6', t: 'الأدرينالين يُسرّع نبضاتِ القلب، فيتدفّق دمٌ أكثرُ إلى العضلات.', fx: 'L18-124-fx-heart', fxl: '🔈 مؤثر مولّد: نبض قلب يتسارع', go() { show('#glands'); show('#heart'); beat(); }},
+  {a: 'L18-124-s7', t: 'وجسمُ الإنسان يستجيب للخطر بطريقةٍ مشابهةٍ تقريبًا.', go() { hideAll(); }},
+];
+let i = 0, playing = false, muted = false, voice = null, fx = null, tl = [];
+const dots = $('#dots'); S.forEach(() => dots.appendChild(document.createElement('i')));
+function hideAll() { ['#eye', '#brain', '#legs', '#glands', '#heart'].forEach(s => gsap.to(s, {opacity: 0, duration: .3})); $('#sig').innerHTML = ''; }
+function reset() { hideAll(); gsap.set('#fox', {opacity: 0, attr: {x: 470}}); }
+function show(s) { gsap.to(s, {opacity: 1, duration: .4}); if (!calm) gsap.fromTo(s + ' > *:first-child', {scale: .7, transformOrigin: 'center'}, {scale: 1, duration: .6, ease: 'back.out(2)'}); }
+function pulse(path, dur, after) {   // a glowing signal travels along the nerve path
+  const p = $(path), L = p.getTotalLength(), c = document.createElementNS(NS, 'circle'); c.setAttribute('r', 12); c.setAttribute('fill', '#fff176'); c.setAttribute('stroke', '#e3871c'); c.setAttribute('stroke-width', 3); $('#sig').appendChild(c);
+  const o = {t: 0}; tl.push(gsap.to(o, {t: 1, duration: calm ? .01 : dur / spd(), ease: 'power1.inOut', onUpdate() { const q = p.getPointAtLength(o.t * L); c.setAttribute('cx', q.x); c.setAttribute('cy', q.y); }, onComplete() { c.remove(); after && after(); }}));
+}
+function beat() { if (calm) return; tl.push(gsap.timeline().to('#hp', {scale: 1.25, transformOrigin: '50% 50%', duration: .28, yoyo: true, repeat: 3}).to('#hp', {scale: 1.3, duration: .12, yoyo: true, repeat: 11})); }
+const spd = () => +$('#spd').value;
+function stopAudio() { [voice, fx].forEach(a => a && a.pause()); tl.forEach(t => t.kill()); tl = []; }
+function step(k, auto) {
+  stopAudio(); i = Math.max(0, Math.min(S.length - 1, k)); const s = S[i];
+  [...dots.children].forEach((d, j) => d.className = j === i ? 'on' : j < i ? 'done' : '');
+  $('#say').textContent = s.t; $('#fxl').textContent = s.fxl || ''; s.go();
+  if (!calm) gsap.fromTo('#say', {opacity: .3}, {opacity: 1, duration: .4});
+  voice = new Audio('audio/' + s.a + '.mp3'); voice.playbackRate = spd(); voice.muted = muted;
+  voice.onended = () => { if (playing && i < S.length - 1) setTimeout(() => step(i + 1, true), 500); else if (i === S.length - 1) { setPlay(false); quiz(0); } };
+  voice.play().catch(() => setPlay(false));
+  if (s.fx) { fx = new Audio('audio/' + s.fx + '.mp3'); fx.volume = .35; fx.muted = muted; setTimeout(() => fx && voice && !voice.paused && fx.play().catch(() => {}), 900); }   // the effect starts after the words, quietly, never over the whole explanation
+}
+function setPlay(on) { playing = on; $('#play').textContent = on ? '⏸ إيقاف' : '▶️ تشغيل'; }
+$('#play').onclick = () => { if (playing) { setPlay(false); stopAudio(); } else { setPlay(true); step(i); } };
+$('#again').onclick = () => step(i);
+$('#next').onclick = () => step(i + 1);
+$('#prev').onclick = () => step(i - 1);
+$('#mute').onclick = () => { muted = !muted; $('#mute').textContent = muted ? '🔇' : '🔊'; [voice, fx].forEach(a => a && (a.muted = muted)); };
+$('#spd').onchange = () => { if (voice) voice.playbackRate = spd(); };
+
+// check: a book question (p.124); a wrong answer gets a hint, then a second question from the same page
+const Q = [
+  {t: 'رأى أرنبٌ ثعلبًا. ما الترتيب الصحيح لاستجابته؟', o: ['الدماغ ← العين ← عضلات الأرجل', 'عضلات الأرجل ← الدماغ ← العين', 'العين ← الدماغ ← عضلات الأرجل', 'العين ← عضلات الأرجل ← الدماغ'], a: 2,
+   why: ['الاستجابة تبدأ من العين لا من الدماغ.', 'العضلات تنفّذ في النهاية.', 'صحيح: عين ← دماغ ← عضلات.', 'العضلات لا تتحرك قبل أمر الدماغ.'], hint: 'تذكّر الخطوة ٣ و٤: من الذي رأى أولًا؟ ومن أرسل الأوامر؟'},
+  {t: 'ما أثر هرمون الأدرينالين عند الخطر؟', o: ['يسرّع نبضات القلب ليزيد الدم المتدفق إلى العضلات', 'يبطئ نبضات القلب ليرتاح الجسم', 'يوقف عمل الدماغ', 'يحوّل العضلات إلى أوتار'], a: 0,
+   why: ['صحيح: نبض أسرع ودم أكثر للعضلات.', 'هذا عكس عمله.', 'الدماغ يبقى يعمل ويرسل الأوامر.', 'لا يحدث هذا.'], hint: 'ارجع للخطوة ٧: ماذا حدث للقلب؟'},
+];
+let mastered = JSON.parse(localStorage.getItem('sci124') || '{}');
+function quiz(k) {
+  const q = Q[k], box = $('#q'); box.classList.add('on');
+  box.innerHTML = `<h3>✏️ تحقّق من فهمك <span class="tag">(سؤال من الكتاب · ص١٢٤)</span></h3><p style="font-size:1.1rem;margin:4px 0">${q.t}</p>${q.o.map((x, j) => `<button class="opt" data-j="${j}">${'أبجد'[j]}. ${x}</button>`).join('')}<div id="fb"></div>`;
+  box.scrollIntoView({behavior: calm ? 'auto' : 'smooth', block: 'center'}); let tries = 0;
+  box.querySelectorAll('.opt').forEach(b => b.onclick = () => {
+    const j = +b.dataset.j, ok = j === q.a; b.classList.add(ok ? 'ok' : 'no'); tries++;
+    if (ok) { box.querySelectorAll('.opt').forEach(x => x.disabled = true); mastered[k] = tries === 1 ? 'أتقن' : 'بعد محاولة'; localStorage.setItem('sci124', JSON.stringify(mastered));
+      $('#fb').innerHTML = `<div class="fb ok">⚡ أحسنت يا بطل! ركّزت فوصلت، والتوفيق من الله.<br><b>لماذا؟</b> ${q.why[j]}</div>` + (k + 1 < Q.length ? `<button class="opt" id="nq">السؤال التالي ←</button>` : `<div class="fb in">انتهت العيّنة. ${Object.keys(mastered).length}/${Q.length} أسئلة أُجيبت (محفوظ في هذا الجهاز).</div>`);
+      const nq = $('#nq'); nq && (nq.onclick = () => quiz(k + 1)); }
+    else $('#fb').innerHTML = `<div class="fb no">قريبة! ${q.why[j]}<br>💡 <b>تلميح:</b> ${q.hint}</div>`;
+  });
+}
+reset();
+</script>
+</body>
+</html>
