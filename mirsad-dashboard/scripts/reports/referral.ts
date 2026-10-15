@@ -9,9 +9,14 @@
  * وإقراراتِ الاطّلاع إلى اليوم — لأنّ ما يخصّ الإرشاد الطلابي لا يُعرف
  * بالدفعة الأخيرة وحدها: أخطرُ ما ورد جاء في الجولة الأولى.
  *
- * وما لم تُفصح عنه الاستمارة لا يُخترع هنا: خانتا «صاحب الرأي» و«المعلمة»
- * تُطبعان ظاهرتَين موسومتَين بأنّ أحدًا لم يُسمِّهما، لأنّ ملءَ خانةٍ
- * بالظنّ في ورقةٍ تُبنى عليها مقابلةٌ مع معلّمة ظلمٌ لا يُحتمل.
+ * والأسماء تُقرأ من بيانات المدرسة وقت التوليد ولا تُكتب في هذا الملف:
+ * فالملفّ يُرفع إلى مستودعٍ عامّ، والبياناتُ لا تُرفع. فمن أفصح عن اسمه
+ * ظهر اسمه في الورقة — والموجّهة تحتاجه لتتكلّم — ومن لم يُفصح بقيت
+ * خانتُه ظاهرةً موسومةً بأنّه لم يُفصح، لأنّ ملءَ خانةٍ بالظنّ في ورقةٍ
+ * تُبنى عليها مقابلةٌ مع معلّمة أو استدعاءُ طالبة ظلمٌ لا يُحتمل.
+ *
+ * ومطابقةُ الاسم على الكشف الرسمي تُعلَن بدرجتها: مؤكّدةً أو محتملةً،
+ * ولا تُقدَّم المحتملةُ على أنها يقين.
  *
  * ولا يدخلها كلُّ ما ورد: المرافقُ والصيانةُ والتكييفُ والنظافةُ وطلباتُ
  * الجدولة شأنٌ إداريّ، ووضعُها هنا يُغرق ما يخصّ الإرشاد فيما لا يخصّه.
@@ -38,24 +43,75 @@ const font = (file: string) => asset(`public/fonts/${file}`, 'font/woff2')
 const iso = (t: string) => `⁦${t}⁩`
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
+/**
+ * اسمُ صاحب الرأي من بيانات المدرسة — إن كان أفصح عنه.
+ *
+ * يُبحث بالملفّ والسطر لا بالاسم، فهما ثابتان لا يتغيّران بتصحيح إملاء.
+ * والملفُّ غيرُ مرفوعٍ إلى المستودع، فإن غاب رجعت الورقة إلى «لم يُفصح».
+ */
+interface Person { written: string; roster?: string; where?: string; certain: boolean }
+
+interface Row { sourceFile?: string; sourceRow?: number }
+interface Resp extends Row {
+  rawName?: string | null; studentId?: string | null
+  matchStatus?: string; candidateStudentIds?: string[] | null
+}
+interface Student { id: string; name: string; gradeId: string; classId?: string | null }
+interface School {
+  responses: Resp[]; students: Student[]
+  grades: { id: string; name: string }[]; classes: { id: string; name: string }[]
+}
+
+const school: School | null = (() => {
+  try {
+    return JSON.parse(readFileSync(resolve(ROOT, 'src/data/school-data.json'), 'utf8')) as School
+  } catch { return null }
+})()
+
+function lookupPerson(sourceFile: string, sourceRow: number): Person | null {
+  if (!school) return null
+  const r = school.responses.find((x) => x.sourceFile === sourceFile && x.sourceRow === sourceRow)
+  if (!r?.rawName) return null
+  const id = r.studentId ?? (r.candidateStudentIds?.length === 1 ? r.candidateStudentIds[0] : null)
+  const st = id ? school.students.find((x) => x.id === id) : undefined
+  const grade = st && school.grades.find((g) => g.id === st.gradeId)?.name
+  const cls = st && school.classes.find((c) => c.id === st.classId)?.name
+  return {
+    written: r.rawName,
+    roster: st?.name,
+    where: grade ? `${grade}${cls ? ` / ${cls}` : ''}` : undefined,
+    certain: r.matchStatus === 'MATCHED',
+  }
+}
+
 /** خانةٌ في بطاقة الحالة: اسمها، وقيمتها، وهل القيمة معلومة. */
 interface Field { label: string; value: string; known: boolean }
 interface Case {
   no: string; title: string; tag: string; tone: 'hot' | 'warm'
   fields: Field[]; text: string; signs?: [string, string][]; warn?: string[]
+  who?: Person | null
 }
+
+/** صاحبة الرأي في الحالة الأولى — أفصحت عن اسمها، فيُطلب من البيانات. */
+const WHO1 = lookupPerson('responses-grade6.xlsx', 4)
 
 const CASES: Case[] = [
   {
     no: 'الحالة ١', title: 'تنمُّرٌ وضربٌ بين الطالبات', tag: 'الأقدم — ولم تُعالَج بعد',
-    tone: 'hot',
+    tone: 'hot', who: WHO1,
     fields: [
       { label: 'المصدر', value: 'استبيان القياس — الجولة الأولى', known: true },
-      { label: 'الصف', value: 'السادس الابتدائي', known: true },
       { label: 'وقت الورود', value: `سبتمبر ${iso('2026')}م`, known: true },
-      { label: 'صاحب الرأي', value: 'لم يُفصح عنه', known: false },
-      { label: 'اسم الطالبة', value: 'لم يُذكر — والاستمارة لا تطلبه', known: false },
-      { label: 'الفصل', value: 'لم يُحدَّد', known: false },
+      WHO1
+        ? { label: 'الاسم في الاستمارة', value: WHO1.written, known: true }
+        : { label: 'صاحب الرأي', value: 'لم يُفصح عنه', known: false },
+      WHO1?.roster
+        ? { label: 'الاسم في الكشف', value: WHO1.roster, known: true }
+        : { label: 'اسم الطالبة', value: 'لم يُذكر', known: false },
+      WHO1?.where
+        ? { label: 'الصف والفصل', value: WHO1.where, known: true }
+        : { label: 'الصف', value: 'السادس الابتدائي — والفصل لم يُحدَّد', known: false },
+      { label: 'درجة المطابقة', value: WHO1?.certain ? 'مؤكّدة' : 'محتملة — تُراجَع على الكشف', known: !!WHO1?.certain },
     ],
     text: 'زيادة النشاطات الطلابيه والتفاعليه وتنبيه الطالبات باستمرار بعدم التلفظ بكلام غير لائق والتنمر بين الطالبات والضرب داخل الحصص بين الطالبات وردة فعل المعلمات',
     signs: [
@@ -67,7 +123,7 @@ const CASES: Case[] = [
     warn: [
       'هذه أخطرُ ما ورد في الجولتين، وأقدمُه: ورد في الجولة الأولى ولم يُفرد له إجراءٌ حتى اليوم.',
       'الوقوع المذكور داخل الحصّة لا في الفسحة — أي في وقتٍ فيه إشراف، وهذا ما يستدعي النظر.',
-      'لم يُسمَّ أحد: لا طالبة ولا معلّمة. فالمطلوب مسحٌ عام لا مساءلةُ أحد.',
+      'لم تُسمَّ معلّمةٌ ولا طالبةٌ أخرى في النصّ — صاحبةُ الرأي وحدها معروفة. فالحديث يبدأ منها، لا بمساءلة أحد.',
     ],
   },
   {
@@ -97,12 +153,19 @@ const CASES: Case[] = [
   },
 ]
 
-/** مؤشّراتٌ تُقوّي الحالتين ولا تقوم وحدها — كلٌّ بمصدره ووقته. */
-const SUPPORT: [string, string, string][] = [
-  ['الخامس الابتدائي / ٢', `إقرارات الاطّلاع — ${iso('14')} أكتوبر`,
-   'اريد فقط كلمات التشجيع لانها تحفز الطالبه للاجتهاد والتقدم، ونتجنب الكلمات المحبطه للطالبه... وهذا الشي مهم لنفسيه الطالب. واشكركم جميعاً بلا استثناء'],
-  ['الأول الابتدائي / ٢', `استبيان القياس — ${iso('16')} سبتمبر`,
-   'لو بنات الصف الاول يطلعن قبل الكبار عشان ما يتأذوا من البنات الكبار وما يكون فيه فوضى'],
+/** مؤشّراتٌ تُقوّي الحالتين ولا تقوم وحدها — كلٌّ بمصدره ووقته وصاحبه. */
+interface Support { where: string; when: string; text: string; who?: Person | null }
+
+const SUPPORT: Support[] = [
+  {
+    where: 'الخامس الابتدائي / ٢', when: `إقرارات الاطّلاع — ${iso('14')} أكتوبر`,
+    text: 'اريد فقط كلمات التشجيع لانها تحفز الطالبه للاجتهاد والتقدم، ونتجنب الكلمات المحبطه للطالبه... وهذا الشي مهم لنفسيه الطالب. واشكركم جميعاً بلا استثناء',
+  },
+  {
+    where: 'الأول الابتدائي / ٢', when: `استبيان القياس — ${iso('16')} سبتمبر`,
+    text: 'لو بنات الصف الاول يطلعن قبل الكبار عشان ما يتأذوا من البنات الكبار وما يكون فيه فوضى',
+    who: lookupPerson('responses-grade1.xlsx', 3),
+  },
 ]
 
 const STEPS: [string, string][] = [
@@ -141,6 +204,16 @@ const caseCard = (c: Case) => `
   </div>
   <div class="case__body">
     <div class="fields">${c.fields.map(field).join('')}</div>
+    ${c.who ? `<div class="who">
+      <span class="who__i">👤</span>
+      <span>صاحبةُ الرأي أفصحت عن اسمها، فهي أوّلُ من يُتحدَّث إليه.
+      ${c.who.roster && c.who.roster !== c.who.written
+        ? `كُتب في الاستمارة <b>«${esc(c.who.written)}»</b>، ويقابله في الكشف الرسمي
+           <b>«${esc(c.who.roster)}»</b>${c.who.certain
+             ? ' — مطابقةٌ مؤكّدة.'
+             : ' — وهو الوحيد الذي يقاربه في الكشف كلِّه، فالمطابقةُ محتملةٌ تُؤكَّد قبل الاستدعاء.'}`
+        : `الاسم <b>«${esc(c.who.written)}»</b>.`}</span>
+    </div>` : ''}
     <div class="quote">
       <div class="lbl">النصّ كاملًا وحرفيًّا — دون حذفٍ ولا تعديل</div>
       <p>«${esc(c.text)}»</p>
@@ -227,6 +300,12 @@ body { font-family:'Baloo',sans-serif; color:var(--navy); }
 .f--unknown { border-style:dashed; border-color:#e6cfb2; background:var(--amber-soft); }
 .f--unknown .f__v { color:var(--amber); font-weight:800; }
 
+.who { margin-top:8px; display:grid; grid-template-columns:18px 1fr; gap:8px;
+       border:1.6px solid var(--teal); border-radius:11px; padding:7px 11px;
+       background:linear-gradient(170deg,#f0fafa,#f6fbfb); }
+.who__i { font-size:13px; text-align:center; }
+.who span { font-size:10.4px; line-height:1.7; color:#34606f; }
+.who b { color:var(--navy); font-weight:800; }
 .quote { margin-top:9px; border-right:4px solid var(--teal); border-radius:0 12px 12px 0;
          background:var(--soft); padding:9px 13px; }
 .quote .lbl { font-size:9.6px; font-weight:800; color:var(--muted); margin-bottom:4px; }
@@ -265,6 +344,9 @@ h2 { font-size:12.5px; font-weight:800; margin:10px 0 6px; padding-right:9px;
 .sup .meta { display:flex; gap:9px; align-items:baseline; margin-bottom:3px; }
 .sup .meta b { font-size:11.4px; }
 .sup .meta em { font-style:normal; font-size:9.6px; color:var(--muted); }
+.sup .meta u { margin-right:auto; text-decoration:none; font-size:9.6px; font-weight:800;
+               color:#fff; background:var(--teal); border-radius:999px; padding:2px 10px; }
+.sup .meta u.u--none { background:#fff; color:var(--amber); border:1px dashed #e6cfb2; }
 .sup p { font-size:10.4px; line-height:1.8; }
 
 .note { margin-top:10px; border:1.6px solid var(--border); border-radius:13px;
@@ -345,10 +427,11 @@ h2 { font-size:12.5px; font-weight:800; margin:10px 0 6px; padding-right:9px;
   </div>
 
   <h2>مؤشّرات مُساندة — ليست شكاوى</h2>
-  <div class="sup">${SUPPORT.map(([who, when, text]) => `
+  <div class="sup">${SUPPORT.map((p) => `
     <div class="row">
-      <div class="meta"><b>${esc(who)}</b><em>${esc(when)}</em></div>
-      <p>«${esc(text)}»</p>
+      <div class="meta"><b>${esc(p.where)}</b><em>${esc(p.when)}</em>${
+        p.who ? `<u>👤 ${esc(p.who.roster ?? p.who.written)}</u>` : '<u class="u--none">بلا اسم</u>'}</div>
+      <p>«${esc(p.text)}»</p>
     </div>`).join('')}
   </div>
   <div class="note">
