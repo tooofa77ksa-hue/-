@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>رحلة الطاقة</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+/* Food chains, food webs, decomposers and the energy pyramid in a clay meadow (lesson L21). Cute clay organisms from the
+   book's own examples; energy is a glowing yellow orb that flows along the arrow from the food to the eater.
+   The boy builds a chain himself, predicts before one reveal, then a short check. Source kept internally: data-src. */
+:root{--ink:#1d2a33;--g:#2e7d4f;--y:#ffd84d;--f:'SciBaloo','Segoe UI',Tahoma,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#bfe6ff;color:var(--ink);font-family:var(--f);-webkit-text-size-adjust:100%}
+button{font:inherit;cursor:pointer;touch-action:manipulation;color:inherit}
+#stage{position:fixed;inset:0;touch-action:none}
+.top{position:fixed;top:0;left:0;right:0;z-index:5;display:flex;align-items:center;gap:8px;padding:8px 12px;background:linear-gradient(#ffffffd9,#ffffff00)}
+.top h1{flex:1;margin:0;font-size:1.02rem}
+.ib{border:2px solid #fff;background:rgba(255,255,255,.85);border-radius:12px;min-width:44px;min-height:44px;font-size:1.05rem;box-shadow:0 2px 8px rgba(30,60,120,.15)}
+.modes{position:fixed;top:58px;left:8px;right:8px;z-index:5;display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.modes::-webkit-scrollbar{display:none}
+.modes button{flex:none;border:2px solid #fff;background:rgba(255,255,255,.88);color:#1d2a33;box-shadow:0 2px 8px rgba(30,60,120,.15);border-radius:14px;min-height:44px;padding:0 12px;font-size:.92rem}
+.modes button.on{background:var(--y);border-color:var(--y);font-weight:700}
+.modes button .ck{color:#1f8a4c;font-size:.8rem;margin-inline-start:3px}
+#dock{position:fixed;left:10px;right:10px;bottom:calc(70px + env(safe-area-inset-bottom));z-index:5;display:flex;flex-direction:column;gap:6px;max-height:calc(100% - 190px);overflow:auto}
+#say{background:rgba(255,255,255,.96);color:#1d2733;border-radius:16px;padding:8px 12px;font-size:1.08rem;line-height:1.75;min-height:2.6em;box-shadow:0 4px 16px rgba(30,60,120,.15)}
+#say .who{color:#b06a00;font-weight:700}
+#say .seq{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;font-size:.92rem}
+#say .seq span{background:#fff3c4;border-radius:10px;padding:0 8px}
+.pred{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.pred button{border:2px solid #d9e3d3;background:#fff;color:#1d2733;border-radius:12px;min-height:44px;padding:0 10px;font-size:.95rem;text-align:right}
+.pred button.ok{border-color:#1f8a4c;background:#e6f6ec}.pred button.no{border-color:#c2412d;background:#fbebe8}
+.nx{border:0;background:var(--g);color:#fff;border-radius:12px;min-height:44px;padding:0 14px;margin-top:6px;font-size:.98rem}
+#eq{text-align:center;font-size:.92rem;font-weight:700;display:none;pointer-events:none}
+#eq.on{display:block}
+#eq span{display:inline-block;background:rgba(255,255,255,.94);border:2px solid #ffd84d;border-radius:14px;padding:2px 12px;margin:2px;box-shadow:0 3px 10px rgba(30,60,120,.18)}
+#labels{position:fixed;inset:0;pointer-events:none;z-index:3}
+.lb{position:absolute;transform:translate(-50%,-100%);background:rgba(255,255,255,.95);color:#1d2733;border:2px solid #fff;border-radius:12px;padding:1px 8px;font-size:.84rem;font-weight:700;white-space:nowrap;line-height:1.45;text-align:center;transition:opacity .4s;box-shadow:0 2px 8px rgba(30,60,120,.18);pointer-events:none}
+.lb small{display:block;font-weight:400;font-size:.72rem;color:#5b6b52}
+.lb.prod{border-color:#7cc36b}.lb.c1{border-color:#f2b84b}.lb.c2{border-color:#6aa7e8}.lb.c3{border-color:#e46b6b}.lb.dec{border-color:#a5794f}
+.lb.tap{pointer-events:auto;min-height:44px;min-width:64px;display:flex;flex-direction:column;justify-content:center;cursor:pointer;border-color:#ffd84d;animation:pulse 1.6s infinite}
+.lb.tap.done{animation:none;background:#e6f6ec;border-color:#1f8a4c}
+.lb .n{position:absolute;top:-10px;inset-inline-end:-10px;background:#1f8a4c;color:#fff;border-radius:50%;width:22px;height:22px;font-size:.8rem;line-height:22px}
+.lb.shake{animation:shake .4s}
+@keyframes pulse{50%{box-shadow:0 0 0 5px rgba(255,216,77,.55)}}
+@keyframes shake{25%{margin-left:-6px}75%{margin-left:6px}}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:6;padding:8px 8px calc(8px + env(safe-area-inset-bottom));display:flex;gap:6px;justify-content:center;background:rgba(255,255,255,.97);border-top:1px solid rgba(30,60,120,.1)}
+.bar button{border:2px solid #dbe6f5;background:#fff;color:#1d2a33;border-radius:14px;min-height:46px;min-width:46px;padding:0 10px;font-size:.98rem}
+.bar .p{background:var(--g);border-color:var(--g);color:#fff;min-width:88px}
+#start{position:fixed;inset:0;z-index:7;display:flex;align-items:center;justify-content:center;background:rgba(30,60,90,.25)}
+#start button{border:0;background:var(--y);color:#22203a;border-radius:20px;padding:14px 22px;font-size:1.2rem;font-weight:700;box-shadow:0 8px 30px rgba(0,0,0,.3);min-height:56px}
+.panel{position:fixed;inset:0;z-index:8;background:rgba(0,0,0,.5);display:none;align-items:flex-end;justify-content:center}
+.panel.on{display:flex}
+.panel .box{background:#fff;color:#1d2733;border-radius:22px 22px 0 0;max-width:640px;width:100%;max-height:86vh;overflow:auto;padding:14px 16px calc(16px + env(safe-area-inset-bottom))}
+.opt{display:block;width:100%;text-align:right;border:2px solid #e2e6df;background:#fff;color:#1d2733;border-radius:14px;padding:8px 12px;margin:7px 0;min-height:52px;font-size:1.02rem}
+.opt.ok{border-color:#1f8a4c;background:#e6f6ec}.opt.no{border-color:#c2412d;background:#fbebe8}
+.fb{border-radius:14px;padding:8px 12px;margin:8px 0;line-height:1.7}.fb.ok{background:#e6f6ec}.fb.no{background:#fbebe8}.fb.in{background:#eaf1fa}
+.note{font-size:.8rem;color:#5d6874;line-height:1.7}
+.big{display:block;width:100%;min-height:50px;border-radius:14px;border:0;background:var(--g);color:#fff;font-size:1.05rem;margin-top:8px}
+#loading{position:fixed;inset:0;z-index:9;display:flex;align-items:center;justify-content:center;background:#bfe6ff;font-size:1.1rem}
+@media (min-width:760px){#dock{left:auto;right:16px;width:470px}}
+</style>
+</head>
+<body data-src="L21 «السلاسل والشبكات الغذائية وهرم الطاقة» p.138–143 (f139a سلسلة في غابة، f140a شبكة على اليابسة، f142a هرم الطاقة، ص١٤١ المفترس والفريسة، ص١٤٣ مسألة النسب)">
+<div id="loading">جاري تجهيز المشهد…</div>
+<div id="stage"></div><div id="labels"></div>
+<header class="top"><h1>☀️ رحلة الطاقة في الغذاء</h1><button class="ib" id="info" aria-label="عن المشهد">ℹ️</button></header>
+<nav class="modes" id="modes"></nav>
+<div id="dock"><div id="eq"></div><div id="say">اختر من الأعلى، أو اضغط ▶️ للجولة كاملة.</div></div>
+<div class="bar">
+  <button class="p" id="play">▶️ الجولة</button>
+  <button id="again" aria-label="أعد المقطع">↺</button>
+  <button id="task">🔗 ابنِ السلسلة</button>
+  <button id="qz">✏️ اختبر</button>
+  <button id="mute" aria-label="كتم الصوت">🔊</button>
+</div>
+<div id="start"><button id="go">☀️ اضغط لنبدأ رحلة الطاقة</button></div>
+<div class="panel" id="qp"><div class="box" id="qb"></div></div>
+<div class="panel" id="ip"><div class="box"><b>عن هذا المشهد</b>
+  <p class="note">• مشهد ثلاثي الأبعاد صنعناه لهذا الدرس بأسلوب الصلصال. المخلوقات هي أمثلة الكتاب نفسها، لكن أشكالها مبسّطة، والعيون الكبيرة للمرح فقط.<br>
+  • الكرات الصفراء المضيئة تمثّل الطاقة وهي تنتقل في الغذاء من المأكول إلى الآكل، والأسهم من الغذاء إلى من يأكله كما في الكتاب. الطاقة في الحقيقة لا تُرى بهذا الشكل.<br>
+  • الأحجام وعدد الكرات للتوضيح فقط. في هرم الطاقة: كل ١٠ كرات يصعد منها كرة واحدة (عُشر الطاقة)، والباقي يُستعمل في النشاط ويُفقد حرارة (اللون البرتقالي).<br>
+  • الشرح بصوت «حامد» المولّد بالذكاء الاصطناعي (صوت مايكروسوفت المجاني)، والنص مكتوب دائمًا.<br>
+  • التقدّم والنتيجة تُحفظ في هذا الجهاز فقط.</p>
+  <button class="big" id="ix">إغلاق</button></div></div>
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
+<script src="vendor/gsap.min.js"></script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from './vendor/OrbitControls.js';
+const $ = s => document.querySelector(s);
+const AR = n => String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const lowEnd = (navigator.hardwareConcurrency || 4) <= 4;
+const D = d => calm ? .01 : d;
+gsap.ticker.lagSmoothing(0);   // keep animations in step with the narration even when frames are slow
+
+/* ---------- renderer: a sunny clay meadow ---------- */
+const renderer = new THREE.WebGLRenderer({antialias: true}); renderer.setPixelRatio(Math.min(devicePixelRatio, lowEnd ? 1.5 : 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.enabled = !lowEnd; renderer.shadowMap.type = THREE.PCFSoftShadowMap; $('#stage').appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+{ const c = document.createElement('canvas'); c.width = 4; c.height = 256; const g = c.getContext('2d'), gr = g.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, '#7cc8f5'); gr.addColorStop(.6, '#cdeeff'); gr.addColorStop(1, '#fff3d6'); g.fillStyle = gr; g.fillRect(0, 0, 4, 256); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; scene.background = t; }
+scene.fog = new THREE.Fog(0xdff3ff, 16, 34);
+const camera = new THREE.PerspectiveCamera(50, 1, .1, 100);
+const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.enablePan = false; controls.minDistance = 3; controls.maxDistance = 18; controls.maxPolarAngle = 1.45;
+scene.add(new THREE.HemisphereLight(0xfff6e6, 0x6a8a4a, 1.6));
+const sunL = new THREE.DirectionalLight(0xfff0dc, 2.2); sunL.position.set(4, 9, 6); sunL.castShadow = true; sunL.shadow.mapSize.set(1024, 1024); Object.assign(sunL.shadow.camera, {left: -7, right: 7, top: 7, bottom: -7, far: 30}); scene.add(sunL);
+let portrait = true;
+function fit() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; portrait = camera.aspect < 1; camera.fov = portrait ? 56 : 42;
+  // the text box covers the lower part on a phone: draw the scene a little higher
+  if (portrait) camera.setViewOffset(innerWidth, innerHeight, 0, innerHeight * .07, innerWidth, innerHeight); else camera.clearViewOffset(); camera.updateProjectionMatrix(); }
+addEventListener('resize', fit); fit();
+
+/* ---------- clay: soft matte colour with fingerprint-like bumps ---------- */
+const clayBump = (() => { const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'); g.fillStyle = '#808080'; g.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 2600; i++) { const v = 110 + Math.random() * 40 | 0; g.fillStyle = `rgba(${v},${v},${v},.35)`; g.beginPath(); g.arc(Math.random() * 256, Math.random() * 256, 1 + Math.random() * 3, 0, 7); g.fill(); }
+  g.lineWidth = 1.2; for (let i = 0; i < 40; i++) { const x = Math.random() * 256, y = Math.random() * 256, r = 6 + Math.random() * 14; for (let k = 0; k < 4; k++) { g.strokeStyle = `rgba(${Math.random() < .5 ? 90 : 170},${Math.random() < .5 ? 90 : 170},${Math.random() < .5 ? 90 : 170},.25)`; g.beginPath(); g.arc(x, y, r + k * 2.4, Math.random() * 3, Math.random() * 3 + 2); g.stroke(); } }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t; })();
+const clay = (c, o = {}) => new THREE.MeshStandardMaterial({color: c, roughness: .82, metalness: 0, bumpMap: clayBump, bumpScale: 1.2, ...o});
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+const mesh = (geo, m, x = 0, y = 0, z = 0) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.castShadow = true; o.receiveShadow = true; return o; };
+const sph = (r, w = 28, h = 20) => new THREE.SphereGeometry(r, w, h);
+const cap = (r, l) => new THREE.CapsuleGeometry(r, l, 8, 16);
+const tube = (pts, r, m) => mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 24, r, 10), m);
+const glowTex = (inner, outer) => { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'), r = g.createRadialGradient(32, 32, 0, 32, 32, 32); r.addColorStop(0, inner); r.addColorStop(.35, inner); r.addColorStop(1, outer); g.fillStyle = r; g.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); };
+const stripeTex = (base, stripe, n = 7) => { const c = document.createElement('canvas'); c.width = 128; c.height = 64; const g = c.getContext('2d'); g.fillStyle = base; g.fillRect(0, 0, 128, 64); g.fillStyle = stripe;
+  for (let i = 0; i < n; i++) { const x = 8 + i * 120 / n; g.beginPath(); g.moveTo(x, 0); g.quadraticCurveTo(x + 7, 20, x + 2, 34); g.lineTo(x + 6, 34); g.quadraticCurveTo(x + 12, 18, x + 7, 0); g.fill(); g.beginPath(); g.moveTo(x + 3, 64); g.quadraticCurveTo(x + 9, 50, x + 4, 40); g.lineTo(x + 8, 40); g.quadraticCurveTo(x + 13, 52, x + 8, 64); g.fill(); }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; };
+
+/* ---------- big cartoon eyes ---------- */
+const eyeW = new THREE.MeshStandardMaterial({color: 0xffffff, roughness: .35}), eyeB = new THREE.MeshBasicMaterial({color: 0x15151f}), eyeH = new THREE.MeshBasicMaterial({color: 0xffffff});
+function eyes(r, sep, out = 1) {
+  const g = new THREE.Group();
+  for (const s of [-1, 1]) { const e = new THREE.Group(); e.position.set(s * sep, 0, 0); e.rotation.y = s * .18 * out;
+    const w = new THREE.Mesh(sph(r, 20, 14), eyeW); w.scale.set(1, 1.1, .8); e.add(w);
+    const p = new THREE.Mesh(sph(r * .55, 16, 12), eyeB); p.position.set(0, -r * .05, r * .55); p.scale.z = .6; e.add(p);
+    const h = new THREE.Mesh(sph(r * .18, 10, 8), eyeH); h.position.set(r * .2, r * .2, r * .85); e.add(h);
+    g.add(e); }
+  g.userData.eyes = true; return g;
+}
+const smile = (w, m = clay(0x4a2020)) => { const s = mesh(new THREE.TorusGeometry(w, w * .22, 8, 16, Math.PI), m); s.rotation.z = Math.PI; return s; };
+const cheeks = (g, x, y, z, r = .06) => { for (const s of [-1, 1]) { const c = new THREE.Sprite(new THREE.SpriteMaterial({map: glowTex('rgba(255,120,140,.6)', 'rgba(255,120,140,0)'), depthWrite: false, transparent: true})); c.scale.setScalar(r * 2.4); c.position.set(s * x, y, z); g.add(c); } };
+
+/* ---------- the organisms (book examples), each faces +z ---------- */
+const O = {};
+function org(id, build, h, s = 1) { const g = new THREE.Group(), body = new THREE.Group(); g.add(body); build(body); g.scale.setScalar(s); g.userData = {id, h, s}; g.traverse(o => { if (o.isMesh) { o.castShadow = true; } }); scene.add(g); g.visible = false; O[id] = g; return g; }
+const grassM = clay(0x5fbf4a), grassD = clay(0x3f9a3a);
+function tuft(g, x, z, k = 1) { for (let i = 0; i < 5; i++) { const b = mesh(new THREE.ConeGeometry(.06 * k, (.35 + Math.random() * .2) * k, 6), i % 2 ? grassM : grassD, x + (Math.random() - .5) * .14 * k, .16 * k, z + (Math.random() - .5) * .1 * k); b.rotation.z = (Math.random() - .5) * .6; b.rotation.x = (Math.random() - .5) * .4; g.add(b); } }
+function flower(g, x, z, col, k = 1) { const st = mesh(new THREE.CylinderGeometry(.02 * k, .025 * k, .45 * k, 6), grassD, x, .22 * k, z); g.add(st);
+  const pm = clay(col); for (let i = 0; i < 5; i++) { const a = i / 5 * Math.PI * 2, p = mesh(sph(.07 * k, 12, 8), pm, x + Math.cos(a) * .08 * k, .47 * k + Math.sin(a) * .08 * k, z + .02); p.scale.z = .5; g.add(p); }
+  g.add(mesh(sph(.055 * k, 12, 8), clay(0xffcf3a), x, .47 * k, z + .05)); }
+// producer: a round leafy plant with a flower, a face on its trunk
+org('plant', b => {
+  b.add(mesh(new THREE.CylinderGeometry(.13, .18, .7, 12), clay(0x8a5a32), 0, .35, 0));
+  const lm = [clay(0x4fb848), clay(0x6fcf55), clay(0x3e9f3d)];
+  [[0, 1.05, 0, .5], [-.38, .85, .05, .34], [.38, .88, .02, .35], [-.18, 1.35, -.05, .32], [.22, 1.32, -.02, .3], [0, .95, .3, .3]].forEach(([x, y, z, r], i) => { const l = mesh(sph(r), lm[i % 3], x, y, z); l.scale.y = .9; b.add(l); });
+  const e = eyes(.1, .12); e.position.set(0, 1.0, .72); b.add(e); const sm = smile(.07); sm.position.set(0, .86, .74); b.add(sm); cheeks(b, .22, .9, .7, .07);
+  flower(b, .3, .3, 0xff7fb0, .9); flower(b, -.35, .25, 0xffffff, .8); tuft(b, .45, .25); tuft(b, -.45, .3);
+  b.userData.leaf = lm;
+}, 1.55, 1);
+// grasshopper (الجرادة)
+org('hopper', b => {
+  const m = clay(0x7cc84a), d = clay(0x4f9a2e);
+  const body = mesh(cap(.16, .5), m, 0, .32, -.05); body.rotation.x = Math.PI / 2 - .25; b.add(body);
+  b.add(mesh(sph(.2), m, 0, .45, .32));
+  const e = eyes(.1, .1); e.position.set(0, .55, .46); b.add(e); const sm = smile(.05); sm.position.set(0, .4, .5); b.add(sm);
+  for (const s of [-1, 1]) { b.add(tube([V(s * .06, .6, .38), V(s * .16, .85, .4), V(s * .3, .95, .25)], .015, d));
+    b.add(tube([V(s * .14, .32, -.05), V(s * .3, .55, -.2), V(s * .28, .1, -.42)], .045, d));
+    b.add(tube([V(s * .12, .25, .15), V(s * .2, .1, .25), V(s * .22, 0, .3)], .025, d)); }
+}, .95, 1);
+// bird that eats insects (طائر)
+org('bird', b => {
+  const m = clay(0x4aa3e8), bel = clay(0xffe7a8), w = clay(0x2f7fc4);
+  const bd = mesh(sph(.38), m, 0, .55, 0); bd.scale.set(1, .95, 1.1); b.add(bd);
+  const be = mesh(sph(.3), bel, 0, .48, .14); be.scale.set(.9, .9, .8); b.add(be);
+  b.add(mesh(sph(.28), m, 0, .98, .08));
+  const e = eyes(.1, .12); e.position.set(0, 1.03, .3); b.add(e);
+  const k = mesh(new THREE.ConeGeometry(.08, .22, 10), clay(0xff9a2e), 0, .92, .4); k.rotation.x = Math.PI / 2; b.add(k);
+  for (const s of [-1, 1]) { const wg = mesh(sph(.25), w, s * .36, .6, -.05); wg.scale.set(.35, .8, 1.1); wg.rotation.z = s * .3; b.add(wg); b.userData['w' + s] = wg;
+    b.add(mesh(new THREE.CylinderGeometry(.025, .025, .22, 6), clay(0xff9a2e), s * .12, .14, 0)); }
+  const t = mesh(sph(.2), w, 0, .55, -.42); t.scale.set(.8, .3, 1.2); t.rotation.x = .5; b.add(t); cheeks(b, .17, .92, .3, .05);
+}, 1.3, .9);
+// snake (الأفعى): a coil with a raised head
+org('snake', b => {
+  const m = clay(0x9ccf3a), spot = clay(0x5c8a1e), pts = [];
+  for (let i = 0; i <= 26; i++) { const a = i / 26 * Math.PI * 3.2, r = .48 - i * .012; pts.push(V(Math.cos(a) * r, .12 + i * .012, Math.sin(a) * r)); }
+  pts.push(V(.15, .55, .25), V(.05, .8, .3));
+  b.add(tube(pts, .12, m));
+  const h = mesh(sph(.22), m, .02, .9, .34); h.scale.set(1.15, .8, 1.2); b.add(h);
+  const e = eyes(.085, .11); e.position.set(.02, 1.0, .5); b.add(e);
+  const tg = tube([V(.02, .86, .58), V(.02, .84, .7), V(.06, .86, .76)], .012, clay(0xe0303a)); b.add(tg);
+  for (let i = 2; i < 24; i += 3) { const p = pts[i]; const sp = mesh(sph(.045, 10, 8), spot, p.x, p.y + .1, p.z); sp.scale.y = .5; b.add(sp); }
+}, 1.2, 1);
+// mouse (الفأر)
+org('mouse', b => {
+  const m = clay(0xb3a9a6), pk = clay(0xffaabb);
+  const bd = mesh(sph(.3), m, 0, .3, -.05); bd.scale.set(.9, .85, 1.2); b.add(bd);
+  b.add(mesh(sph(.22), m, 0, .45, .28));
+  for (const s of [-1, 1]) { b.add(mesh(sph(.13), m, s * .17, .68, .2)); const ie = mesh(sph(.09), pk, s * .17, .68, .26); ie.scale.z = .4; b.add(ie); }
+  b.add(mesh(sph(.045, 10, 8), pk, 0, .42, .5));
+  const e = eyes(.075, .09); e.position.set(0, .52, .45); b.add(e);
+  b.add(tube([V(0, .2, -.38), V(.15, .15, -.6), V(.3, .3, -.7), V(.4, .45, -.6)], .025, pk));
+}, .9, 1);
+// gazelle (الغزال)
+org('gazelle', b => {
+  const m = clay(0xd9a065), w = clay(0xfff1dc), dk = clay(0x5a3a22);
+  const bd = mesh(cap(.24, .55), m, 0, .78, -.1); bd.rotation.x = Math.PI / 2; b.add(bd);
+  const bl = mesh(cap(.17, .45), w, 0, .66, -.1); bl.rotation.x = Math.PI / 2; b.add(bl);
+  for (const x of [-.13, .13]) for (const z of [.18, -.4]) b.add(mesh(new THREE.CylinderGeometry(.045, .035, .62, 8), m, x, .31, z));
+  const nk = mesh(cap(.1, .3), m, 0, 1.1, .3); nk.rotation.x = -.5; b.add(nk);
+  const hd = mesh(sph(.2), m, 0, 1.33, .42); hd.scale.set(.9, .95, 1.1); b.add(hd);
+  const mz = mesh(sph(.12), w, 0, 1.26, .58); b.add(mz);
+  const e = eyes(.08, .1); e.position.set(0, 1.39, .58); b.add(e);
+  for (const s of [-1, 1]) { b.add(tube([V(s * .07, 1.5, .38), V(s * .1, 1.75, .32), V(s * .06, 1.9, .2)], .025, dk)); const ear = mesh(sph(.08), m, s * .2, 1.48, .36); ear.scale.set(1.4, .5, .6); b.add(ear); }
+}, 2.0, .85);
+// eagle (النسر)
+org('eagle', b => {
+  const m = clay(0x7a4a2a), wh = clay(0xfaf6ee), yl = clay(0xffc22e);
+  const bd = mesh(sph(.38), m, 0, .55, 0); bd.scale.set(.95, 1.1, 1); b.add(bd);
+  b.add(mesh(sph(.27), wh, 0, 1.0, .08));
+  const e = eyes(.09, .11); e.position.set(0, 1.06, .3); b.add(e);
+  const k = mesh(new THREE.ConeGeometry(.08, .24, 10), yl, 0, .95, .4); k.rotation.x = Math.PI / 2 + .35; b.add(k);
+  for (const s of [-1, 1]) { const wg = mesh(sph(.42), m, s * .62, .72, -.05); wg.scale.set(1.25, .22, .6); wg.rotation.z = s * -.25; b.add(wg); b.userData['w' + s] = wg;
+    b.add(mesh(new THREE.CylinderGeometry(.035, .03, .2, 6), yl, s * .13, .12, .05)); }
+}, 1.35, .95);
+// tiger (النمر)
+org('tiger', b => {
+  const m = clay(0xffffff, {map: stripeTex('#f28c28', '#2a1a10')}), o = clay(0xf28c28), w = clay(0xfff4e6);
+  const bd = mesh(cap(.27, .6), m, 0, .6, -.15); bd.rotation.x = Math.PI / 2; bd.rotation.y = Math.PI / 2; b.add(bd);
+  for (const x of [-.15, .15]) for (const z of [.15, -.48]) b.add(mesh(new THREE.CylinderGeometry(.08, .07, .4, 8), o, x, .2, z));
+  const hd = mesh(sph(.3), o, 0, .92, .32); b.add(hd);
+  b.add(mesh(sph(.16), w, 0, .82, .54));
+  b.add(mesh(sph(.05, 10, 8), clay(0x3a2020), 0, .88, .69));
+  const e = eyes(.085, .12); e.position.set(0, 1.02, .55); b.add(e);
+  for (const s of [-1, 1]) { b.add(mesh(sph(.09), o, s * .22, 1.17, .3)); for (const k of [0, 1]) { const st = mesh(new THREE.BoxGeometry(.13, .025, .02), clay(0x2a1a10), s * .2, 1.0 + k * .07, .55 - .05); st.rotation.z = s * .4; b.add(st); } }
+  b.add(tube([V(0, .65, -.55), V(.2, .9, -.8), V(.35, 1.05, -.7)], .05, m));
+}, 1.3, 1);
+// seeds (البذور)
+org('seeds', b => { const m = [clay(0xc8955a), clay(0xa8743e)];
+  for (let i = 0; i < 9; i++) { const s = mesh(sph(.08, 12, 8), m[i % 2], (Math.random() - .5) * .5, .06 + (i > 5 ? .08 : 0), (Math.random() - .5) * .4); s.scale.set(1, .7, 1.5); s.rotation.y = Math.random() * 3; b.add(s); }
+  tuft(b, .25, -.2, .8); }, .4, 1);
+// sun
+org('sun', b => { const m = clay(0xffd23a, {emissive: 0xffb000, emissiveIntensity: .55});
+  b.add(mesh(sph(.6), m)); for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2, r = mesh(new THREE.ConeGeometry(.12, .35, 8), m, Math.cos(a) * .8, Math.sin(a) * .8, 0); r.rotation.z = a - Math.PI / 2; b.add(r); }
+  const e = eyes(.1, .18); e.position.set(0, .12, .52); b.add(e); const sm = smile(.14, clay(0xc0561a)); sm.position.set(0, -.12, .57); b.add(sm); cheeks(b, .33, -.02, .55, .09);
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({map: glowTex('rgba(255,236,150,.9)', 'rgba(255,220,120,0)'), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending})); halo.scale.setScalar(3.2); b.add(halo);
+}, 1, 1);
+// remains: fallen dry leaves and an old branch (بقايا مخلوقات ميتة)
+org('remains', b => { const lm = [clay(0xa8743e), clay(0x8a5a2a), clay(0xc49a5a)];
+  const lg = mesh(new THREE.CylinderGeometry(.16, .18, 1.3, 12), clay(0x7a5232), 0, .17, 0); lg.rotation.z = Math.PI / 2; lg.rotation.y = .3; b.add(lg);
+  const end = mesh(new THREE.CircleGeometry(.155, 16), clay(0xd9b27a), .62, .19, -.19); end.rotation.y = Math.PI / 2 + .3; b.add(end);
+  for (let i = 0; i < 9; i++) { const l = mesh(sph(.14, 12, 8), lm[i % 3], (Math.random() - .5) * 1.3, .04, .25 + (Math.random() - .5) * .4); l.scale.set(1, .18, .6); l.rotation.y = Math.random() * 3; b.add(l); }
+}, .5, 1);
+// decomposers: mushrooms (الفطريات), a worm (الديدان), bacteria (البكتيريا)
+org('mush', b => { const cm = clay(0xe8483a), dm = clay(0xffffff), st = clay(0xfff0d8);
+  [[0, 0, 1], [.32, -.12, .7], [-.28, -.1, .6]].forEach(([x, z, k], i) => { b.add(mesh(new THREE.CylinderGeometry(.1 * k, .13 * k, .45 * k, 12), st, x, .22 * k, z));
+    const c = mesh(new THREE.SphereGeometry(.26 * k, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), cm, x, .42 * k, z); c.scale.y = .8; b.add(c);
+    for (let j = 0; j < 5; j++) { const a = j * 1.3, d = mesh(sph(.035 * k, 8, 6), dm, x + Math.cos(a) * .15 * k, .42 * k + .14 * k, z + Math.sin(a) * .15 * k); b.add(d); }
+    if (!i) { const e = eyes(.06, .06); e.position.set(0, .28, .12); b.add(e); } });
+}, .7, 1);
+org('worm', b => { const m = clay(0xf08ca0), pts = [];
+  for (let i = 0; i <= 8; i++) pts.push(V(-.5 + i * .11, .09 + (i > 6 ? (i - 6) * .1 : 0), Math.sin(i * .9) * .1));
+  b.add(tube(pts, .08, m)); for (let i = 1; i < 8; i++) { const r = mesh(new THREE.TorusGeometry(.082, .012, 6, 14), clay(0xd96a80), pts[i].x, pts[i].y, pts[i].z); r.rotation.y = Math.PI / 2; b.add(r); }
+  const hd = mesh(sph(.1), m, pts[8].x + .04, pts[8].y + .03, pts[8].z); b.add(hd);
+  const e = eyes(.05, .05); e.position.set(pts[8].x + .06, pts[8].y + .08, pts[8].z + .08); b.add(e);
+}, .45, 1);
+org('bact', b => { const ms = [clay(0x7ad6c8), clay(0xb39ce8), clay(0x9be07a)];
+  for (let i = 0; i < 14; i++) { const c = mesh(cap(.035, .08), ms[i % 3], (Math.random() - .5) * 1.4, .05 + Math.random() * .1, (Math.random() - .5) * .7); c.rotation.set(Math.random() * 3, Math.random() * 3, Math.random() * 3); b.add(c); }
+}, .2, 1);
+// a small sprout that grows from the returned materials
+org('sprout', b => { b.add(mesh(new THREE.CylinderGeometry(.03, .04, .4, 8), grassD, 0, .2, 0)); for (const s of [-1, 1]) { const l = mesh(sph(.12), grassM, s * .12, .4, 0); l.scale.set(1, .4, .6); l.rotation.z = s * .4; b.add(l); } }, .5, 1);
+
+/* ---------- the meadow ---------- */
+{ const ground = mesh(new THREE.CylinderGeometry(9, 9.4, .6, 64), clay(0x8fd16a), 0, -.3, 0); scene.add(ground);
+  const soil = mesh(new THREE.CylinderGeometry(9.4, 9.2, .8, 64), clay(0xa8743e), 0, -1, 0); scene.add(soil);
+  const hm = [clay(0x7cc45a), clay(0x9bd66e), clay(0x6ab84f)];
+  [[-6, -7, 3], [-1.5, -9, 3.6], [4.5, -7.5, 2.8], [8, -4, 2.2]].forEach(([x, z, r], i) => { const h = mesh(sph(r, 32, 16), hm[i % 3], x, -r * .45, z); h.scale.y = .7; scene.add(h); });
+  const cm = clay(0xffffff); [[-3.5, 6, -9], [4, 7, -11], [-8, 5, -6]].forEach(([x, y, z]) => { const c = new THREE.Group(); [[0, 0, .9], [.8, -.1, .7], [-.8, -.15, .65], [.3, .35, .6]].forEach(([a, b2, r]) => c.add(mesh(sph(r), cm, a, b2, 0))); c.position.set(x, y, z); scene.add(c); });
+  const rk = clay(0xb8b0a8); for (let i = 0; i < 9; i++) { const a = Math.random() * 6.28, r = 4 + Math.random() * 4; const s = mesh(new THREE.DodecahedronGeometry(.15 + Math.random() * .2), rk, Math.cos(a) * r, .05, Math.sin(a) * r); s.scale.y = .6; scene.add(s); }
+  const deco = new THREE.Group(); for (let i = 0; i < 16; i++) { const a = Math.random() * 6.28, r = 3.6 + Math.random() * 4.5; tuft(deco, Math.cos(a) * r, Math.sin(a) * r, 1.1); }
+  for (let i = 0; i < 7; i++) { const a = Math.random() * 6.28, r = 4 + Math.random() * 4; flower(deco, Math.cos(a) * r, Math.sin(a) * r, [0xff7fb0, 0xffffff, 0xb08cff][i % 3], 1); } scene.add(deco);
+  // two trees at the back
+  [[-5, -4], [5.5, -3.5]].forEach(([x, z]) => { scene.add(mesh(new THREE.CylinderGeometry(.2, .3, 1.6, 10), clay(0x8a5a32), x, .8, z)); [[0, 2, 0, .9], [-.5, 1.7, .2, .6], [.5, 1.75, .1, .6]].forEach(([a, y, c, r]) => scene.add(mesh(sph(r), hm[0], x + a, y, z + c))); });
+}
+
+/* ---------- energy: glowing orbs along arrows from the food to the eater ---------- */
+const orbTex = glowTex('rgba(255,236,90,1)', 'rgba(255,190,0,0)'), heatTex = glowTex('rgba(255,120,50,1)', 'rgba(240,60,20,0)');
+const oxyTex = glowTex('rgba(225,248,255,1)', 'rgba(160,220,255,0)'), soilTex = glowTex('rgba(200,150,90,1)', 'rgba(140,90,40,0)');
+const pool = [], live = new Set(); function orb(size, heat) { let s = pool.pop(); if (!s) { s = new THREE.Sprite(new THREE.SpriteMaterial({transparent: true, depthWrite: false})); scene.add(s); }
+  s.material.map = heat ? heatTex : orbTex; s.material.blending = THREE.NormalBlending; s.material.opacity = 1; s.material.needsUpdate = true; s.scale.setScalar(size); s.visible = true; live.add(s); return s; }
+const free = s => { if (!live.has(s)) return; live.delete(s); gsap.killTweensOf(s.position); gsap.killTweensOf(s.material); gsap.killTweensOf(s.scale); s.visible = false; pool.push(s); };
+const later = (sec, fn) => keep(gsap.delayedCall(D(sec), fn));
+let TL = [];   // everything animated by the current step, killed on change
+const keep = t => (TL.push(t), t);
+function flow(curve, n = 5, size = .32, dur = 1.6, onArrive) {
+  for (let i = 0; i < n; i++) { const s = orb(size), p = {t: 0}; s.position.copy(curve.getPoint(0));
+    keep(gsap.to(p, {t: 1, duration: D(dur), delay: i * .28, ease: 'power1.inOut', onUpdate: () => s.position.copy(curve.getPoint(p.t)), onComplete: () => { free(s); onArrive && onArrive(i); }, onInterrupt: () => free(s)})); }
+}
+const arrows = [];
+function arrow(a, b, P) {   // a: food, b: eater, P: positions table of the step
+  const pa = P[a].p.clone().add(V(0, O[a].userData.h * O[a].userData.s * P[a].k * .55, 0)), pb = P[b].p.clone().add(V(0, O[b].userData.h * O[b].userData.s * P[b].k * .55, 0));
+  const dir = pb.clone().sub(pa), L = dir.length(); dir.normalize();
+  const s0 = pa.clone().addScaledVector(dir, Math.min(.55, L * .25)), s1 = pb.clone().addScaledVector(dir, -Math.min(.6, L * .25));
+  const c = new THREE.QuadraticBezierCurve3(s0, s0.clone().add(s1).multiplyScalar(.5).add(V(0, .7 + L * .12, 0)), s1);
+  const m = new THREE.MeshStandardMaterial({color: 0xf6e7b4, roughness: .6, emissive: 0xffa000, emissiveIntensity: .05, transparent: true, opacity: 0});
+  const g = new THREE.Group(), t = new THREE.Mesh(new THREE.TubeGeometry(c, 24, .055, 8), m); g.add(t);
+  const head = new THREE.Mesh(new THREE.ConeGeometry(.16, .34, 12), m); head.position.copy(c.getPoint(1)); head.quaternion.setFromUnitVectors(V(0, 1, 0), c.getTangent(1)); g.add(head);
+  scene.add(g); const A = {a, b, g, m, c}; arrows.push(A); keep(gsap.to(m, {opacity: .9, duration: D(.6), delay: .3})); return A;
+}
+function clearArrows() { arrows.splice(0).forEach(A => { scene.remove(A.g); A.g.traverse(o => o.geometry && o.geometry.dispose()); A.m.dispose(); }); }
+const lit = (A, on = 1) => { if (on) A.m.color.set(0xffd23a); return keep(gsap.to(A.m, {emissiveIntensity: on ? .75 : .05, duration: D(.4)})); }, litColor = (A, c) => A.m.color.set(c);
+const findA = (a, b) => arrows.find(x => x.a === a && x.b === b);
+
+/* ---------- layout: each step puts its organisms in place ---------- */
+let P = {};
+function lay(T) {
+  P = {}; for (const [id, [x, y, z, k = 1, ry = 0]] of Object.entries(T)) P[id] = {p: V(x, y, z), k, ry};
+  for (const id in O) { const g = O[id], t = P[id]; gsap.killTweensOf(g.position); gsap.killTweensOf(g.scale); gsap.killTweensOf(g.rotation);
+    g.children[0].rotation.set(0, 0, 0); g.children[0].scale.set(1, 1, 1); g.children[0].position.set(0, 0, 0);
+    if (t) { const s = g.userData.s * t.k; if (!g.visible) { g.visible = true; g.position.copy(t.p); g.rotation.set(0, t.ry, 0); g.scale.setScalar(.001); gsap.to(g.scale, {x: s, y: s, z: s, duration: D(.7), delay: .15, ease: 'back.out(1.8)'}); }
+      else { gsap.to(g.position, {x: t.p.x, y: t.p.y, z: t.p.z, duration: D(1.1), ease: 'power2.inOut'}); gsap.to(g.scale, {x: s, y: s, z: s, duration: D(.8)}); gsap.to(g.rotation, {x: 0, y: t.ry, z: 0, duration: D(.8)}); } }
+    else if (g.visible) gsap.to(g.scale, {x: .001, y: .001, z: .001, duration: D(.4), onComplete: () => { g.visible = false; }}); }
+}
+const camTo = (p, t, d = 1.8) => { gsap.to(camera.position, {...p, duration: D(d), ease: 'power2.inOut'}); gsap.to(controls.target, {...t, duration: D(d), ease: 'power2.inOut'}); };
+const zoom = () => portrait ? 1 : .78;
+function cam(p, t) { const z = zoom(); camTo({x: p[0] * z, y: p[1] * z + t[1] * (1 - z), z: p[2] * z}, {x: t[0], y: t[1], z: t[2]}); }
+// the eater hops to its food, nibbles, the arrow lights up and the energy flows; then it hops back
+function eat(b, a, then) {
+  const g = O[b], home = P[b].p, to = P[a].p, d = to.clone().sub(home), stop = home.clone().addScaledVector(d, Math.max(0, 1 - .9 / Math.max(.01, d.length()))), body = g.children[0];
+  const face = Math.atan2(d.x, d.z), A = findA(a, b), tl = keep(gsap.timeline());
+  tl.to(g.rotation, {y: face, duration: D(.3)})
+    .to(g.position, {x: stop.x, z: stop.z, duration: D(.7), ease: 'power1.inOut'}, '>')
+    .to(g.position, {y: home.y + .7, duration: D(.35), ease: 'power2.out', yoyo: true, repeat: 1}, '<')
+    .to(body.scale, {y: .8, x: 1.12, z: 1.12, duration: D(.12), yoyo: true, repeat: 5})
+    .add(() => { if (A) { lit(A); flow(A.c, 5, .34, 1.5, i => { const s = g.userData.s * P[b].k; gsap.fromTo(g.scale, {x: s * 1.12, y: s * 1.12, z: s * 1.12}, {x: s, y: s, z: s, duration: .3}); if (i === 4) then && then(); }); } else then && then(); })
+    .to(g.position, {x: home.x, z: home.z, duration: D(.7), ease: 'power1.inOut'}, '+=.1')
+    .to(g.position, {y: home.y + .6, duration: D(.35), ease: 'power2.out', yoyo: true, repeat: 1}, '<')
+    .to(g.rotation, {y: P[b].ry, duration: D(.3)});
+}
+const sunRays = (to, n = 6) => { const s = O.sun.position.clone(), e = P[to].p.clone().add(V(0, O[to].userData.h * .7, 0)); flow(new THREE.QuadraticBezierCurve3(s, s.clone().add(e).multiplyScalar(.5).add(V(0, .4, 0)), e), n, .36, 1.8, i => { if (i === n - 1) glowPlant(); }); };
+function glowPlant() { O.plant.children[0].userData.leaf.forEach(m => { m.emissive.set(0x9cff6a); keep(gsap.fromTo(m, {emissiveIntensity: .3}, {emissiveIntensity: 0, duration: D(1.6)})); }); }
+function oxygen() { for (let i = 0; i < 7; i++) { const s = orb(.16); s.material.map = oxyTex; s.material.needsUpdate = true; const p = P.plant.p; s.position.set(p.x + (Math.random() - .5) * .8, 1.2, p.z + (Math.random() - .5) * .4);
+  keep(gsap.to(s.position, {y: 2.9, x: s.position.x + (Math.random() - .5) * .6, duration: D(2.4), delay: i * .25, ease: 'sine.out'})); keep(gsap.to(s.material, {opacity: 0, duration: D(.8), delay: i * .25 + 1.8, onComplete: () => free(s)})); } }
+
+/* ---------- labels: name + role, also the tap targets of the build task ---------- */
+const LB = {};
+function labels(list) {   // [id, name, role, cls]
+  $('#labels').innerHTML = ''; for (const k in LB) delete LB[k];
+  list.forEach(([id, name, role, cls]) => { const e = document.createElement('button'); e.className = 'lb ' + (cls || ''); e.innerHTML = name + (role ? `<small>${role}</small>` : ''); e.style.opacity = 0; e.dataset.id = id; $('#labels').appendChild(e); LB[id] = {e, at: null}; requestAnimationFrame(() => { e.style.opacity = 1; }); });
+}
+const tmpV = new THREE.Vector3();
+function placeLb() {
+  const top = 112, bot = $('#dock').getBoundingClientRect().top - 6;
+  for (const id in LB) { const L = LB[id], g = O[id] || PY.find(x => x.id === id)?.slab; if (!g) continue;
+    if (O[id]) { tmpV.copy(g.position); tmpV.y += g.userData.h * g.scale.y + .05; } else { g.getWorldPosition(tmpV); tmpV.z += g.userData.d / 2; }
+    const v = tmpV.project(camera), hw = L.e.offsetWidth / 2 + 6;
+    L.e.style.left = Math.max(hw, Math.min(innerWidth - hw, (v.x + 1) / 2 * innerWidth)) + 'px';
+    L.e.style.top = Math.max(top + L.e.offsetHeight, Math.min(bot, (1 - v.y) / 2 * innerHeight + (O[id] ? 0 : L.e.offsetHeight / 2))) + 'px'; }
+}
+
+/* ---------- the energy pyramid (exploded: four clay slabs) ---------- */
+const PYR = new THREE.Group(); scene.add(PYR); PYR.visible = false;
+const SP = 1.45, TH = .5;   // level spacing and slab thickness: the label sits on each slab's front face, the organisms on its top
+const PY = [['pl', 'الأعشاب والأزهار', 'المنتجات', 0x7cc95a, 3.9], ['in', 'الحشرات', 'مستهلكات أولى', 0xf2c14e, 2.9], ['bi', 'الطيور', 'مستهلكات ثانية', 0x6aa7e8, 1.95], ['fx', 'الثعلب', 'القمّة', 0xe8846a, 1.15]].map(([id, name, role, col, w], i) => {
+  const slab = mesh(new THREE.BoxGeometry(w, TH, w * .5), clay(col), 0, i * SP, 0); slab.userData.d = w * .5; PYR.add(slab);
+  const top = new THREE.Group(); top.position.set(0, i * SP + TH / 2, 0); PYR.add(top);
+  return {id, name, role, slab, top, w, y: i * SP + TH / 2};
+});
+{ const t = PY[0].top; for (let i = 0; i < 7; i++) { const x = -1.6 + i * .53; if (i % 2) flower(t, x, (i % 3 - 1) * .25, [0xff7fb0, 0xffffff, 0xb08cff][i % 3], 1); else tuft(t, x, (i % 3 - 1) * .3, 1.1); }
+  const mini = (id, x, z, k) => { const src = O[id].children[0].clone(); src.scale.setScalar(k); src.position.set(x, 0, z); return src; };
+  [[-.9, .1], [0, -.15], [.9, .1]].forEach(([x, z]) => PY[1].top.add(mini('hopper', x, z, .6)));
+  [[-.45, 0], [.45, 0]].forEach(([x, z]) => PY[2].top.add(mini('bird', x, z, .55)));
+  const fox = new THREE.Group(), fm = clay(0xe8742a), fw = clay(0xfff4e6);
+  const fb = mesh(cap(.17, .4), fm, 0, .32, -.05); fb.rotation.x = Math.PI / 2; fox.add(fb);
+  for (const x of [-.09, .09]) for (const z of [.12, -.25]) fox.add(mesh(new THREE.CylinderGeometry(.04, .035, .25, 8), fm, x, .12, z));
+  fox.add(mesh(sph(.18), fm, 0, .55, .22)); const sn = mesh(new THREE.ConeGeometry(.09, .2, 10), fw, 0, .5, .4); sn.rotation.x = Math.PI / 2; fox.add(sn); fox.add(mesh(sph(.03, 8, 6), clay(0x2a1a10), 0, .5, .5));
+  for (const s of [-1, 1]) { const ear = mesh(new THREE.ConeGeometry(.07, .18, 8), fm, s * .1, .74, .2); fox.add(ear); }
+  const e = eyes(.055, .07); e.position.set(0, .6, .36); fox.add(e);
+  const tl = mesh(cap(.09, .3), fm, 0, .35, -.42); tl.rotation.x = -1; fox.add(tl); const tip = mesh(sph(.08), fw, 0, .48, -.6); fox.add(tip);
+  fox.scale.setScalar(1.25); PY[3].top.add(fox); }
+PYR.traverse(o => { if (o.isMesh) o.castShadow = true; });
+const PS = [.42, .3, .21, .15];   // the orb gets smaller at each level: less energy
+let pyrLoop = null;
+function pyrFlow(level) {   // ten orbs leave a level: nine become heat/activity, one goes up and gets smaller
+  const L = PY[level], N = PY[level + 1], y0 = L.y + .35, y1 = N.y + .35;
+  for (let i = 0; i < 10; i++) { const s = orb(PS[level]), x = (i - 4.5) * L.w * .085; s.position.set(x, y0, L.w * .3);
+    if (i === 4) { keep(gsap.to(s.position, {x: 0, y: y1, z: N.w * .3, duration: D(1.8), delay: .4, ease: 'power1.inOut'})); keep(gsap.to(s.scale, {x: PS[level + 1], y: PS[level + 1], duration: D(1.8), delay: .4})); keep(gsap.to(s.material, {opacity: 0, duration: .5, delay: 3, onComplete: () => free(s)})); }
+    else { keep(gsap.to(s.position, {y: y0 + .5 + Math.random() * .5, x: x * 1.4 + (x > 0 ? .4 : -.4), duration: D(1.6), delay: .7 + Math.random() * .3, ease: 'sine.out', onStart: () => { s.material.map = heatTex; s.material.needsUpdate = true; }}));
+      keep(gsap.to(s.material, {opacity: 0, duration: D(1.2), delay: 1.6 + Math.random() * .3, onComplete: () => free(s)})); } }
+}
+function pyrCycle() { let k = 0; const run = () => { pyrFlow(k); k = (k + 1) % 3; pyrLoop = keep(gsap.delayedCall(D(3.2), run)); }; run(); }
+
+/* ---------- steps ---------- */
+let eqOn = h => { $('#eq').innerHTML = h || ''; $('#eq').classList.toggle('on', !!h); };
+const CHAIN = ['plant', 'hopper', 'bird', 'snake'];
+const NAMES = {plant: 'النبات', hopper: 'الجرادة', bird: 'الطائر', snake: 'الأفعى', mouse: 'الفأر', gazelle: 'الغزال', eagle: 'النسر', tiger: 'النمر', seeds: 'البذور'};
+const CHAIN_POS = [[1.05, 0, 2.7], [-1.05, 0, 1.0], [1.05, 0, -.7], [-1.05, 0, -2.4]];
+const chainLay = (order = CHAIN) => { const T = {sun: [1.6, 3.4, -4.2, .7]}; order.forEach((id, i) => T[id] = [...CHAIN_POS[i], id === 'plant' ? .7 : 1.05, 0]); return T; };
+const STEPS = {
+  prod: {n: '🌱 المنتجات والمستهلكات', a: ['01', '02', '03', '04'],
+    t: ['معظمُ المخلوقاتِ الحيّةِ تستمدُّ طاقتَها من الشمس.', 'النباتُ مُنتِج: وهبَ له الخالقُ عزَّ وجلَّ القدرةَ على إنتاجِ غذائِه بنفسِه، ويُطلِقُ غازَ الأكسجين.', 'يستعملُ النباتُ بعضَ الغذاء، ويخزّنُ الباقيَ في أوراقِه وسيقانِه وفروعِه أو جذورِه.', 'أمّا المخلوقُ الذي لا يُنتجُ غذاءَه، فيتغذّى على مخلوقاتٍ أخرى، ويُسمّى المستهلِك. الجرادةُ تأكلُ النبات، فتحصلُ على الطاقةِ التي خزّنها.'],
+    set() { lay({sun: [1.7, 3.6, -1.6, .8], plant: [.55, 0, .9, 1.15], hopper: [-1.15, 0, 2.0, 1.1, .5]}); cam([0, 2.8, 7.2], [0, 1.45, 0]); labels([['plant', 'النبات', 'مُنتِج', 'prod']]); },
+    on: [() => sunRays('plant'), () => { oxygen(); sunRays('plant', 4); }, () => glowPlant(), () => { labels([['plant', 'النبات', 'مُنتِج', 'prod'], ['hopper', 'الجرادة', 'مستهلِك', 'c1']]); arrow('plant', 'hopper', P); later(.9, () => eat('hopper', 'plant')); }]},
+  chain: {n: '🔗 السلسلة الغذائية', a: ['05', '06', '07', '08'],
+    t: ['السلسلةُ الغذائيّة نموذجٌ يبيّنُ مسارَ انتقالِ الطاقةِ في الغذاء، من مخلوقٍ حيٍّ إلى آخر.', 'تبدأُ بالمُنتِج: النبات. ثم الجرادةُ تأكلُ النبات، فهي المستهلِكُ الأوّل.', 'والطائرُ يأكلُ الحشرات، فيأكلُ الجرادة، فهو المستهلِكُ الثاني.', 'والأفعى تأكلُ الطائر، فهي المستهلِكُ الثالث، في نهايةِ معظمِ السلاسلِ الغذائيّة.'],
+    set() { lay(chainLay()); cam([0, 7.6, 8.8], [0, .4, .1]); labels([['plant', 'النبات', 'مُنتِج', 'prod'], ['hopper', 'الجرادة', 'مستهلِك أوّل', 'c1'], ['bird', 'الطائر', 'مستهلِك ثانٍ', 'c2'], ['snake', 'الأفعى', 'مستهلِك ثالث', 'c3']]);
+      later(.3, () => { arrow('plant', 'hopper', P); arrow('hopper', 'bird', P); arrow('bird', 'snake', P); }); },
+    on: [() => sunRays('plant'), () => eat('hopper', 'plant'), () => eat('bird', 'hopper'), () => eat('snake', 'bird')]},
+  web: {n: '🕸️ الشبكة الغذائية', a: ['11', '12', '13', '14'],
+    t: ['معظمُ الحيواناتِ جزءٌ في أكثرَ من سلسلةٍ غذائيّة، فتتداخلُ السلاسلُ وتصيرُ شبكةً غذائيّة.', 'الفأرُ يأكلُ البذور، والغزالُ يأكلُ النباتات، والأفعى تأكلُ الفأر.', 'والنسرُ يأكلُ الأفعى والفأر، والنمرُ يأكلُ الغزالَ والفأر. لاحظْ: الفأرُ في ثلاثِ سلاسل!', 'والأفعى التي تبتلعُ الفأرَ يومًا، قد تصبحُ فريسةً للنسرِ في اليومِ التالي.'],
+    set() { lay({plant: [1.25, 0, 2.9, .6], seeds: [-1.15, 0, 2.9, 1.3], mouse: [-.2, 0, 1.3, 1.05], gazelle: [1.45, 0, .9, .75, -.3], snake: [-1.45, 0, -.5, .95, .3], eagle: [-.1, 1.4, -2.6, 1.05], tiger: [1.35, 0, -1.4, 1, -.3]});
+      cam([0, 8.2, 8.6], [0, .5, .1]); labels([['plant', 'النبات', 'مُنتِج', 'prod'], ['seeds', 'البذور', 'من النبات', 'prod'], ['mouse', 'الفأر', '', 'c1'], ['gazelle', 'الغزال', '', 'c1'], ['snake', 'الأفعى', '', 'c2'], ['eagle', 'النسر', '', 'c3'], ['tiger', 'النمر', '', 'c3']]);
+      later(.3, () => [['seeds', 'mouse'], ['plant', 'gazelle'], ['mouse', 'snake'], ['mouse', 'eagle'], ['mouse', 'tiger'], ['snake', 'eagle'], ['gazelle', 'tiger']].forEach(([a, b]) => arrow(a, b, P))); },
+    on: [null, () => { eat('mouse', 'seeds'); later(.7, () => eat('gazelle', 'plant')); later(3.2, () => eat('snake', 'mouse')); },
+      () => { eat('eagle', 'snake'); later(.6, () => eat('tiger', 'gazelle')); later(3.6, () => ['snake', 'eagle', 'tiger'].forEach(b => { const A = findA('mouse', b); if (!A) return; litColor(A, 0xffe14d); lit(A); flow(A.c, 3, .3, 1.4); })); },
+      () => { LB.snake && (LB.snake.e.innerHTML = 'الأفعى<small>مفترس وفريسة معًا</small>'); eat('snake', 'mouse', () => eat('eagle', 'snake')); }],
+    after: 'predWeb'},
+  dec: {n: '🍄 المحلّلات', a: ['16', '17', '18'],
+    t: ['عندما تموتُ المخلوقاتُ الحيّة، تبقى في بقايا أجسامِها طاقةٌ مخزّنة.', 'والمحلِّلُ مخلوقٌ حيٌّ يحلّلُ هذه البقايا إلى موادَّ أبسط. الديدانُ والبكتيريا والفطرياتُ كلُّها محلِّلات.', 'إنّها تُعيدُ تدويرَ الطاقةِ والموادِّ في البيئة؛ لذلك تؤدّي دورًا مهمًّا في النظامِ البيئي.'],
+    set() { lay({remains: [0, 0, 1.3, 1.2], mush: [1.25, 0, .7, 1.1, -.4], worm: [-.95, 0, 2.55, 1.05, .35], plant: [-.2, 0, -1.6, .7]}); cam([0, 3.2, 6.6], [0, .7, .6]);
+      O.remains.children[0].children.forEach(c => { gsap.killTweensOf(c.scale); c.scale.copy(c.userData.s0 || (c.userData.s0 = c.scale.clone())); });
+      labels([['remains', 'بقايا مخلوقات ميتة', 'فيها طاقة مخزّنة', 'dec']]);
+      // little energy glows inside the remains
+      keep(gsap.delayedCall(1.2, () => { for (let i = 0; i < 4; i++) { const s = orb(.22); s.position.set(-.5 + i * .33, .35, 1.4); keep(gsap.to(s.material, {opacity: .35, duration: .7, yoyo: true, repeat: 7, onComplete: () => free(s)})); } })); },
+    on: [null, () => { labels([['mush', 'الفطريات', 'محلِّل', 'dec'], ['worm', 'الديدان', 'محلِّل', 'dec'], ['bact', 'البكتيريا', 'محلِّل (مكبّرة)', 'dec']]); lay({...curT(), bact: [0, 0, 1.75, 1.3]});
+        const R = O.remains.children[0]; R.children.forEach((c, i) => keep(gsap.to(c.scale, {x: c.scale.x * .35, y: c.scale.y * .35, z: c.scale.z * .35, duration: D(6), delay: .6 + i * .1, ease: 'sine.inOut'})));
+        keep(gsap.to(O.worm.children[0].position, {x: .18, duration: D(1.2), yoyo: true, repeat: 5, ease: 'sine.inOut'})); },
+      () => { // simpler materials go back to the soil, and a new plant uses them
+        for (let i = 0; i < 12; i++) { const s = orb(.14); s.material.map = soilTex; s.material.needsUpdate = true; s.position.set((Math.random() - .5) * 1.4, .3, 1.3 + (Math.random() - .5) * .4);
+          keep(gsap.to(s.position, {y: -.05, x: s.position.x * .3 - .1, z: .2, duration: D(2.4), delay: i * .15, ease: 'sine.in', onComplete: () => free(s)})); }
+        keep(gsap.delayedCall(D(2.6), () => { lay({...curT(), sprout: [.2, 0, .25, 1.4]}); labels([['mush', 'الفطريات', 'محلِّل', 'dec'], ['worm', 'الديدان', 'محلِّل', 'dec'], ['bact', 'البكتيريا', 'محلِّل (مكبّرة)', 'dec'], ['sprout', 'مواد تعود إلى التربة', '', 'prod']]); })); }]},
+  pyr: {n: '🔺 هرم الطاقة', a: ['19', '20', '21', '22', '23'],
+    t: ['هرمُ الطاقة نموذجٌ يبيّنُ كيف تنتقلُ الطاقةُ خلالَ سلسلةٍ غذائيّةٍ معيّنة.', 'قاعدتُه المنتجات: الأعشابُ والأزهار، لأنها تدعمُ المخلوقاتِ الأخرى كافّة. فوقَها الحشرات، ثم الطيور، وفي القمّةِ الثعلب.', 'كلُّ مستوى يستعملُ جزءًا من الطاقةِ في نشاطاتِه اليوميّة، ويفقدُ جزءًا آخرَ على شكلِ حرارة.', 'لذلك لا ينتقلُ إلى المستوى التالي إلا عُشرُ الطاقة. فإذا كان في المستوى الأوّلِ ١٠٠٠٠ وحدةِ طاقة، يصلُ إلى الثاني ١٠٠٠ وحدة.', 'ولهذا تكونُ المنتجاتُ بأعدادٍ أكبرَ كثيرًا من المستهلِكات.'],
+    set() { lay({}); PYR.visible = true; PY.forEach((L, i) => { gsap.killTweensOf(L.slab.position); gsap.killTweensOf(L.top.scale); L.slab.position.y = i * SP - 6; L.top.scale.setScalar(.001);
+        keep(gsap.to(L.slab.position, {y: i * SP, duration: D(.9), delay: .3 + i * .35, ease: 'back.out(1.4)'})); keep(gsap.to(L.top.scale, {x: 1, y: 1, z: 1, duration: D(.6), delay: .9 + i * .35, ease: 'back.out(2)'})); });
+      camTo(portrait ? {x: 0, y: 4.3, z: 11.2} : {x: 0, y: 4.2, z: 13.5}, {x: 0, y: portrait ? 2.75 : 2.5, z: 0}); labels(PY.map(L => [L.id, L.name, L.role, ['prod', 'c1', 'c2', 'c3'][PY.indexOf(L)]])); },
+    on: [null, null, () => { eqOn('<span>🟡 طاقة تنتقل</span> <span style="border-color:#ff8a3a">🟠 نشاط وحرارة</span>'); pyrCycle(); },
+      () => { eqOn('<span>🟡 يصعد ١/١٠ الطاقة فقط</span> <span style="border-color:#ff8a3a">🟠 نشاط وحرارة</span>');
+        [['pl', 'المنتجات · ⚡ ١٠٠٠٠ وحدة'], ['in', 'مستهلكات أولى · ⚡ ١٠٠٠ وحدة']].forEach(([id, t]) => { if (LB[id]) { LB[id].e.querySelector('small').textContent = t; LB[id].e.style.background = '#fff6cf'; } }); },
+      () => { PY.forEach((L, i) => keep(gsap.fromTo(L.top.scale, {x: 1, y: 1, z: 1}, {x: 1.15, y: 1.15, z: 1.15, duration: .3, delay: i * .3, yoyo: true, repeat: 1}))); }]},
+};
+const curT = () => Object.fromEntries(Object.entries(P).map(([id, t]) => [id, [t.p.x, t.p.y, t.p.z, t.k, t.ry]]));
+const ORDER = ['prod', 'chain', 'web', 'dec', 'pyr'];
+ORDER.forEach(k => { const b = document.createElement('button'); b.textContent = STEPS[k].n; b.dataset.m = k; b.onclick = () => { setPlay(false); go(k); }; $('#modes').appendChild(b); });
+
+/* ---------- voice + always-visible text ---------- */
+let voice = null, muted = false, tour = false, seqTok = 0, cur = 'prod';
+const STATE = (() => { try { return JSON.parse(localStorage.getItem('sci-L21-food') || '{}'); } catch (e) { return {}; } })();
+const save = () => { try { localStorage.setItem('sci-L21-food', JSON.stringify(STATE)); } catch (e) {} markSeen(); };
+function markSeen() { document.querySelectorAll('#modes button').forEach(b => { const k = b.dataset.m; b.innerHTML = STEPS[k].n + ((STATE.seen || {})[k] ? '<span class="ck">✓</span>' : ''); }); }
+function play(id, next, wait = 3500) { if (voice) { voice.onended = null; voice.pause(); } voice = new Audio('audio/L21-food-' + id + '.mp3'); voice.muted = muted;
+  let doneOnce = false; const fin = d => { if (doneOnce) return; doneOnce = true; setTimeout(next, d); };
+  voice.onended = () => fin(700); voice.onerror = () => fin(wait); voice.play().catch(() => fin(wait)); }
+function say(S, done, icon = '') {
+  const tok = ++seqTok; let k = 0;
+  const nx = () => { if (tok !== seqTok) return; if (k >= S.a.length) { done && done(); return; }
+    $('#say').innerHTML = `<span class="who">${S.n.split(' ')[0]}</span> ` + S.t[k]; S.on && S.on[k] && S.on[k](); const len = S.t[k].length; k++;
+    play(S.a[k - 1], () => tok === seqTok && nx(), 1500 + len * 60); };
+  nx();
+}
+function stopAll() { TL.forEach(t => t.kill && t.kill()); TL = []; [...live].forEach(free); clearArrows(); gsap.killTweensOf(O.worm.children[0].position); eqOn(); }
+function go(k, done) {
+  cur = k; seqTok++; if (voice) { voice.onended = null; voice.pause(); } stopAll(); task.on = false;
+  document.querySelectorAll('#modes button').forEach(b => { b.classList.toggle('on', b.dataset.m === k); if (b.dataset.m === k) b.scrollIntoView({inline: 'center', block: 'nearest', behavior: 'smooth'}); });
+  if (k !== 'pyr') PYR.visible = false;
+  const S = STEPS[k]; S.set();
+  say(S, () => { STATE.seen = {...(STATE.seen || {}), [k]: 1}; save(); if (S.after === 'predWeb') predWeb(done); else done && done(); });
+}
+function setPlay(on) { tour = on; $('#play').textContent = on ? '⏸ إيقاف' : '▶️ الجولة'; if (!on) { seqTok++; if (voice) { voice.onended = null; voice.pause(); } } }
+function runTour(from = 0) { setPlay(true); let i = from; const next = () => { if (!tour) return; if (i >= ORDER.length) { setPlay(false); setTimeout(() => quiz(0), 1200); return; }
+  const k = ORDER[i++]; go(k, () => setTimeout(() => { if (!tour) return; if (k === 'chain') startTask(() => setTimeout(next, 1500)); else next(); }, 1600)); }; next(); }
+$('#play').onclick = () => { if (tour) return setPlay(false); runTour(); };
+$('#again').onclick = () => { setPlay(false); go(cur); };
+$('#mute').onclick = () => { muted = !muted; $('#mute').textContent = muted ? '🔇' : '🔊'; if (voice) voice.muted = muted; };
+$('#info').onclick = () => $('#ip').classList.add('on'); $('#ix').onclick = () => $('#ip').classList.remove('on');
+$('#go').onclick = () => { $('#start').remove(); runTour(); };
+$('#qz').onclick = () => { setPlay(false); quiz(0); };
+$('#task').onclick = () => { setPlay(false); startTask(); };
+
+/* ---------- PREDICT: what if the mice disappear? ---------- */
+function predWeb(done) {
+  seqTok++; const tok = seqTok;
+  $('#say').innerHTML = `<b>🤔 توقّع قبل أن ترى:</b> لو ماتت أعداد كبيرة من الفئران، ماذا يحدث؟<div class="pred"><button data-j="0">لا يتأثر أي حيوان آخر</button><button data-j="1">يقلّ غذاء الأفعى والنسر والنمر</button><button data-j="2">يزيد عدد الأفاعي</button></div>`;
+  $('#say').querySelectorAll('.pred button').forEach(b => b.onclick = () => { if (tok !== seqTok) return; const ok = b.dataset.j === '1'; b.classList.add(ok ? 'ok' : 'no'); if (!ok) $('#say').querySelector('[data-j="1"]').classList.add('ok');
+    STATE.pred = {ok, at: Date.now()}; save(); $('#say').querySelectorAll('.pred button').forEach(x => x.disabled = true);
+    setTimeout(() => { if (tok !== seqTok) return; reveal(done); }, ok ? 800 : 1800); });
+}
+function reveal(done) {
+  const g = O.mouse; keep(gsap.to(g.scale, {x: .001, y: .001, z: .001, duration: D(1), ease: 'back.in(2)', onComplete: () => { g.visible = false; }})); LB.mouse && (LB.mouse.e.style.opacity = .25);
+  ['snake', 'eagle', 'tiger'].forEach(b => { const A = findA('mouse', b); if (A) { litColor(A, 0xb0b0b0); lit(A, 0); keep(gsap.to(A.m, {opacity: .25, duration: 1})); }
+    const body = O[b].children[0]; keep(gsap.to(body.rotation, {z: .18, duration: D(.5), yoyo: true, repeat: 3})); keep(gsap.to(body.scale, {y: .9, duration: D(.8), delay: .4})); });
+  if (LB.seeds) LB.seeds.e.style.opacity = .25;
+  const R = {n: '🕸️', a: ['15'], t: ['التغيّراتُ في جزءٍ من الشبكةِ الغذائيّة غالبًا ما تؤثّرُ في بقيّةِ الأجزاء. إذا قلّت الفئران، قلَّ غذاءُ الأفعى والنسرِ والنمر.']};
+  say(R, done);
+}
+
+/* ---------- BUILD THE CHAIN: tap the organisms in order ---------- */
+const task = {on: false, seq: [], tries: 0};
+function startTask(done) {
+  cur = 'chain'; seqTok++; if (voice) { voice.onended = null; voice.pause(); } stopAll(); PYR.visible = false;
+  document.querySelectorAll('#modes button').forEach(b => b.classList.toggle('on', b.dataset.m === 'chain'));
+  const sh = [...CHAIN]; do { sh.sort(() => Math.random() - .5); } while (sh.every((x, i) => x === CHAIN[i]));
+  lay(chainLay(sh)); cam([0, 7.6, 8.8], [0, .4, .1]);
+  Object.assign(task, {on: true, seq: [], tries: 0, done});
+  labels(CHAIN.map(id => [id, NAMES[id], '', ''])); for (const id in LB) { LB[id].e.classList.add('tap'); LB[id].e.onclick = () => pick(id); }
+  const msg = 'دورُك الآن! ابنِ السلسلةَ بنفسِك: اضغطْ على المخلوقاتِ بالترتيب، من المُنتِجِ إلى المستهلِكِ الثالث.';
+  const show = (extra = '') => { $('#say').innerHTML = `<span class="who">🔗</span> ${msg}${extra}<div class="seq">${task.seq.map((id, i) => `<span>${AR(i + 1)}. ${NAMES[id]}</span>`).join(' ← ') || '<span>…</span>'}</div>`; };
+  task.show = show; show(); play('09', () => {});
+}
+function pick(id) {
+  if (!task.on || task.seq.includes(id)) return;
+  const want = CHAIN[task.seq.length], g = O[id];
+  if (id === want) {
+    task.seq.push(id); const n = task.seq.length; LB[id].e.classList.add('done'); LB[id].e.insertAdjacentHTML('beforeend', `<span class="n">${AR(n)}</span>`);
+    keep(gsap.fromTo(g.position, {y: 0}, {y: .6, duration: D(.25), yoyo: true, repeat: 1, ease: 'power2.out'}));
+    if (n > 1) { const a = task.seq[n - 2], A = arrow(a, id, P); later(.5, () => { lit(A); flow(A.c, 4, .3, 1.2); }); } else sunRays('plant', 4);
+    const role = ['مُنتِج', 'مستهلِك أوّل', 'مستهلِك ثانٍ', 'مستهلِك ثالث'][n - 1]; LB[id].e.firstChild.after(Object.assign(document.createElement('small'), {textContent: role}));
+    task.show(`<br>✅ ${NAMES[id]}: ${role}.`);
+    if (n === 4) { task.on = false; STATE.task = {done: 1, tries: task.tries}; save();
+      later(1.3, () => { $('#say').innerHTML = `<span class="who">🎉</span> ركّزتَ فوصلت، والتوفيقُ من الله! مُنتِج، ثم مستهلِكٌ أوّل، ثم مستهلِكٌ ثانٍ، ثم مستهلِكٌ ثالث.<div class="seq">${CHAIN.map(x => `<span>${NAMES[x]}</span>`).join(' ← ')}</div>` + (task.done ? '' : `<button class="nx" id="toWeb">التالي: الشبكة الغذائية ←</button>`);
+        $('#toWeb') && ($('#toWeb').onclick = () => go('web'));
+        let i = 0; const run = () => { if (i < 3) { const A = findA(CHAIN[i], CHAIN[i + 1]); A && flow(A.c, 3, .3, 1.1); i++; keep(gsap.delayedCall(.8, run)); } }; run();
+        play('10', () => { const d = task.done; task.done = null; d && d(); }); }); }
+  } else {
+    task.tries++; LB[id].e.classList.remove('shake'); void LB[id].e.offsetWidth; LB[id].e.classList.add('shake');
+    const body = g.children[0]; keep(gsap.fromTo(body.rotation, {y: -.35}, {y: 0, duration: D(.5), ease: 'elastic.out(1,.3)'}));
+    const hint = task.seq.length ? `💡 ليس بعد. مَن يأكلُ ${NAMES[task.seq[task.seq.length - 1]]}؟ حاول مرة أخرى.` : '💡 ليس بعد. السلسلة تبدأ بالمُنتِج: مَن يصنع غذاءه بنفسه؟';
+    task.show(`<br><span style="color:#b3361f">${hint}</span>`);
+  }
+}
+
+/* ---------- check: 4 questions from the lesson bank, hint + watch the moment again ---------- */
+const QS = [
+  {id: 'L21-m11', t: 'أفعى أكلت طائرًا كان يأكل الحشرات، والحشرات تأكل أوراق النبات. ما موقع الأفعى في هذه السلسلة؟', o: ['مستهلك ثانٍ', 'مستهلك ثالث', 'مستهلك أول', 'محلل'], a: 1,
+    why: ['المستهلك الثاني هو الطائر الذي أكل الحشرات.', 'صحيح: نبات ← حشرة (أول) ← طائر (ثانٍ) ← أفعى (ثالث).', 'المستهلك الأول هو الحشرة التي تأكل النبات.', 'المحلل يحلّل البقايا ولا يصطاد.'], hint: 'عُدّ الحلقات بعد المنتِج كما في السلسلة.', redo: 'chain'},
+  {id: 'L21-m16', t: 'في «شبكة غذائية على اليابسة»، أيّ حيوان يكون مفترسًا وفريسة في الوقت نفسه؟', o: ['الغزال', 'الأفعى', 'النمر', 'النسر'], a: 1,
+    why: ['الغزال يأكل النباتات فقط في هذه الشبكة، ويأكله النمر.', 'صحيح: تأكل الفأر، ويأكلها النسر.', 'النمر مفترس، ولا يأكله أحد في هذه الشبكة.', 'النسر مفترس، ولا يأكله أحد في هذه الشبكة.'], hint: 'ابحث عن حيوان يخرج منه سهم ويدخل إليه سهم من حيوان آخر.', redo: 'web'},
+  {id: 'L21-m13', t: 'لماذا تُعدّ المحللات مهمة جدًا في النظام البيئي؟', o: ['تعيد تدوير المواد من بقايا الميت', 'تصنع غذاءها من ضوء الشمس', 'تصطاد الحيوانات الضعيفة والمريضة', 'تطلق الأكسجين اللازم للتنفس'], a: 0, why: null, hint: 'ماذا حدث للبقايا بعد أن عملت عليها الفطريات والديدان؟', redo: 'dec'},
+  {id: 'L21-m31', t: 'ما الجزء من الطاقة الذي ينتقل من مستوى في هرم الطاقة إلى المستوى الذي يليه؟', o: ['نصفها', 'تسعة أعشارها', 'عُشرها', 'ربعها'], a: 2, why: null, hint: 'من كل ١٠ كرات صفراء، كم كرة تصعد؟', redo: 'pyr'},
+];
+// why_opts for m13 and m31 from the bank (page refs removed)
+QS[2].why = ['صحيح: الديدان والبكتيريا والفطريات تحلّل البقايا وتعيد تدوير المواد.', 'هذا عمل المنتجات لا المحللات.', 'هذا عمل المفترسات.', 'إطلاق الأكسجين من المنتجات التي تقوم بالبناء الضوئي.'];
+QS[3].why = ['النصف كثير جدًا؛ معظم الطاقة يُستعمل ويُفقد حرارة.', 'هذا الجزء هو الذي يُستعمل ويُفقد، لا الذي ينتقل.', 'صحيح: ينتقل ١/١٠ الطاقة فقط إلى المستوى التالي.', 'الربع أكثر مما ينتقل فعلًا.'];
+function quiz(k) {
+  const q = QS[k]; $('#qp').classList.add('on'); let tries = (STATE.q?.[k]?.ok === false) ? STATE.q[k].tries : 0;
+  $('#qb').innerHTML = `<b>✏️ اختبر نفسك ${AR(k + 1)} من ${AR(QS.length)}</b><p style="font-size:1.08rem;margin:6px 0;line-height:1.7">${q.t}</p>${q.o.map((x, j) => `<button class="opt" data-j="${j}">${'أبجد'[j]}. ${x}</button>`).join('')}<div id="fb"></div>`;
+  $('#qb').querySelectorAll('.opt').forEach(b => b.onclick = () => {
+    const j = +b.dataset.j, ok = j === q.a; tries++; b.classList.add(ok ? 'ok' : 'no'); STATE.q = STATE.q || {};
+    if (ok) { $('#qb').querySelectorAll('.opt').forEach(x => x.disabled = true); STATE.q[k] = {ok: true, tries}; save();
+      $('#fb').innerHTML = `<div class="fb ok">⭐ ${tries === 1 ? 'ركّزت فوصلت' : 'حاولت حتى وصلت'}، والتوفيق من الله.<br><b>لماذا؟</b> ${q.why[j]}</div>` + (k + 1 < QS.length ? `<button class="big" id="nq">السؤال التالي ←</button>` : `<div class="fb in">أجبت عن ${AR(Object.values(STATE.q).filter(x => x.ok && x.tries === 1).length)} من ${AR(QS.length)} من أول محاولة. كل محاولة تعلّمك شيئًا جديدًا.</div><button class="big" id="cl">رجوع إلى المشهد</button>`);
+      $('#nq') && ($('#nq').onclick = () => quiz(k + 1)); $('#cl') && ($('#cl').onclick = () => $('#qp').classList.remove('on')); }
+    else { STATE.q[k] = {ok: false, tries}; save(); $('#fb').innerHTML = `<div class="fb no">${q.why[j]}<br>💡 <b>تلميح:</b> ${q.hint}</div><button class="big" style="background:#2563a6" id="see">👀 شاهد المشهد ثم ارجع</button>`;
+      $('#see').onclick = () => { $('#qp').classList.remove('on'); setPlay(false); go(q.redo, () => setTimeout(() => quiz(k), 1200)); }; }
+  });
+}
+
+/* ---------- picking organisms in the 3D view too (build task) ---------- */
+const ray = new THREE.Raycaster(), ptr = new THREE.Vector2(); let down = null;
+renderer.domElement.addEventListener('pointerdown', e => { down = [e.clientX, e.clientY]; });
+renderer.domElement.addEventListener('pointerup', e => { if (!task.on || !down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 8) return;
+  ptr.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); ray.setFromCamera(ptr, camera);
+  const hit = ray.intersectObjects(CHAIN.map(id => O[id]), true)[0]; if (!hit) return; let o = hit.object; while (o && !CHAIN.includes(o.userData.id)) o = o.parent; o && pick(o.userData.id); });
+
+/* ---------- loop ---------- */
+const clock = new THREE.Clock(); let tt = 0, blink = 2.5;
+camera.position.set(0, 3, 8); controls.target.set(0, 1.4, 0);
+lay({}); STEPS.prod.set(); markSeen(); $('#loading').remove();
+window.__go = go; window.__quiz = quiz; window.__task = startTask; window.__pick = pick; window.__O = O;
+renderer.setAnimationLoop(() => {
+  const dt = Math.min(.05, clock.getDelta()) * (calm ? .4 : 1); tt += dt;
+  O.sun.rotation.z = Math.sin(tt * .8) * .08; O.sun.children[0].children.forEach((c, i) => { if (i && i < 11) c.scale.y = 1 + Math.sin(tt * 3 + i) * .12; });
+  for (const id of ['bird', 'eagle']) { const b = O[id].children[0]; for (const s of [-1, 1]) { const w = b.userData['w' + s]; if (w) w.rotation.z = s * ((id === 'eagle' ? -.25 : .3) + Math.sin(tt * (id === 'eagle' ? 3 : 9)) * .25); } }
+  O.eagle.children[0].position.y = Math.sin(tt * 1.5) * .12;
+  O.plant.children[0].rotation.z = Math.sin(tt * 1.2) * .03;
+  PY[1].top.children.forEach((c, i) => c.position.y = Math.abs(Math.sin(tt * 3 + i)) * .12);
+  if ((blink -= dt) < 0) { blink = 2.5 + Math.random() * 3; scene.traverse(o => { if (o.userData.eyes && o.visible) gsap.fromTo(o.scale, {y: 1}, {y: .1, duration: .07, yoyo: true, repeat: 1}); }); }
+  controls.update(); renderer.render(scene, camera); placeLb();
+});
+</script>
+</body>
+</html>
