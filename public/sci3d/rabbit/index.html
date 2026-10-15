@@ -59,11 +59,12 @@ button,select{font:inherit;cursor:pointer;touch-action:manipulation;color:inheri
 </div>
 <div class="panel" id="qp"><div class="box" id="qb"></div></div>
 <div class="panel" id="ip"><div class="box"><b>عن هذا المشهد</b>
-  <p class="note">• الثعلب: نموذج «Fox» من مجموعة glTF Sample Assets (Khronos)؛ المجسم PixelMannen (CC0)، والهيكل والحركة tomkranis (CC BY 4.0)، والتحويل AsoboStudio و scurest (CC BY 4.0).<br>
-  • الأرنب: نموذج بنيناه لهذا الدرس بهيكل عظمي للحركة (عمود فقري وأرجل وأذنان)، وأعضاؤه الداخلية مبسّطة للتوضيح: الدماغ والحبل الشوكي والأعصاب والغدتان الكظريتان والقلب وزوج عضلات الرجل. ليس تشريحًا دقيقًا.<br>
+  <p class="note">• الأرنب: «Rabbit Rigged» للفنان FourthGreen على Sketchfab، رخصة CC BY 4.0 (نُسخة من مكتبة Objaverse المفتوحة). حركة القفز من الفنان نفسه.<br>
+  • الثعلب: «Fox» للفنان alexanders823 على Sketchfab، رخصة CC BY 4.0 (من Objaverse). حركة الاستيقاظ من الفنان، وحركة الركض أضفناها على هيكله العظمي.<br>
+  • الأعضاء الداخلية في الأشعة رسوم مبسّطة للتوضيح فوق النموذج: الدماغ والحبل الشوكي والأعصاب والغدتان الكظريتان والقلب وزوج عضلات الرجل. ليست تشريحًا دقيقًا.<br>
   • الشرح: صوت «محمد» المولّد بالذكاء الاصطناعي من ElevenLabs. المؤثرات (خطوات الركض، نبض القلب) مولّدة وليست تسجيلًا حقيقيًا.<br>
   • التقدّم يُحفظ في هذا الجهاز فقط.<br>
-  • المحاكاة مبسّطة: السرعات والأحجام للتوضيح، والإشارة العصبية الحقيقية أسرع بكثير مما تراه هنا.</p>
+  • المحاكاة مبسّطة: السرعات للتوضيح، والإشارة العصبية الحقيقية أسرع بكثير مما تراه هنا.</p>
   <button class="big" id="ix">إغلاق</button></div></div>
 <script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
 <script src="vendor/gsap.min.js"></script>
@@ -83,7 +84,7 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.shadowMap.enabled =
 $('#stage').appendChild(renderer.domElement);
 const scene = new THREE.Scene(); scene.background = new THREE.Color(0xcfe6f2); scene.fog = new THREE.Fog(0xcfe6f2, 18, 46);
 const camera = new THREE.PerspectiveCamera(45, 1, .05, 120);
-const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.enablePan = false; controls.minDistance = 1.2; controls.maxDistance = 16; controls.maxPolarAngle = Math.PI * .49;
+const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.enablePan = false; controls.minDistance = .25; controls.maxDistance = 16; controls.maxPolarAngle = Math.PI * .49;
 scene.add(new THREE.HemisphereLight(0xeaf6ff, 0x6d7a3a, 1.4));
 const sun = new THREE.DirectionalLight(0xfff3dc, 2.6); sun.position.set(6, 10, 4); sun.castShadow = true;
 sun.shadow.mapSize.set(lowEnd ? 1024 : 2048, lowEnd ? 1024 : 2048); Object.assign(sun.shadow.camera, {left: -8, right: 8, top: 8, bottom: -8, near: 1, far: 30}); scene.add(sun);
@@ -105,119 +106,85 @@ addEventListener('resize', fit); fit();
   for (let i = 0; i < 14; i++) { const st = new THREE.Mesh(new THREE.DodecahedronGeometry(.15 + Math.random() * .35, 0), sm); const a = Math.random() * 6.28, r = 4 + Math.random() * 14; st.position.set(Math.cos(a) * r, .05, Math.sin(a) * r); st.castShadow = true; scene.add(st); }
 }
 
-/* ---------- the rabbit: one skinned mesh on a real skeleton (spine, head, ears, four legs, tail) ---------- */
-const B = {}; // bones by name
-function bone(name, parent, x, y, z) { const b = new THREE.Bone(); b.name = name; b.position.set(x, y, z); (parent ? B[parent] : null)?.add(b); B[name] = b; return b; }
-bone('root', null, 0, .42, 0); bone('spine', 'root', 0, .02, .02); bone('chest', 'spine', 0, .03, .26); bone('neck', 'chest', 0, .12, .1); bone('head', 'neck', 0, .08, .06);
-bone('earL', 'head', .05, .1, -.02); bone('earR', 'head', -.05, .1, -.02); bone('tail', 'root', 0, .04, -.26);
-for (const [s, x] of [['L', .09], ['R', -.09]]) {
-  bone('hip' + s, 'root', x, -.02, -.12); bone('knee' + s, 'hip' + s, 0, -.17, .1); bone('heel' + s, 'knee' + s, 0, -.14, -.1); bone('toe' + s, 'heel' + s, 0, -.06, .14);
-  bone('sho' + s, 'chest', x * .8, -.08, .04); bone('elb' + s, 'sho' + s, 0, -.14, .01); bone('paw' + s, 'elb' + s, 0, -.12, .03);
+/* ---------- real models: a rigged rabbit (with its own hop cycle) and a rigged fox (we add the gallop to its skeleton) ---------- */
+const V = THREE.Vector3;
+const loader = new GLTFLoader(); const load = u => new Promise((ok, bad) => loader.load(u, ok, undefined, bad));
+const rabbit = new THREE.Group(), fox = new THREE.Group(); scene.add(rabbit, fox);
+const RB = {}, FB = {};   // bones by short name
+let rabbitMix, hop, foxMix, wake, rabbitMats = [];
+function place(g, group, bones, headName, backName, length) {   // real size, head towards +z of the group, feet on the ground
+  const o = g.scene, pivot = new THREE.Group(); pivot.add(o); group.add(pivot);
+  o.traverse(x => { if (x.isMesh) { x.castShadow = true; x.frustumCulled = false; } if (x.isBone) bones[x.name.replace(/_\d+$/, '')] = x; });
+  group.updateMatrixWorld(true);
+  const h = bones[headName].getWorldPosition(new V()), t0 = bones[backName].getWorldPosition(new V()), d = h.clone().sub(t0);
+  pivot.scale.setScalar(length / d.length()); pivot.rotation.y = -Math.atan2(d.x, d.z); group.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(o); pivot.position.y -= box.min.y; return o;
 }
-const bones = Object.values(B), bi = n => bones.indexOf(B[n]);
-const parts = []; // [geometry already in rabbit space, bone name]
-const world = n => { B.root.updateMatrixWorld(true); return new THREE.Vector3().setFromMatrixPosition(B[n].matrixWorld); };
-function part(geo, at, boneName, rot) { if (rot) geo.applyMatrix4(new THREE.Matrix4().makeRotationFromEuler(rot)); geo.translate(at.x, at.y, at.z); parts.push([geo, boneName]); }
-const E = (x, y, z) => new THREE.Euler(x, y, z);
-B.root.updateMatrixWorld(true);
-// body, chest, head, snout, ears, tail, legs (rabbit space, facing +z)
-part(new THREE.SphereGeometry(.22, 40, 30).scale(1, .92, 1.3), world('spine').add(new THREE.Vector3(0, .01, .02)), 'spine');
-part(new THREE.SphereGeometry(.17, 28, 20).scale(.9, .95, 1.05), world('chest').add(new THREE.Vector3(0, -.01, -.03)), 'chest');
-part(new THREE.SphereGeometry(.11, 28, 20).scale(.9, .92, 1.15), world('head').add(new THREE.Vector3(0, .02, .05)), 'head');
-part(new THREE.SphereGeometry(.06, 20, 14).scale(1, .85, 1), world('head').add(new THREE.Vector3(0, -.005, .15)), 'head');
-for (const s of ['L', 'R']) {
-  part(new THREE.CapsuleGeometry(.032, .2, 6, 12).scale(1.25, 1, .45), world('ear' + s).add(new THREE.Vector3(0, .11, 0)), 'ear' + s, E(-.15, 0, s === 'L' ? -.18 : .18));
-  part(new THREE.SphereGeometry(.12, 24, 18).scale(.62, 1.05, 1.25), world('hip' + s).add(new THREE.Vector3(s === 'L' ? .02 : -.02, -.04, .04)), 'hip' + s);       // haunch
-  part(new THREE.CapsuleGeometry(.032, .13, 6, 10), world('knee' + s).add(new THREE.Vector3(0, -.06, -.05)), 'knee' + s, E(.6, 0, 0));    // lower leg
-  part(new THREE.CapsuleGeometry(.028, .14, 6, 10).scale(1.1, 1, 1), world('heel' + s).add(new THREE.Vector3(0, -.035, .06)), 'heel' + s, E(Math.PI / 2, 0, 0)); // long hind foot
-  part(new THREE.CapsuleGeometry(.03, .11, 6, 10), world('sho' + s).add(new THREE.Vector3(0, -.06, 0)), 'sho' + s);
-  part(new THREE.CapsuleGeometry(.024, .1, 6, 10), world('elb' + s).add(new THREE.Vector3(0, -.06, .01)), 'elb' + s);
-  part(new THREE.SphereGeometry(.03, 12, 10).scale(1, .6, 1.5), world('paw' + s).add(new THREE.Vector3(0, -.01, .02)), 'paw' + s);
-}
-part(new THREE.SphereGeometry(.06, 16, 12), world('tail').add(new THREE.Vector3(0, .02, -.03)), 'tail');
-// merge into one skinned geometry; every vertex follows its part's bone (fur colour varies a little, light belly and tail)
-function mergeSkinned() {
-  const pos = [], nor = [], col = [], si = [], sw = [], idx = []; let off = 0; const c = new THREE.Color();
-  for (const [g0, bn] of parts) { const g = g0.index ? g0 : g0; const p = g.attributes.position, n = g.attributes.normal;
-    for (let i = 0; i < p.count; i++) { pos.push(p.getX(i), p.getY(i), p.getZ(i)); nor.push(n.getX(i), n.getY(i), n.getZ(i));
-      const belly = n.getY(i) < -.4 && (bn === 'spine' || bn === 'chest'), light = bn === 'tail' || belly;
-      const ear = bn.startsWith('ear') && n.getZ(i) > .3;
-      if (ear) c.setHSL(.98, .45, .72); else c.setHSL(.07 + Math.random() * .012, light ? .12 : .28, light ? .8 : .26 + Math.random() * .06 + Math.max(0, n.getY(i)) * .06); col.push(c.r, c.g, c.b);
-      si.push(bi(bn), 0, 0, 0); sw.push(1, 0, 0, 0); }
-    for (let i = 0; i < g.index.count; i++) idx.push(g.index.getX(i) + off); off += p.count; }
-  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
-  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(si, 4)); g.setAttribute('skinWeight', new THREE.Float32BufferAttribute(sw, 4)); g.setIndex(idx); return g;
-}
-const furMat = new THREE.MeshStandardMaterial({vertexColors: true, roughness: .92, transparent: true, opacity: 1});
-const rabbitMesh = new THREE.SkinnedMesh(mergeSkinned(), furMat); rabbitMesh.castShadow = true;
-const rabbit = new THREE.Group(); rabbit.add(rabbitMesh); rabbitMesh.add(B.root); rabbitMesh.bind(new THREE.Skeleton(bones)); scene.add(rabbit);
-// eyes (dark, glossy) on the head bone
-for (const s of [1, -1]) { const e = new THREE.Mesh(new THREE.SphereGeometry(.022, 14, 10), new THREE.MeshStandardMaterial({color: 0x120c08, roughness: .1})); e.position.set(.072 * s, .03, .1); B.head.add(e); }
+const ready = Promise.all([load('assets/rabbit_real.glb'), load('assets/fox_real.glb')]).then(([r, f]) => {
+  rabbitMix = new THREE.AnimationMixer(r.scene); hop = rabbitMix.clipAction(r.animations[0]); hop.play(); rabbitMix.setTime(0);
+  place(r, rabbit, RB, 'Head_M', 'Root_M', .3);
+  r.scene.traverse(x => { if (x.isMesh) { x.material.transparent = true; rabbitMats.push(x.material); } });
+  foxMix = new THREE.AnimationMixer(f.scene); wake = foxMix.clipAction(f.animations[0]); wake.play(); foxMix.setTime(11.5);   // standing pose, to measure it
+  place(f, fox, FB, 'Fox__Head', 'Fox__Pelvis', .55); foxMix.setTime(.5); wake.paused = true;   // lying in the grass at first
+  fox.position.set(-2.4, 0, -1.4); fox.rotation.y = 1.1;
+  buildInner();
+});
 
-/* ---------- inside the rabbit (shown in x-ray): the parts the lesson names ---------- */
-const inner = new THREE.Group(); const glow = c => new THREE.MeshStandardMaterial({color: c, emissive: c, emissiveIntensity: .15, roughness: .4, transparent: true, opacity: 0});
-const brain = new THREE.Mesh(new THREE.SphereGeometry(.07, 24, 18).scale(1, .75, 1.3), glow(0xf27aa0)); brain.position.set(0, .04, .02); B.head.add(brain);
-const eyeGlow = new THREE.Mesh(new THREE.SphereGeometry(.032, 14, 10), glow(0xfff176)); eyeGlow.position.set(.072, .03, .1); B.head.add(eyeGlow);
-const heart = new THREE.Mesh(new THREE.SphereGeometry(.045, 20, 16).scale(1, 1.15, .9), glow(0xd8344f)); heart.position.set(.02, -.06, -.02); B.chest.add(heart);
-const glands = new THREE.Group(); for (const s of [1, -1]) { const k = new THREE.Mesh(new THREE.SphereGeometry(.03, 14, 10).scale(.8, 1.3, .7), glow(0xb04aa8)); k.position.set(.06 * s, -.02, -.05); glands.add(k); } B.spine.add(glands);
-// thigh muscle pair (front and back of the hind leg), as the lesson describes: one contracts while the other relaxes
-const musF = new THREE.Mesh(new THREE.CapsuleGeometry(.018, .08, 6, 10), glow(0xe2584f)); musF.position.set(.02, -.05, .06); B.hipL.add(musF);
-const musB = new THREE.Mesh(new THREE.CapsuleGeometry(.018, .08, 6, 10), glow(0x4f8fe2)); musB.position.set(.02, -.06, -.02); B.hipL.add(musB);
-// spinal cord and nerves: tubes rebuilt each frame from the bones so they bend with the running rabbit
+/* ---------- inside the rabbit (x-ray): the parts the lesson names, following its bones ---------- */
+const glow = c => new THREE.MeshStandardMaterial({color: c, emissive: c, emissiveIntensity: .15, roughness: .4, transparent: true, opacity: 0, depthTest: false});
+const brain = new THREE.Mesh(new THREE.SphereGeometry(.024, 24, 18).scale(1, .75, 1.3), glow(0xf27aa0));
+const eyeGlow = new THREE.Mesh(new THREE.SphereGeometry(.012, 14, 10), glow(0xfff176));
+const heart = new THREE.Mesh(new THREE.SphereGeometry(.016, 20, 16).scale(1, 1.15, .9), glow(0xd8344f));
+const glands = new THREE.Group(); for (const sd of [1, -1]) { const k = new THREE.Mesh(new THREE.SphereGeometry(.01, 14, 10).scale(.8, 1.3, .7), glow(0xb04aa8)); k.position.x = .02 * sd; glands.add(k); }
+const musF = new THREE.Mesh(new THREE.CapsuleGeometry(.008, .035, 6, 10), glow(0xe2584f)), musB = new THREE.Mesh(new THREE.CapsuleGeometry(.008, .035, 6, 10), glow(0x4f8fe2));
+[brain, eyeGlow, heart, glands, musF, musB].forEach(m => { m.renderOrder = 5; scene.add(m); });
+const NAME = {head: 'Head_M', neck: 'Neck_M', chest: 'Chest_M', spine: 'Spine1_M', spine2: 'Spine2_M', tail: 'Tail0_M', hipL: 'backHip_L', kneeL: 'backKnee_L', heelL: 'backAnkle_L', toeL: 'backToes_L', hipR: 'backHip_R', kneeR: 'backKnee_R', heelR: 'backAnkle_R', toeR: 'backToes_R', shoL: 'frontHip_L', elbL: 'frontKnee_L', pawL: 'frontAnkle_L', shoR: 'frontHip_R', elbR: 'frontKnee_R', pawR: 'frontAnkle_R'};
+const B = new Proxy({}, {get: (_, k) => RB[NAME[k] || k]});
+const W = n => B[n].getWorldPosition(new V());
+const local = (x, y, z) => new V(x, y, z).applyQuaternion(rabbit.quaternion);   // rabbit's own axes: x left, y up, z forward
+const anchors = [];
+function anchor(obj, at, off) { anchors.push({obj, at, off}); }
+function buildInner() {
+  anchor(brain, () => W('head'), [0, .012, .005]); anchor(eyeGlow, () => W('head'), [.02, -.012, .075]);
+  anchor(heart, () => W('chest'), [0, -.02, .01]); anchor(glands, () => W('spine').lerp(W('spine2'), .5), [0, .005, 0]);
+  anchor(musF, () => W('hipL').lerp(W('kneeL'), .5), [.012, 0, .012]); anchor(musB, () => W('hipL').lerp(W('kneeL'), .5), [.012, 0, -.012]);
+}
+function placeInner() { anchors.forEach(a => { a.obj.position.copy(a.at()).add(local(...a.off)); a.obj.quaternion.copy(rabbit.quaternion); }); }
 const cordMat = glow(0xf6a6bd), nerveMat = glow(0xf0b43c);
 let cord = null, nerves = [];
-function tubeFrom(pts, r, m) { return new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 24, r, 6), m); }
-const W = n => new THREE.Vector3().setFromMatrixPosition(B[n].matrixWorld);
+function tubeFrom(pts, r, m) { const t = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 24, r, 6), m); t.renderOrder = 4; return t; }
 function rebuildNerves() {
-  if (!xray && !cord) return; [cord, ...nerves].forEach(x => x && (scene.remove(x), x.geometry.dispose()));
-  const hd = W('head'), nk = W('neck'), ch = W('chest'), sp = W('spine'), tl = W('tail');
-  cord = tubeFrom([hd, nk, ch, sp, tl], .012, cordMat); scene.add(cord);
-  nerves = ['L', 'R'].flatMap(s => [tubeFrom([sp, W('hip' + s), W('knee' + s), W('heel' + s), W('toe' + s)], .006, nerveMat), tubeFrom([ch, W('sho' + s), W('elb' + s), W('paw' + s)], .006, nerveMat)]);
+  [cord, ...nerves].forEach(x => x && (scene.remove(x), x.geometry.dispose()));
+  cord = tubeFrom(['head', 'neck', 'chest', 'spine', 'tail'].map(W), .004, cordMat); scene.add(cord);
+  nerves = ['L', 'R'].flatMap(sd => [tubeFrom([W('spine'), W('hip' + sd), W('knee' + sd), W('heel' + sd), W('toe' + sd)], .0022, nerveMat), tubeFrom([W('chest'), W('sho' + sd), W('elb' + sd), W('paw' + sd)], .0022, nerveMat)]);
   nerves.forEach(n => scene.add(n));
 }
 const innerMats = [brain, eyeGlow, heart, ...glands.children].map(m => m.material).concat([cordMat, nerveMat]);
 const muscles = on => [musF, musB].forEach(m => gsap.to(m.material, {opacity: on ? .95 : 0, duration: .5}));
 let xray = false;
-function setXray(on) { xray = on; $('#xr').style.background = on ? '#ffd84d' : ''; gsap.to(furMat, {opacity: on ? .28 : 1, duration: .6}); furMat.depthWrite = !on;
-  innerMats.forEach(m => gsap.to(m, {opacity: on ? .95 : 0, duration: .6})); if (!on) setTimeout(() => { [cord, ...nerves].forEach(x => x && scene.remove(x)); cord = null; }, 650); }
+function setXray(on) { xray = on; $('#xr').style.background = on ? '#ffd84d' : '';
+  rabbitMats.forEach(m => { m.depthWrite = !on; gsap.to(m, {opacity: on ? .3 : 1, duration: .6}); });
+  innerMats.forEach(m => gsap.to(m, {opacity: on ? .95 : 0, duration: .6})); if (!on) setTimeout(() => { if (!xray) { [cord, ...nerves].forEach(x => x && scene.remove(x)); cord = null; } }, 650); }
 
-/* ---------- the fox (rigged glTF with Survey / Walk / Run) ---------- */
-let fox = null, foxMix = null, foxAct = {};
-const loader = new GLTFLoader();
-const ready = new Promise((ok, bad) => loader.load('assets/Fox.glb', g => {
-  fox = g.scene; fox.scale.setScalar(.012); fox.traverse(o => { if (o.isMesh) { o.castShadow = true; o.material.roughness = .8; } });
-  fox.position.set(-7, 0, -3); scene.add(fox); foxMix = new THREE.AnimationMixer(fox);
-  for (const c of g.animations) foxAct[c.name] = foxMix.clipAction(c);
-  foxAct.Survey.play(); ok();
-}, undefined, bad));
-
-/* ---------- motion: rabbit gait from bone rotations (sitting → bounding run), fox chase ---------- */
-let gait = 0, run = 0, runTarget = 0, tScale = 1, t = 0, rabbitSpeed = 0, foxSpeed = 0, heartRate = 1.2;
-const rabbitDir = new THREE.Vector3(1, 0, .35).normalize();
-function poseRabbit(dt) {
-  run += (runTarget - run) * Math.min(1, dt * 3); gait += dt * (1.6 + run * 7.5);
-  const s = Math.sin(gait), c = Math.cos(gait), r = run;
-  // sitting: ears up and twitching, nose sniff; running: whole body bounds, hind legs push together, front legs reach
-  B.root.position.y = .42 - r * .06 + Math.max(0, s) * .1 * r; B.root.rotation.x = -.1 * (1 - r) + s * .18 * r;
-  B.spine.rotation.x = s * .15 * r; B.chest.rotation.x = -s * .12 * r;
-  B.neck.rotation.x = -.15 * (1 - r) + .2 * r; B.head.rotation.x = .1 * r + Math.sin(t * 9) * .02 * (1 - r);
-  B.earL.rotation.x = -.1 - r * .9 + Math.sin(t * 3.1) * .05 * (1 - r); B.earR.rotation.x = -.1 - r * .9 + Math.sin(t * 2.7 + 1) * .05 * (1 - r);
-  for (const k of ['L', 'R']) {
-    B['hip' + k].rotation.x = (-.5 * (1 - r)) + (c * .9) * r; B['knee' + k].rotation.x = (.9 * (1 - r)) + (-.4 - c * .5) * r;
-    B['heel' + k].rotation.x = (-.5 * (1 - r)) + (.3 + c * .6) * r;
-    B['sho' + k].rotation.x = (.1 * (1 - r)) + (-c * .8) * r; B['elb' + k].rotation.x = (-.1) + (Math.max(0, c) * .7) * r;
-  }
-  B.tail.rotation.x = .3 + s * .2 * r;
-  // muscle pair on the hind leg: front contracts (short and thick) when the leg swings forward, back contracts when it pushes
-  const f = (c + 1) / 2 * r + .5 * (1 - r); musF.scale.set(1 + f * .5, 1.2 - f * .5, 1 + f * .5); musB.scale.set(1.5 - f * .5, .7 + f * .5, 1.5 - f * .5);
-  heart.scale.setScalar(1 + Math.max(0, Math.sin(t * heartRate * 6.28)) ** 4 * .25);
-}
-
+/* ---------- motion ---------- */
+let tScale = 1, t = 0, rabbitSpeed = 0, foxSpeed = 0, heartRate = 1.2, running = false, foxState = 'lying', galloping = 0;
+const rabbitDir = new V(1, 0, 0), RUN_R = 7, RUN_C = new V(0, 0, RUN_R); let runAng = -Math.PI / 2;   // the rabbit runs round a wide circle in the meadow
+function rabbitRun(on) { running = on; hop.paused = !on; if (!on) { hop.time = 0; } }
+function foxWake(then) { if (foxState !== 'lying') { then && then(); return; } foxState = 'waking'; wake.paused = false; wake.time = 6; wake.timeScale = 3;
+  const chk = () => { if (wake.time >= 11.5) { wake.paused = true; wake.time = 11.5; foxState = 'standing'; then && then(); } else requestAnimationFrame(chk); }; chk(); }
+const GAIT = [['Fox__L_Thigh', .55, 0], ['Fox__R_Thigh', .55, .35], ['Fox__L_Calf', -.5, .6], ['Fox__R_Calf', -.5, .95], ['Fox__L_UpperArm', .6, 2.9], ['Fox__R_UpperArm', .6, 3.3], ['Fox__L_Forearm', -.6, 3.6], ['Fox__R_Forearm', -.6, 4.0], ['Fox__Spine', .12, 1.4], ['Fox__Spine1', -.1, 1.6], ['Fox__Neck', .08, 3], ['Fox__Tail', .15, 2], ['Fox__Tail1', .15, 2.4]];
+function foxGallop(dt) { galloping += ((foxSpeed > .5 && foxState === 'standing') - galloping) * Math.min(1, dt * 4); if (galloping < .01) return;
+  const ph = t * 11; for (const [n, amp, off] of GAIT) { const bn = FB[n]; if (bn) bn.rotation.z += Math.sin(ph + off) * amp * galloping; }
+  const pv = fox.children[0]; pv.userData.y0 ??= pv.position.y; pv.position.y = pv.userData.y0 + (Math.abs(Math.sin(ph)) * .03 - .015) * galloping; }
+const foxBaseY = () => 0;
 /* ---------- steps: narration clip + camera + what happens ---------- */
 const cam = (px, py, pz, tx, ty, tz, d = 1.6) => { gsap.to(camera.position, {x: px, y: py, z: pz, duration: calm ? .01 : d, ease: 'power2.inOut'}); gsap.to(controls.target, {x: tx, y: ty, z: tz, duration: calm ? .01 : d, ease: 'power2.inOut'}); };
 const rp = () => rabbit.position;
+let chase = false;   // the camera rides beside the running rabbit
+function camBetween(dur = 2) { chase = false; const r = rp(), f = fox.position, mid = r.clone().lerp(f, .5), away = r.clone().sub(f).setY(0).normalize(), side = new THREE.Vector3(away.z, 0, -away.x);
+  const pos = r.clone().addScaledVector(away, .9).addScaledVector(side, .5).add(new THREE.Vector3(0, .45, 0)); cam(pos.x, pos.y, pos.z, mid.x, .15, mid.z, dur); }
 // look at a part of the rabbit from its side (side > 0: rabbit's left), so the camera follows wherever the rabbit faces
-function camOn(obj, d, h, side = 1, back = 0, dur = 1.6) { rabbit.updateMatrixWorld(true); const tgt = (obj.isObject3D ? obj : B[obj]).getWorldPosition(new THREE.Vector3());
+function camOn(obj, d, h, side = 1, back = 0, dur = 1.6) { chase = false; rabbit.updateMatrixWorld(true); const tgt = (obj.isObject3D ? obj : B[obj]).getWorldPosition(new THREE.Vector3());
   const fwd = rabbitDir.clone(), left = new THREE.Vector3(fwd.z, 0, -fwd.x).multiplyScalar(side);
   const pos = tgt.clone().addScaledVector(left, d).addScaledVector(fwd, -back).add(new THREE.Vector3(0, h, 0)); cam(pos.x, pos.y, pos.z, tgt.x, tgt.y, tgt.z, dur); }
 const label = new Map();
@@ -225,20 +192,20 @@ function showLabel(id, obj, text) { let e = label.get(id); if (!e) { e = documen
 function hideLabels() { label.forEach(e => e.style.opacity = 0); }
 let pulse = null, sigTw = null; // a glowing signal running along bones (killed when the step changes)
 function signal(path, dur, after) {
-  const s = new THREE.Mesh(new THREE.SphereGeometry(.03, 14, 10), new THREE.MeshBasicMaterial({color: 0xfff59d})); scene.add(s);
+  const s = new THREE.Mesh(new THREE.SphereGeometry(.009, 14, 10), new THREE.MeshBasicMaterial({color: 0xfff59d, depthTest: false})); s.renderOrder = 9; scene.add(s);
   const o = {k: 0}; pulse = {s, path, k: 0}; sigTw = gsap.to(o, {k: 1, duration: calm ? .01 : dur / tScale, ease: 'none', onUpdate() { pulse && (pulse.k = o.k); }, onComplete() { scene.remove(s); pulse = null; after && after(); }});
 }
-function signalPos() { if (!pulse) return; const P = pulse.path.map(n => n === 'eye' ? new THREE.Vector3().setFromMatrixPosition(eyeGlow.matrixWorld) : W(n)); const curve = new THREE.CatmullRomCurve3(P); pulse.s.position.copy(curve.getPoint(pulse.k)); }
+function signalPos() { if (!pulse) return; const P = pulse.path.map(n => n === 'eye' ? eyeGlow.position.clone() : W(n)); const curve = new THREE.CatmullRomCurve3(P); pulse.s.position.copy(curve.getPoint(pulse.k)); }
 const flash = (m, on = true) => gsap.to(m.material, {emissiveIntensity: on ? 1.2 : .15, duration: .4});
 const STEPS = [
-  {a: 'L18-124-goal', t: 'هدفنا اليوم: نعرف كيف يستجيب جسمُ الأرنب عندما يرى الخطر.', go() { setXray(false); muscles(false); runTarget = 0; rabbitSpeed = 0; foxSpeed = 0; cam(rp().x + 2.2, 1.1, rp().z + 2.4, rp().x, .4, rp().z); }},
-  {a: 'L18-124-s1', t: 'رأى الأرنبُ ثعلبًا يركضُ نحوه ليفترسه.', go() { foxAct.Survey.fadeOut(.4); foxAct.Run.reset().fadeIn(.4).play(); foxSpeed = 1.6; cam(rp().x + 1.6, 1.3, rp().z - 2.8, (rp().x + fox.position.x) / 2, .4, (rp().z + fox.position.z) / 2, 2); }},
-  {a: 'L18-124-s2', t: 'الخلايا العصبية في عينَيِ الأرنب ترسل المعلومات إلى الدماغ.', go() { foxSpeed = .25; setXray(true); camOn('head', .75, .18, 1, -.25); flash(eyeGlow); showLabel('eye', eyeGlow, 'العين'); signal(['eye', 'head'], 2.2, () => { flash(brain); showLabel('brain', brain, 'الدماغ'); }); }},
-  {a: 'L18-124-s3', t: 'يرسل الدماغُ أوامرَ، ينقلها الجهازُ العصبيّ إلى عضلات الأرجل.', go() { flash(brain); camOn('spine', 1.5, .45, 1, .2); showLabel('cord', B.spine, 'الحبل الشوكي'); muscles(true); signal(['head', 'neck', 'chest', 'spine', 'hipL', 'kneeL', 'heelL'], 3, () => { flash(musF); flash(musB); showLabel('mus', musF, 'عضلات الرجل'); }); }},
-  {a: 'L18-124-s4', t: 'يحدث هذا في أقلَّ من جزءٍ من الثانية، فيبدأ الأرنبُ الركض.', fx: 'L18-124-fx-run', fxl: 'مؤثر مولّد: خطوات ركض', go() { hideLabels(); runTarget = 1; rabbitSpeed = 2.4; foxSpeed = 1.9; showLabel('mus', musF, 'عضلة تنقبض وأخرى تنبسط'); camOn('spine', 2.2, .6, 1, -.7, 1.2); }},
-  {a: 'L18-124-s5', t: 'وفي الوقت نفسِه، يُفرز جهازُ الغدد الصَّمّاء هرمونًا اسمُه الأدرينالين.', go() { hideLabels(); muscles(false); rabbitSpeed = 0; runTarget = 0; foxSpeed = 0; foxAct.Run.fadeOut(.5); foxAct.Survey.reset().fadeIn(.5).play(); glands.children.forEach(g => flash(g)); showLabel('gl', glands, 'الغدتان الكظريتان'); camOn('spine', 1.15, .55, 1, 0, 1.2); }},
-  {a: 'L18-124-s6', t: 'الأدرينالين يُسرّع نبضاتِ القلب، فيتدفّق دمٌ أكثرُ إلى العضلات.', fx: 'L18-124-fx-heart', fxl: 'مؤثر مولّد: نبض قلب يتسارع', go() { flash(heart); showLabel('heart', heart, 'القلب'); gsap.to({h: 1.2}, {h: 3.2, duration: 3, onUpdate() { heartRate = this.targets()[0].h; }}); camOn('chest', 1.05, .35, 1, -.1, 1.2); }},
-  {a: 'L18-124-s7', t: 'وجسمُ الإنسان يستجيب للخطر بطريقةٍ مشابهةٍ تقريبًا.', go() { hideLabels(); setXray(false); runTarget = 1; rabbitSpeed = 2.4; foxSpeed = 1.6; foxAct.Survey.fadeOut(.4); foxAct.Run.reset().fadeIn(.4).play(); cam(rp().x - 3, 2.2, rp().z + 3.5, rp().x + 1, .3, rp().z, 2); }},
+  {a: 'L18-124-goal', t: 'هدفنا اليوم: نعرف كيف يستجيب جسمُ الأرنب عندما يرى الخطر.', go() { setXray(false); muscles(false); rabbitRun(false); rabbitSpeed = 0; foxSpeed = 0; camOn('chest', 1.1, .35, 1, -.9); }},
+  {a: 'L18-124-s1', t: 'رأى الأرنبُ ثعلبًا يركضُ نحوه ليفترسه.', go() { foxWake(() => { foxSpeed = 1.4; }); camBetween(); }},
+  {a: 'L18-124-s2', t: 'الخلايا العصبية في عينَيِ الأرنب ترسل المعلومات إلى الدماغ.', go() { foxSpeed = .25; setXray(true); camOn('head', .38, .08, 1, -.12); flash(eyeGlow); showLabel('eye', eyeGlow, 'العين'); signal(['eye', 'head'], 2.2, () => { flash(brain); showLabel('brain', brain, 'الدماغ'); }); }},
+  {a: 'L18-124-s3', t: 'يرسل الدماغُ أوامرَ، ينقلها الجهازُ العصبيّ إلى عضلات الأرجل.', go() { flash(brain); camOn('spine', .75, .22, 1, .08); showLabel('cord', B.spine, 'الحبل الشوكي'); muscles(true); signal(['head', 'neck', 'chest', 'spine', 'hipL', 'kneeL', 'heelL'], 3, () => { flash(musF); flash(musB); showLabel('mus', musF, 'عضلات الرجل'); }); }},
+  {a: 'L18-124-s4', t: 'يحدث هذا في أقلَّ من جزءٍ من الثانية، فيبدأ الأرنبُ الركض.', fx: 'L18-124-fx-run', fxl: 'مؤثر مولّد: خطوات ركض', go() { hideLabels(); rabbitRun(true); rabbitSpeed = 1.6; foxWake(() => { foxSpeed = 1.5; }); showLabel('mus', musF, 'عضلة تنقبض وأخرى تنبسط'); chase = true; }},
+  {a: 'L18-124-s5', t: 'وفي الوقت نفسِه، يُفرز جهازُ الغدد الصَّمّاء هرمونًا اسمُه الأدرينالين.', go() { hideLabels(); muscles(false); rabbitSpeed = 0; rabbitRun(false); foxSpeed = 0; glands.children.forEach(g => flash(g)); showLabel('gl', glands, 'الغدتان الكظريتان'); camOn('spine', .6, .25, 1, 0, 1.2); }},
+  {a: 'L18-124-s6', t: 'الأدرينالين يُسرّع نبضاتِ القلب، فيتدفّق دمٌ أكثرُ إلى العضلات.', fx: 'L18-124-fx-heart', fxl: 'مؤثر مولّد: نبض قلب يتسارع', go() { flash(heart); showLabel('heart', heart, 'القلب'); gsap.to({h: 1.2}, {h: 3.2, duration: 3, onUpdate() { heartRate = this.targets()[0].h; }}); camOn('chest', .55, .15, 1, -.05, 1.2); }},
+  {a: 'L18-124-s7', t: 'وجسمُ الإنسان يستجيب للخطر بطريقةٍ مشابهةٍ تقريبًا.', go() { hideLabels(); setXray(false); rabbitRun(true); rabbitSpeed = 1.6; foxWake(() => { foxSpeed = 1.5; }); chase = true; }},
 ];
 let i = -1, playing = false, muted = false, voice = null, fx = null;
 STEPS.forEach(() => $('#dots').appendChild(document.createElement('i')));
@@ -296,15 +263,20 @@ ready.then(() => {
   $('#loading').remove(); step(0); stopAudio(); i = 0; $('#say').textContent = 'اضغط ▶️ لتبدأ. وتقدر تدوّر المشهد بإصبعك وتكبّره بإصبعين.';
   renderer.setAnimationLoop(() => {
     const dt = Math.min(.05, clock.getDelta()) * tScale; t += dt;
-    poseRabbit(dt); foxMix.update(dt * (foxSpeed > 1 ? 1 : .9));
+    rabbitMix.update(dt * (running ? 1 : 0)); foxMix.update(dt); foxGallop(dt);
+    if (musF.material.opacity > .01) { const f = running ? (Math.sin(hop.time / hop.getClip().duration * 6.283) + 1) / 2 : .5; musF.scale.set(1 + f * .5, 1.2 - f * .5, 1 + f * .5); musB.scale.set(1.5 - f * .5, .7 + f * .5, 1.5 - f * .5); }
+    heart.scale.setScalar(1 + Math.max(0, Math.sin(t * heartRate * 6.28)) ** 4 * .25);
     const before = rabbit.position.clone();
-    rabbit.position.addScaledVector(rabbitDir, rabbitSpeed * dt); rabbit.rotation.y = Math.atan2(rabbitDir.x, rabbitDir.z);
-    if (rabbit.position.length() > 14) { rabbit.position.multiplyScalar(-.9); if (fox) fox.position.add(rabbit.position.clone().sub(before)); }   // keep the chase inside the meadow
-    const moved = rabbit.position.clone().sub(before); camera.position.add(moved); controls.target.add(moved);   // the camera runs along with the rabbit
-    if (fox) { const to = rabbit.position.clone().sub(fox.position); to.y = 0; const d = to.length();
-      if (foxSpeed > 0 && d > 1.4) { to.normalize(); fox.position.addScaledVector(to, Math.min(foxSpeed * dt, d - 1.4)); fox.rotation.y = Math.atan2(to.x, to.z); }
-      if (foxSpeed > 1 && d < 1.6) foxSpeed = .9; }
-    rabbit.updateMatrixWorld(true); if (xray) rebuildNerves(); signalPos();
+    runAng += rabbitSpeed * dt / RUN_R; rabbit.position.set(RUN_C.x + RUN_R * Math.cos(runAng), 0, RUN_C.z + RUN_R * Math.sin(runAng));
+    rabbitDir.set(-Math.sin(runAng), 0, Math.cos(runAng)); rabbit.rotation.y = Math.atan2(rabbitDir.x, rabbitDir.z);
+    const moved = rabbit.position.clone().sub(before);
+    if (chase) { const left = new THREE.Vector3(-rabbitDir.z, 0, rabbitDir.x), want = rp().clone().addScaledVector(left, 2.2).addScaledVector(rabbitDir, .9).add(new THREE.Vector3(0, .6, 0)), k = 1 - Math.exp(-dt * 6 / Math.max(tScale, .3));
+      gsap.killTweensOf(camera.position); gsap.killTweensOf(controls.target); camera.position.lerp(want, k); controls.target.lerp(rp().clone().addScaledVector(rabbitDir, -.35).add(new THREE.Vector3(0, .15, 0)), k); }
+    else { camera.position.add(moved); controls.target.add(moved); }   // the camera stays with the rabbit
+    { const to = rabbit.position.clone().sub(fox.position); to.y = 0; const d = to.length();
+      if (foxSpeed > 0 && foxState === 'standing' && d > .9) { to.normalize(); fox.position.addScaledVector(to, Math.min(foxSpeed * dt, d - .9)); fox.rotation.y = Math.atan2(to.x, to.z); }
+      if (d < 1 && !running) foxSpeed = 0; }
+    rabbit.updateMatrixWorld(true); fox.updateMatrixWorld(true); placeInner(); if (xray) rebuildNerves(); signalPos();
     controls.update(); renderer.render(scene, camera);
     label.forEach(e => { if (!e.obj) return; const v = new THREE.Vector3(); e.obj.getWorldPosition(v); v.y += .06; v.project(camera); e.style.left = (v.x + 1) / 2 * innerWidth + 'px'; e.style.top = (1 - v.y) / 2 * innerHeight + 'px'; if (v.z > 1) e.style.opacity = 0; });
   });
