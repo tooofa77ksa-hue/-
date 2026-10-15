@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>مدرسة الزومبي</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+/* "Zombie school" science level in a clay (stop-motion) look: classmates turned into funny zombies walk down the
+   school corridor; every right answer from the lesson sends a science bolt and the classmate is cured. Wrong answers
+   bring the zombie one step closer (never a timer), then a hint, the reason, and another try. */
+:root{--ink:#2b2233;--g:#2e9b5f;--y:#ffd84d;--f:'SciBaloo','Segoe UI',Tahoma,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#f3e3cf;color:var(--ink);font-family:var(--f);-webkit-text-size-adjust:100%}
+button{font:inherit;cursor:pointer;touch-action:manipulation;color:inherit}
+#stage{position:fixed;inset:0;touch-action:none}
+.top{position:fixed;top:0;left:0;right:0;z-index:5;display:flex;align-items:center;gap:8px;padding:8px 10px;background:linear-gradient(#fff8eef0,#fff8ee00)}
+.top h1{flex:1;margin:0;font-size:1rem}
+.ib{border:0;background:rgba(255,255,255,.85);border-radius:12px;min-width:44px;min-height:44px;font-size:1.05rem;box-shadow:0 2px 6px rgba(80,50,20,.15)}
+#prog{position:fixed;top:58px;left:10px;right:10px;z-index:5;display:flex;align-items:center;gap:8px;font-size:.9rem;font-weight:700}
+#prog .b{flex:1;height:14px;border-radius:9px;background:rgba(255,255,255,.75);overflow:hidden;border:2px solid #fff}
+#prog .b i{display:block;height:100%;width:0;background:linear-gradient(90deg,#43c27a,#9be15d);transition:width .6s}
+#sheet{position:fixed;left:0;right:0;bottom:0;z-index:6;background:#fffaf2;border-radius:22px 22px 0 0;box-shadow:0 -6px 24px rgba(80,50,20,.18);padding:10px 14px calc(12px + env(safe-area-inset-bottom));max-height:52vh;overflow:auto}
+#sheet .lv{font-size:.78rem;color:#8a7a6a}
+#sheet .qt{font-size:1.04rem;line-height:1.6;margin:2px 0 4px}
+.opt{display:block;width:100%;text-align:right;border:2.5px solid #eadfcd;background:#fff;color:var(--ink);border-radius:14px;padding:6px 12px;margin:5px 0;min-height:44px;font-size:.98rem}
+.opt.ok{border-color:#1f8a4c;background:#e6f6ec}.opt.no{border-color:#c2412d;background:#fbebe8}
+.opt:disabled{opacity:.85}
+.fb{border-radius:14px;padding:8px 12px;margin:8px 0;line-height:1.7}.fb.ok{background:#e6f6ec}.fb.no{background:#fff1dc}.fb.in{background:#eaf1fa}
+.big{display:block;width:100%;min-height:50px;border-radius:14px;border:0;background:var(--g);color:#fff;font-size:1.08rem;margin-top:8px;font-weight:700}
+.row{display:flex;gap:8px;align-items:center}
+.sm{border:2px solid #eadfcd;background:#fff;border-radius:12px;min-height:40px;padding:0 10px;font-size:.9rem}
+#toast{position:fixed;left:0;right:0;top:96px;z-index:7;text-align:center;pointer-events:none;opacity:0;transition:opacity .4s}
+#toast span{display:inline-block;background:#fff;border:3px solid var(--y);border-radius:16px;padding:6px 14px;font-weight:700;font-size:1.05rem;box-shadow:0 4px 14px rgba(80,50,20,.2)}
+#toast.on{opacity:1}
+.panel{position:fixed;inset:0;z-index:9;background:rgba(40,25,15,.5);display:none;align-items:flex-end;justify-content:center}
+.panel.on{display:flex}
+.panel .box{background:#fff;border-radius:22px 22px 0 0;max-width:640px;width:100%;max-height:86vh;overflow:auto;padding:14px 16px calc(16px + env(safe-area-inset-bottom))}
+.note{font-size:.8rem;color:#6d6257;line-height:1.7}
+#loading{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;background:#f3e3cf;font-size:1.1rem}
+@media (min-width:760px){#sheet{left:auto;right:16px;width:480px;bottom:16px;border-radius:22px;max-height:70vh}}
+</style>
+</head>
+<body>
+<div id="loading">جاري تجهيز المدرسة…</div>
+<div id="stage"></div>
+<header class="top"><h1>🏫 مدرسة الزومبي · العلوم</h1><button class="ib" id="mute" aria-label="كتم الصوت">🔊</button><button class="ib" id="info" aria-label="عن اللعبة">ℹ️</button></header>
+<div id="prog"><span id="pt">رجعوا طلابًا: ٠</span><div class="b"><i id="pb"></i></div><span id="pz">🧟</span></div>
+<div id="toast"><span id="tt"></span></div>
+<div id="sheet"></div>
+<div class="panel" id="ip"><div class="box"><b>عن اللعبة</b>
+  <p class="note">• زملاؤك في الثانوية صاروا زومبي مضحكين! كل إجابة صحيحة من درس العلوم تطلق ⚡ صاعقة علم، فيرجع زميلك طالبًا ويعود إلى فصله.<br>
+  • لا يوجد مؤقّت: الزومبي يتقدّم خطوة فقط عند الخطأ، ثم يظهر لك تلميح وسبب، وتحاول مرة ثانية.<br>
+  • الأسئلة وشرحها من درس «${'الخلية'}» في كتابك، والشخصيات والمدرسة رسم ثلاثي الأبعاد بشكل الصلصال صنعناه للعبة.<br>
+  • الأخطاء تُحفظ لتبدأ بها في المرة القادمة (مراجعة)، والتقدّم يُحفظ في هذا الجهاز فقط.</p>
+  <button class="big" id="ix">إغلاق</button></div></div>
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
+<script src="vendor/gsap.min.js"></script>
+<script type="module">
+import * as THREE from 'three';
+const D = {"lesson": "الدرس الثاني: الخلية النباتية والخلية الحيوانية", "qs": [{"id": "L03-m3", "t": "أفسّر: لماذا تحتوي الخلية النباتية على بلاستيدات خضراء ولا تحتوي عليها الخلية الحيوانية؟", "o": ["لأن النبات يصنع غذاءه بنفسه", "لأنها تخزن الماء والفضلات", "لأنها تتحكم في انقسام الخلية", "لأنها تحمي الخلية وتدعمها"], "a": 0, "why": ["صحيح: البلاستيدات مصنع الغذاء في النبات.", "التخزين وظيفة الفجوات.", "التحكم وظيفة النواة.", "الدعم والحماية وظيفة الجدار الخلوي."], "ex": "البلاستيدات الخضراء تصنع الغذاء بطاقة الضوء، والنبات يصنع غذاءه، أما الحيوان فيأكل غذاءه.", "hint": "للنبات وحده: الجدار الخلوي، والبلاستيدات الخضراء، والكلوروفيل.", "lv": "فهم", "qa": null}, {"id": "L03-m4", "t": "الخلية التي لها جدار خلوي وبلاستيدات خضراء تشبه خلايا الإلوديا أكثر من خلايا باطن الخد.", "o": ["صح", "خطأ"], "a": 0, "why": ["صحيح: هذه صفات خلية نباتية.", "العبارة صحيحة؛ خلايا باطن الخد حيوانية بلا جدار ولا بلاستيدات."], "ex": "الجدار الخلوي والبلاستيدات الخضراء من صفات الخلايا النباتية، والإلوديا نبات (ص٣٣ وص٣٥).", "hint": "للنبات وحده: الجدار الخلوي، والبلاستيدات الخضراء، والكلوروفيل.", "lv": "تطبيق", "qa": "v58fd00a368ae"}, {"id": "L03-m8", "t": "إذا تُرك كيس الشاي في ماء الكأس مدةً طويلة من دون تحريك، ينتشر لون الشاي حتى يتوزّع في الماء بالتساوي تقريبًا.", "o": ["صح", "خطأ"], "a": 0, "why": ["صحيح: الانتشار يستمر حتى الاتزان.", "العبارة صحيحة؛ مواد الشاي تنتشر من حيث تكثر إلى حيث تقل."], "ex": "الانتشار يستمر حتى يتساوى التركيز، فيحدث الاتزان.", "hint": "الانتشار: مواد من التركيز المرتفع إلى المنخفض بلا طاقة. والخاصية الأسموزية: انتشار للماء فقط.", "lv": "تطبيق", "qa": null}, {"id": "L03-m10", "t": "أستنتج: ما الذي حدّد حركة الجزيئات إلى داخل كيس الشاي وإلى خارجه؟", "o": ["طاقة تبذلها مواد الشاي", "فرق التركيز داخل الكيس وخارجه", "تحريك الكأس طوال الوقت", "ثقل الرمل في قاع الكأس"], "a": 1, "why": ["الانتشار لا يحتاج إلى طاقة.", "صحيح: من حيث تكثر إلى حيث تقل.", "الكأس تُرك بلا تحريك.", "الرمل لم يدخل الكيس ولم يحرّك شيئًا."], "ex": "المواد تنتقل من التركيز المرتفع إلى المنخفض بلا طاقة؛ هذا هو الانتشار.", "hint": "إذا خرج الماء من خلايا النبات أكثر مما يدخل، ينكمش الغشاء مبتعدًا عن الجدار فيذبل النبات.", "lv": "تحليل", "qa": null}, {"id": "L03-m14", "t": "ألخّص: فيمَ يختلف النقل النشط عن النقل السلبي؟", "o": ["النشط بلا طاقة، والسلبي يحتاج طاقة", "النشط للماء، والسلبي للأملاح", "النشط يحتاج طاقة، والسلبي لا يحتاجها", "النشط في النبات، والسلبي في الحيوان"], "a": 2, "why": ["هذا مقلوب.", "الماء ينتقل بالخاصية الأسموزية، وهي نقل سلبي.", "صحيح: الطاقة هي الفرق الأساسي.", "النوعان يحدثان في خلايا النبات والحيوان."], "ex": "النقل النشط يحتاج طاقة لنقل المواد من التركيز المنخفض إلى المرتفع، والسلبي بلا طاقة من المرتفع إلى المنخفض (ص٣٦ وص٤٠).", "hint": "النقل النشط: من المنخفض إلى المرتفع بطاقة. والبلعمة: إحاطة مادة كبيرة بجيب من الغشاء، كما تفعل الأميبا.", "lv": "فهم", "qa": null}, {"id": "L03-m18", "t": "المفردات: العملية التي تسبّب انتقال المواد من منطقة التركيز المنخفض إلى منطقة التركيز العالي، ولكي تحدث تحتاج إلى طاقة، تُسمّى:", "o": ["الانتشار", "الخاصية الأسموزية", "البلعمة", "النقل النشط"], "a": 3, "why": ["الانتشار من المرتفع إلى المنخفض بلا طاقة.", "الخاصية الأسموزية انتشار للماء بلا طاقة.", "البلعمة إحاطة المواد الكبيرة بجيب.", "صحيح: طاقة + من المنخفض إلى المرتفع."], "ex": "هذا تعريف النقل النشط في الكتاب.", "hint": "النقل النشط: من المنخفض إلى المرتفع بطاقة. والبلعمة: إحاطة مادة كبيرة بجيب من الغشاء، كما تفعل الأميبا.", "lv": "تذكر", "qa": null}, {"id": "L03-m25", "t": "أيّ أجزاء الخلية يعمل بوصفه مركز التحكم فيها؟", "o": ["الفجوة", "الميتوكندريا", "الجدار الخلوي", "النواة"], "a": 3, "why": ["الفجوة للتخزين.", "الميتوكندريا للطاقة.", "الجدار للدعم والحماية.", "صحيح: النواة مركز التحكم."], "ex": "النواة مركز التحكم: تنظم التفاعلات الكيميائية، وتخزن معلومات الانقسام.", "hint": "النواة مركز التحكم، والكروموسومات أشرطة من الأحماض النووية تحفظ المعلومات.", "lv": "تذكر", "qa": "v1b9860747279"}, {"id": "L03-m31", "t": "تحتاج الخاصية الأسموزية إلى طاقة الخلية.", "o": ["صح", "خطأ"], "a": 1, "why": ["انتبه: النقل السلبي بلا طاقة.", "صحيح أنها خطأ: هي نقل سلبي بلا طاقة."], "ex": "الخاصية الأسموزية نوع من النقل السلبي، فلا تحتاج إلى طاقة.", "hint": "الانتشار: مواد من التركيز المرتفع إلى المنخفض بلا طاقة. والخاصية الأسموزية: انتشار للماء فقط.", "lv": "فهم", "qa": "v8a6ec8011d61"}, {"id": "L03-m38", "t": "يرشّ بائع الخضار أوراق الخس والبقدونس بالماء العذب. لماذا تبقى الأوراق متماسكة؟", "o": ["لأن الماء يخرج من خلاياها فتلين", "لأنها تقوم بالبناء الضوئي في الظل", "لأن الملح يدخل خلاياها فتقسو", "لأن الماء يدخل خلاياها فتتماسك"], "a": 3, "why": ["خروج الماء يجعلها تذبل، لا تتماسك.", "البناء الضوئي يصنع الغذاء، ولا يمنع الذبول.", "الماء العذب لا ملح فيه.", "صحيح: دخول الماء يحفظ الأوراق متماسكة."], "ex": "الماء ينتقل إلى الخلايا بالخاصية الأسموزية فتبقى متماسكة، ولو خرج منها أكثر مما يدخل لذبلت.", "hint": "إذا خرج الماء من خلايا النبات أكثر مما يدخل، ينكمش الغشاء مبتعدًا عن الجدار فيذبل النبات.", "lv": "تطبيق", "qa": null}, {"id": "L03-m39", "t": "أيّ الخلايا التالية تتوقع أن تحتوي على أكبر عدد من الميتوكندريا؟", "o": ["خلية في عضلة القلب", "خلية دهنية تخزن الدهون", "خلية في طبقة الجلد", "خلية في جذر نبات"], "a": 0, "why": ["صحيح: القلب يعمل ليلًا ونهارًا فيحتاج طاقة دائمة.", "الخلية الدهنية تخزن، ولا تعمل بلا توقف.", "خلايا الجلد لا تحتاج طاقة دائمة كعضلة القلب.", "خلايا الجذر لا تتحرك ولا تضخ مثل القلب."], "ex": "الخلايا التي تحتاج إلى الطاقة باستمرار، ومنها خلايا عضلات القلب، تحتوي على ألوف من الميتوكندريا.", "hint": "الميتوكندريا مصدر طاقة الخلية، وخلايا عضلة القلب فيها ألوف منها.", "lv": "تطبيق", "qa": null}]};
+const $ = s => document.querySelector(s);
+const AR = n => String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const lowEnd = (navigator.hardwareConcurrency || 4) <= 4;
+document.querySelector('#ip .note').innerHTML = document.querySelector('#ip .note').innerHTML.replace("${'الخلية'}", D.lesson || 'الخلية');
+
+/* ---------- renderer: warm, soft light like a clay animation set ---------- */
+const renderer = new THREE.WebGLRenderer({antialias: true}); renderer.setPixelRatio(Math.min(devicePixelRatio, lowEnd ? 1.5 : 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.enabled = !lowEnd; renderer.shadowMap.type = THREE.PCFSoftShadowMap; $('#stage').appendChild(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0xf3e3cf); scene.fog = new THREE.Fog(0xf3e3cf, 14, 30);
+const camera = new THREE.PerspectiveCamera(50, 1, .1, 100);
+scene.add(new THREE.HemisphereLight(0xfff4e6, 0x8a6a4a, 1.5));
+const sun = new THREE.DirectionalLight(0xfff0dc, 2.2); sun.position.set(3, 8, 5); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024); Object.assign(sun.shadow.camera, {left: -6, right: 6, top: 8, bottom: -14, far: 30}); scene.add(sun);
+let portrait = true;
+function fit() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; portrait = camera.aspect < 1; camera.fov = portrait ? 58 : 45;
+  // the question sheet covers the lower half on a phone: draw the scene higher so the zombie stays in view
+  if (portrait) camera.setViewOffset(innerWidth, innerHeight, 0, innerHeight * .24, innerWidth, innerHeight); else camera.clearViewOffset(); camera.updateProjectionMatrix(); }
+addEventListener('resize', fit); fit();
+
+/* ---------- clay: soft matte colour with fingerprint-like bumps ---------- */
+const clayBump = (() => { const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'); g.fillStyle = '#808080'; g.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 2600; i++) { const v = 110 + Math.random() * 40 | 0; g.fillStyle = `rgba(${v},${v},${v},.35)`; g.beginPath(); g.arc(Math.random() * 256, Math.random() * 256, 1 + Math.random() * 3, 0, 7); g.fill(); }
+  g.lineWidth = 1.2; for (let i = 0; i < 40; i++) { const x = Math.random() * 256, y = Math.random() * 256, r = 6 + Math.random() * 14; for (let k = 0; k < 4; k++) { g.strokeStyle = `rgba(${Math.random() < .5 ? 90 : 170},${Math.random() < .5 ? 90 : 170},${Math.random() < .5 ? 90 : 170},.25)`; g.beginPath(); g.arc(x, y, r + k * 2.4, Math.random() * 3, Math.random() * 3 + 2); g.stroke(); } }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t; })();
+const clay = (c, o = {}) => new THREE.MeshStandardMaterial({color: c, roughness: .82, metalness: 0, bumpMap: clayBump, bumpScale: 1.2, ...o});
+const mesh = (geo, m, x = 0, y = 0, z = 0) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.castShadow = true; o.receiveShadow = true; return o; };
+const sph = r => new THREE.SphereGeometry(r, 32, 24);
+const cap = (r, l) => new THREE.CapsuleGeometry(r, l, 10, 20);
+
+/* ---------- the school corridor ---------- */
+{ const tile = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'); for (let i = 0; i < 2; i++) for (let k = 0; k < 2; k++) { g.fillStyle = (i + k) % 2 ? '#e9d6b8' : '#cfe6df'; g.fillRect(i * 64, k * 64, 64, 64); } const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(4, 22); t.colorSpace = THREE.SRGBColorSpace; return t; })();
+  const floor = mesh(new THREE.PlaneGeometry(7, 44), clay(0xffffff, {map: tile, bumpScale: .6}), 0, 0, -16); floor.rotation.x = -Math.PI / 2; floor.castShadow = false; scene.add(floor);
+  const wallM = clay(0xf6e7cf);
+  for (const s of [-1, 1]) { const w = mesh(new THREE.BoxGeometry(.3, 4.2, 44), wallM, s * 3.6, 2.1, -16); scene.add(w);
+    const cols = [0x4fb3a9, 0xf08a4b, 0xf2c14e, 0x6c8ee8, 0xe76f8f];
+    for (let i = 0; i < 16; i++) { const z = 1 - i * 1.25, L = new THREE.Group(); L.position.set(s * 3.2, 0, z);
+      const body = mesh(new THREE.BoxGeometry(.5, 2.6, 1.1), clay(cols[(i + (s > 0 ? 2 : 0)) % cols.length]), 0, 1.3, 0); L.add(body);
+      for (let v = 0; v < 3; v++) L.add(mesh(new THREE.BoxGeometry(.04, .05, .6), clay(0x3a2f2a), -s * .26, 2.2 - v * .12, 0));
+      L.add(mesh(new THREE.SphereGeometry(.06, 12, 10), clay(0xd8d8d8), -s * .27, 1.4, s * .35)); scene.add(L); } }
+  const sign = (() => { const c = document.createElement('canvas'); c.width = 512; c.height = 160; const g = c.getContext('2d'); g.fillStyle = '#2e9b5f'; g.beginPath(); g.roundRect(8, 8, 496, 144, 30); g.fill(); g.fillStyle = '#fff'; g.font = 'bold 74px SciBaloo, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.direction = 'rtl'; g.fillText('مختبر العلوم 🧪', 256, 84); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; })();
+  const board = mesh(new THREE.BoxGeometry(3, .95, .12), [clay(0x2e9b5f), clay(0x2e9b5f), clay(0x2e9b5f), clay(0x2e9b5f), new THREE.MeshStandardMaterial({map: sign, roughness: .8}), clay(0x2e9b5f)], 0, 3.2, -24); scene.add(board);
+  const end = mesh(new THREE.BoxGeometry(7.4, 4.2, .3), wallM, 0, 2.1, -24.3); scene.add(end);
+  const door = mesh(new THREE.BoxGeometry(1.6, 2.5, .1), clay(0x8a5a3b), 0, 1.25, -24.1); scene.add(door);
+  for (let i = 0; i < 6; i++) { const l = new THREE.Mesh(new THREE.BoxGeometry(1.6, .06, .6), new THREE.MeshBasicMaterial({color: 0xfffbe8})); l.position.set(0, 4.15, -2 - i * 4); scene.add(l); } }
+
+/* ---------- clay kids: big nose, big ears, round eyes; a zombie is the same kid, green and sleepy ---------- */
+const SKIN = 0xf2b48f, ZSKIN = 0x9cc28a;
+function kid({shirt = 0x4f8ee8, pants = 0x3d4a6b, hair = 0x5a3a24, zombie = false, hero = false}) {
+  const g = new THREE.Group(), skinM = clay(zombie ? ZSKIN : SKIN), noseM = clay(zombie ? 0x8cb07a : 0xf29e7c), earM = clay(zombie ? 0x8cb07a : 0xf3a08a);
+  const torso = mesh(cap(.4, .55), clay(shirt), 0, 1.2, 0); torso.scale.set(1.05, 1, .8); g.add(torso);
+  if (hero) { const hood = mesh(new THREE.TorusGeometry(.34, .1, 12, 24), clay(shirt)); hood.position.set(0, 1.68, -.12); hood.rotation.x = Math.PI / 2.4; g.add(hood); }
+  if (zombie) for (let i = 0; i < 3; i++) g.add(mesh(new THREE.BoxGeometry(.14, .08, .05), clay(0x6b6f5a), -.2 + i * .2, .95 + (i % 2) * .15, .33));   // patches on the shirt
+  const legs = []; for (const s of [-1, 1]) { const leg = new THREE.Group(); leg.position.set(s * .18, .72, 0); leg.add(mesh(cap(.13, .42), clay(pants), 0, -.3, 0)); const shoe = mesh(sph(.16), clay(zombie ? 0x4a4038 : 0xf4f4f4), 0, -.62, .07); shoe.scale.set(1, .6, 1.5); leg.add(shoe); g.add(leg); legs.push(leg); }
+  const arms = []; for (const s of [-1, 1]) { const arm = new THREE.Group(); arm.position.set(s * .5, 1.5, 0); arm.add(mesh(cap(.1, .5), clay(shirt), 0, -.3, 0)); arm.add(mesh(sph(.13), skinM, 0, -.66, 0)); g.add(arm); arms.push(arm); }
+  const head = new THREE.Group(); head.position.set(0, 2.08, 0); g.add(head);
+  const skull = mesh(sph(.48), skinM); skull.scale.set(1, 1.04, .94); head.add(skull);
+  const nose = mesh(sph(.2), noseM, 0, -.04, .48); nose.scale.set(1, .85, 1.15); head.add(nose);
+  for (const s of [-1, 1]) { const ear = mesh(sph(.22), earM, s * .5, .02, -.02); ear.scale.set(.45, 1, .8); head.add(ear); const inn = mesh(sph(.13), clay(zombie ? 0x7a9a6a : 0xe88a86), s * .56, .02, .03); inn.scale.set(.25, .8, .55); head.add(inn); }
+  const eyes = []; for (const s of [-1, 1]) { const e = new THREE.Group(); e.position.set(s * .16, .19, .38); const w = mesh(sph(.13), clay(0xffffff, {bumpScale: .2, roughness: .4})); w.scale.set(.9, 1.1, .6); e.add(w);
+    const p = mesh(sph(.055), new THREE.MeshStandardMaterial({color: zombie ? 0x6a2a2a : 0x2a1a12, roughness: .3}), s * -.015, zombie ? -.03 : 0, .07); e.add(p);
+    const lid = mesh(new THREE.SphereGeometry(.14, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), skinM); lid.scale.set(.95, 1, .7); lid.rotation.x = zombie ? .5 : -1.6; e.add(lid); e.userData.lid = lid; head.add(e); eyes.push(e); }
+  if (zombie) eyes[0].scale.setScalar(1.15);
+  const brows = []; for (const s of [-1, 1]) { const b = mesh(cap(.035, .16), clay(hair), s * .17, .36, .42); b.rotation.z = Math.PI / 2 + s * (zombie ? -.35 : -.08); head.add(b); brows.push(b); }
+  const mouth = new THREE.Group(); mouth.position.set(0, -.27, .4); head.add(mouth);
+  const inside = mesh(new THREE.SphereGeometry(.13, 24, 12, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), clay(0x5a1a1a, {side: THREE.DoubleSide, bumpScale: .2})); inside.scale.set(1.5, 1, .5); mouth.add(inside);
+  const teeth = mesh(new THREE.BoxGeometry(zombie ? .1 : .26, .05, .03), clay(0xfff8ee, {bumpScale: .1}), zombie ? .05 : 0, -.02, .05); mouth.add(teeth);
+  mouth.scale.set(1, zombie ? .7 : .55, 1); if (zombie) mouth.rotation.z = .18;
+  const hairG = new THREE.Group(); head.add(hairG); const hm = clay(zombie ? 0x4a5a3a : hair);
+  const capH = mesh(new THREE.SphereGeometry(.515, 32, 16, 0, Math.PI * 2, 0, Math.PI * .42), hm, 0, .04, -.03); capH.rotation.x = -.25; head.add(capH);
+  for (let i = 0; i < 9; i++) { const a = -1.1 + i * .27, t = mesh(new THREE.ConeGeometry(.12, .34, 10), hm, Math.sin(a) * .3, .55 + Math.cos(a) * .04, Math.cos(a) * .1 + .02); t.rotation.set(-.4 + Math.random() * .3, 0, -a * .7 + (zombie ? (Math.random() - .5) * .8 : 0)); hairG.add(t); }
+  g.traverse(o => { if (o.isMesh) { o.castShadow = true; } });
+  return {g, head, arms, legs, eyes, brows, mouth, skinM, noseM, earM, zombie, hair: hm, ph: Math.random() * 6};
+}
+
+/* ---------- cast: the hero (from behind) and a queue of zombie classmates ---------- */
+const hero = kid({shirt: 0x3f7fe0, pants: 0x2f3a55, hero: true}); hero.g.position.set(-1.05, 0, 1.1); hero.g.scale.setScalar(.92); hero.g.rotation.y = Math.PI; scene.add(hero.g);
+const SHIRTS = [0xe76f51, 0x9b5de5, 0x2a9d8f, 0xf4a261, 0xef476f, 0x118ab2, 0x8ab17d, 0xe9c46a, 0x6d597a, 0xff7b54];
+const QS0 = D.qs || [];
+const STATE = (() => { try { return JSON.parse(localStorage.getItem('sci-zs-L03') || '{}'); } catch (e) { return {}; } })();
+const save = () => { try { localStorage.setItem('sci-zs-L03', JSON.stringify(STATE)); } catch (e) {} };
+// spaced review: last time's mistakes come first
+const order = [...QS0].sort((a, b) => ((STATE.wrong || []).includes(b.id) ? 1 : 0) - ((STATE.wrong || []).includes(a.id) ? 1 : 0));
+const zs = order.map((q, i) => { const z = kid({shirt: SHIRTS[i % SHIRTS.length], pants: 0x4a4a5a, zombie: true}); z.q = q; z.dist = 0; z.g.position.set((i % 2 ? 1 : -1) * .9, 0, -9 - i * 1.6); z.g.scale.setScalar(.95); scene.add(z.g); return z; });
+
+/* ---------- sound: tiny synthesized effects (no recordings) ---------- */
+let actx = null, muted = false; const A = () => { if (!actx) try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} return actx; };
+function tone(f0, f1, dur, type = 'sine', vol = .15, delay = 0) { const a = A(); if (!a || muted) return; const o = a.createOscillator(), g = a.createGain(), t = a.currentTime + delay; o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur); o.connect(g).connect(a.destination); o.start(t); o.stop(t + dur); }
+const sZap = () => { tone(1400, 120, .35, 'sawtooth', .12); tone(900, 60, .4, 'square', .05, .05); };
+const sCure = () => [523, 659, 784, 1046].forEach((f, i) => tone(f, f * 1.01, .25, 'triangle', .14, .3 + i * .09));
+const sGroan = () => { tone(140, 90, .7, 'sawtooth', .05); tone(150, 100, .7, 'triangle', .06, .05); };
+let voice = null; const sayQ = q => { if (voice) voice.pause(); if (muted || !q.qa) return; voice = new Audio('audio/' + q.qa + '.mp3'); voice.play().catch(() => {}); };
+
+/* ---------- lightning bolt from the hero's hand to the zombie ---------- */
+const boltM = new THREE.LineBasicMaterial({color: 0xfff27a, transparent: true, opacity: 0}), boltG = new THREE.BufferGeometry(); const bolt = new THREE.Line(boltG, boltM); scene.add(bolt);
+const glowM = new THREE.SpriteMaterial({map: (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'), r = g.createRadialGradient(32, 32, 0, 32, 32, 32); r.addColorStop(0, 'rgba(255,255,220,1)'); r.addColorStop(.4, 'rgba(255,230,90,.7)'); r.addColorStop(1, 'rgba(255,200,0,0)'); g.fillStyle = r; g.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); })(), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0});
+const glow = new THREE.Sprite(glowM); glow.scale.setScalar(2.2); scene.add(glow);
+function zap(z) {
+  const a = new THREE.Vector3(), b = new THREE.Vector3(); hero.arms[1].children[1].getWorldPosition(a); z.head.getWorldPosition(b);
+  const pts = []; for (let i = 0; i <= 14; i++) { const p = a.clone().lerp(b, i / 14); if (i && i < 14) p.add(new THREE.Vector3((Math.random() - .5) * .35, (Math.random() - .5) * .35, (Math.random() - .5) * .2)); pts.push(p); }
+  boltG.setFromPoints(pts); glow.position.copy(b); sZap();
+  gsap.fromTo(boltM, {opacity: 1}, {opacity: 0, duration: .5, ease: 'power2.in'}); gsap.fromTo(glowM, {opacity: 1}, {opacity: 0, duration: .8});
+}
+// confetti when a classmate comes back
+const confG = new THREE.Group(); scene.add(confG); const confCols = [0xffd84d, 0x43c27a, 0x6c8ee8, 0xef476f, 0xf4a261];
+function confetti(at) { for (let i = 0; i < 26; i++) { const c = new THREE.Mesh(new THREE.BoxGeometry(.08, .02, .05), new THREE.MeshBasicMaterial({color: confCols[i % 5]})); c.position.copy(at); confG.add(c);
+  const v = new THREE.Vector3((Math.random() - .5) * 3, 2 + Math.random() * 2.5, (Math.random() - .5) * 2); gsap.to(c.position, {x: at.x + v.x, z: at.z + v.z, duration: 1.4, ease: 'power1.out'}); gsap.to(c.position, {y: at.y + v.y * .5, duration: .5, ease: 'power2.out', onComplete: () => gsap.to(c.position, {y: 0, duration: .9, ease: 'power2.in', onComplete: () => confG.remove(c)})}); gsap.to(c.rotation, {x: 8, y: 6, duration: 1.4}); } }
+// a zombie turns back into a student: colour comes back, eyes open, a happy jump, a wave, then off to class
+function cure(z) {
+  const to = new THREE.Color(SKIN); gsap.to(z.skinM.color, {r: to.r, g: to.g, b: to.b, duration: .8, delay: .25});
+  const n = new THREE.Color(0xf29e7c); gsap.to(z.noseM.color, {r: n.r, g: n.g, b: n.b, duration: .8, delay: .25}); const e = new THREE.Color(0xf3a08a); gsap.to(z.earM.color, {r: e.r, g: e.g, b: e.b, duration: .8, delay: .25});
+  const h = new THREE.Color(0x5a3a24); gsap.to(z.hair.color, {r: h.r, g: h.g, b: h.b, duration: .8, delay: .25});
+  z.eyes.forEach(ey => { gsap.to(ey.userData.lid.rotation, {x: -1.6, duration: .4, delay: .4}); gsap.to(ey.scale, {x: 1, y: 1, z: 1, duration: .4}); });
+  gsap.to(z.mouth.rotation, {z: 0, duration: .4, delay: .4}); gsap.to(z.mouth.scale, {y: .9, duration: .4, delay: .4});
+  z.brows.forEach((b, i) => gsap.to(b.rotation, {z: Math.PI / 2 + (i ? -1 : 1) * .08, duration: .4, delay: .4}));
+  z.cured = true; sCure(); const at = z.g.position.clone(); at.y = 2.6; setTimeout(() => confetti(at), 450);
+  gsap.timeline({delay: .5}).to(z.g.position, {y: .7, duration: .25, ease: 'power2.out'}).to(z.g.position, {y: 0, duration: .25, ease: 'bounce.out'})
+    .to(z.g.rotation, {y: Math.PI * .5 * (z.g.position.x > 0 ? 1 : -1), duration: .4}, '+=.6')
+    .to(z.g.position, {x: (z.g.position.x > 0 ? 2.6 : -2.6), duration: 1.2, ease: 'power1.inOut'})
+    .to(z.g.scale, {x: .001, y: .001, z: .001, duration: .4, onComplete: () => { z.g.visible = false; }});
+}
+
+/* ---------- the level: one zombie at a time comes forward with a question ---------- */
+let cur = 0, firstTry = 0, tries = 0;
+const CHEER = ['⚡ ركّزت فوصلت! رجع زميلك طالبًا.', '⚡ معلومتك أنقذت زميلك! والتوفيق من الله.', '⚡ أحسنت يا بطل! فكّرت ووصلت.', '⚡ رجع إلى فصله بفضل علمك!'];
+function toast(t) { $('#tt').textContent = t; $('#toast').classList.add('on'); clearTimeout(toast.k); toast.k = setTimeout(() => $('#toast').classList.remove('on'), 2200); }
+function progress() { const done = zs.filter(z => z.cured).length; $('#pt').textContent = 'رجعوا طلابًا: ' + AR(done) + ' من ' + AR(zs.length); $('#pb').style.width = done / zs.length * 100 + '%'; $('#pz').textContent = '🧟 ' + AR(zs.length - done); }
+function front(i) {   // bring zombie i to the front of the corridor
+  zs.forEach((z, k) => { if (z.cured || k < i) return; const d = k - i; gsap.to(z.g.position, {x: (k % 2 ? 1 : -1) * (d ? .9 : 0), z: d ? -7.5 - d * 1.6 : -3.6, duration: calm ? .01 : 1.6, ease: 'power1.inOut'}); });
+}
+function ask(i) {
+  cur = i; tries = 0; const z = zs[i]; if (!z) return finish(); front(i); progress(); const q = z.q;
+  $('#sheet').innerHTML = `<div class="row"><span class="lv">🧟 زميل ${AR(i + 1)} من ${AR(zs.length)}${q.lv ? ' · ' + q.lv : ''}${(STATE.wrong || []).includes(q.id) ? ' · 🔁 مراجعة خطأ سابق' : ''}</span><span style="flex:1"></span>${q.qa ? '<button class="sm" id="hear">🔊 اسمع</button>' : ''}</div>
+    <div class="qt">${q.t}</div>${q.o.map((x, j) => `<button class="opt" data-j="${j}">${q.o.length > 2 ? 'أبجد'[j] + '. ' : ''}${x}</button>`).join('')}<div id="fb"></div>`;
+  $('#hear') && ($('#hear').onclick = () => sayQ(q));
+  $('#sheet').querySelectorAll('.opt').forEach(b => b.onclick = () => answer(z, +b.dataset.j, b));
+}
+function answer(z, j, b) {
+  A(); const q = z.q, ok = j === q.a; tries++; b.classList.add(ok ? 'ok' : 'no'); b.disabled = true;
+  STATE.seen = (STATE.seen || 0) + 1;
+  if (ok) {
+    $('#sheet').querySelectorAll('.opt').forEach(x => x.disabled = true); if (tries === 1) firstTry++;
+    if (tries === 1) STATE.wrong = (STATE.wrong || []).filter(x => x !== q.id); if (tries === 1) STATE.master = [...new Set([...(STATE.master || []), q.id])]; save();
+    gsap.to(hero.arms[1].rotation, {x: -2.4, duration: .2, yoyo: true, repeat: 1, repeatDelay: .5}); setTimeout(() => { zap(z); cure(z); progress(); }, 220);
+    toast(CHEER[(cur + firstTry) % CHEER.length]);
+    $('#fb').innerHTML = `<div class="fb ok"><b>لماذا؟</b> ${q.why[j] || q.ex}${q.ex && q.why[j] !== q.ex ? '<br>' + q.ex : ''}</div><button class="big" id="nx">${cur + 1 < zs.length ? 'الزميل التالي ←' : 'النتيجة 🏆'}</button>`;
+    $('#nx').onclick = () => ask(cur + 1); $('#sheet').scrollTop = 1e4;
+  } else {
+    STATE.wrong = [...new Set([...(STATE.wrong || []), q.id])]; save();
+    z.dist++; gsap.to(z.g.position, {z: Math.min(-.6, -3.6 + z.dist * .9), duration: .9, ease: 'power1.inOut'}); sGroan();
+    $('#fb').innerHTML = `<div class="fb no">🧟 اقترب خطوة… لا بأس، فكّر مرة ثانية 💪<br>${q.why[j] || ''}${q.hint ? '<br>💡 <b>تلميح:</b> ' + q.hint : ''}</div>`; $('#sheet').scrollTop = 1e4;
+  }
+}
+function finish() {
+  progress(); STATE.best = Math.max(STATE.best || 0, firstTry); STATE.done = (STATE.done || 0) + 1; save();
+  gsap.to(hero.g.rotation, {y: 0, duration: .8}); gsap.timeline({repeat: 3}).to(hero.g.position, {y: .5, duration: .22}).to(hero.g.position, {y: 0, duration: .22}); hero.arms.forEach(a => gsap.to(a.rotation, {x: -2.6, duration: .4}));
+  confetti(new THREE.Vector3(0, 3, 2)); sCure(); camGoal = 'win';
+  const miss = (STATE.wrong || []).length;
+  $('#sheet').innerHTML = `<div class="fb ok" style="font-size:1.1rem">🏆 رجعت المدرسة كلها! ${AR(zs.length)} زملاء عادوا إلى فصولهم بعلمك.<br>ركّزت فوصلت، والتوفيق من الله.</div>
+    <div class="fb in">أجبت من أول محاولة عن ${AR(firstTry)} من ${AR(zs.length)}.${miss ? '<br>🔁 ' + (miss === 1 ? 'سؤال واحد أخطأت فيه ستبدأ به' : miss === 2 ? 'سؤالان أخطأت فيهما ستبدأ بهما' : AR(miss) + ' أسئلة أخطأت فيها ستبدأ بها') + ' في المرة القادمة للمراجعة.' : '<br>لا أخطاء تنتظر المراجعة. ممتاز!'}</div>
+    <button class="big" id="again">🔁 العب مرة ثانية</button>`;
+  $('#again').onclick = () => location.reload();
+}
+
+/* ---------- camera and life ---------- */
+let camGoal = 'play';
+const clock = new THREE.Clock(); let tt = 0;
+$('#mute').onclick = () => { muted = !muted; $('#mute').textContent = muted ? '🔇' : '🔊'; if (voice) voice.muted = muted; };
+$('#info').onclick = () => $('#ip').classList.add('on'); $('#ix').onclick = () => $('#ip').classList.remove('on');
+$('#loading').remove(); ask(0);
+window.__answer = j => $('#sheet').querySelectorAll('.opt')[j].click(); window.__cur = () => zs[cur] && zs[cur].q.a;
+renderer.setAnimationLoop(() => {
+  const dt = Math.min(.05, clock.getDelta()) * (calm ? .4 : 1); tt += dt;
+  // zombies shuffle in place: sway, dragging legs, arms forward; cured kids stand and smile
+  zs.forEach((z, i) => { if (!z.g.visible) return; const t = tt * 2.2 + z.ph;
+    if (!z.cured) { z.g.rotation.z = Math.sin(t) * .08; z.head.rotation.z = .25 + Math.sin(t * .7) * .1; z.head.rotation.x = .15;
+      z.arms.forEach((a, k) => { a.rotation.x = -1.45 + Math.sin(t + k) * .12; a.rotation.z = (k ? -1 : 1) * .05; }); z.legs.forEach((l, k) => l.rotation.x = Math.sin(t + k * Math.PI) * .25); }
+    else { z.head.rotation.z *= .9; z.head.rotation.x *= .9; z.arms.forEach((a, k) => { a.rotation.x *= .85; a.rotation.z = k ? -.15 - Math.max(0, Math.sin(tt * 9)) * .6 : .1; }); z.legs.forEach(l => l.rotation.x = Math.sin(tt * 9 + l.position.x * 10) * .4); } });
+  // the hero breathes and blinks
+  hero.g.children[0].scale.y = 1 + Math.sin(tt * 2) * .015; hero.head.rotation.y = Math.sin(tt * .8) * .08;
+  // camera: over the hero's shoulder, looking down the corridor; at the end, in front of the hero
+  const cp = camGoal === 'win' ? new THREE.Vector3(-.7, 2.3, 7.4) : new THREE.Vector3(.75, 2.6, 4.2), ct = camGoal === 'win' ? new THREE.Vector3(-.75, 1.9, 1.4) : new THREE.Vector3(0, 1.4, -4.2);
+  camera.position.lerp(cp, Math.min(1, dt * 2)); camera.lookAt(ct);
+  renderer.render(scene, camera);
+});
+</script>
+</body>
+</html>
