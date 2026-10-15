@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>رحلة اللقمة</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+/* A clay model of the digestive tract (lesson L16 «الهضم والإخراج والتنفس والدوران»): a cute bread bite travels
+   mouth -> esophagus -> stomach -> small intestine -> large intestine inside a see-through tube that squeezes around it,
+   then short moments for excretion, breathing and circulation. Every fact is from the book; the page is kept in data-src. */
+:root{--ink:#22264a;--o:#ff8a3d;--y:#ffd84d;--sky:#d8f1ff;--f:'SciBaloo','Segoe UI',Tahoma,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#cdeeff;color:var(--ink);font-family:var(--f);-webkit-text-size-adjust:100%}
+button{font:inherit;cursor:pointer;touch-action:manipulation;color:inherit}
+#stage{position:fixed;inset:0;touch-action:none}
+.top{position:fixed;top:0;left:0;right:0;z-index:5;display:flex;align-items:center;gap:8px;padding:calc(6px + env(safe-area-inset-top)) 12px 6px;background:linear-gradient(#cdeefff2,#cdeeff00)}
+.top h1{flex:1;margin:0;font-size:1.06rem}
+.ib{border:2px solid #fff;background:rgba(255,255,255,.8);border-radius:12px;min-width:44px;min-height:44px;font-size:1.05rem}
+.modes{position:fixed;top:calc(58px + env(safe-area-inset-top));left:8px;right:8px;z-index:5;display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.modes::-webkit-scrollbar{display:none}
+.modes button{flex:none;border:2px solid #fff;background:rgba(255,255,255,.88);color:var(--ink);box-shadow:0 2px 8px rgba(30,60,120,.15);border-radius:14px;min-height:44px;padding:0 12px;font-size:.92rem}
+.modes button.on{background:var(--y);border-color:var(--y);font-weight:700}
+#dock{position:fixed;left:10px;right:10px;bottom:calc(68px + env(safe-area-inset-bottom));z-index:5;display:flex;flex-direction:column;gap:6px}
+#say{background:rgba(255,255,255,.96);color:var(--ink);border-radius:16px;padding:8px 12px;font-size:1.04rem;line-height:1.7;min-height:2.6em;box-shadow:0 4px 18px rgba(30,60,120,.18)}
+#say .who{color:#d9611c;font-weight:700}
+.pred{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.pred button{border:2px solid #d6dcef;background:#fff;color:var(--ink);border-radius:12px;min-height:44px;padding:0 10px;font-size:.95rem}
+.pred button.ok{border-color:#1f8a4c;background:#e6f6ec}.pred button.no{border-color:#c2412d;background:#fbebe8}
+#eq{position:fixed;left:8px;right:8px;top:calc(112px + env(safe-area-inset-top));z-index:4;text-align:center;font-size:1rem;line-height:2;font-weight:700;opacity:0;transition:opacity .6s;pointer-events:none}
+#eq.on{opacity:1}
+#eq span{display:inline-block;background:#fff;border:2px solid var(--ink);border-radius:14px;padding:0 10px;margin:0 2px;box-shadow:0 3px 0 rgba(34,38,74,.2)}
+#labels{position:fixed;inset:0;z-index:3;pointer-events:none;overflow:hidden}
+.lbl{position:absolute;left:0;top:0;background:#fff;color:var(--ink);border:2px solid var(--ink);border-radius:999px;padding:1px 10px;font-size:.86rem;font-weight:700;white-space:nowrap;box-shadow:0 3px 0 rgba(34,38,74,.25);opacity:0;transition:opacity .45s;will-change:transform}
+.lbl.on{opacity:1}.lbl.hot{background:var(--y)}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:6;padding:8px 8px calc(8px + env(safe-area-inset-bottom));display:flex;gap:6px;justify-content:center;background:rgba(255,255,255,.96);box-shadow:0 -2px 14px rgba(30,60,120,.15)}
+.bar button{border:2px solid #dfe6f3;background:#fff;color:var(--ink);border-radius:14px;min-height:46px;min-width:46px;padding:0 12px;font-size:1rem}
+.bar .p{background:var(--o);border-color:var(--o);color:#fff;min-width:100px;font-weight:700}
+#start{position:fixed;inset:0;z-index:7;display:flex;align-items:center;justify-content:center;background:rgba(205,238,255,.35)}
+#start button{border:0;background:var(--y);color:var(--ink);border-radius:20px;padding:14px 22px;font-size:1.2rem;font-weight:700;box-shadow:0 8px 30px rgba(30,60,120,.35)}
+.panel{position:fixed;inset:0;z-index:8;background:rgba(10,20,40,.45);display:none;align-items:flex-end;justify-content:center}
+.panel.on{display:flex}
+.panel .box{background:#fff;color:var(--ink);border-radius:22px 22px 0 0;max-width:640px;width:100%;max-height:86vh;overflow:auto;padding:14px 16px calc(16px + env(safe-area-inset-bottom))}
+.opt{display:block;width:100%;text-align:right;border:2px solid #e2e6ef;background:#fff;color:var(--ink);border-radius:14px;padding:8px 12px;margin:7px 0;min-height:52px;font-size:1.02rem}
+.opt.ok{border-color:#1f8a4c;background:#e6f6ec}.opt.no{border-color:#c2412d;background:#fbebe8}
+.fb{border-radius:14px;padding:8px 12px;margin:8px 0}.fb.ok{background:#e6f6ec}.fb.no{background:#fbebe8}.fb.in{background:#eaf1fa}
+.note{font-size:.82rem;color:#4d5870;line-height:1.7}
+.big{display:block;width:100%;min-height:50px;border-radius:14px;border:0;background:var(--o);color:#fff;font-size:1.05rem;margin-top:8px}
+#loading{position:fixed;inset:0;z-index:9;display:flex;align-items:center;justify-content:center;background:#cdeeff;font-size:1.1rem}
+@media (min-width:760px){#dock{left:auto;right:16px;width:470px}}
+</style>
+</head>
+<body data-src="L16 «الهضم والإخراج والتنفس والدوران» ص١٠٦–١١٧: الهضم ص١١٠–١١١ (شكل جهاز الهضم ص١١١، نشاط الأمعاء الغليظة ص١٠٩)، التنفس ص١١٢–١١٣، الدوران ص١١٤–١١٦، الملخص ص١١٧">
+<div id="loading">جاري تجهيز المشهد…</div>
+<div id="stage"></div>
+<div id="labels"></div>
+<header class="top"><h1>🍞 رحلة اللقمة في جسمي</h1><button class="ib" id="info" aria-label="عن المشهد">ℹ️</button></header>
+<nav class="modes" id="modes"></nav>
+<div id="eq"></div>
+<div id="dock"><div id="say">اضغط ▶️ لتبدأ رحلة اللقمة في جسمك.</div></div>
+<div class="bar">
+  <button class="p" id="play">▶️ الرحلة</button>
+  <button id="again" aria-label="أعد المقطع">↺</button>
+  <button id="qz">✏️ اختبر نفسك</button>
+  <button id="mute" aria-label="كتم الصوت">🔊</button>
+</div>
+<div id="start"><button id="go">👋 اضغط لتبدأ رحلة اللقمة</button></div>
+<div class="panel" id="qp"><div class="box" id="qb"></div></div>
+<div class="panel" id="ip"><div class="box"><b>عن هذا المشهد</b>
+  <p class="note">• نموذج من الصلصال صنعناه لهذا الدرس، والمعلومات كلها من كتاب العلوم.<br>
+  • رسمنا الأنبوب شفافًا لترى اللقمة تتحرك داخله، والأعضاء الحقيقية ليست شفافة. وللّقمة عينان لتحكي قصتها فقط.<br>
+  • الأشكال والألوان والأحجام مبسّطة وليست بالمقياس الحقيقي، والأمعاء الدقيقة الحقيقية أطول بكثير.<br>
+  • الحويصلات الهوائية مكبّرة داخل دائرة لتراها، وهي في الحقيقة صغيرة جدًا.<br>
+  • في الدوران: الأحمر للدم المؤكسج، والأزرق للدم غير المؤكسج، كما في شكل الكتاب.<br>
+  • الصوت مولّد بالذكاء الاصطناعي (صوت «حامد» من مايكروسوفت).<br>
+  • نتيجة الاختبار تُحفظ في هذا الجهاز فقط.</p>
+  <button class="big" id="ix">إغلاق</button></div></div>
+<script type="application/json" id="lines">{
+"dig-01":"أهلًا! أنا لقمةُ خبز، وسأبدأ رحلتي في جسمك.",
+"dig-02":"في الإنسان، يبدأ الهضمُ في الفم.",
+"dig-03":"ثم أنزلُ في المريء، وهو أنبوبٌ يمرّ فيه الغذاءُ من الفم إلى المعدة.",
+"dig-04":"وصلتُ إلى المعدة! هنا يحلّلني حمضٌ وإنزيمٌ إلى دقائقَ صغيرة.",
+"dig-05":"والعصارةُ الهضمية تحلّل البروتينَ والنشوياتِ والدهون.",
+"dig-06":"والكبدُ والبنكرياسُ يساعدان على هضم الطعام.",
+"dig-07":"الآن أنا في الأمعاء الدقيقة، وهنا يستمرّ الهضم. وهي طويلةٌ جدًا، ملفوفةٌ داخلَ البطن.",
+"dig-08":"والأمعاءُ الدقيقة تمتصّ الموادَّ الغذائية، وتنقلُها إلى الدم.",
+"dig-09":"فينتقل الغذاءُ إلى الخلايا في أنحاء الجسم المختلفة.",
+"dig-10":"بقيتْ مني بقايا. في الأمعاء الغليظة يُمتصّ الماءُ من بقايا الطعام.",
+"dig-11":"ثم يتخلّص الجسمُ من الفضلات، وهذه عمليةُ الإخراج.",
+"dig-12":"الإخراج: تخليصُ الجسم من الفضلات. فالفضلاتُ لا قيمةَ لها، وقد تسبّب تسمّمَ الخلايا والأنسجة إذا بقيت في الجسم.",
+"dig-13":"والكليتان والرئتان والكبدُ والجلد، كلُّها تعمل على تخليص الجسم من الفضلات.",
+"dig-14":"هضمُ النشويات ينتج الجلوكوز، وهو سكرٌ بسيط.",
+"dig-15":"والتنفس يُطلق الطاقةَ المختزنةَ في الجلوكوز، داخلَ الخلايا، بوجود الأكسجين.",
+"dig-16":"يدخل الهواءُ من الأنف والفم، إلى البلعوم، ثم الحنجرة، فالقصبة الهوائية، ثم الشعبتين، حتى الحويصلات الهوائية.",
+"dig-17":"وعند الحويصلات الهوائية يحدث تبادلُ الغازات: ينتقل الأكسجينُ إلى الدم، ويخرج ثاني أكسيد الكربون مع هواء الزفير.",
+"dig-18":"والحجابُ الحاجز ينقبض وينبسط، لينظّم الشهيقَ والزفير.",
+"dig-19":"الدوران: حركةُ الموادّ المهمة، مثل الأكسجين والجلوكوز والفضلات، في الجسم.",
+"dig-20":"يضخّ القلبُ الدمَ غيرَ المؤكسج إلى الرئتين، فيأخذ الأكسجين، ثم يعود إلى القلب.",
+"dig-21":"ثم يضخّه القلبُ إلى أجزاء الجسم. وعند الأمعاء الدقيقة يُحمَّل بالموادّ الغذائية.",
+"dig-22":"وفي الشعيرات الدموية يعطي الخلايا الغذاءَ والأكسجين، ويأخذ فضلاتِها، ثم يعود إلى القلب.",
+"dig-23":"هذه رحلتي كلها! الهضمُ يحلّل الغذاء، والإخراجُ يخلّص من الفضلات، والتنفسُ يُطلق الطاقة، والدورانُ ينقل."
+}</script>
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
+<script src="vendor/gsap.min.js"></script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from './vendor/OrbitControls.js';
+const $ = s => document.querySelector(s);
+const AR = n => String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+const LINES = JSON.parse($('#lines').textContent);
+const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const lowEnd = (navigator.hardwareConcurrency || 4) <= 4;
+const D = d => calm ? .01 : d;
+
+/* ---------- renderer: a bright clay world ---------- */
+const renderer = new THREE.WebGLRenderer({antialias: true}); renderer.setPixelRatio(Math.min(devicePixelRatio, lowEnd ? 1.5 : 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05; $('#stage').appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+{ const c = document.createElement('canvas'); c.width = 4; c.height = 256; const g = c.getContext('2d'), gr = g.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, '#bfe9ff'); gr.addColorStop(.6, '#e4f6ff'); gr.addColorStop(1, '#fff1dc'); g.fillStyle = gr; g.fillRect(0, 0, 4, 256); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; scene.background = t; }
+const camera = new THREE.PerspectiveCamera(50, 1, .1, 200);
+const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.enablePan = false; controls.minDistance = 2.5; controls.maxDistance = 26;
+scene.add(new THREE.HemisphereLight(0xfff6ea, 0x9fb7d6, 1.9));
+const key = new THREE.DirectionalLight(0xffffff, 2.2); key.position.set(3, 6, 8); scene.add(key);
+const fill = new THREE.DirectionalLight(0xffe0c8, .9); fill.position.set(-5, 1, 4); scene.add(fill);
+let portrait = true, shift = 0, shiftT = 0;
+const freeBox = () => { const t = $('#modes').getBoundingClientRect().bottom + 4, b = $('#dock').getBoundingClientRect().top - 4; return {t, b, h: Math.max(120, b - t)}; };
+function fit() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; portrait = camera.aspect < 1; camera.fov = portrait ? 56 : 40; aimShift(true); }
+// move the projection so the middle of the free area (between the chips and the narration) is the centre of the 3D view
+function aimShift(now) { const f = freeBox(); shiftT = innerHeight / 2 - (f.t + f.b) / 2; if (now) shift = shiftT; applyShift(); }
+function applyShift() { camera.setViewOffset(innerWidth, innerHeight, 0, shift, innerWidth, innerHeight); camera.updateProjectionMatrix(); }
+addEventListener('resize', fit);
+if (window.ResizeObserver) new ResizeObserver(() => aimShift()).observe($('#dock'));
+
+/* ---------- clay helpers (fingerprint bump like the clay school) ---------- */
+const clayBump = (() => { const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'); g.fillStyle = '#808080'; g.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 2600; i++) { const v = 110 + Math.random() * 40 | 0; g.fillStyle = `rgba(${v},${v},${v},.35)`; g.beginPath(); g.arc(Math.random() * 256, Math.random() * 256, 1 + Math.random() * 3, 0, 7); g.fill(); }
+  g.lineWidth = 1.2; for (let i = 0; i < 40; i++) { const x = Math.random() * 256, y = Math.random() * 256, r = 6 + Math.random() * 14; for (let k = 0; k < 4; k++) { g.strokeStyle = `rgba(${Math.random() < .5 ? 90 : 170},${Math.random() < .5 ? 90 : 170},${Math.random() < .5 ? 90 : 170},.25)`; g.beginPath(); g.arc(x, y, r + k * 2.4, Math.random() * 3, Math.random() * 3 + 2); g.stroke(); } }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t; })();
+const clay = (c, o = {}) => new THREE.MeshStandardMaterial({color: c, roughness: .82, metalness: 0, bumpMap: clayBump, bumpScale: 1.2, ...o});
+const gloss = (c, o = {}) => new THREE.MeshPhysicalMaterial({color: c, roughness: .45, clearcoat: .7, clearcoatRoughness: .35, bumpMap: clayBump, bumpScale: .6, ...o});
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+const sph = (r, m, seg = 28) => new THREE.Mesh(new THREE.SphereGeometry(r, seg, Math.round(seg * .7)), m);
+const curve = (pts, closed = false) => new THREE.CatmullRomCurve3(pts, closed, 'centripetal');
+const glowTex = (inner, outer) => { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'), r = g.createRadialGradient(32, 32, 0, 32, 32, 32); r.addColorStop(0, inner); r.addColorStop(1, outer); g.fillStyle = r; g.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); };
+
+/* ---------- fades: every organ group can become a ghost or disappear ---------- */
+const FD = [];
+function regFade(o, a = 1) { o.userData.a = a; o.userData.la = -1; o.traverse(m => { if (m.material) { m.material.userData.base = m.material.opacity; m.material.userData.tr = m.material.transparent; m.material.userData.dw = m.material.depthWrite; } }); FD.push(o); return o; }
+const fade = (o, a, d = 1) => gsap.to(o.userData, {a, duration: D(d), overwrite: true});
+function applyFades() { for (const o of FD) { const a = o.userData.a; if (a === o.userData.la) continue; o.userData.la = a; o.visible = a > .01;
+  o.traverse(m => { const M = m.material; if (!M || M.userData.base === undefined) return; M.opacity = M.userData.base * a; const tr = M.userData.tr || a < .99; if (tr !== M.transparent) { M.transparent = tr; M.needsUpdate = true; } M.depthWrite = M.userData.dw && a > .99; }); } }
+
+/* ---------- the clay body: a board-like torso, neck and a cute head ---------- */
+const skin = clay(0xffd2ad), body = new THREE.Group(); scene.add(body);
+const torso = new THREE.Mesh(new THREE.CapsuleGeometry(2.55, 4.6, 12, 36), skin); torso.scale.set(1, 1, .3); torso.position.set(0, -.75, -.45); body.add(torso);
+const neck = new THREE.Mesh(new THREE.CylinderGeometry(.5, .6, 1.1, 24), skin); neck.position.set(0, 4.15, -.25); body.add(neck);
+const head = new THREE.Group(); head.position.set(0, 5.45, 0); body.add(head);
+head.add(sph(1.08, skin, 40));
+{ const hair = new THREE.Mesh(new THREE.SphereGeometry(1.13, 40, 20, 0, Math.PI * 2, 0, Math.PI * .42), clay(0x4a2f22)); hair.rotation.x = -.25; head.add(hair);
+  for (const s of [-1, 1]) { const ear = sph(.24, skin, 16); ear.scale.set(.6, 1, .6); ear.position.set(s * 1.06, -.05, 0); head.add(ear); } }
+const face = new THREE.Group(); face.position.set(0, 0, 0); head.add(face);
+const eyesH = new THREE.Group(); face.add(eyesH);
+for (const s of [-1, 1]) { const e = new THREE.Group(); e.position.set(s * .36, .12, .93); e.rotation.y = s * .32;
+  const w = sph(.2, gloss(0xffffff, {bumpScale: 0, roughness: .15}), 24); w.scale.set(1, 1.15, .55); e.add(w);
+  const p = sph(.11, new THREE.MeshBasicMaterial({color: 0x1b1730}), 18); p.scale.z = .5; p.position.set(0, -.02, .09); e.add(p);
+  const hl = sph(.035, new THREE.MeshBasicMaterial({color: 0xffffff}), 10); hl.position.set(.04, .03, .15); e.add(hl); eyesH.add(e); }
+{ const n = sph(.12, skin, 16); n.scale.set(1, .8, .8); n.position.set(0, -.12, 1.07); face.add(n);
+  const ch = new THREE.SpriteMaterial({map: glowTex('rgba(255,110,140,.6)', 'rgba(255,110,140,0)'), transparent: true, depthWrite: false});
+  for (const s of [-1, 1]) { const c = new THREE.Sprite(ch); c.scale.setScalar(.38); c.position.set(s * .58, -.22, .9); face.add(c); } }
+const mouthH = new THREE.Group(); mouthH.position.set(0, -.46, .95); mouthH.rotation.x = .35; face.add(mouthH);
+{ const m = sph(.22, new THREE.MeshStandardMaterial({color: 0x6b1424, roughness: .7}), 24); m.scale.set(1.3, 1, .4); mouthH.add(m);
+  const t = sph(.12, clay(0xff7a8a, {bumpScale: .4}), 16); t.scale.set(1.3, .5, .5); t.position.set(0, -.11, .05); mouthH.add(t); }
+mouthH.scale.y = .25;
+const MOUTH = V(0, 5.0, 1.0);
+
+/* ---------- the digestive tube: see-through glossy clay that bulges around the bite (peristalsis) ---------- */
+function gutMat(col, op = .42) {
+  const m = new THREE.MeshPhysicalMaterial({color: col, roughness: .3, clearcoat: 1, clearcoatRoughness: .25, transparent: true, opacity: op, depthWrite: false, side: THREE.DoubleSide, bumpMap: clayBump, bumpScale: .35});
+  m.userData.u = {uB: {value: -9}, uL: {value: 1}, uR: {value: .2}};
+  m.onBeforeCompile = s => { Object.assign(s.uniforms, m.userData.u);
+    s.vertexShader = 'uniform float uB, uL, uR; attribute float aU;\n' + s.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+      float dd = (aU - uB) * uL; float k = .62 * exp(-dd * dd / .05) - .42 * exp(-(dd + .42) * (dd + .42) / .025);
+      transformed += objectNormal * uR * k;`); };
+  m.customProgramCacheKey = () => 'gut'; return m;
+}
+function gut(c, R, col, op) {
+  const len = c.getLength(), segs = Math.max(60, Math.round(len * 26)), g = new THREE.TubeGeometry(c, segs, R, 16, false), uv = g.attributes.uv, a = new Float32Array(uv.count);
+  for (let i = 0; i < uv.count; i++) a[i] = uv.getX(i); g.setAttribute('aU', new THREE.BufferAttribute(a, 1));
+  const m = gutMat(col, op); m.userData.u.uL.value = len; m.userData.u.uR.value = R;
+  const mesh = new THREE.Mesh(g, m); mesh.renderOrder = 2; return mesh;
+}
+// stomach: a bent bean, glossy and see-through, it squeezes while it works
+const stomach = new THREE.Group(); stomach.position.set(1.05, 1.5, .78); stomach.rotation.z = -.5; scene.add(stomach);
+const stomachBody = (() => { const g = new THREE.SphereGeometry(1, 48, 32), p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), z = p.getZ(i), w = 1 + .18 * Math.max(0, y); p.setXYZ(i, x * .6 * w - .5 * y * y, y * 1.05, z * .48 * w); }
+  g.computeVertexNormals(); const m = new THREE.MeshPhysicalMaterial({color: 0xff8fb0, roughness: .3, clearcoat: 1, clearcoatRoughness: .25, transparent: true, opacity: .5, depthWrite: false, bumpMap: clayBump, bumpScale: .35});
+  const s = new THREE.Mesh(g, m); s.scale.setScalar(.9); s.renderOrder = 2; return s; })();
+stomach.add(stomachBody); stomach.updateMatrixWorld(true);
+const SW = (x, y) => stomach.localToWorld(V(x * .9, y * .9, 0));
+const CARDIA = SW(-.32, .9), PYLORUS = SW(-.52, -1.02), SCENTER = SW(-.05, .05);
+const E = curve([MOUTH.clone(), V(0, 4.55, .95), V(0, 3.9, .9), V(.05, 3.2, .85), V(.25, 2.6, .85), CARDIA.clone()]);
+const esophagus = gut(E, .2, 0xffa6b8, .45); scene.add(esophagus);
+// small intestine: a long coil filling the belly
+const sPts = [PYLORUS.clone(), V(-.12, .55, .7), V(.2, .12, .6), V(.75, -.02, .7), V(1.18, -.1, .72), V(1.36, -.32, .74), V(1.08, -.47, .74)];
+for (let r = 0; r < 6; r++) { const y = -.45 - r * .48, dir = r % 2 ? 1 : -1, xs = [1.1, .55, 0, -.55, -1.1].map(x => x * -dir);
+  xs.forEach((x, j) => { if (r === 0 && j === 0) return; sPts.push(V(x, y + Math.sin(j * 1.7 + r) * .06, .74 + .12 * Math.sin(j * 1.3 + r * 2))); });
+  if (r < 5) sPts.push(V(dir * 1.3, y - .24, .74)); }
+sPts.push(V(-1.4, -3.05, .74), V(-1.72, -3.1, .74));
+const S = curve(sPts); const small = gut(S, .14, 0xff9c8a, .5); scene.add(small);
+// large intestine: a frame around the coil, then out at the bottom
+const L = curve([V(-1.72, -3.1, .74), V(-1.88, -2.2, .8), V(-1.9, -.8, .86), V(-1.78, .12, .95), V(-1.2, .42, 1.08), V(-.3, .3, 1.16), V(.6, .36, 1.16), V(1.45, .4, 1.06), V(1.92, .02, .96), V(2.0, -1.1, .86), V(1.93, -2.4, .82), V(1.55, -3.3, .86), V(.75, -3.55, .9), V(.12, -3.62, .9), V(0, -4.05, .86), V(0, -4.6, .8)]);
+const large = gut(L, .25, 0xc9a2ff, .42); scene.add(large);
+const liver = new THREE.Group(); { const g = new THREE.SphereGeometry(1, 40, 28), p = g.attributes.position;   // a wedge: thick on one side, thin toward the stomach, flat underneath
+  for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), z = p.getZ(i), k = 1 - .55 * (x + 1) / 2; p.setXYZ(i, x, (y < 0 ? y * .45 : y) * k, z * k); }
+  g.computeVertexNormals(); const m = new THREE.Mesh(g, gloss(0x9c3f33)); m.scale.set(1.15, .85, .5); m.rotation.z = -.12; liver.add(m); liver.position.set(-.9, 1.75, .55); scene.add(liver); }
+const pancreas = new THREE.Group(); { const m = new THREE.Mesh(new THREE.CapsuleGeometry(.13, .95, 8, 18), gloss(0xf6b04f)); m.rotation.z = Math.PI / 2 - .2; pancreas.add(m); pancreas.position.set(1.0, .72, .45); scene.add(pancreas); }
+// a blood vessel beside the coil (for absorption)
+const VES = curve([V(1.48, -3.0, .5), V(1.5, -1.6, .55), V(1.45, -.3, .55), V(1.25, .2, .5)]);
+const vessel = new THREE.Mesh(new THREE.TubeGeometry(VES, 60, .075, 10), gloss(0xe23a4a)); scene.add(vessel);
+[esophagus, stomach, small, large, liver, pancreas, vessel].forEach(o => regFade(o));
+
+/* ---------- the bite: a cute clay ball of bread with big eyes ---------- */
+const bite = (() => { const g = new THREE.Group(), bm = clay(0xf2b65a, {bumpScale: 2});
+  const b = sph(1, bm, 36); g.add(b);
+  for (let i = 0; i < 9; i++) { const a = Math.random() * 6.28, y = (Math.random() - .5) * 1.4, r = Math.sqrt(1 - y * y / 1.1); const c = sph(.12 + Math.random() * .08, clay(0xc9832f), 12); c.position.set(Math.cos(a) * r * .97, y, Math.sin(a) * r * .97); c.scale.z = .5; c.lookAt(0, 0, 0); if (c.position.z > .6) continue; g.add(c); }
+  const f = new THREE.Group(); f.position.z = .9; g.add(f);
+  const eyes = new THREE.Group(); f.add(eyes);
+  for (const s of [-1, 1]) { const e = new THREE.Group(); e.position.set(s * .36, .2, .02);
+    const w = sph(.3, gloss(0xffffff, {bumpScale: 0, roughness: .12}), 22); w.scale.set(1, 1.1, .5); e.add(w);
+    const p = sph(.17, new THREE.MeshBasicMaterial({color: 0x1b1730}), 16); p.scale.z = .5; p.position.set(0, -.03, .12); e.add(p);
+    const h = sph(.06, new THREE.MeshBasicMaterial({color: 0xffffff}), 10); h.position.set(.06, .05, .2); e.add(h); eyes.add(e); }
+  const sm = new THREE.Mesh(new THREE.TorusGeometry(.22, .05, 8, 20, Math.PI), new THREE.MeshBasicMaterial({color: 0x5a1a1a})); sm.rotation.z = Math.PI; sm.position.set(0, -.22, .05); f.add(sm);
+  const ch = new THREE.SpriteMaterial({map: glowTex('rgba(255,90,120,.7)', 'rgba(255,90,120,0)'), transparent: true, depthWrite: false});
+  for (const s of [-1, 1]) { const c = new THREE.Sprite(ch); c.scale.setScalar(.36); c.position.set(s * .58, -.12, .05); f.add(c); }
+  g.renderOrder = 1; scene.add(g); return {g, b, bm, f, eyes}; })();
+regFade(bite.g);
+const BS = {c: null, t: 0, r: .2, sq: 0, churn: 0, ph: 0};      // bite state: on a curve (c,t) or free, radius, squash, churn inside stomach
+const BITE_COL = [0xf2b65a, 0xdba35a, 0xb98149, 0x8e5f3c];
+const tintBite = (k, d = 1.5) => { const c = new THREE.Color(BITE_COL[k]); gsap.to(bite.bm.color, {r: c.r, g: c.g, b: c.b, duration: D(d)}); };
+// small pieces after the stomach
+const pieceM = clay(0xe0a75c);
+const pieces = Array.from({length: 8}, (_, i) => { const p = sph(1, pieceM, 14); p.userData = {lag: .012 + i * .011, mode: 'off', ph: Math.random() * 6.28, rr: .2 + Math.random() * .25}; p.visible = false; p.renderOrder = 1; scene.add(p); return p; });
+// stomach acid bubbles + enzyme sparkles
+const bubTex = glowTex('rgba(190,255,140,1)', 'rgba(120,230,90,0)');
+const acid = Array.from({length: 18}, () => { const s = new THREE.Sprite(new THREE.SpriteMaterial({map: bubTex, transparent: true, depthWrite: false, opacity: 0})); s.scale.setScalar(.12); s.userData = {p: Math.random(), x: (Math.random() - .5) * .7, z: (Math.random() - .5) * .3}; s.renderOrder = 3; scene.add(s); return s; });
+let acidOn = 0;
+// nutrients (to the blood) and water drops (large intestine)
+const nutTex = glowTex('rgba(255,236,120,1)', 'rgba(255,190,40,0)'), dropM = gloss(0x4fb3ff, {bumpScale: 0, roughness: .1, transparent: true, opacity: .9});
+const drops = Array.from({length: 10}, () => { const d = sph(.07, dropM.clone(), 12); d.scale.y = 1.3; d.visible = false; d.renderOrder = 3; scene.add(d); return d; });
+
+/* ---------- other organs for excretion, breathing and circulation ---------- */
+const lungs = new THREE.Group(); scene.add(lungs);
+const lungM = gloss(0xff9fb3, {transparent: true, opacity: .62, depthWrite: false});
+for (const s of [-1, 1]) { const g = new THREE.SphereGeometry(1, 40, 28), p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) { let x = p.getX(i), y = p.getY(i), z = p.getZ(i); if (x * s < 0) x *= .55; p.setXYZ(i, x * .82, y * 1.25 - .1 * x * x, z * .5); }
+  g.computeVertexNormals(); const m = new THREE.Mesh(g, lungM); m.position.set(s * 1.18, 2.35, .55); m.renderOrder = 2; lungs.add(m); }
+const airways = new THREE.Group(); scene.add(airways);
+const awM = gloss(0xfff0f4, {bumpScale: .3});
+const TR = curve([V(0, 4.95, 1.12), V(0, 4.45, 1.15), V(0, 3.8, 1.12), V(0, 3.3, 1.08)]);
+airways.add(new THREE.Mesh(new THREE.TubeGeometry(TR, 40, .11, 12), awM));
+const BR = [-1, 1].map(s => curve([V(0, 3.3, 1.08), V(s * .45, 3.0, 1.0), V(s * .95, 2.7, .9), V(s * 1.2, 2.2, .85)]));
+const twigs = [];
+BR.forEach((c, k) => { const s = k ? 1 : -1; airways.add(new THREE.Mesh(new THREE.TubeGeometry(c, 30, .075, 10), awM));
+  for (const [x, y] of [[.75, 2.0], [1.55, 2.5], [1.45, 1.7], [1.0, 1.55]]) { const t = curve([V(s * 1.05, 2.5, .88), V(s * (x + 1.05) / 2, (y + 2.5) / 2 + .08, .87), V(s * x, y, .85)]); twigs.push(t); airways.add(new THREE.Mesh(new THREE.TubeGeometry(t, 12, .035, 6), awM)); } });
+const diaphragm = new THREE.Mesh(new THREE.SphereGeometry(1, 40, 14, 0, Math.PI * 2, 0, Math.PI / 2), gloss(0xe0606f, {side: THREE.DoubleSide, transparent: true, opacity: .8})); diaphragm.scale.set(2.2, .4, .5); diaphragm.position.set(0, .7, .45); scene.add(diaphragm);
+const heart = new THREE.Group(); { const sh = new THREE.Shape(); sh.moveTo(0, -.42); sh.bezierCurveTo(-.12, -.28, -.46, -.1, -.46, .14); sh.bezierCurveTo(-.46, .36, -.2, .44, 0, .24); sh.bezierCurveTo(.2, .44, .46, .36, .46, .14); sh.bezierCurveTo(.46, -.1, .12, -.28, 0, -.42);
+  const g = new THREE.ExtrudeGeometry(sh, {depth: .12, bevelEnabled: true, bevelThickness: .16, bevelSize: .1, bevelSegments: 8, curveSegments: 24}); g.center();
+  heart.add(new THREE.Mesh(g, gloss(0xe0313d))); heart.position.set(.12, 1.75, 1.25); heart.rotation.z = -.2; scene.add(heart); }
+const kidneys = new THREE.Group(); for (const s of [-1, 1]) { const k = sph(1, gloss(0xb23a48), 28); k.scale.set(.36, .62, .3); k.position.set(s * 1.0, -.95, .42); k.rotation.z = s * -.2; kidneys.add(k); } scene.add(kidneys);
+// alveoli under a magnifying ring (enlarged)
+const alv = new THREE.Group(); alv.position.set(2.55, 3.75, 1.3); scene.add(alv);
+{ const ring = new THREE.Mesh(new THREE.TorusGeometry(1.05, .09, 12, 48), clay(0xffffff, {bumpScale: .5})); alv.add(ring);
+  const disc = new THREE.Mesh(new THREE.CircleGeometry(1.0, 40), new THREE.MeshBasicMaterial({color: 0xfff6f8, transparent: true, opacity: .85, depthWrite: false})); disc.position.z = -.05; alv.add(disc);
+  const am = gloss(0xff9fb3, {transparent: true, opacity: .8});
+  [[0, .25], [-.28, .05], [.28, .05], [-.15, -.25], [.15, -.25], [0, -.02], [0, .5]].forEach(([x, y], i) => { const b = sph(i === 6 ? .1 : .19, am, 20); b.position.set(x, y, .08); alv.add(b); });
+  const cap = curve([V(-.75, -.55, .3), V(-.45, -.45, .32), V(0, -.52, .34), V(.45, -.45, .32), V(.75, -.55, .3)]);
+  const cg = new THREE.TubeGeometry(cap, 40, .07, 8), col = []; for (let i = 0; i < cg.attributes.position.count; i++) { const u = cg.attributes.uv.getX(i), c = new THREE.Color(0x3b6fe0).lerp(new THREE.Color(0xe23a4a), THREE.MathUtils.smoothstep(u, .35, .65)); col.push(c.r, c.g, c.b); }
+  cg.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); alv.add(new THREE.Mesh(cg, clay(0xffffff, {vertexColors: true, bumpScale: .4})));
+  alv.userData.cap = cap; }
+const gasO = Array.from({length: 6}, () => { const s = new THREE.Sprite(new THREE.SpriteMaterial({map: glowTex('rgba(40,170,255,1)', 'rgba(40,170,255,0)'), transparent: true, depthWrite: false})); s.scale.setScalar(.26); s.userData.p = Math.random(); alv.add(s); return s; });
+const gasC = Array.from({length: 5}, () => { const s = new THREE.Sprite(new THREE.SpriteMaterial({map: glowTex('rgba(70,70,90,1)', 'rgba(70,70,90,0)'), transparent: true, depthWrite: false})); s.scale.setScalar(.26); s.userData.p = Math.random(); alv.add(s); return s; });
+const air = Array.from({length: 14}, (_, i) => { const s = new THREE.Sprite(new THREE.SpriteMaterial({map: glowTex('rgba(40,160,255,1)', 'rgba(40,160,255,0)'), transparent: true, depthWrite: false, opacity: 0})); s.scale.setScalar(.24); s.userData = {p: i / 14, side: i % 2}; s.renderOrder = 4; scene.add(s); return s; });
+// circulation loops: heart -> lungs -> heart, and heart -> body (small intestine, body cells) -> heart
+const HP = heart.position;
+const PUL = curve([HP.clone().add(V(-.15, .3, .05)), V(-.5, 2.45, 1.25), V(-1.15, 2.9, 1.05), V(-1.6, 2.3, 1.0), V(-1.2, 1.55, 1.1), V(-.45, 1.5, 1.25)], true);
+const SYS = curve([HP.clone().add(V(.2, -.25, .05)), V(1.3, 1.0, 1.32), V(2.05, -.2, 1.25), V(1.7, -1.4, 1.35), V(.6, -1.7, 1.4), V(.2, -2.9, 1.4), V(-.4, -3.0, 1.4), V(-1.65, -1.9, 1.32), V(-2.0, -.3, 1.25), V(-1.0, 1.15, 1.3)], true);
+const near = (c, p) => { let b = 0, bd = 1e9; for (let i = 0; i <= 400; i++) { const d = c.getPointAt(i / 400).distanceTo(p); if (d < bd) { bd = d; b = i / 400; } } return b; };
+const uLung = near(PUL, V(-1.15, 2.9, 1.05)), uInt = near(SYS, V(.6, -1.7, 1.4)), uCell = near(SYS, V(-.1, -2.95, 1.4));
+const RED = new THREE.Color(0xe23a4a), BLUE = new THREE.Color(0x3b6fe0);
+const pulCol = u => u < .06 || u > uLung + .04 ? (u < .06 ? BLUE : RED) : (u < uLung ? BLUE : RED);
+const sysCol = u => (u < uCell ? RED : BLUE);
+function vesselTube(c, colFn) { const g = new THREE.TubeGeometry(c, 160, .07, 8, true), col = []; for (let i = 0; i < g.attributes.position.count; i++) { const cc = colFn(g.attributes.uv.getX(i)); col.push(cc.r, cc.g, cc.b); } g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); return new THREE.Mesh(g, gloss(0xffffff, {vertexColors: true, bumpScale: .3, transparent: true, opacity: .55, depthWrite: false})); }
+const circ = new THREE.Group(); scene.add(circ);
+circ.add(vesselTube(PUL, u => u < uLung ? BLUE : RED), vesselTube(SYS, sysCol));
+const cellsG = new THREE.Group(); cellsG.position.set(-.1, -3.3, 1.35); circ.add(cellsG);
+[[-.35, 0], [0, .05], [.35, 0], [-.18, -.3], [.18, -.3]].forEach(([x, y], i) => { const c = new THREE.Mesh(new THREE.BoxGeometry(.3, .26, .2, 2, 2, 2), clay([0x7fd17a, 0x9be08f, 0x6cc2a0][i % 3])); c.position.set(x, y, 0); c.rotation.z = (Math.random() - .5) * .3; cellsG.add(c); const n = sph(.06, clay(0x3d7a4a), 10); n.position.set(x, y, .1); cellsG.add(n); });
+const redM = gloss(0xe23a4a, {bumpScale: .2}), blueM = gloss(0x3b6fe0, {bumpScale: .2}), nutM = new THREE.SpriteMaterial({map: nutTex, transparent: true, depthWrite: false});
+const blood = []; for (const [c, n, sp] of [[PUL, 9, .09], [SYS, 20, .05]]) for (let i = 0; i < n; i++) { const m = sph(.075, redM, 12); m.scale.set(1.2, 1.2, .6); const t = new THREE.Sprite(nutM); t.scale.setScalar(.22); t.position.z = .05; m.add(t); m.userData = {c, u: i / n, sp, tag: t}; circ.add(m); blood.push(m); }
+[lungs, airways, diaphragm, heart, kidneys, alv, circ].forEach(o => regFade(o, 0));
+applyFades();
+const skinGlow = {v: 0};
+
+/* ---------- labels (HTML, follow 3D points) ---------- */
+const LB = {};
+function lbl(id, text, pos) { const el = document.createElement('div'); el.className = 'lbl'; el.textContent = text; $('#labels').appendChild(el); LB[id] = {el, pos, on: 0}; }
+lbl('mouth', 'الفم', V(-.95, 4.85, 1.0)); lbl('eso', 'المريء', V(.8, 3.6, .9)); lbl('stom', 'المعدة', V(1.9, 2.35, .9)); lbl('liver', 'الكبد', V(-.75, 2.55, .8)); lbl('panc', 'البنكرياس', V(1.45, .45, 1.1));
+lbl('acid', 'حمض وإنزيم', V(1.6, 1.05, 1.4)); lbl('juice', 'العصارة الهضمية', V(1.6, 1.05, 1.4));
+lbl('small', 'الأمعاء الدقيقة', V(0, -1.6, 1.3)); lbl('large', 'الأمعاء الغليظة', V(-1.55, -3.95, 1.0)); lbl('blood', 'الدم', V(1.55, -.8, .9)); lbl('water', 'يُمتص الماء 💧', V(2.3, .75, 1.0)); lbl('out', 'الفضلات تخرج', V(0, -4.95, .9));
+lbl('kid', 'الكليتان', V(-1.0, -1.85, 1.0)); lbl('lungs', 'الرئتان', V(-1.6, 3.55, .9)); lbl('skin', 'الجلد', V(2.45, -.6, .3)); lbl('liver2', 'الكبد', V(-1.6, 1.25, .9));
+lbl('nose', 'الأنف والفم', V(-.95, 5.05, 1.1)); lbl('phar', 'البلعوم', V(.75, 4.55, 1.1)); lbl('lar', 'الحنجرة', V(-.75, 4.1, 1.1)); lbl('trach', 'القصبة الهوائية', V(.95, 3.6, 1.1)); lbl('bron', 'الشعبتان', V(1.1, 2.95, 1.0));
+lbl('alv', 'الحويصلات الهوائية (مكبّرة)', V(2.55, 5.3, 1.3)); lbl('o2', 'الأكسجين يدخل الدم', V(2.55, 2.42, 1.4)); lbl('co2', 'ثاني أكسيد الكربون يخرج', V(2.55, 4.88, 1.4)); lbl('dia', 'الحجاب الحاجز', V(0, .05, 1.2));
+lbl('heart', 'القلب', V(.55, 1.15, 1.6)); lbl('lungs2', 'الرئتان', V(-1.55, 3.4, 1.0)); lbl('int2', 'الأمعاء الدقيقة', V(1.05, -2.05, 1.5)); lbl('cells', 'خلايا الجسم', V(-.1, -3.9, 1.4)); lbl('capil', 'الشعيرات الدموية', V(-1.35, -2.75, 1.4));
+const showL = ids => Object.entries(LB).forEach(([k, L]) => { L.on = ids.includes(k); L.el.classList.toggle('on', L.on); L.el.classList.remove('hot'); });
+const addL = (...ids) => ids.forEach(k => { LB[k].on = true; LB[k].el.classList.add('on'); });
+const hot = id => { Object.values(LB).forEach(L => L.el.classList.remove('hot')); id && LB[id].el.classList.add('hot'); };
+const _v = new THREE.Vector3();
+function placeLabels() { const f = freeBox(); for (const L of Object.values(LB)) { if (!L.on) continue; _v.copy(L.pos).project(camera);
+  const x = (_v.x * .5 + .5) * innerWidth, y = (-_v.y * .5 + .5) * innerHeight, w = L.el.offsetWidth / 2, ok = _v.z < 1 && y > f.t + 12 && y < f.b - 10;
+  L.el.style.opacity = ok ? '' : '0'; L.el.style.transform = `translate(${Math.min(innerWidth - w - 4, Math.max(w + 4, x)) - w}px,${y - 13}px)`; } }
+
+/* ---------- camera: frame a box inside the free area ---------- */
+function frame(c, w, h, dir = V(0, .1, 1), d = 2) { const vf = THREE.MathUtils.degToRad(camera.fov) / 2, fh = freeBox().h / innerHeight;
+  const dist = Math.max(h / (2 * Math.tan(vf) * fh), w / (2 * Math.tan(vf) * camera.aspect)) * 1.3 + .6, p = c.clone().add(dir.clone().normalize().multiplyScalar(dist));
+  gsap.to(camera.position, {x: p.x, y: p.y, z: p.z, duration: D(d), ease: 'power2.inOut', overwrite: true}); gsap.to(controls.target, {x: c.x, y: c.y, z: c.z, duration: D(d), ease: 'power2.inOut', overwrite: true}); }
+
+/* ---------- step helpers ---------- */
+let TL = [];   // running timelines of this step
+const killTL = () => { TL.forEach(t => t.kill()); TL = []; };
+const tl = o => { const t = gsap.timeline(o); TL.push(t); return t; };
+const eq = h => { $('#eq').innerHTML = h || ''; $('#eq').classList.toggle('on', !!h); };
+const DIG = [esophagus, stomach, small, large, liver, pancreas, vessel];
+function reset() { TL.forEach(t => t.kill()); TL = []; gsap.killTweensOf(BS); gsap.killTweensOf(bite.g.position); gsap.killTweensOf(bite.g.scale); gsap.killTweensOf(mouthH.scale);
+  pieces.forEach(p => { gsap.killTweensOf(p.position); gsap.killTweensOf(p.scale); p.visible = false; p.userData.mode = 'off'; }); drops.forEach(d => { gsap.killTweensOf(d.position); d.visible = false; });
+  acidOn = 0; skinGlow.v = 0; stomachBody.scale.setScalar(.9); [liver, pancreas, kidneys, heart].forEach(o => { gsap.killTweensOf(o.scale); o.scale.setScalar(1); }); eq(); showL([]); }
+function organs({dig = 1, ball = 1, lung = 0, air = 0, dia = 0, hrt = 0, kid = 0, al = 0, cir = 0, si = null}) {
+  DIG.forEach(o => fade(o, dig)); if (si !== null) fade(small, si); fade(bite.g, ball); fade(lungs, lung); fade(airways, air); fade(diaphragm, dia); fade(heart, hrt); fade(kidneys, kid); fade(alv, al); fade(circ, cir); }
+const ON_CURVE = (c, t) => { BS.c = c; BS.t = t; };
+const pop = (o, s = 1.25) => tl().to(o.scale, {x: s, y: s, z: s, duration: D(.35), yoyo: true, repeat: 3, ease: 'sine.inOut'});
+const ballR = (r, d = 1) => gsap.to(BS, {r, duration: D(d)});
+let breathing = 0;
+
+const STEPS = {
+  mouth: {n: '👄 الفم والمريء', a: ['dig-01', 'dig-02', 'dig-03'],
+    set() { reset(); organs({}); breathing = 0; BS.c = null; BS.churn = 0; BS.r = .3; tintBite(0, .01); bite.g.position.set(0, 5.05, 2.55); mouthH.scale.y = .25;
+      frame(V(0, 4.45, .9), 2.6, 3.2, V(.25, .15, 1)); },
+    on: [() => { tl().to(BS, {sq: 1, duration: D(.25), yoyo: true, repeat: 5}); },
+      () => { showL(['mouth']); hot('mouth'); const t = tl(); t.to(mouthH.scale, {y: 1, duration: D(.5)}).to(bite.g.position, {x: MOUTH.x, y: MOUTH.y, z: MOUTH.z + .12, duration: D(1.3), ease: 'power2.in'}, '<.2').to(BS, {r: .2, duration: D(1.3)}, '<')
+        .to(mouthH.scale, {y: .35, duration: D(.22), yoyo: true, repeat: 5, ease: 'sine.inOut'}).to(BS, {sq: 1, duration: D(.22), yoyo: true, repeat: 5}, '<'); },
+      () => { showL(['mouth', 'eso', 'stom']); hot('eso'); ON_CURVE(E, 0); gsap.to(mouthH.scale, {y: .25, duration: D(.4)}); tl().to(BS, {t: 1, duration: D(5.5), ease: 'sine.inOut'}); frame(V(.35, 3.1, .8), 2.6, 4.2, V(.2, .1, 1), 2.6); }]},
+  stomach: {n: '🫃 المعدة', a: ['dig-04', 'dig-05', 'dig-06'],
+    set() { reset(); organs({}); breathing = 0; ON_CURVE(E, 1); BS.r = .2; tintBite(0, .01); frame(V(.75, 1.7, .8), 3.0, 3.0, V(.1, .12, 1)); showL(['stom']); hot('stom'); },
+    on: [() => { const t = tl(); t.to(BS, {t: 1, duration: .1}).add(() => { BS.c = null; }).to(bite.g.position, {x: SCENTER.x, y: SCENTER.y, z: SCENTER.z, duration: D(1.2), ease: 'power1.inOut'})
+        .add(() => { acidOn = 1; BS.churn = 1; addL('acid'); hot('acid'); breakUp(); }).to(BS, {r: .13, duration: D(2.5)}, '<').add(() => tintBite(1));
+        tl({repeat: -1}).to(stomachBody.scale, {x: .8, z: .82, duration: D(.7), ease: 'sine.inOut', yoyo: true, repeat: 1}); },
+      () => { showL(['stom', 'juice']); hot('juice'); },
+      () => { showL(['stom', 'liver', 'panc']); hot('liver'); pop(liver, 1.12); pop(pancreas, 1.3); }]},
+  small: {n: '🌀 الأمعاء الدقيقة', a: ['dig-07', 'dig-08', 'dig-09'], predict: true,
+    set() { reset(); organs({}); breathing = 0; BS.churn = 0; BS.r = .12; tintBite(1, .01); ON_CURVE(S, 0); pieces.forEach(p => { p.visible = true; p.userData.mode = 'follow'; p.scale.setScalar(.055); });
+      frame(V(0, -1.3, .8), 3.0, 4.0, V(0, .1, 1)); showL(['small']); hot('small'); tl().to(BS, {t: 1, duration: D(15), ease: 'none'}); },
+    on: [null, () => { addL('blood'); hot('blood'); tintBite(2, 6); absorb(); }, () => { hot('blood'); }]},
+  large: {n: '🟣 الأمعاء الغليظة', a: ['dig-10', 'dig-11'],
+    set() { reset(); organs({}); breathing = 0; BS.churn = 0; BS.r = .17; tintBite(2, .01); ON_CURVE(L, 0); frame(V(0, -1.6, .8), 4.4, 5.0, V(0, .05, 1)); showL(['large']); hot('large');
+      tl().to(BS, {t: .86, duration: D(9), ease: 'none'}); tintBite(3, 8); waterOut(); tl({delay: D(2)}).add(() => addL('water')); },
+    on: [null, () => { const t = tl(); t.to(BS, {t: 1, duration: D(Math.max(.4, (1 - BS.t) * 9)), ease: 'none'}).add(() => { BS.c = null; addL('out'); hot('out'); })
+        .to(bite.g.position, {y: -5.2, duration: D(1.2), ease: 'power1.in'}).add(() => fade(bite.g, 0, .6)); frame(V(0, -2.9, .8), 3.4, 3.6, V(0, .05, 1), 2.5); }]},
+  excrete: {n: '🚮 الإخراج', a: ['dig-12', 'dig-13'],
+    set() { reset(); breathing = 0; organs({dig: .3, ball: 0, kid: 1, lung: .9}); fade(liver, 1); BS.c = null; frame(V(0, .6, .6), 4.6, 7.0, V(0, .08, 1)); },
+    on: [null, () => { const seq = [['kid', kidneys], ['lungs', lungs], ['liver2', liver], ['skin', null]], t = tl();
+      seq.forEach(([id, o], i) => t.add(() => { addL(id); hot(id); if (o) pop(o, 1.12); else tl().to(skinGlow, {v: 1, duration: D(.5), yoyo: true, repeat: 3}); }, i * 1.3)); }]},
+  breathe: {n: '🫁 التنفس', a: ['dig-14', 'dig-15', 'dig-16', 'dig-17', 'dig-18'],
+    set() { reset(); breathing = 1; organs({dig: .12, ball: 0, lung: 1, air: 1, dia: 1, si: .5}); BS.c = null; frame(V(0, 1.2, .8), 4.4, 6.2, V(0, .08, 1)); showL(['lungs']); },
+    on: [() => { addL('small'); hot('small'); eq('<span>هضم النشويات</span> ← <span>جلوكوز</span>'); },
+      () => { showL(['lungs']); eq('<span>جلوكوز</span> + <span>أكسجين</span> ← <span>طاقة ⚡</span>'); },
+      () => { eq(); showL([]); frame(V(0, 3.6, 1), 3.0, 3.6, V(0, .05, 1)); const t = tl(); ['nose', 'phar', 'lar', 'trach', 'bron', 'lungs'].forEach((id, i) => t.add(() => { addL(id); hot(id); }, i * 1.1)); },
+      () => { killTL(); showL(['alv', 'o2', 'co2']); hot('alv'); fade(alv, 1); frame(V(2.55, 3.85, 1.3), 2.8, 3.4, V(0, .05, 1)); },
+      () => { killTL(); showL(['dia', 'lungs']); hot('dia'); fade(alv, 0); frame(V(0, 1.9, .8), 4.4, 4.6, V(0, .08, 1)); }]},
+  circ: {n: '❤️ الدوران', a: ['dig-19', 'dig-20', 'dig-21', 'dig-22', 'dig-23'],
+    set() { reset(); breathing = 0; organs({dig: .1, ball: 0, lung: .55, hrt: 1, cir: 1, si: .45}); BS.c = null; frame(V(0, .2, .9), 4.6, 6.8, V(0, .06, 1)); showL(['heart']);
+      eq('<span>🔴 دم مؤكسج</span> <span>🔵 دم غير مؤكسج</span>'); },
+    on: [null, () => { showL(['heart', 'lungs2']); hot('lungs2'); frame(V(-.5, 2.1, 1), 3.4, 3.4, V(0, .08, 1)); },
+      () => { showL(['heart', 'int2']); hot('int2'); frame(V(.4, -.2, 1), 3.6, 5.0, V(0, .06, 1)); },
+      () => { showL(['cells', 'capil']); hot('cells'); frame(V(-.2, -2.6, 1.2), 3.6, 3.0, V(0, .06, 1)); },
+      () => { showL(['heart', 'lungs2', 'int2', 'cells']); frame(V(0, .3, .9), 4.6, 7.0, V(0, .06, 1)); }]},
+};
+function breakUp() {   // the bite breaks into little pieces that swirl inside the stomach
+  pieces.forEach((p, i) => { p.visible = true; p.userData.mode = 'swirl'; p.position.copy(SCENTER); p.scale.setScalar(.001); gsap.to(p.scale, {x: .06, y: .06, z: .06, duration: D(.6), delay: D(.3 + i * .15), ease: 'back.out(3)'}); }); }
+function absorb() {   // pieces leave the small intestine into the blood vessel, then ride up in the blood
+  pieces.forEach((p, i) => tl({delay: D(.4 + i * .7)}).add(() => { p.userData.mode = 'free'; p.material = nutPieceM; }).to(p.position, {x: 1.48, y: () => p.position.y + .1, z: .62, duration: D(1), ease: 'power1.inOut'})
+    .to(p.position, {y: .15, duration: D(2.2), ease: 'none'}).to(p.scale, {x: .001, y: .001, z: .001, duration: D(.4)})); }
+const nutPieceM = gloss(0xffd84d, {emissive: 0xffb000, emissiveIntensity: .35, bumpScale: .2});
+function waterOut() {   // water drops leave the large intestine
+  drops.forEach((d, i) => tl({delay: D(1 + i * .8)}).add(() => { d.visible = true; const p = bite.g.position.clone(); d.position.copy(p); d.material.opacity = .9;
+    const out = p.clone().sub(V(0, -1.4, p.z)).setZ(0).normalize().multiplyScalar(.75); gsap.to(d.position, {x: p.x + out.x, y: p.y + out.y, z: p.z + .25, duration: D(1.4), ease: 'power1.out'}); gsap.to(d.material, {opacity: 0, duration: D(.6), delay: D(1.1)}); })); }
+const ORDER = ['mouth', 'stomach', 'small', 'large', 'excrete', 'breathe', 'circ'];
+ORDER.forEach(k => { const b = document.createElement('button'); b.textContent = STEPS[k].n; b.dataset.m = k; b.onclick = () => { setPlay(false); go(k); }; $('#modes').appendChild(b); });
+
+/* ---------- narration: text always shown, voice from the clips ---------- */
+let voice = null, muted = false, tour = false, seqTok = 0, talking = 0;
+const STATE = (() => { try { return JSON.parse(localStorage.getItem('sci-L16-dig') || '{}'); } catch (e) { return {}; } })();
+const save = () => { try { localStorage.setItem('sci-L16-dig', JSON.stringify(STATE)); } catch (e) {} };
+function say(m, done) {
+  const tok = ++seqTok; let k = 0;
+  const nx = () => { if (tok !== seqTok) return; if (k >= m.a.length) { done && done(); return; }
+    const txt = LINES[m.a[k]]; $('#say').innerHTML = '<span class="who">🍞 اللقمة:</span> ' + txt; m.on && m.on[k] && m.on[k]();
+    if (voice) voice.pause(); voice = new Audio('audio/' + m.a[k] + '.mp3'); voice.muted = muted; k++;
+    voice.onplay = () => talking = 1; voice.onpause = () => talking = 0;
+    voice.onended = () => { talking = 0; setTimeout(nx, 700); }; voice.play().catch(() => { talking = 0; setTimeout(nx, 1200 + txt.length * 75); }); };
+  nx();
+}
+function predict(done) {   // before the small intestine: where does the food go after the stomach?
+  STEPS.stomach.set(); BS.c = null; bite.g.position.copy(SCENTER); BS.r = .13; tintBite(1, .01); showL(['stom', 'small', 'large']);
+  $('#say').innerHTML = `<b>🤔 توقّع قبل أن ترى:</b> بعد المعدة، إلى أين تذهب اللقمة؟<div class="pred"><button data-j="1">الأمعاء الدقيقة</button><button data-j="0">الأمعاء الغليظة</button><button data-j="2">ترجع إلى المريء</button></div>`;
+  $('#say').querySelectorAll('.pred button').forEach(b => b.onclick = () => { const ok = b.dataset.j === '1'; b.classList.add(ok ? 'ok' : 'no'); STATE.pred = (STATE.pred || 0) + (ok ? 1 : 0); save();
+    $('#say').querySelectorAll('.pred button').forEach(x => x.disabled = true); if (!ok) $('#say').querySelector('[data-j="1"]').classList.add('ok'); setTimeout(done, ok ? 800 : 1600); });
+}
+function go(k, done) {
+  document.querySelectorAll('#modes button').forEach(b => b.classList.toggle('on', b.dataset.m === k));
+  document.querySelector(`#modes [data-m="${k}"]`)?.scrollIntoView({inline: 'center', block: 'nearest', behavior: 'smooth'});
+  const S = STEPS[k], run = () => { S.set(); say(S, done); };
+  if (S.predict && !(STATE.seen || {})[k]) { seqTok++; voice && voice.pause(); predict(run); } else run();
+  STATE.seen = {...(STATE.seen || {}), [k]: 1}; save();
+}
+function setPlay(on) { tour = on; $('#play').textContent = on ? '⏸ إيقاف' : '▶️ الرحلة'; if (!on) { seqTok++; voice && voice.pause(); talking = 0; } }
+$('#play').onclick = () => { if (tour) return setPlay(false); setPlay(true); let i = 0; const next = () => { if (!tour) return; if (i >= ORDER.length) { setPlay(false); setTimeout(() => quiz(0), 1000); return; } go(ORDER[i++], () => setTimeout(next, 1800)); }; next(); };
+$('#again').onclick = () => go(document.querySelector('#modes .on')?.dataset.m || 'mouth');
+$('#mute').onclick = () => { muted = !muted; $('#mute').textContent = muted ? '🔇' : '🔊'; if (voice) voice.muted = muted; };
+$('#info').onclick = () => $('#ip').classList.add('on'); $('#ix').onclick = () => $('#ip').classList.remove('on');
+$('#go').onclick = () => { $('#start').remove(); $('#play').onclick(); };
+$('#qz').onclick = () => { setPlay(false); quiz(0); };
+
+/* ---------- check: questions from the lesson bank (Q16), a hint, then the moment again ---------- */
+const clean = s => s.replace(/\s*\((?:الكتاب\s*)?ص[\d٠-٩–-]+\)/g, '').replace(/^[أبجد]\.\s*/, '');
+const QS = [
+  {id: 'L16-m9', t: 'في أي جزء تُمتص المواد الغذائية وتنتقل إلى الدم في الإنسان؟', o: ['أ. المريء', 'ب. المعدة', 'ج. الأمعاء الغليظة', 'د. الأمعاء الدقيقة'], a: 3,
+    why: ['المريء ممر للغذاء من الفم إلى المعدة.', 'في المعدة يحلّل الحمض والإنزيم الغذاء، والكتاب جعل الامتصاص للأمعاء الدقيقة.', 'الأمعاء الغليظة تمتص الماء (نشاط أستكشف)، والكتاب جعل امتصاص المواد الغذائية للأمعاء الدقيقة.', 'صحيح: الأمعاء الدقيقة تمتص الغذاء إلى الدم.'], hint: 'تذكّر أين خرجت القطع الصفراء إلى الوعاء الدموي الأحمر.', redo: 'small'},
+  {id: 'L16-m4', t: 'الفضلات التي تبقى في الجسم قد تؤدي إلى تسمم الخلايا والأنسجة.', o: ['صح', 'خطأ'], a: 0, tf: true,
+    why: ['صحيح: هذا سبب أهمية الإخراج.', 'العبارة صحيحة كما في الكتاب؛ بقاء الفضلات ضار.'], hint: 'استمع إلى أول جملة في لحظة «الإخراج».', redo: 'excrete'},
+  {id: 'L16-m30', t: 'ماذا يحدث داخل الحويصلة الهوائية للدم القادم من القلب؟', o: ['أ. يأخذ ثاني أكسيد الكربون ويترك الأكسجين', 'ب. يأخذ المواد الغذائية ويترك الماء', 'ج. يأخذ الأكسجين ويترك ثاني أكسيد الكربون', 'د. يأخذ الجلوكوز ويترك الفضلات'], a: 2,
+    why: ['هذا عكس ما يحدث.', 'المواد الغذائية يأخذها الدم في الأمعاء الدقيقة.', 'صحيح: يأخذ الأكسجين ويترك ثاني أكسيد الكربون.', 'الجلوكوز يأتي من الهضم لا من الرئتين.'], hint: 'انظر داخل دائرة الحويصلات: أين ذهبت الكرات الزرقاء الفاتحة؟', redo: 'breathe'},
+  {id: 'L16-m31', t: 'أين يُحمّل الدم المؤكسج بالمواد الغذائية؟', o: ['أ. في الرئتين', 'ب. في الحويصلات الهوائية', 'ج. في القلب', 'د. في الأمعاء الدقيقة'], a: 3,
+    why: ['في الرئتين يأخذ الأكسجين لا الغذاء.', 'الحويصلات مكان تبادل الغازات.', 'القلب يضخ الدم ولا يحمّله بالغذاء.', 'صحيح: في الأمعاء الدقيقة.'], hint: 'تابع كرات الدم الحمراء: أين ظهرت معها النقاط الصفراء؟', redo: 'circ'},
+];
+function quiz(k) {
+  const q = QS[k]; $('#qp').classList.add('on'); let tries = (STATE.q?.[q.id]?.ok === false) ? STATE.q[q.id].tries : 0;
+  $('#qb').innerHTML = `<b>✏️ اختبر نفسك ${AR(k + 1)} من ${AR(QS.length)}</b><p style="font-size:1.08rem;margin:6px 0">${clean(q.t)}</p>${q.o.map((x, j) => `<button class="opt" data-j="${j}">${q.tf ? '' : 'أبجد'[j] + '. '}${clean(x)}</button>`).join('')}<div id="fb"></div>`;
+  $('#qb').querySelectorAll('.opt').forEach(b => b.onclick = () => {
+    const j = +b.dataset.j, ok = j === q.a; tries++; b.classList.add(ok ? 'ok' : 'no'); STATE.q = STATE.q || {};
+    if (ok) { $('#qb').querySelectorAll('.opt').forEach(x => x.disabled = true); STATE.q[q.id] = {ok: true, tries}; save();
+      $('#fb').innerHTML = `<div class="fb ok">⭐ أحسنت! ${tries === 1 ? 'ركّزت فوصلت' : 'حاولت حتى وصلت'}، والتوفيق من الله.<br><b>لماذا؟</b> ${clean(q.why[j])}</div>` + (k + 1 < QS.length ? `<button class="big" id="nq">السؤال التالي ←</button>` : `<div class="fb in">أجبت عن ${AR(QS.filter(x => STATE.q[x.id]?.ok && STATE.q[x.id].tries === 1).length)} من ${AR(QS.length)} من أول محاولة. ما تعلّمته اليوم اشرحه لمن تحب، فتنفعه وتثبت عندك.</div><button class="big" id="cl">رجوع إلى الرحلة</button>`);
+      $('#nq') && ($('#nq').onclick = () => quiz(k + 1)); $('#cl') && ($('#cl').onclick = () => $('#qp').classList.remove('on')); }
+    else { STATE.q[q.id] = {ok: false, tries}; save(); $('#fb').innerHTML = `<div class="fb no">${clean(q.why[j])}<br>💡 <b>تلميح:</b> ${q.hint}</div><button class="big" style="background:#2563a6" id="see">👀 شاهد المشهد ثم ارجع</button>`;
+      $('#see').onclick = () => { $('#qp').classList.remove('on'); setPlay(false); go(q.redo, () => setTimeout(() => quiz(k), 1200)); }; }
+  });
+}
+
+/* ---------- loop ---------- */
+fit();
+const clock = new THREE.Clock(); let tt = 0, blink = 2.5;
+STEPS.mouth.set(); seqTok++; frame(V(0, .5, .7), 4.6, 8.4, V(.12, .12, 1), .01); $('#loading').remove();
+window.__go = go; window.__quiz = quiz; window.__setPlay = setPlay;
+const gutUni = [[esophagus, E], [small, S], [large, L]];
+renderer.setAnimationLoop(() => {
+  const dt = Math.min(.05, clock.getDelta()) * (calm ? .4 : 1); tt += dt;
+  if (Math.abs(shift - shiftT) > .5) { shift += (shiftT - shift) * Math.min(1, dt * 4); applyShift(); }
+  applyFades();
+  // the bite: on a curve, churning in the stomach, or free; faces the camera; squash when chewed
+  if (BS.c) bite.g.position.copy(BS.c.getPointAt(THREE.MathUtils.clamp(BS.t, 0, 1)));
+  else if (BS.churn) { BS.ph += dt * 2.2; bite.g.position.set(SCENTER.x + Math.sin(BS.ph) * .22, SCENTER.y + Math.cos(BS.ph * 1.3) * .3, SCENTER.z + .05); }
+  const sq = Math.sin(BS.sq * Math.PI / 2) * .25, wob = Math.sin(tt * 5) * .03; bite.g.scale.set(BS.r * (1 + sq + wob), BS.r * (1 - sq - wob), BS.r);
+  bite.g.quaternion.copy(camera.quaternion);
+  for (const [m, c] of gutUni) m.material.userData.u.uB.value = BS.c === c ? BS.t : -9;
+  // pieces: follow the bite along the small intestine, or swirl in the stomach
+  pieces.forEach((p, i) => { const u = p.userData; if (!p.visible) return;
+    if (u.mode === 'follow' && BS.c === S) p.position.copy(S.getPointAt(Math.max(0, BS.t - u.lag))).add(V(Math.sin(tt * 3 + i) * .03, Math.cos(tt * 2.6 + i) * .03, 0));
+    else if (u.mode === 'swirl') { u.ph += dt * (1.6 + i * .1); p.position.set(SCENTER.x + Math.cos(u.ph) * u.rr * 1.4, SCENTER.y + Math.sin(u.ph * 1.2) * u.rr * 1.8, SCENTER.z + Math.sin(u.ph) * .1); } });
+  // stomach acid bubbles rise
+  acid.forEach(s => { const u = s.userData; u.p = (u.p + dt * .35) % 1; s.position.set(SCENTER.x + u.x, SCENTER.y - .55 + u.p * 1.1, SCENTER.z + u.z); s.material.opacity = acidOn * Math.sin(u.p * Math.PI) * .9; });
+  // head: blink, eyes look at the bite; skin glow for excretion
+  if ((blink -= dt) < 0) { blink = 2.5 + Math.random() * 3; [eyesH, bite.eyes].forEach(e => gsap.fromTo(e.scale, {y: 1}, {y: .1, duration: .07, yoyo: true, repeat: 1})); }
+  skin.emissive.setRGB(1, .55, .25).multiplyScalar(skinGlow.v * .35);
+  // breathing: lungs swell, diaphragm moves down, air flows in
+  const br = breathing ? Math.sin(tt * 1.6) : 0, inh = Math.max(0, br);
+  lungs.scale.set(1 + br * .05, 1 + br * .06, 1 + br * .05); lungs.position.y = br * .05;
+  diaphragm.scale.y = .45 - br * .1; diaphragm.position.y = .7 - br * .14;
+  air.forEach(s => { const u = s.userData; u.p = (u.p + dt * .35) % 1; const p = u.p < .5 ? TR.getPointAt(u.p * 2) : BR[u.side].getPointAt((u.p - .5) * 2); s.position.copy(p).add(V(0, 0, .12)); s.material.opacity = breathing ? (.25 + inh * .75) * lungs.userData.a : 0; });
+  if (alv.visible) { const cap = alv.userData.cap;
+    gasO.forEach(s => { const u = s.userData; u.p = (u.p + dt * .3) % 1; const a = V(-.3 + (u.p * 7 % 1) * .6, .25, .25), b = cap.getPointAt(.5 + (u.p - .5) * .4).add(V(0, 0, .1)); s.position.lerpVectors(a, b, u.p); s.material.opacity = Math.sin(u.p * Math.PI); });
+    gasC.forEach(s => { const u = s.userData; u.p = (u.p + dt * .3) % 1; const a = cap.getPointAt(.35 + (u.p * 5 % 1) * .3).add(V(0, 0, .1)), b = V(.6, 1.0, .3); s.position.lerpVectors(a, b, u.p); s.material.opacity = Math.sin(u.p * Math.PI) * .9; }); }
+  // circulation: heart beats, blood cells move and change colour
+  if (circ.visible) { const beat = Math.pow(Math.max(0, Math.sin(tt * 4.2)), 6); heart.scale.setScalar(1 + beat * .12);
+    blood.forEach(b => { const u = b.userData; u.u = (u.u + dt * u.sp) % 1; b.position.copy(u.c.getPointAt(u.u));
+      const red = u.c === PUL ? u.u >= uLung : u.u < uCell; b.material = red ? redM : blueM; u.tag.visible = u.c === SYS && u.u > uInt && u.u < uCell; }); }
+  [liver, pancreas, kidneys, heart].forEach((o, i) => { if (o.visible && i < 3) o.rotation.z = Math.sin(tt * 1.2 + i) * .02; });
+  head.rotation.z = Math.sin(tt * .9) * .03; bite.f.position.y = Math.sin(tt * 3) * .03;
+  controls.update(); placeLabels(); renderer.render(scene, camera);
+});
+</script>
+</body>
+</html>
