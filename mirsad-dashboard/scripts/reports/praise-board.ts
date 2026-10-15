@@ -25,7 +25,6 @@ const asset = (path: string, mime: string) =>
   `data:${mime};base64,${readFileSync(resolve(ROOT, path)).toString('base64')}`
 const font = (file: string) => asset(`public/fonts/${file}`, 'font/woff2')
 
-const iso = (t: string) => `⁦${t}⁩`
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 /** أرقامٌ هنديةٌ كالتي في بقية الورقة، لا لاتينيةٌ تشذّ عنها. */
 const ar = (n: number) => String(n).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)])
@@ -77,14 +76,7 @@ const PARTS: Part[] = [
   },
 ]
 
-/** ما لا يُرى من العمل — يُسمَّى هنا لأنّ الأهالي رأوا أثره ولم يروه. */
-const UNSEEN = [
-  'من صباحٍ وقفتِ فيه وأنتِ متعبة،',
-  'ومن حصةٍ أعدتِ شرحها مرّة ثانية وثالثة،',
-  'ومن طالبةٍ احتويتِها حين لم يرَ أحدٌ ذلك،',
-  'ومن ورقةٍ صحّحتِها بعد الدوام،',
-  'ومن بابٍ فتحتِه لأمٍّ قلقة فطمأنتِها.',
-]
+const total = PARTS.reduce((n, p) => n + p.quotes.length, 0)
 
 const quote = (q: Quote) => `
 <li>
@@ -93,114 +85,77 @@ const quote = (q: Quote) => `
 </li>`
 
 const part = (p: Part) => `
-<section class="part part--${p.tone}">
-  <h2><span>${p.icon}</span>${esc(p.title)}<i>${ar(p.quotes.length)}</i></h2>
+<article class="c c--${p.tone}">
+  <div class="c__top">
+    <span class="c__h">${p.icon}</span>
+    <div class="c__id"><b>${esc(p.title)}</b></div>
+    <span class="c__n">${ar(p.quotes.length)}</span>
+  </div>
   <ul>${p.quotes.map(quote).join('')}</ul>
-</section>`
+</article>`
 
 const html = `<!doctype html>
 <html lang="ar" dir="rtl"><head><meta charset="utf-8">
 <style>
 @font-face { font-family:'Baloo'; src:url('${font('BalooBhaijaan2-Variable.woff2')}') format('woff2'); font-weight:400 800; }
-:root { --green:#07a869; --teal:#0da9a6; --navy:#15445a; --sand:#c1b489;
-        --rose:#d4718a; --violet:#8a6fb0; --muted:#4a6b78; --border:#d6e4e5; --soft:#f4f8f8; }
+:root { --green:#07a869; --teal:#0da9a6; --navy:#15445a; --rose:#d4718a;
+        --violet:#8a6fb0; --muted:#4a6b78; --border:#d6e4e5; --soft:#f4f8f8; }
 @page { size:A4 portrait; margin:0; }
 * { box-sizing:border-box; margin:0; padding:0; }
 body { font-family:'Baloo',sans-serif; color:var(--navy); }
-.sheet { padding:9mm 12mm 8mm; }
-.sheet + .sheet { page-break-before:always; }
+.sheet { padding:9mm 11mm 8mm; }
 
 .head { text-align:center; border-bottom:2px solid var(--navy); padding-bottom:7px; }
-.head img { height:38px; }
-.head .org { font-size:10.5px; color:var(--muted); margin-top:6px; }
-.head .school { font-size:13.5px; font-weight:800; margin-top:3px; }
+.head img { height:34px; }
+.head .school { font-size:12.5px; font-weight:800; margin-top:5px; }
 
-h1 { text-align:center; font-size:23px; font-weight:800; margin-top:10px; line-height:1.35; }
-h1 small { display:block; font-size:12px; font-weight:700; color:var(--green); margin-top:4px; }
+h1 { text-align:center; font-size:21px; font-weight:800; margin-top:9px; line-height:1.35; }
+h1 small { display:block; font-size:11.5px; font-weight:700; color:var(--rose); margin-top:4px; }
 
-.lede { margin-top:9px; border:2px solid var(--teal); border-radius:15px; padding:10px 14px;
-        background:linear-gradient(170deg,#f0fafa,#f6fbfb); text-align:center; }
-.lede p { font-size:10.8px; line-height:1.8; color:#34606f; }
-.lede p + p { margin-top:5px; }
-.lede b { color:var(--navy); font-weight:800; }
+.grid { margin-top:9px; column-count:2; column-gap:9px; }
+.c { break-inside:avoid; margin-bottom:9px; border:1.6px solid var(--border);
+     border-radius:14px; padding:8px 11px 9px; background:#fff; }
+.c--a { border-color:#bfe7d6; }
+.c--b { border-color:#bfe5e7; }
+.c--c { border-color:#dcd1ea; }
+.c--d { border-color:#f0d3dc; }
+.c__top { display:flex; align-items:center; gap:8px; padding-bottom:6px;
+          border-bottom:1.3px dotted var(--border); }
+.c__h { font-size:16px; }
+.c__id b { display:block; font-size:13.5px; font-weight:800; line-height:1.3; }
+.c__n { margin-right:auto; font-size:9.6px; font-weight:800; color:#fff;
+        background:var(--teal); border-radius:999px; padding:2px 9px; }
+.c--a .c__n { background:var(--green); }
+.c--c .c__n { background:var(--violet); }
+.c--d .c__n { background:var(--rose); }
+.c ul { list-style:none; margin-top:7px; display:grid; gap:6px; }
+.c li { display:grid; grid-template-columns:15px 1fr; gap:7px; align-items:start;
+        background:var(--soft); border-right:3px solid var(--teal);
+        border-radius:0 9px 9px 0; padding:6px 9px; }
+.c--a li { border-right-color:var(--green); }
+.c--c li { border-right-color:var(--violet); }
+.c--d li { border-right-color:var(--rose); }
+.q__i { font-size:10.5px; line-height:1.8; text-align:center; }
+.q__t { font-size:9.9px; line-height:1.8; }
+.q__t em { display:block; font-style:normal; font-size:8.8px; color:var(--muted); margin-top:3px; }
 
-.part { margin-top:10px; border:1.6px solid var(--border); border-radius:16px;
-        padding:9px 13px 10px; break-inside:avoid; }
-.part--a { border-color:#bfe7d6; background:linear-gradient(170deg,#f4fcf8,#fafdfc); }
-.part--b { border-color:#bfe5e7; background:linear-gradient(170deg,#f2fafb,#fafdfd); }
-.part--c { border-color:#dcd1ea; background:linear-gradient(170deg,#f8f5fc,#fcfbfe); }
-.part--d { border-color:#f0d3dc; background:linear-gradient(170deg,#fdf6f8,#fefbfc); }
-
-h2 { display:flex; align-items:center; gap:8px; font-size:14.5px; font-weight:800;
-     padding-bottom:7px; border-bottom:1.4px dotted var(--border); }
-h2 span { font-size:16px; }
-h2 i { margin-right:auto; font-style:normal; font-size:10px; font-weight:800; color:#fff;
-       background:var(--muted); border-radius:999px; padding:2px 10px; }
-.part--a h2 i { background:var(--green); }
-.part--b h2 i { background:var(--teal); }
-.part--c h2 i { background:var(--violet); }
-.part--d h2 i { background:var(--rose); }
-
-ul { list-style:none; margin-top:8px; display:grid; gap:6px; }
-li { display:grid; grid-template-columns:17px 1fr; gap:8px; align-items:start;
-     background:#fff; border:1.1px solid var(--border); border-radius:11px; padding:7px 11px; }
-.q__i { font-size:12px; line-height:1.7; text-align:center; }
-.q__t { font-size:10.6px; line-height:1.85; }
-.q__t em { display:block; font-style:normal; font-size:9.4px; color:var(--muted); margin-top:3px; }
-
-.close { margin-top:11px; border:2.2px solid var(--green); border-radius:16px; padding:11px 15px;
-         background:linear-gradient(170deg,#f2fbf7,#f6fbfb); text-align:center; }
-.close b { display:block; font-size:15px; font-weight:800; margin-bottom:7px; }
-.close .lines { font-size:11px; line-height:2; color:#2d5c54; }
-.close .seen { font-size:11.4px; font-weight:800; margin-top:8px; }
-.close .all { font-size:11px; line-height:1.8; color:#2d5c54; margin-top:5px; }
-.khamis { margin-top:10px; text-align:center; font-size:19px; font-weight:800; color:var(--green); }
-
-.runhead { display:flex; align-items:center; gap:9px; padding-bottom:7px; margin-bottom:11px;
-           border-bottom:1.6px solid var(--border); }
-.runhead img { height:22px; opacity:.9; }
-.runhead span { font-size:10.5px; font-weight:800; }
-.runhead em { margin-right:auto; font-style:normal; font-size:9.6px; color:var(--muted); }
+.hearts { text-align:center; font-size:15px; margin-top:10px; letter-spacing:3px; }
+.khamis { margin-top:8px; text-align:center; font-size:19px; font-weight:800; color:var(--green); }
 </style></head><body>
 
 <div class="sheet">
   <header class="head">
     <img src="${asset('public/brand/moe-logo.png', 'image/png')}" alt="وزارة التعليم">
-    <div class="org">الإدارة العامة للتعليم بمحافظة جدة</div>
     <div class="school">الابتدائية الخامسة والستون بعد المائة</div>
   </header>
 
   <h1>🌸 ماذا قال أولياء الأمور عنكنّ 🌸
-    <small>من استطلاع «قياس اتجاه المتعلمين» — ${iso('1448')}هـ</small>
+    <small>من استطلاع «قياس اتجاه المتعلمين» — ${ar(total)} كلمة</small>
   </h1>
 
-  <div class="lede">
-    <p>فتحنا لأولياء الأمور بابَ الرأي ليقولوا ما عندهم بحرّية،
-    فوصلتنا <b>٢٤ رسالة في يومين</b>. وهذه كلماتُهم كما وصلت:
-    بلا تعديل، وبلا ترتيبِ أحدٍ على أحد. 🤍</p>
-    <p>وقبل أن تقرأن — <b>ما جاء لم يكن لواحدةٍ دون أخرى. كان لكنَّ جميعًا:</b>
-    للمعلّمة، وللإدارية، ولكلِّ يدٍ تعمل في هذا المبنى. 💙</p>
-  </div>
+  <div class="grid">${PARTS.map(part).join('')}</div>
 
-  ${PARTS.slice(0, 2).map(part).join('')}
-</div>
-
-<div class="sheet">
-  <div class="runhead">
-    <img src="${asset('public/brand/moe-logo-light.png', 'image/png')}" alt="">
-    <span>🌸 ماذا قال أولياء الأمور عنكنّ — ${iso('1448')}هـ</span>
-    <em>الصفحة ٢ من ٢</em>
-  </div>
-
-  ${PARTS.slice(2).map(part).join('')}
-
-  <section class="close">
-    <b>💐 وأخيرًا — إلى كلِّ واحدةٍ منكنّ 💐</b>
-    <div class="lines">جاءت هذه الكلمات<br>${UNSEEN.map(esc).join('<br>')}</div>
-    <div class="seen">كلُّ هذا رآه الأهالي. وكتبوه. ووصلَنا. 🤍</div>
-    <div class="all">وما بلغَنا منهم لم يكن لواحدةٍ دون أخرى — كان لكنَّ جميعًا.</div>
-  </section>
-
+  <div class="hearts">💙 🤍 💚 🩵 💗 🌸 💛 💜 🧡 ❤️</div>
   <div class="khamis">🌸 خميسكم ونيس 🌸</div>
 </div>
 
