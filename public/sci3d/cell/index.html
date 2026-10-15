@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الخلية المضيئة</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+/* Glossy 3D cells (animal and plant) in a dark lab: translucent jelly cell on a glowing stand, living parts that move,
+   small particles entering through the membrane proteins. Parts, names and what they do come from the lesson file (L03). */
+:root{--ink:#eef2ff;--g:#7c4dff;--y:#ffd84d;--muted:#b9c0dd;--f:'SciBaloo','Segoe UI',Tahoma,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#0b0f24;color:var(--ink);font-family:var(--f);-webkit-text-size-adjust:100%;overflow:hidden}
+button{font:inherit;cursor:pointer;touch-action:manipulation;color:inherit}
+.top{position:fixed;top:0;left:0;right:0;z-index:5;display:flex;gap:6px;padding:8px 10px;align-items:center;background:linear-gradient(#0b0f24f0,#0b0f2400)}
+.top h1{flex:1;margin:0;font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seg{display:flex;gap:4px;background:rgba(255,255,255,.1);border-radius:14px;padding:3px}
+.seg button{border:0;background:none;color:#fff;border-radius:11px;min-height:42px;padding:0 10px;font-size:.92rem}
+.seg button.on{background:#fff;color:#3a2a7a;font-weight:700}
+#stage{position:fixed;inset:0;touch-action:none}
+#labels{position:fixed;inset:0;pointer-events:none;z-index:2}
+.lb{position:absolute;transform:translate(-50%,-120%);background:rgba(255,255,255,.94);color:#22203a;border:2px solid var(--y);border-radius:12px;padding:1px 8px;font-size:.82rem;font-weight:700;white-space:nowrap;pointer-events:auto;cursor:pointer;transition:opacity .3s}
+.lb.hi{background:var(--y)}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:5;padding:8px 10px calc(8px + env(safe-area-inset-bottom));display:flex;gap:6px;flex-wrap:wrap;justify-content:center;background:rgba(11,15,36,.92);border-top:1px solid rgba(255,255,255,.1)}
+.bar button{border:1.5px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);color:#fff;border-radius:16px;min-height:48px;padding:0 13px;font-size:.98rem}
+.bar button.p{background:var(--g);border-color:var(--g)}
+.bar button.on{background:var(--y);border-color:var(--y);color:#22203a}
+#info{position:fixed;left:10px;right:10px;z-index:6;bottom:calc(124px + env(safe-area-inset-bottom));background:#fff;color:#22203a;border:3px solid var(--y);border-radius:18px;padding:10px 14px;font-size:1.05rem;line-height:1.7;display:none;box-shadow:0 6px 30px rgba(124,77,255,.35)}
+#info.on{display:block}
+#info b{color:#5b34d6;font-size:1.15rem}
+#info .x{float:left;border:0;background:none;font-size:1.3rem;min-width:40px;min-height:40px}
+#hint{position:fixed;top:62px;left:0;right:0;text-align:center;z-index:3;font-size:.88rem;color:var(--muted);pointer-events:none;transition:opacity .8s}
+#book{position:fixed;inset:0;z-index:9;background:rgba(5,6,15,.85);display:none;align-items:center;justify-content:center;padding:10px}
+#book.on{display:flex}
+#book .box{background:#fff;color:#22203a;border-radius:16px;padding:10px;max-width:900px;width:100%}
+#book img{width:100%;display:block;border-radius:10px}
+.note{font-size:.78rem;color:#66707d;line-height:1.6}
+#about{position:fixed;inset:0;z-index:9;background:rgba(5,6,15,.7);display:none;align-items:flex-end;justify-content:center}
+#about.on{display:flex}
+#about .box{background:#fff;color:#22203a;border-radius:22px 22px 0 0;max-width:640px;width:100%;padding:14px 16px calc(16px + env(safe-area-inset-bottom))}
+.big{display:block;width:100%;min-height:48px;border-radius:14px;border:0;background:var(--g);color:#fff;font-size:1.05rem;margin-top:8px}
+.ib{border:0;background:rgba(255,255,255,.12);color:#fff;border-radius:12px;min-width:44px;min-height:44px;font-size:1.05rem}
+@media (min-width:700px){#info{left:auto;width:420px}}
+</style>
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
+</head>
+<body>
+<header class="top">
+  <h1>🔬 الخلية</h1>
+  <div class="seg"><button data-c="animal" class="on">🔴 الحيوانية</button><button data-c="plant">🌿 النباتية</button></div>
+  <button class="ib" id="ab" aria-label="عن المشهد">ℹ️</button>
+</header>
+<div id="stage"></div>
+<div id="labels"></div>
+<div id="hint">👆 حرّك بإصبعك لتدوير الخلية · إصبعان للتكبير · اضغط أي جزء</div>
+<div id="info"><button class="x" id="ix" aria-label="إغلاق">✕</button><div id="it"></div></div>
+<div class="bar">
+  <button class="p" id="explode">🧩 فكّك الخلية</button>
+  <button id="names">🏷️ الأسماء</button>
+  <button id="tour">▶️ جولة</button>
+  <button id="bookb">🖼️ الرسم الأصلي</button>
+</div>
+<div id="book"><div class="box"><div style="display:flex;justify-content:space-between;align-items:center"><b id="bt"></b><button class="ib" style="background:#eee;color:#222" id="bx">✕</button></div><img id="bimg" alt="الرسم الأصلي"><p class="note">المجسّم يتبع هذا الرسم في أجزائه وأسمائها وأماكنها، وألوانه مختلفة للتوضيح.</p></div></div>
+<div id="about"><div class="box"><b>عن هذا المشهد</b>
+  <p class="note">• مجسّم صنعناه لهذا الدرس: الأجزاء وأسماؤها ووظائفها من الدرس، والألوان واللمعان والحجم للتوضيح فقط (الخلية الحقيقية لا تُرى إلا بالمجهر).<br>
+  • الحبيبات الصغيرة التي تتحرك وتدخل من بروتينات الغشاء رسم توضيحي لمرور المواد، وليست جزءًا من أسماء الدرس.<br>
+  • الشرح بالصوت: صوت مولّد بالذكاء الاصطناعي.<br>
+  • لا يُحفظ شيء من هذا المشهد، ولا يحتاج تسجيل دخول.</p>
+  <button class="big" id="abx">إغلاق</button></div></div>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from './vendor/OrbitControls.js';
+const D = {"cells": {"plant": {"page": "٣٥", "img": "fig/f35a.webp", "parts": [{"id": "p1", "name": "الجدار الخلوي", "fn": "طبقة صلبة تحيط بالغشاء البلازمي، تدعم الخلية النباتية، وتعطيها شكلها، وتحميها من الظروف البيئية.", "a": "v73fb0d6a8baf"}, {"id": "p2", "name": "الغشاء البلازمي", "fn": "يحيط بالخلية، ويعطيها شكلها المميز، ويسمح بدخول المواد وخروجها.", "a": "vf442df65418c"}, {"id": "p3", "name": "السيتوبلازم", "fn": "مادة تشبه الهلام فيها ماء كثير، وفيها أجزاء الخلية الداخلية. ويمتد فيه نظام النقل في الخلية.", "a": "v6044d7ba731b"}, {"id": "p4", "name": "النواة", "fn": "مركز التحكم في الخلية: تنظّم التفاعلات الكيميائية، وتخزن المعلومات الضرورية لانقسام الخلية.", "a": "v6c188612db63"}, {"id": "p5", "name": "الكروموسومات", "fn": "أشرطة طويلة من الأحماض النووية تخزن المعلومات اللازمة لكل الأنشطة، لتنتقل إلى خلايا النسل الجديد.", "a": "va281c25bd7bc"}, {"id": "p6", "name": "الفجوة", "fn": "تراكيب تشبه الكيس، تخزن الماء والغذاء، وتخزن بعض الفضلات قبل التخلص منها.", "a": "v4d4b93d6f581"}, {"id": "p7", "name": "البلاستيدة الخضراء", "fn": "تصنع الغذاء؛ تمتص طاقة الضوء بصبغة خضراء فيها تسمى الكلوروفيل.", "a": "v0b6150490272"}, {"id": "p8", "name": "الميتوكندريا", "fn": "مصدر طاقة الخلية: تقوم بالتنفس الهوائي، فتحوّل المواد الكيميائية في الغذاء إلى طاقة.", "a": "v15b6ade0d1b6"}, {"id": "p9", "name": "الشبكة الإندوبلازمية", "fn": "اسمه مكتوب على الشكل، ولم يشرح الكتاب وظيفته في هذا الدرس.", "a": "v1616304c86d1"}, {"id": "p10", "name": "أجسام جولجي", "fn": "اسمه مكتوب على الشكل، ولم يشرح الكتاب وظيفته في هذا الدرس.", "a": "v56d8f5d05d1b"}]}, "animal": {"page": "٣٤", "img": "fig/f34a.webp", "parts": [{"id": "p1", "name": "الغشاء البلازمي", "fn": "يحيط بالخلية، ويعطيها شكلها المميز، ويسمح بدخول المواد وخروجها.", "a": "vf442df65418c"}, {"id": "p2", "name": "النواة", "fn": "مركز التحكم في الخلية: تنظّم التفاعلات الكيميائية، وتخزن المعلومات الضرورية لانقسام الخلية.", "a": "v6c188612db63"}, {"id": "p3", "name": "الكروموسومات", "fn": "أشرطة طويلة من الأحماض النووية تخزن المعلومات اللازمة لكل الأنشطة، لتنتقل إلى خلايا النسل الجديد.", "a": "va281c25bd7bc"}, {"id": "p4", "name": "السيتوبلازم", "fn": "مادة تشبه الهلام فيها ماء كثير، وفيها أجزاء الخلية الداخلية. ويمتد فيه نظام النقل في الخلية.", "a": "v6044d7ba731b"}, {"id": "p5", "name": "الميتوكندريا", "fn": "مصدر طاقة الخلية: تقوم بالتنفس الهوائي، فتحوّل المواد الكيميائية في الغذاء إلى طاقة.", "a": "v15b6ade0d1b6"}, {"id": "p6", "name": "الفجوة", "fn": "تراكيب تشبه الكيس، تخزن الماء والغذاء، وتخزن بعض الفضلات قبل التخلص منها.", "a": "v4d4b93d6f581"}, {"id": "p7", "name": "الشبكة الإندوبلازمية", "fn": "اسمه مكتوب على الشكل، ولم يشرح الكتاب وظيفته في هذا الدرس.", "a": "v1616304c86d1"}, {"id": "p8", "name": "الرايبوسوم", "fn": "اسمه مكتوب على الشكل، ولم يشرح الكتاب وظيفته في هذا الدرس.", "a": "veb1415879d57"}, {"id": "p9", "name": "أجسام جولجي", "fn": "اسمه مكتوب على الشكل، ولم يشرح الكتاب وظيفته في هذا الدرس.", "a": "v56d8f5d05d1b"}, {"id": "p10", "name": "الأجسام المحللة", "fn": "اسمه مكتوب على الشكل، ولم يشرح الكتاب وظيفته في هذا الدرس.", "a": "vf43b0bf2a30c"}]}}, "audio": "audio/"};   // parts: name, fn (lesson text), audio id; original figure per cell
+const $ = s => document.querySelector(s);
+const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const lowEnd = (navigator.hardwareConcurrency || 4) <= 4;
+
+/* ---------- renderer: dark lab, soft purple and cyan light ---------- */
+const host = $('#stage');
+const renderer = new THREE.WebGLRenderer({antialias: true});
+renderer.setPixelRatio(Math.min(devicePixelRatio, lowEnd ? 1.5 : 2)); host.appendChild(renderer.domElement);
+renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.15;
+const scene = new THREE.Scene();
+{ const c = document.createElement('canvas'); c.width = 4; c.height = 256; const g = c.getContext('2d'), gr = g.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, '#1a1f4a'); gr.addColorStop(.55, '#2a1d4f'); gr.addColorStop(1, '#07091a'); g.fillStyle = gr; g.fillRect(0, 0, 4, 256); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; scene.background = t; }
+const camera = new THREE.PerspectiveCamera(40, 1, .1, 100);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.minDistance = 3; controls.maxDistance = 14; controls.enablePan = false; controls.maxPolarAngle = Math.PI * .62;
+scene.add(new THREE.HemisphereLight(0xe6e0ff, 0x2a1d4f, 1.4));
+const sun = new THREE.DirectionalLight(0xffffff, 2.3); sun.position.set(3, 6, 4); scene.add(sun);
+const rimL = new THREE.DirectionalLight(0xb18cff, 1.6); rimL.position.set(-4, 2, -4); scene.add(rimL);
+const under = new THREE.PointLight(0x8fd8ff, 6, 6, 1.5); under.position.set(0, -.6, 0); scene.add(under);
+function fit() { const w = innerWidth, h = innerHeight; renderer.setSize(w, h); camera.aspect = w / h; camera.fov = w < h ? 54 : 38; camera.updateProjectionMatrix(); }
+addEventListener('resize', fit); fit();
+
+/* ---------- materials and shapes: glossy, jelly-like, a little see-through ---------- */
+const mat = (c, o = {}) => new THREE.MeshPhysicalMaterial({color: c, roughness: .28, clearcoat: 1, clearcoatRoughness: .15, sheen: .5, sheenColor: new THREE.Color(0xffffff), ...o});
+const glass = (c, op, o = {}) => mat(c, {transparent: true, opacity: op, depthWrite: false, side: THREE.DoubleSide, iridescence: .6, iridescenceIOR: 1.4, roughness: .15, ...o});
+const tube = (pts, r, m, closed = false) => new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, closed), Math.max(48, pts.length * 6), r, 10, closed), m);
+const wave = (len, amp, n, y = 0) => { const p = []; for (let i = 0; i <= n * 8; i++) { const t = i / (n * 8); p.push(new THREE.Vector3((t - .5) * len, y, Math.sin(t * n * Math.PI * 2) * amp)); } return p; };
+const oval = (rx, rz, n = 72) => { const sh = new THREE.Shape(); for (let i = 0; i <= n; i++) { const a = i / n * Math.PI * 2; i ? sh.lineTo(Math.cos(a) * rx, Math.sin(a) * rz) : sh.moveTo(Math.cos(a) * rx, Math.sin(a) * rz); } return sh; };
+function drum(rx, rz, h, r, m) {
+  const g = new THREE.ExtrudeGeometry(oval(rx, rz), {depth: h, bevelEnabled: true, bevelThickness: r, bevelSize: r, bevelSegments: 8, curveSegments: 64});
+  g.rotateX(Math.PI / 2); g.translate(0, h / 2, 0); return new THREE.Mesh(g, m);
+}
+function ring(rx, rz, h, t, m) {   // a thick rounded wall around the cell
+  const sh = oval(rx, rz), hole = new THREE.Path(); const n = 72;
+  for (let i = 0; i <= n; i++) { const a = -i / n * Math.PI * 2; i ? hole.lineTo(Math.cos(a) * (rx - t), Math.sin(a) * (rz - t)) : hole.moveTo(Math.cos(a) * (rx - t), Math.sin(a) * (rz - t)); }
+  sh.holes.push(hole);
+  const g = new THREE.ExtrudeGeometry(sh, {depth: h, bevelEnabled: true, bevelThickness: t * .45, bevelSize: t * .3, bevelSegments: 8, curveSegments: 72});
+  g.rotateX(Math.PI / 2); g.translate(0, h / 2, 0); return new THREE.Mesh(g, m);
+}
+const edge = (rx, rz, y, r, c) => { const p = []; for (let i = 0; i < 96; i++) { const a = i / 96 * Math.PI * 2; p.push(new THREE.Vector3(Math.cos(a) * rx, y, Math.sin(a) * rz)); } return tube(p, r, new THREE.MeshBasicMaterial({color: c, transparent: true, opacity: .55, blending: THREE.AdditiveBlending, depthWrite: false}), true); };
+function capsule(r, l, m) { const g = new THREE.CapsuleGeometry(r, l, 10, 28); g.rotateZ(Math.PI / 2); g.scale(1, .6, 1); return new THREE.Mesh(g, m); }
+function mito(color, inner) {   // bean with folded inner membrane (cristae) under a clear outer skin
+  const g = new THREE.Group(); g.add(capsule(.16, .42, mat(color, {emissive: color, emissiveIntensity: .12})));
+  g.add(tube(wave(.56, .1, 5, .085), .024, mat(inner, {emissive: inner, emissiveIntensity: .2})));
+  const skin = capsule(.2, .46, glass(0xffd0e0, .3)); g.add(skin); return g;
+}
+function chloro() {   // chloroplast: green bean with stacks of discs (grana)
+  const g = new THREE.Group(); g.add(capsule(.2, .5, mat(0x3fae4a, {emissive: 0x1f6e2a, emissiveIntensity: .25})));
+  const dm = mat(0xb8f06a, {emissive: 0x4f8a1f, emissiveIntensity: .3});
+  for (let i = 0; i < 6; i++) for (let k = 0; k < 2; k++) for (let s = 0; s < 3; s++) { const d = new THREE.Mesh(new THREE.CylinderGeometry(.055, .055, .028, 18), dm); d.position.set(-.3 + i * .12, .1 + s * .036, (k - .5) * .14); g.add(d); }
+  g.add(capsule(.24, .54, glass(0xd8ffd0, .25))); return g;
+}
+function golgi(c) {   // stacked curved sacs with little buds
+  const g = new THREE.Group(); const m = mat(c, {emissive: c, emissiveIntensity: .2});
+  for (let i = 0; i < 5; i++) { const t = new THREE.Mesh(new THREE.TorusGeometry(.36 - i * .05, .04, 12, 48, Math.PI * .85), m); t.scale.set(1, 1, .55); t.rotation.x = -Math.PI / 2; t.rotation.z = Math.PI * .08; t.position.set(0, .06, i * .075); g.add(t); }
+  for (let i = 0; i < 4; i++) { const b = new THREE.Mesh(new THREE.SphereGeometry(.045, 14, 10), m); b.position.set(-.38 + i * .05, .06, .38 + (i % 2) * .05); g.add(b); }
+  return g;
+}
+function er(c, rib, r0, r1, from = Math.PI * .72, span = Math.PI * 1.55) {   // ER: wavy folded blue bands around the nucleus, with ribosome dots
+  const g = new THREE.Group(); const m = mat(c, {emissive: c, emissiveIntensity: .22}); const rm = mat(rib, {emissive: rib, emissiveIntensity: .35});
+  for (let i = 0; i < 4; i++) { const r = r0 + i * (r1 - r0) / 3; for (const y of [0, .07]) { const p = []; for (let k = 0; k <= 80; k++) { const a = from + span * k / 80, rr = r + Math.sin(k * .9 + i) * .035; p.push(new THREE.Vector3(Math.cos(a) * rr, y, -Math.sin(a) * rr)); } g.add(tube(p, .03, m)); } }
+  const ribs = new THREE.Group();
+  for (let i = 0; i < 30; i++) { const a = from + Math.random() * span, r = r0 + Math.random() * (r1 - r0); const s = new THREE.Mesh(new THREE.SphereGeometry(.03, 12, 10), rm); s.position.set(Math.cos(a) * r, .12, -Math.sin(a) * r); ribs.add(s); }
+  return [g, ribs];
+}
+const netTex = (() => { // a soft hexagon net for the nuclear envelope
+  const c = document.createElement('canvas'); c.width = 512; c.height = 256; const g = c.getContext('2d'); g.fillStyle = '#000'; g.fillRect(0, 0, 512, 256); g.strokeStyle = '#fff'; g.lineWidth = 2.2;
+  const R = 14; for (let y = 0; y < 280; y += R * 1.5) for (let x = 0; x < 540; x += R * Math.sqrt(3)) { const ox = (Math.round(y / (R * 1.5)) % 2) * R * Math.sqrt(3) / 2; g.beginPath(); for (let k = 0; k < 7; k++) { const a = Math.PI / 3 * k + Math.PI / 6; g.lineTo(x + ox + Math.cos(a) * R, y + Math.sin(a) * R); } g.stroke(); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t; })();
+function nucleus(c, inner) {   // glossy sphere with a net, one quarter cut away to show the chromosomes
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(.45, 56, 36, 0, Math.PI * 1.5), mat(c, {side: THREE.DoubleSide, emissive: 0xffffff, emissiveMap: netTex, emissiveIntensity: .35, iridescence: .5})));
+  const cut = mat(inner, {side: THREE.DoubleSide, roughness: .5, emissive: inner, emissiveIntensity: .25});
+  for (const rot of [0, Math.PI * 1.5]) { const d = new THREE.Mesh(new THREE.CircleGeometry(.45, 48, 0, Math.PI), cut); d.rotation.y = rot; d.rotation.z = Math.PI / 2; g.add(d); }
+  const chrom = new THREE.Group(); const cm = mat(0xff4f9a, {emissive: 0xff4f9a, emissiveIntensity: .35});
+  for (let i = 0; i < 6; i++) { const p = []; for (let k = 0; k < 9; k++) p.push(new THREE.Vector3(.05 + Math.random() * .3, -.32 + Math.random() * .64, .05 + Math.random() * .3)); chrom.add(tube(p, .014, cm)); }
+  const nl = new THREE.Mesh(new THREE.SphereGeometry(.15, 32, 24), mat(0x3a1780, {emissive: 0x5a2bc0, emissiveIntensity: .3})); nl.position.set(-.16, .02, -.16); g.add(nl); g.rotation.y = Math.PI;
+  return [g, chrom];
+}
+function proteins(rx, rz, n, y, cols) {   // channel proteins sitting across the membrane (shown as part of the membrane)
+  const g = new THREE.Group();
+  for (let i = 0; i < n; i++) { const a = (i + .5) / n * Math.PI * 2, x = Math.cos(a) * rx, z = Math.sin(a) * rz, m = mat(cols[i % cols.length], {emissive: cols[i % cols.length], emissiveIntensity: .25});
+    const p = new THREE.Group(); for (const s of [-1, 1]) { const b = new THREE.Mesh(new THREE.CapsuleGeometry(.075, .32, 8, 16), m); b.position.set(0, 0, s * .085); p.add(b); }
+    const cap = new THREE.Mesh(new THREE.BoxGeometry(.12, .07, .34), m); cap.position.y = .22; p.add(cap);
+    p.position.set(x, y, z); p.lookAt(0, y, 0); p.rotateY(Math.PI / 2); g.add(p); }
+  return g;
+}
+
+/* ---------- the stand and the glow ---------- */
+const stand = new THREE.Group(); scene.add(stand);
+{ const base = new THREE.Mesh(new THREE.CylinderGeometry(2.55, 2.75, .32, 96), new THREE.MeshPhysicalMaterial({color: 0x1d2140, roughness: .3, metalness: .6, clearcoat: 1})); base.position.y = -.98; stand.add(base);
+  const ringG = new THREE.Mesh(new THREE.TorusGeometry(2.5, .035, 12, 128), new THREE.MeshBasicMaterial({color: 0x9fe3ff})); ringG.rotation.x = Math.PI / 2; ringG.position.y = -.81; stand.add(ringG);
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({map: (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'), r = g.createRadialGradient(64, 64, 0, 64, 64, 64); r.addColorStop(0, 'rgba(160,220,255,.55)'); r.addColorStop(.6, 'rgba(140,110,255,.18)'); r.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = r; g.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c); })(), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true}));
+  halo.scale.set(7.5, 3.2, 1); halo.position.set(0, -.5, -.6); stand.add(halo); }
+// soft floating lights in the room (bokeh)
+const bokeh = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(Array.from({length: 240}, (_, i) => i % 3 === 1 ? Math.random() * 7 - 1 : (Math.random() - .5) * 18), 3)), new THREE.PointsMaterial({map: (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'), r = g.createRadialGradient(32, 32, 0, 32, 32, 32); r.addColorStop(0, '#fff'); r.addColorStop(.4, 'rgba(255,255,255,.5)'); r.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = r; g.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); })(), color: 0xc9b8ff, size: .22, transparent: true, opacity: .45, depthWrite: false, blending: THREE.AdditiveBlending})); scene.add(bokeh);
+
+/* ---------- the two cells ---------- */
+const parts = [];   // {id, obj, home, to}
+let cell = null, life = null, flow = [];
+function addPart(id, obj, pos, lift = 1) {
+  obj.position.copy(pos); obj.userData.pid = id; obj.userData.s0 = obj.scale.clone(); obj.userData.y0 = pos.y; cell.add(obj);
+  const many = obj.isGroup && obj.children.length > 1 && obj.children.every(c => c.isGroup || c.isMesh) && pos.lengthSq() === 0;
+  parts.push({id, obj, home: pos.clone(), shell: lift < .5, many, bob: lift >= .5 && !many, kids: obj.children.map(c => c.position.clone())}); return obj;
+}
+function layout() {   // where each part goes when the cell is taken apart
+  const free = parts.filter(p => !p.shell), n = free.length;
+  let sh = 0; parts.filter(p => p.shell).reverse().forEach(p => { p.to = p.home.clone().add(new THREE.Vector3(0, -.75 * sh++, 0)); });
+  free.forEach((p, i) => {
+    // a tidy grid above the cell: two columns on a phone, three on a wide screen
+    const cols = camera.aspect < 1 ? 2 : 3, c = i % cols, row = Math.floor(i / cols), slot = new THREE.Vector3((c - (cols - 1) / 2) * (cols === 2 ? 2.3 : 2.4), .95 + row * (cols === 2 ? .95 : 1.05), 0);
+    if (p.many) { const m = p.kids.reduce((v, k) => v.add(k), new THREE.Vector3()).multiplyScalar(1 / p.kids.length);
+      p.kidsTo = p.kids.map(k => m.clone().add(k.clone().sub(m).multiplyScalar(.28))); p.to = slot.clone().sub(m); }
+    else p.to = slot;
+  });
+}
+function addLife(rx, rz, n, prot) {   // little vesicles drifting in the cytoplasm + particles entering through the proteins
+  life = new THREE.Group(); cell.add(life); const cols = [0x4aa3ff, 0xffc93d, 0xb36bff, 0xff7a5c, 0x6cf0d0];
+  for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, r = .45 + Math.random() * .5, c = cols[i % cols.length];
+    const s = new THREE.Mesh(new THREE.SphereGeometry(.035 + Math.random() * .045, 16, 12), mat(c, {emissive: c, emissiveIntensity: .45}));
+    s.position.set(Math.cos(a) * rx * r, .02 + Math.random() * .2, Math.sin(a) * rz * r); s.userData.ph = Math.random() * 6.28; life.add(s); }
+  flow = prot.children.map((p, i) => { const c = cols[i % cols.length], s = new THREE.Mesh(new THREE.SphereGeometry(.06, 16, 12), mat(c, {emissive: c, emissiveIntensity: .9, transparent: true}));
+    const out = p.position.clone().multiplyScalar(1.35), inn = p.position.clone().multiplyScalar(.7); out.y = inn.y = p.position.y + .05; life.add(s); return {s, out, inn, at: p.position.clone(), t: Math.random() * 4 - 2.5}; });
+}
+function build(kind) {
+  if (cell) { scene.remove(cell); cell.traverse(o => { o.geometry && o.geometry.dispose(); }); }
+  parts.length = 0; cell = new THREE.Group(); scene.add(cell);
+  const P = D.cells[kind].parts, id = n => P.find(p => p.name.replace(/[ًٌٍَُِّْ]/g, '') === n).id;
+  const V = (x, y, z) => new THREE.Vector3(x, y, z);
+  if (kind === 'plant') {
+    const wall = new THREE.Group(); wall.add(ring(2.15, 1.4, .72, .16, glass(0x7fe07a, .72, {emissive: 0x2f8a2a, emissiveIntensity: .35}))); wall.add(edge(2.07, 1.32, .38, .03, 0xb8ff9a));
+    addPart(id('الجدار الخلوي'), wall, V(0, -.35, 0), 0);
+    const mem = new THREE.Group(); mem.add(ring(1.98, 1.23, .66, .05, glass(0xe7ffa8, .7, {emissive: 0x9fd14b, emissiveIntensity: .3}))); const pr = proteins(1.95, 1.2, 8, 0, [0x7c5cff, 0x4fb3ff]); mem.add(pr);
+    addPart(id('الغشاء البلازمي'), mem, V(0, -.34, 0), .45);
+    addPart(id('السيتوبلازم'), drum(1.93, 1.18, .5, .04, glass(0xd8f7a0, .62, {emissive: 0x6a8a20, emissiveIntensity: .25, iridescence: .2})), V(0, -.33, 0), 0);
+    const vac = new THREE.Mesh(new THREE.SphereGeometry(1, 56, 36), glass(0x67e3ff, .55, {emissive: 0x1f8ab0, emissiveIntensity: .35}));
+    vac.scale.set(.85, .2, .62); addPart(id('الفجوة'), vac, V(.15, .22, -.1), 1.2);
+    const [nu, ch] = nucleus(0x8a4dff, 0xc9a8ff); addPart(id('النواة'), nu, V(-1.05, .34, -.45), 1.4); addPart(id('الكروموسومات'), ch, V(-1.05, .34, -.45), 2);
+    const [e] = er(0x3d8bff, 0xffd166, .52, .68); addPart(id('الشبكة الإندوبلازمية'), e, V(-1.05, .2, -.45), .7);
+    addPart(id('أجسام جولجي'), golgi(0xffc23d), V(-.35, .2, -.95), 1);
+    const mg = new THREE.Group(); [[-1.55, .17, .2, .4], [-.7, .17, .7, -.3], [1.25, .17, .55, .5]].forEach(([x, y, z, r]) => { const m = mito(0xff4f7b, 0xffb3c7); m.position.set(x, y, z); m.rotation.y = r; mg.add(m); });
+    addPart(id('الميتوكندريا'), mg, V(0, 0, 0), 1.6);
+    const cg = new THREE.Group(); [[-1, .18, .55, .2], [.05, .18, .8, -.1], [1.35, .18, -.35, 1.2], [1.55, .18, .25, .3], [.75, .18, .85, .2]].forEach(([x, y, z, r]) => { const c = chloro(); c.position.set(x, y, z); c.rotation.y = r; c.scale.setScalar(.85); cg.add(c); });
+    addPart(id('البلاستيدة الخضراء'), cg, V(0, 0, 0), 2.2);
+    addLife(1.8, 1.1, 26, pr); life.position.y = -.0; flow.forEach(f => { f.out.y = f.inn.y = -.3; });
+  } else {
+    // animal cell: a thick, see-through, glowing membrane around a clear cytoplasm, open on top
+    const mem = new THREE.Group(); mem.add(ring(2.0, 1.5, .78, .2, glass(0xc9a2ff, .62, {emissive: 0x7b3fe0, emissiveIntensity: .35}))); mem.add(edge(1.92, 1.42, .42, .035, 0xffa8e8));
+    const pr = proteins(1.9, 1.4, 10, 0, [0x8a5cff, 0x5aa8ff, 0x8a5cff, 0x6fd3ff]); mem.add(pr);
+    addPart(id('الغشاء البلازمي'), mem, V(0, -.4, 0), 0);
+    addPart(id('السيتوبلازم'), drum(1.84, 1.34, .55, .05, glass(0xffe6a8, .5, {emissive: 0xc79a3a, emissiveIntensity: .22, iridescence: .2})), V(0, -.37, 0), 0);
+    const [nu, ch] = nucleus(0x7b3fe0, 0xc9a8ff); nu.scale.setScalar(1.25); ch.scale.setScalar(1.25); addPart(id('النواة'), nu, V(-.05, .44, -.1), 1.4); addPart(id('الكروموسومات'), ch, V(-.05, .44, -.1), 2.1);
+    const [e, rb] = er(0x3d8bff, 0xffd166, .66, .95); addPart(id('الشبكة الإندوبلازمية'), e, V(-.05, .2, -.1), .7); addPart(id('الرايبوسوم'), rb, V(-.05, .2, -.1), 1.2);
+    addPart(id('أجسام جولجي'), golgi(0xffc23d), V(-.1, .2, .95), 1);
+    const mg = new THREE.Group(); [[-1.3, .2, -.65, .5], [1.05, .2, -.8, -.3], [-1.35, .2, .45, -.5], [1.4, .2, .3, 1.3]].forEach(([x, y, z, r]) => { const m = mito(0xff4f7b, 0xffb3c7); m.position.set(x, y, z); m.rotation.y = r; mg.add(m); });
+    addPart(id('الميتوكندريا'), mg, V(0, 0, 0), 1.6);
+    const vg = new THREE.Group(); [[-1.55, .22, -.05], [1.2, .26, -.15], [.85, .22, .85]].forEach(([x, y, z]) => { const s = new THREE.Mesh(new THREE.SphereGeometry(.17, 32, 24), glass(0x9b6fff, .8, {emissive: 0x6a3fd0, emissiveIntensity: .4, depthWrite: true})); s.position.set(x, y, z); vg.add(s); });
+    addPart(id('الفجوة'), vg, V(0, 0, 0), 1.8);
+    const lg = new THREE.Group(); [[.55, .18, .9], [1.05, .18, .55], [-.75, .18, -1.05], [-1.2, .18, -.2]].forEach(([x, y, z]) => { const s = new THREE.Mesh(new THREE.SphereGeometry(.09, 20, 14), mat(0xff6a3d, {emissive: 0xff6a3d, emissiveIntensity: .35})); s.position.set(x, y, z); lg.add(s); });
+    addPart(id('الأجسام المحللة'), lg, V(0, 0, 0), 2);
+    addLife(1.7, 1.2, 34, pr); flow.forEach(f => { f.out.y = f.inn.y = -.35; });
+  }
+  cell.rotation.y = -.35; makeLabels(kind); setExplode(false, true);
+  camera.position.set(0, 3.6, 6.4); controls.target.set(0, -.05, 0); controls.update();
+  $('#bt').textContent = kind === 'plant' ? 'الخلية النباتية' : 'الخلية الحيوانية'; $('#bimg').src = D.cells[kind].img;
+}
+
+/* ---------- labels that follow the parts ---------- */
+let labels = [], showNames = false;
+function makeLabels(kind) {
+  $('#labels').innerHTML = ''; labels = parts.map(p => { const P = D.cells[kind].parts.find(x => x.id === p.id); const e = document.createElement('div'); e.className = 'lb'; e.textContent = P.name; e.onclick = () => pick(p.id); $('#labels').appendChild(e); return {e, p}; });
+}
+const tmp = new THREE.Vector3(), box = new THREE.Box3();
+function placeLabels() {
+  const R = [];
+  for (const L of labels) {
+    box.setFromObject(L.p.obj); box.getCenter(tmp); tmp.y = box.max.y; tmp.project(camera);
+    R.push({L, x: (tmp.x + 1) / 2 * innerWidth, y: (1 - tmp.y) / 2 * innerHeight, w: L.e.offsetWidth || 80, h: (L.e.offsetHeight || 26) + 4, vis: tmp.z < 1 && (showNames || L.p.id === hiId)});
+  }
+  R.sort((a, b) => a.y - b.y); const put = [];
+  for (const r of R) { if (!r.vis) { r.L.e.style.opacity = 0; continue; }
+    for (let k = 0; k < 12 && put.some(q => Math.abs(q.x - r.x) < (q.w + r.w) / 2 && Math.abs(q.y - r.y) < r.h); k++) r.y += r.h * .6;
+    r.x = Math.max(r.w / 2 + 6, Math.min(innerWidth - r.w / 2 - 6, r.x));
+    put.push(r); r.L.e.style.left = r.x + 'px'; r.L.e.style.top = r.y + 'px'; r.L.e.style.opacity = 1; }
+}
+
+/* ---------- take apart / put back ---------- */
+let exploded = false, anim = null, turnTo = 0;
+function setExplode(on, instant) {
+  exploded = on; $('#explode').textContent = on ? '🔁 ركّب الخلية' : '🧩 فكّك الخلية'; $('#explode').classList.toggle('on', on);
+  layout(); showNames = on; $('#names').classList.toggle('on', on); life.visible = !on;
+  const from = parts.map(p => p.obj.position.clone()), to = parts.map(p => on ? p.to : p.home), kf = parts.map(p => p.obj.children.map(c => c.position.clone())), t0 = performance.now(), T = instant || calm ? 1 : 1200;
+  anim = now => { const k = Math.min(1, (now - t0) / T), e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+    parts.forEach((p, i) => { p.obj.position.lerpVectors(from[i], to[i], e); if (p.many) p.obj.children.forEach((c, j) => c.position.lerpVectors(kf[i][j], on ? p.kidsTo[j] : p.kids[j], e)); }); if (k >= 1) anim = null; };
+  if (on) { turnTo = 0; if (!instant) { camera.position.set(0, 4.4, camera.aspect < 1 ? 9.4 : 7.8); controls.target.set(0, camera.aspect < 1 ? 1.1 : .9, 0); } } else if (!instant) controls.target.set(0, -.05, 0);
+}
+
+/* ---------- tap a part: glow + name + what it does + voice ---------- */
+let hiId = null, audio = null;
+function glow(id) {
+  hiId = id; parts.forEach(p => p.obj.traverse(o => { if (o.material && o.material.emissive) { o.userData.e0 ??= [o.material.emissive.clone(), o.material.emissiveIntensity]; const on = p.id === id; o.material.emissive.copy(on ? new THREE.Color(0xffd84d) : o.userData.e0[0]); o.material.emissiveIntensity = on ? .6 : o.userData.e0[1]; } }));
+  labels.forEach(L => L.e.classList.toggle('hi', L.p.id === id));
+}
+function say(a) { if (audio) audio.pause(); if (!a) return; audio = new Audio(D.audio + a + '.mp3'); audio.play().catch(() => {}); }
+function pick(id) {
+  const P = D.cells[cur].parts.find(x => x.id === id); glow(id);
+  $('#it').innerHTML = `<b>${P.name}</b><br>${P.fn}`; $('#info').classList.add('on'); say(P.a);
+}
+$('#ix').onclick = () => { $('#info').classList.remove('on'); glow(null); if (audio) audio.pause(); };
+const ray = new THREE.Raycaster(), ptr = new THREE.Vector2(); let down = null;
+renderer.domElement.addEventListener('pointerdown', e => down = [e.clientX, e.clientY]);
+renderer.domElement.addEventListener('pointerup', e => {
+  if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 8) return;   // a drag turns the cell; a tap picks a part
+  ptr.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); ray.setFromCamera(ptr, camera);
+  const hits = ray.intersectObjects(cell.children, true); for (const h of hits) { let o = h.object; while (o && o.userData.pid == null) o = o.parent; if (o) { pick(o.userData.pid); return; } }
+});
+
+/* ---------- tour: every part in turn, the cell opens on the way ---------- */
+let tourOn = false;
+async function tour() {
+  if (tourOn) { tourOn = false; $('#tour').textContent = '▶️ جولة'; return; }
+  tourOn = true; $('#tour').textContent = '⏹️ أوقف'; if (!exploded) setExplode(true);
+  for (const p of D.cells[cur].parts) {
+    if (!tourOn) break; pick(p.id);
+    await new Promise(r => { const t = setTimeout(r, 4500); if (audio) audio.onended = () => { clearTimeout(t); setTimeout(r, 500); }; });
+  }
+  tourOn = false; $('#tour').textContent = '▶️ جولة';
+}
+
+/* ---------- controls ---------- */
+let cur = 'animal';
+document.querySelectorAll('.seg button').forEach(b => b.onclick = () => { document.querySelectorAll('.seg button').forEach(x => x.classList.toggle('on', x === b)); cur = b.dataset.c; tourOn = false; $('#info').classList.remove('on'); hiId = null; build(cur); });
+$('#explode').onclick = () => setExplode(!exploded);
+$('#names').onclick = () => { showNames = !showNames; $('#names').classList.toggle('on', showNames); };
+$('#tour').onclick = tour;
+$('#bookb').onclick = () => $('#book').classList.add('on');
+$('#bx').onclick = () => $('#book').classList.remove('on');
+$('#book').onclick = e => { if (e.target.id === 'book') e.target.classList.remove('on'); };
+$('#ab').onclick = () => $('#about').classList.add('on'); $('#abx').onclick = () => $('#about').classList.remove('on');
+setTimeout(() => $('#hint').style.opacity = 0, 6000);
+
+build(cur);
+const clock = new THREE.Clock(); let tt = 0;
+window.__t = s => { tt += s; };   // test hook: jump the animation clock
+renderer.setAnimationLoop(now => {
+  const dt = Math.min(.05, clock.getDelta()) * (calm ? .3 : 1); tt += dt;
+  anim && anim(now);
+  if (exploded) cell.rotation.y += (turnTo - cell.rotation.y) * Math.min(1, dt * 3); else if (!calm && !tourOn && hiId == null) cell.rotation.y += dt * .09;   // a slow turn while nobody touches it
+  // the cell is alive: parts float gently, vesicles drift, particles pass in through the proteins
+  if (!anim) parts.forEach((p, i) => { if (p.bob && !exploded) p.obj.position.y = p.home.y + Math.sin(tt * 1.3 + i) * .025; if (p.many && !exploded) p.obj.children.forEach((c, j) => { c.position.y = p.kids[j].y + Math.sin(tt * 1.6 + j * 1.7 + i) * .03; c.rotation.y += dt * .15 * (j % 2 ? 1 : -1); }); });
+  if (life && life.visible) {
+    life.children.forEach(s => { if (s.userData.ph == null) return; const ph = s.userData.ph += dt * .5; s.position.x += Math.cos(ph) * dt * .05; s.position.z += Math.sin(ph * 1.3) * dt * .05; s.position.y = .06 + Math.sin(ph * 2) * .08; });
+    flow.forEach(f => { f.t += dt * .55; if (f.t > 2.2) f.t = -Math.random() * 2; const k = Math.max(0, Math.min(1, f.t / 2)), e = k * k * (3 - 2 * k);
+      f.s.visible = f.t > 0; f.s.position.lerpVectors(f.out, f.inn, e); f.s.material.opacity = f.t > 2 ? 1 - (f.t - 2) * 5 : 1; });
+  }
+  if (hiId != null && !calm) { const s = 1 + Math.sin(tt * 5.5) * .04; parts.forEach(p => p.obj.scale.copy(p.obj.userData.s0).multiplyScalar(p.id === hiId ? s : 1)); }
+  bokeh.rotation.y = tt * .015; under.intensity = 5 + Math.sin(tt * 1.2) * 1.2;
+  controls.update(); renderer.render(scene, camera); placeLabels();
+});
+</script>
+</body>
+</html>
