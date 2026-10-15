@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>رحلة الماء في النبات</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+/* Life processes in a plant (lesson L11 «عمليات الحياة في النباتات»): a big clay plant in a cut-away of soil.
+   Roots take water, it climbs the xylem to the leaves, the stomata open and close, the leaf makes sugar and oxygen
+   with sunlight (photosynthesis), and the sugar travels down the phloem. Only names and facts from the book.
+   Source kept internally: data-src. */
+:root{--ink:#1d2a4a;--g:#2e8b57;--y:#ffd84d;--f:'SciBaloo','Segoe UI',Tahoma,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#cdeeff;color:var(--ink);font-family:var(--f);-webkit-text-size-adjust:100%}
+button{font:inherit;cursor:pointer;touch-action:manipulation;color:inherit}
+#stage{position:fixed;inset:0;touch-action:none}
+.top{position:fixed;top:0;left:0;right:0;z-index:5;display:flex;align-items:center;gap:8px;padding:8px 12px;background:linear-gradient(#ffffffe8,#ffffff00)}
+.top h1{flex:1;margin:0;font-size:1.02rem}
+.ib{border:0;background:rgba(255,255,255,.8);border-radius:12px;min-width:44px;min-height:44px;font-size:1.05rem}
+.modes{position:fixed;top:58px;left:8px;right:8px;z-index:5;display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.modes button{flex:none;border:2px solid #fff;background:rgba(255,255,255,.88);color:var(--ink);box-shadow:0 2px 8px rgba(30,60,120,.15);border-radius:14px;min-height:44px;padding:0 12px;font-size:.92rem}
+.modes button.on{background:var(--y);border-color:var(--y);color:#1d2733;font-weight:700}
+#eq{display:none;background:rgba(255,255,255,.96);border-radius:14px;padding:4px 10px;text-align:center;font-size:.9rem;line-height:1.75;box-shadow:0 3px 12px rgba(30,60,120,.12);border:2px solid #ffe08a}
+#eq.on{display:block}
+#eq.on+#legend{display:none}
+#dock{position:fixed;left:10px;right:10px;bottom:calc(70px + env(safe-area-inset-bottom));z-index:5;display:flex;flex-direction:column;gap:6px}
+#legend{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;pointer-events:none}
+#legend span{background:rgba(255,255,255,.92);border-radius:10px;padding:1px 8px;font-size:.78rem;border:1.5px solid #fff;box-shadow:0 1px 5px rgba(30,60,120,.12)}
+#legend b{display:inline-block;width:10px;height:10px;border-radius:50%;margin-inline-end:4px;vertical-align:middle}
+#say{background:rgba(255,255,255,.96);color:#1d2733;border-radius:16px;padding:8px 12px;font-size:1.02rem;line-height:1.7;min-height:2.6em;box-shadow:0 3px 12px rgba(30,60,120,.12)}
+.pred{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.pred button,.lab button{border:2px solid #cfe0d4;background:#fff;color:#1d2733;border-radius:12px;min-height:44px;padding:0 10px;font-size:.95rem}
+.pred button.ok{border-color:#1f8a4c;background:#e6f6ec}.pred button.no{border-color:#c2412d;background:#fbebe8}
+.lab{background:rgba(255,255,255,.96);border-radius:16px;padding:6px 10px;display:none;font-size:.9rem;box-shadow:0 3px 12px rgba(30,60,120,.12)}
+.lab.on{display:block}
+.lab .row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.lab button.done{background:#e6f6ec;border-color:#1f8a4c}
+.lab .row button{font-size:.9rem;padding:0 8px}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:6;padding:8px 8px calc(8px + env(safe-area-inset-bottom));display:flex;gap:6px;justify-content:center;background:rgba(255,255,255,.97);border-top:1px solid rgba(30,60,120,.1)}
+.bar button{border:2px solid #dbe6f5;background:#fff;color:var(--ink);border-radius:14px;min-height:46px;min-width:46px;padding:0 10px;font-size:1rem}
+.bar .p{background:var(--g);border-color:var(--g);color:#fff;min-width:92px}
+#labels{position:fixed;inset:0;pointer-events:none;z-index:3}
+.lb{position:absolute;transform:translate(-50%,-50%);background:rgba(255,255,255,.94);color:#1d2733;border-radius:10px;padding:0 8px;font-size:.8rem;font-weight:700;white-space:nowrap;transition:opacity .4s;box-shadow:0 2px 6px rgba(30,60,120,.15);border-inline-start:4px solid var(--c,#2e8b57)}
+#start{position:fixed;inset:0;z-index:7;display:flex;flex-direction:column;gap:12px;align-items:center;justify-content:center;background:rgba(205,238,255,.45);padding:16px}
+#start button{border:0;background:var(--y);color:#1d2733;border-radius:20px;padding:14px 22px;font-size:1.2rem;font-weight:700;box-shadow:0 8px 30px rgba(30,60,120,.3);min-height:56px}
+#start p{margin:0;background:rgba(255,255,255,.95);border-radius:14px;padding:8px 14px;max-width:420px;text-align:center;line-height:1.7;font-size:.95rem}
+.panel{position:fixed;inset:0;z-index:8;background:rgba(0,0,0,.5);display:none;align-items:flex-end;justify-content:center}
+.panel.on{display:flex}
+.panel .box{background:#fff;color:#1d2733;border-radius:22px 22px 0 0;max-width:640px;width:100%;max-height:86vh;overflow:auto;padding:14px 16px calc(16px + env(safe-area-inset-bottom))}
+.opt{display:block;width:100%;text-align:right;border:2px solid #e2e6df;background:#fff;color:#1d2733;border-radius:14px;padding:8px 12px;margin:7px 0;min-height:52px;font-size:1.02rem}
+.opt.ok{border-color:#1f8a4c;background:#e6f6ec}.opt.no{border-color:#c2412d;background:#fbebe8}
+.fb{border-radius:14px;padding:8px 12px;margin:8px 0;line-height:1.7}.fb.ok{background:#e6f6ec}.fb.no{background:#fbebe8}.fb.in{background:#eaf1fa}
+.note{font-size:.8rem;color:#5d6874;line-height:1.7}
+.big{display:block;width:100%;min-height:50px;border-radius:14px;border:0;background:var(--g);color:#fff;font-size:1.05rem;margin-top:8px}
+#loading{position:fixed;inset:0;z-index:9;display:flex;align-items:center;justify-content:center;background:#cdeeff;font-size:1.1rem}
+@media (max-width:380px){#say{font-size:.96rem}.modes button{padding:0 9px}}
+@media (min-width:760px){#dock{left:auto;right:16px;width:470px}}
+</style>
+</head>
+<body data-src="L11 «عمليات الحياة في النباتات» ص٨٠–٨٣، ٨٩ (الجذور والساق ونقل الماء ص٨٠–٨١، الثغور ص٨٢، البناء الضوئي ص٨٣، الملخص ص٨٩)">
+<div id="loading">جاري تجهيز المشهد…</div>
+<div id="stage"></div><div id="labels"></div>
+<header class="top"><h1>🌱 رحلة الماء والغذاء في النبات</h1><button class="ib" id="info" aria-label="عن المشهد">ℹ️</button></header>
+<nav class="modes" id="modes"></nav>
+<div id="dock"><div id="eq"></div><div id="legend"></div><div id="say">اختر من الأعلى، أو اضغط ▶️ للجولة كاملة.</div><div class="lab" id="lab"></div></div>
+<div class="bar">
+  <button class="p" id="play">▶️ الجولة</button>
+  <button id="again" aria-label="أعد المقطع">↺</button>
+  <button id="qz">✏️ اختبر نفسك</button>
+  <button id="mute" aria-label="كتم الصوت">🔊</button>
+</div>
+<div id="start"><p>🎯 <b>هدفك:</b> أن تتتبّع رحلة الماء من الجذور إلى الأوراق، وتعرف كيف تصنع الورقة الغذاء بالبناء الضوئي.</p><button id="go">🌱 اضغط لتبدأ الرحلة</button></div>
+<div class="panel" id="qp"><div class="box" id="qb"></div></div>
+<div class="panel" id="ip"><div class="box"><b>عن هذا المشهد</b>
+  <p class="note">• نبات من الصلصال صنعناه لهذا الدرس، وقطعنا التربة من الأمام لنرى الجذور. الأحجام والألوان مبسّطة للتوضيح.<br>
+  • قطرات الماء والفقاعات ومكعبات السكر لها عيون للمرح فقط. في الحقيقة هي جزيئات صغيرة جدًا لا تُرى.<br>
+  • الثغر والخلايا الحارسة والبلاستيدات الخضراء مكبّرة جدًا داخل العدسة، وفي الحقيقة لا تُرى بالعين.<br>
+  • الخشب واللحاء رسمناهما خطّين ملوّنين على الساق، وهما في الحقيقة أنابيب داخلها.<br>
+  • الشرح بصوت مولّد بالذكاء الاصطناعي (صوت حامد من مايكروسوفت).<br>
+  • التقدّم ونتيجة الاختبار تُحفظ في هذا الجهاز فقط.</p>
+  <button class="big" id="ix">إغلاق</button></div></div>
+<script type="application/json" id="lines">
+{
+"p01": {"t": "هدفُنا: نتتبّعُ رحلةَ الماءِ في النبات، ونعرفُ كيف يصنعُ النباتُ غذاءَه."},
+"p02": {"t": "الجذورُ تثبّتُ النباتَ في التربة، وتمتصُّ الماءَ والأملاحَ عن طريقِ الشعيراتِ الجذرية."},
+"p03": {"t": "والشعيراتُ الجذريةُ تزيدُ مساحةَ سطحِ الجذور، فيمتصُّ النباتُ كمياتٍ أكبرَ من الماءِ والأملاح."},
+"p04": {"t": "يدخلُ الماءُ والأملاحُ من التربةِ إلى الشعيراتِ الجذرية، ثم يمرّانِ خلالَ القشرةِ إلى الخشب."},
+"p05": {"t": "الخشبُ ينقلُ الماءَ والأملاحَ إلى أعلى، مثلَ أنابيبِ الماءِ في البناياتِ المرتفعة. واللحاءُ ينقلُ الغذاءَ من الأوراق."},
+"p06": {"t": "في البشرةِ على السطحِ السفليِّ للورقة، فتحاتٌ صغيرةٌ جدًّا تُسمّى الثغور. ويحيطُ بكلِّ ثغرٍ خليّتانِ حارستان."},
+"p07": {"t": "في النتح يخرجُ الماءُ من الأوراقِ إلى الهواء، وكلّما فقدَ النباتُ الماء، صعدَ ماءٌ جديدٌ من الجذورِ عبرَ الخشب."},
+"p08": {"t": "وعندما ترتفعُ درجةُ الحرارة، تُغلَقُ الثغورُ لتقليلِ كميةِ الماءِ المفقود."},
+"p09": {"t": "البناءُ الضوئيُّ يحدثُ في البلاستيداتِ الخضراء، وهي توجدُ بشكلٍ رئيسٍ في أوراقِ النباتات."},
+"p10": {"t": "تستخدمُ البلاستيداتُ الخضراءُ ثانيَ أكسيدِ الكربونِ والماءَ والطاقةَ الشمسية، لإنتاجِ الغذاءِ على شكلِ سكرِ جلوكوز."},
+"p11": {"t": "وينتجُ أيضًا الأكسجين، وهو فضلاتٌ يتخلّصُ منها النباتُ في الهواء."},
+"p12": {"t": "يبقى بعضُ الجلوكوزِ في الأوراق، وينتقلُ الباقي عبرَ اللحاءِ إلى السيقانِ والجذور."},
+"p13": {"t": "وعندما يتغذّى حيوانٌ على النبات، تصبحُ الطاقةُ المخزّنةُ في الجلوكوز متاحةً لهذا الحيوان."},
+"p14": {"t": "الجذورُ تثبّتُ النباتَ وتمتصُّ الماءَ والموادَّ المغذّية، والساقُ تدعمُ النباتَ وتنقلُ الماءَ والموادَّ المغذّية."},
+"p15": {"t": "والأوراقُ تلتقطُ الطاقةَ من الشمس، وتكوّنُ الغذاءَ بعمليةِ البناءِ الضوئي."},
+"p16": {"t": "دورُك الآن: أرسلْ إلى الورقةِ ما تحتاجُه لتصنعَ الغذاء."},
+"p17": {"t": "ركّزتَ فوصلت، والتوفيقُ من الله! صنعتِ الورقةُ سكرَ الجلوكوز، وخرجَ الأكسجين."}
+}
+</script>
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
+<script src="vendor/gsap.min.js"></script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from './vendor/OrbitControls.js';
+const $ = s => document.querySelector(s);
+const LINES = JSON.parse($('#lines').textContent);
+const AR = n => String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const lowEnd = (navigator.hardwareConcurrency || 4) <= 4;
+const D = d => calm ? .01 : d;
+gsap.ticker.lagSmoothing(0);   // keep motion in step with the narration, even on a slow frame
+
+/* ---------- renderer: bright sky, soft sunlight, clay shadows ---------- */
+const renderer = new THREE.WebGLRenderer({antialias: true}); renderer.setPixelRatio(Math.min(devicePixelRatio, lowEnd ? 1.5 : 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; $('#stage').appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+{ const c = document.createElement('canvas'); c.width = 4; c.height = 256; const g = c.getContext('2d'), gr = g.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, '#8fd0ff'); gr.addColorStop(.55, '#dff3ff'); gr.addColorStop(1, '#fff1d6'); g.fillStyle = gr; g.fillRect(0, 0, 4, 256); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; scene.background = t; }
+const camera = new THREE.PerspectiveCamera(45, 1, .1, 200);
+const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.enablePan = false; controls.minDistance = 2; controls.maxDistance = 20; controls.maxPolarAngle = Math.PI * .62;
+scene.add(new THREE.HemisphereLight(0xffffff, 0xd9b48a, 1.5));
+const key = new THREE.DirectionalLight(0xfff4dc, 2.3); key.position.set(-5, 9, 6); key.castShadow = true; key.shadow.mapSize.set(1024, 1024);
+Object.assign(key.shadow.camera, {left: -7, right: 7, top: 8, bottom: -5, near: 1, far: 30}); key.shadow.bias = -.0015; scene.add(key);
+const fill = new THREE.DirectionalLight(0xbfe3ff, .9); fill.position.set(6, 3, 4); scene.add(fill);
+function fit() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.fov = innerWidth < innerHeight ? 58 : 40; camera.updateProjectionMatrix(); bandKey = ''; }
+let bandKey = '', shiftNow = 0; addEventListener('resize', fit); fit();
+// keep the scene centred in the free band between the chips (top) and the narration dock (bottom)
+function frameBand() { const top = 110, bot = $('#dock').getBoundingClientRect().top, want = (top + bot) / 2 - innerHeight / 2;
+  shiftNow += (want - shiftNow) * .12; const k = innerWidth + ':' + innerHeight + ':' + shiftNow.toFixed(1); if (k === bandKey) return; bandKey = k;
+  camera.setViewOffset(innerWidth, innerHeight, 0, -shiftNow, innerWidth, innerHeight); camera.updateProjectionMatrix(); }
+
+/* ---------- clay: soft matte colour with fingerprint-like bumps ---------- */
+const clayBump = (() => { const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'); g.fillStyle = '#808080'; g.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 2600; i++) { const v = 110 + Math.random() * 40 | 0; g.fillStyle = `rgba(${v},${v},${v},.35)`; g.beginPath(); g.arc(Math.random() * 256, Math.random() * 256, 1 + Math.random() * 3, 0, 7); g.fill(); }
+  g.lineWidth = 1.2; for (let i = 0; i < 40; i++) { const x = Math.random() * 256, y = Math.random() * 256, r = 6 + Math.random() * 14; for (let k = 0; k < 4; k++) { g.strokeStyle = `rgba(${Math.random() < .5 ? 90 : 170},${Math.random() < .5 ? 90 : 170},${Math.random() < .5 ? 90 : 170},.25)`; g.beginPath(); g.arc(x, y, r + k * 2.4, Math.random() * 3, Math.random() * 3 + 2); g.stroke(); } }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t; })();
+const clay = (c, o = {}) => new THREE.MeshStandardMaterial({color: c, roughness: .82, metalness: 0, bumpMap: clayBump, bumpScale: 1.2, ...o});
+const mesh = (geo, m, x = 0, y = 0, z = 0) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.castShadow = true; o.receiveShadow = true; return o; };
+const sph = (r, a = 24, b = 18) => new THREE.SphereGeometry(r, a, b);
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+const curve = pts => new THREE.CatmullRomCurve3(pts.map(p => p.isVector3 ? p : V(...p)));
+function taperTube(cv, r0, r1, m, segs = 40, rad = 10) {   // a tube that gets thinner toward its end (roots, stems)
+  const g = new THREE.TubeGeometry(cv, segs, 1, rad, false), p = g.attributes.position, c = new THREE.Vector3(), v = new THREE.Vector3();
+  for (let i = 0; i <= segs; i++) { cv.getPointAt(i / segs, c); const r = r0 + (r1 - r0) * i / segs; for (let j = 0; j <= rad; j++) { const k = i * (rad + 1) + j; v.fromBufferAttribute(p, k).sub(c).multiplyScalar(r).add(c); p.setXYZ(k, v.x, v.y, v.z); } }
+  g.computeVertexNormals(); return mesh(g, m);
+}
+// a cute face: big eyes with a glint and a small smile, looking out of +z
+const eyeW = new THREE.MeshStandardMaterial({color: 0xffffff, roughness: .3}), eyeB = new THREE.MeshBasicMaterial({color: 0x17202f}), mouthM = new THREE.MeshBasicMaterial({color: 0x7a2238});
+function face(r, y = 0, z = 1, smile = true) {
+  const f = new THREE.Group();
+  for (const s of [-1, 1]) { const e = new THREE.Mesh(sph(r * .26, 14, 10), eyeW); e.position.set(s * r * .34, y + r * .12, z * r * .86); e.scale.z = .55; f.add(e);
+    const p = new THREE.Mesh(sph(r * .15, 12, 8), eyeB); p.position.set(s * r * .32, y + r * .1, z * r * .86 + r * .14); p.scale.z = .5; f.add(p);
+    const gl = new THREE.Mesh(sph(r * .05, 6, 4), eyeW); gl.position.set(s * r * .32 + r * .05, y + r * .17, z * r * .86 + r * .2); f.add(gl); }
+  if (smile) { const m = new THREE.Mesh(new THREE.TorusGeometry(r * .16, r * .035, 6, 14, Math.PI).rotateZ(Math.PI), mouthM); m.position.set(0, y - r * .2, z * r * .93); f.add(m); }
+  return f;
+}
+
+/* ---------- the soil cut-away (back half only, so the roots show on the cut face) ---------- */
+const soilM = [clay(0x8a5a37), clay(0x8a5a37), clay(0x7fbf4d), clay(0x8a5a37), clay(0x734a2c), clay(0x8a5a37)];
+const soil = mesh(new THREE.BoxGeometry(7.4, 2.7, 3.4), soilM, 0, -1.35, -1.7); scene.add(soil);
+const grassTop = mesh(new THREE.BoxGeometry(7.5, .16, 3.5), clay(0x79c24a), 0, .02, -1.72); scene.add(grassTop);
+const pebM = [clay(0xa58866), clay(0x6b4a33), clay(0xc0a27a)];
+for (let i = 0; i < 26; i++) { const p = mesh(new THREE.DodecahedronGeometry(.06 + Math.random() * .1, 0), pebM[i % 3], (Math.random() - .5) * 7, -.3 - Math.random() * 2.2, .02); p.scale.z = .5; p.rotation.set(Math.random() * 3, Math.random() * 3, 0); scene.add(p); }
+for (let i = 0; i < 40; i++) { const b = mesh(new THREE.ConeGeometry(.035, .22 + Math.random() * .15, 5), clay(i % 2 ? 0x5fae3a : 0x8fd35a), (Math.random() - .5) * 7.2, .17, -Math.random() * 3.3); b.rotation.z = (Math.random() - .5) * .5; scene.add(b); }
+const ground = new THREE.Mesh(new THREE.CircleGeometry(9, 40), new THREE.ShadowMaterial({opacity: .16})); ground.rotation.x = -Math.PI / 2; ground.position.y = -2.72; ground.receiveShadow = true; scene.add(ground);
+
+/* ---------- the plant: stem, roots with root hairs, xylem and phloem lines, leaves ---------- */
+const plantG = new THREE.Group(); scene.add(plantG);
+const stemC = curve([[0, -.05, -.1], [.1, 1.2, -.1], [-.06, 2.4, -.1], [.05, 3.6, -.1], [0, 4.45, -.1]]);
+const stemM = clay(0x56b04a); plantG.add(taperTube(stemC, .24, .13, stemM, 48, 14));
+const atY = y => { let best = 0, d = 9; for (let i = 0; i <= 100; i++) { const p = stemC.getPointAt(i / 100); if (Math.abs(p.y - y) < d) { d = Math.abs(p.y - y); best = i / 100; } } return stemC.getPointAt(best); };
+const xyC = curve(Array.from({length: 9}, (_, i) => { const p = stemC.getPointAt(i / 8); return V(p.x + .075, p.y, .1); }));
+const phC = curve(Array.from({length: 9}, (_, i) => { const p = stemC.getPointAt(i / 8); return V(p.x - .075, p.y, .1); }));
+const xyM = clay(0x3f9bff, {transparent: true, opacity: 0, emissive: 0x1f5fb0, emissiveIntensity: .25}), phM = clay(0xff9a3c, {transparent: true, opacity: 0, emissive: 0xa34d00, emissiveIntensity: .2});
+const xylem = new THREE.Mesh(new THREE.TubeGeometry(xyC, 60, .042, 8), xyM), phloem = new THREE.Mesh(new THREE.TubeGeometry(phC, 60, .042, 8), phM); plantG.add(xylem, phloem);
+const ROOTS = [[[0, -.05], [-.3, -.6], [-.9, -1.2], [-1.6, -1.7], [-2.2, -2.15]], [[0, -.05], [.35, -.7], [1.0, -1.3], [1.7, -1.85], [2.3, -2.05]], [[0, -.05], [-.05, -.9], [.12, -1.7], [-.05, -2.4]],
+  [[0, -.08], [-.45, -.35], [-1.2, -.62], [-2.0, -.75]], [[0, -.08], [.5, -.38], [1.3, -.58], [2.1, -.9]]].map(r => curve(r.map(([x, y]) => [x, y, .1])));
+const rootM = clay(0xf1dcb3), hairs = [];
+ROOTS.forEach((c, i) => plantG.add(taperTube(c, i < 3 ? .1 : .07, .025, rootM, 32, 8)));
+{ const hg = new THREE.CylinderGeometry(.01, .006, .16, 4); hg.translate(0, .08, 0); const hm = new THREE.InstancedMesh(hg, rootM, 260), M = new THREE.Matrix4(), q = new THREE.Quaternion(), n = 0;
+  let k = 0; ROOTS.forEach(c => { for (let i = 0; i < 52 && k < 260; i++) { const t = .35 + Math.random() * .62, p = c.getPointAt(t); q.setFromEuler(new THREE.Euler(0, 0, Math.random() * Math.PI * 2)); hm.setMatrixAt(k++, M.compose(p, q, V(1, 1, 1))); } }); hm.count = k; plantG.add(hm); hairs.push(hm); }
+// leaves: puffy clay blades with a petiole and a midrib; one big "hero" leaf on the right
+const leafM = clay(0x4fae45), ribM = clay(0x9bd77a);
+function leaf(y, side, L, hero) {
+  const at = atY(y), g = new THREE.Group(); g.position.set(at.x, at.y, at.z); plantG.add(g);
+  const pet = curve([[0, 0, 0], [side * .25, .14, .02], [side * .5, .2, .05]]); g.add(taperTube(pet, .07, .05, stemM, 10, 8));
+  const W = L * .42, s = new THREE.Shape(); s.moveTo(0, 0); s.quadraticCurveTo(L * .3, W, L, 0); s.quadraticCurveTo(L * .3, -W, 0, 0);
+  const geo = new THREE.ExtrudeGeometry(s, {depth: .03, bevelEnabled: true, bevelThickness: .035, bevelSize: .04, bevelSegments: 3, curveSegments: 18});
+  const blade = new THREE.Group(); blade.position.set(side * .5, .2, .05); blade.rotation.set(0, side > 0 ? 0 : Math.PI, side * .32); g.add(blade);
+  const tilt = new THREE.Group(); tilt.rotation.x = -1.05; blade.add(tilt);
+  const b = mesh(geo, leafM); tilt.add(b);
+  const rib = new THREE.Mesh(new THREE.TubeGeometry(curve([[.02, 0, .08], [L * .5, .02, .09], [L * .92, 0, .07]]), 16, .025, 6), ribM); tilt.add(rib);
+  for (const t of [.3, .55, .75]) for (const sd of [-1, 1]) tilt.add(new THREE.Mesh(new THREE.TubeGeometry(curve([[L * t, 0, .08], [L * (t + .12), sd * W * .32 * (1 - t * .5), .085]]), 6, .015, 5), ribM));
+  return {g, blade, tilt, L, side, at, hero};
+}
+const LEAVES = [leaf(1.25, -1, 1.25), leaf(2.05, 1, 1.75, true), leaf(2.85, -1, 1.35), leaf(3.55, 1, 1.15), leaf(4.2, -1, .85), leaf(4.35, 1, .8), leaf(.7, 1, .95)];
+const HERO = LEAVES[1]; plantG.updateMatrixWorld(true);
+const leafPt = (lf, f, up = .1) => lf.tilt.localToWorld(V(lf.L * f, 0, up));   // a point on a leaf (fraction of its length)
+const leafPath = (lf, f) => [lf.g.localToWorld(V(lf.side * .2, .12, .1)), lf.g.localToWorld(V(lf.side * .5, .2, .1)), leafPt(lf, f * .5), leafPt(lf, f)];
+// chloroplasts on the hero leaf (shown big, they glow while the leaf makes food)
+const chlM = clay(0x2f8f3a, {emissive: 0x7dff6a, emissiveIntensity: 0}), chl = [];
+for (let i = 0; i < 16; i++) { const f = .18 + Math.random() * .68, w = HERO.L * .42 * .55 * Math.sin(Math.PI * Math.min(1, f * 1.15)); const c = mesh(new THREE.CapsuleGeometry(.045, .09, 4, 8), chlM, HERO.L * f, (Math.random() - .5) * 2 * w, .1); c.scale.z = .45; c.rotation.z = Math.random() * 3; HERO.tilt.add(c); chl.push(c); }
+
+/* ---------- the sun, clouds and a little rabbit ---------- */
+const sun = new THREE.Group(); sun.position.set(-4.3, 6.4, -2.5); scene.add(sun);
+sun.add(mesh(sph(.75, 32, 24), clay(0xffcf3a, {emissive: 0xffb300, emissiveIntensity: .45}))); sun.add(face(.75, 0, 1.02));
+for (const s of [-1, 1]) { const ch = new THREE.Mesh(sph(.12, 10, 8), clay(0xff8a6a)); ch.position.set(s * .42, -.12, .62); ch.scale.z = .4; sun.add(ch); }
+const raysG = new THREE.Group(); sun.add(raysG); for (let i = 0; i < 10; i++) { const r = mesh(new THREE.ConeGeometry(.13, .42, 8), clay(0xffd84d, {emissive: 0xffb300, emissiveIntensity: .35}), 0, 0, 0); const a = i / 10 * Math.PI * 2; r.position.set(Math.cos(a) * 1.05, Math.sin(a) * 1.05, -.1); r.rotation.z = a - Math.PI / 2; raysG.add(r); }
+const beamM = new THREE.MeshBasicMaterial({color: 0xffe066, transparent: true, opacity: 0, depthWrite: false}), beams = [];
+for (let i = 0; i < 3; i++) { const b = new THREE.Mesh(new THREE.CylinderGeometry(.06, .16, 1, 10, 1, true), beamM); scene.add(b); beams.push(b); }
+function aimBeams() { const s = sun.position; beams.forEach((b, i) => { const e = leafPt(HERO, .3 + i * .22, .15), mid = s.clone().lerp(e, .5); b.position.copy(mid); b.scale.y = s.distanceTo(e) - .9; b.lookAt(e); b.rotateX(Math.PI / 2); b.translateY(.45); }); }
+const clouds = []; for (const [x, y, z, s] of [[3.6, 6.2, -4, 1], [-1.2, 7.4, -6, .8]]) { const c = new THREE.Group(); c.position.set(x, y, z); c.scale.setScalar(s); for (const [a, b, r] of [[0, 0, .6], [.6, -.1, .45], [-.6, -.1, .45], [.25, .3, .45]]) c.add(mesh(sph(r, 20, 14), clay(0xffffff))); scene.add(c); clouds.push(c); }
+function rabbitMake() { const g = new THREE.Group(), fur = clay(0xf3ece2), pink = clay(0xffb3c1);
+  const body = mesh(sph(.42), fur, 0, .38, 0); body.scale.set(1, .9, 1.15); g.add(body);
+  const head = new THREE.Group(); head.position.set(0, .85, .32); g.add(head); head.add(mesh(sph(.3), fur)); head.add(face(.3, -.02, 1));
+  const nose = mesh(sph(.05, 8, 6), pink, 0, -.04, .3); head.add(nose);
+  for (const s of [-1, 1]) { const ear = mesh(new THREE.CapsuleGeometry(.08, .38, 6, 10), fur, s * .13, .42, -.05); ear.rotation.z = -s * .18; head.add(ear); const inn = mesh(new THREE.CapsuleGeometry(.04, .3, 4, 8), pink, s * .13, .42, -.0); inn.rotation.z = -s * .18; head.add(inn);
+    g.add(mesh(sph(.12, 12, 8), fur, s * .22, .08, .3)); }
+  g.add(mesh(sph(.13, 12, 8), clay(0xffffff), 0, .45, -.48)); g.userData.head = head; return g; }
+const rabbit = rabbitMake(); rabbit.position.set(4.6, .1, -1.0); rabbit.rotation.y = -1.2; rabbit.visible = false; scene.add(rabbit);
+
+/* ---------- the stoma under a magnifying lens (big, faces the viewer) ---------- */
+const lens = new THREE.Group(); lens.visible = false; lens.scale.setScalar(.01); scene.add(lens);
+lens.add(mesh(new THREE.CylinderGeometry(1, 1, .08, 48).rotateX(Math.PI / 2), clay(0x8fd27a)));
+{ const cellM = clay(0x7cc566); for (let i = 0; i < 9; i++) { const a = i / 9 * Math.PI * 2, c = mesh(new THREE.CylinderGeometry(.28, .28, .05, 6).rotateX(Math.PI / 2), cellM, Math.cos(a) * .7, Math.sin(a) * .7, .05); lens.add(c); } }
+lens.add(mesh(new THREE.TorusGeometry(1.02, .07, 12, 48), clay(0xffc845)));
+const handle = mesh(new THREE.CapsuleGeometry(.08, .55, 6, 10), clay(0xc2763a), .95, -.95, 0); handle.rotation.z = Math.PI / 4; lens.add(handle);
+const pore = mesh(new THREE.CircleGeometry(.2, 24), new THREE.MeshBasicMaterial({color: 0x1d3b22}), 0, 0, .09); pore.scale.set(.55, 1, 1); lens.add(pore);
+const guard = []; for (const s of [-1, 1]) { const gc = mesh(new THREE.TorusGeometry(.3, .13, 16, 32, Math.PI * .92), clay(s < 0 ? 0x3fa14a : 0x48ad52), 0, 0, .14); gc.rotation.z = s * Math.PI / 2 + Math.PI * .04; gc.userData.s = s; lens.add(gc); guard.push(gc);
+  for (let i = 0; i < 4; i++) { const a = (i + .5) / 4 * Math.PI * .92, d = mesh(sph(.035, 8, 6), clay(0x2a7a33), Math.cos(a) * .3, Math.sin(a) * .3, .12); d.scale.z = .5; gc.add(d); } }
+const stoma = {open: 1}; const applyStoma = () => { const sx = .3 + .7 * stoma.open; guard.forEach(g => { g.scale.set(sx, 1, 1); g.position.x = g.userData.s * (.015 + .09 * stoma.open); }); pore.scale.set(.6 * stoma.open + .05, 1.05, 1); };
+const lensAt = () => leafPt(HERO, .55, -.2).add(V(.55, -1.45, 1.2));
+
+/* ---------- little characters: water drops, gas bubbles, sugar cubes (all with faces) ---------- */
+const dropGeo = new THREE.LatheGeometry(Array.from({length: 17}, (_, i) => { const t = i / 16 * Math.PI; return new THREE.Vector2(Math.sin(t) * Math.pow(Math.sin(t / 2), 1.1), -Math.cos(t)); }), 20);
+const KIND = {
+  drop: () => new THREE.Mesh(dropGeo, new THREE.MeshPhysicalMaterial({color: 0x3fa9ff, roughness: .15, clearcoat: 1, transmission: 0, emissive: 0x0b4f9a, emissiveIntensity: .15})),
+  co2: () => new THREE.Mesh(sph(1, 20, 14), clay(0x9a94b8)),
+  o2: () => new THREE.Mesh(sph(1, 20, 14), new THREE.MeshPhysicalMaterial({color: 0x8ff0ff, roughness: .1, clearcoat: 1, emissive: 0x2aa6c0, emissiveIntensity: .2})),
+  vap: () => new THREE.Mesh(sph(1, 14, 10), new THREE.MeshStandardMaterial({color: 0xcfeeff, transparent: true, opacity: .75, roughness: .4})),
+  sugar: () => new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.6, 1.6, 2, 2, 2), clay(0xfff4d6)),
+};
+const SIZE = {drop: .13, co2: .14, o2: .14, vap: .08, sugar: .1}, pool = [];
+function buddy(kind) { let b = pool.find(o => !o.visible && o.userData.kind === kind);
+  if (!b) { b = new THREE.Group(); const body = KIND[kind](); body.castShadow = true; b.add(body); if (kind !== 'vap') b.add(face(1, kind === 'drop' ? -.25 : 0, kind === 'sugar' ? .95 : 1)); b.userData.kind = kind; scene.add(b); pool.push(b); }
+  b.scale.setScalar(SIZE[kind]); b.visible = true; return b; }
+let live = [];   // running tweens of this step (killed when the step changes)
+const tw = t => (live.push(t), t);
+function along(b, pts, dur, opt = {}) { const c = curve(pts), o = {t: 0}; b.position.copy(c.getPointAt(0));
+  return tw(gsap.to(o, {t: 1, duration: dur, delay: opt.delay || 0, ease: opt.ease || 'none', onUpdate: () => b.position.copy(c.getPointAt(o.t)), onComplete: () => { if (opt.keep) return opt.done && opt.done(); b.visible = false; opt.done && opt.done(); }})); }
+const rootUp = (i, from) => { const c = ROOTS[i], pts = []; for (let k = 10; k >= 0; k--) pts.push(c.getPointAt(k / 10 * from).setZ(.17)); return pts; };
+const xyTo = y => { const pts = []; for (let k = 0; k <= 12; k++) { const p = xyC.getPointAt(k / 12); if (p.y > y) break; pts.push(p.clone().setZ(.17)); } return pts; };
+function water(full, delay = 0, lf) {   // a drop from the soil, into a root, (optionally) up the xylem and into a leaf
+  const b = buddy('drop'), i = Math.random() * 5 | 0, tip = ROOTS[i].getPointAt(1), start = tip.clone().add(V((Math.random() - .5) * .6, -.15 - Math.random() * .3, .2));
+  let pts = [start, ...rootUp(i, .97)]; if (full) { lf = lf || LEAVES[Math.random() * 4 | 0]; pts = [...pts, ...xyTo(lf.at.y), ...leafPath(lf, .45 + Math.random() * .3)]; }
+  b.scale.setScalar(.001); tw(gsap.to(b.scale, {x: SIZE.drop, y: SIZE.drop, z: SIZE.drop, duration: .5, delay}));
+  along(b, pts, full ? 7.5 : 4, {delay, ease: 'sine.inOut'});
+}
+function rain(n) { for (let k = 0; k < n; k++) { const b = buddy('drop'), x = (Math.random() - .5) * 4, top = V(x, 2.6 + Math.random() * .6, .25), land = V(x, -.1, .25), i = Math.random() * 5 | 0;
+  const pts = [top, land, ROOTS[i].getPointAt(1).setZ(.2), ...rootUp(i, .97), ...xyTo(HERO.at.y), ...leafPath(HERO, .5 + Math.random() * .3)];
+  b.scale.setScalar(SIZE.drop); along(b, pts, 8, {delay: k * .25, ease: 'sine.inOut'}); } }
+function gas(kind, from, to, dur, delay = 0, keep) { const b = buddy(kind); b.scale.setScalar(.001); tw(gsap.to(b.scale, {x: SIZE[kind], y: SIZE[kind], z: SIZE[kind], duration: .4, delay})); return along(b, [from, from.clone().lerp(to, .5).add(V(0, .2, .2)), to], dur, {delay, ease: 'sine.inOut', keep}); }
+const sugars = [];
+function makeSugar(n, delay = 0) { for (let k = 0; k < n; k++) { const b = buddy('sugar'), p = leafPt(HERO, .25 + k * .5 / Math.max(1, n - 1), .25); b.position.copy(p); b.scale.setScalar(.001); b.rotation.set(.3, .4, 0); sugars.push(b);
+  tw(gsap.to(b.scale, {x: SIZE.sugar, y: SIZE.sugar, z: SIZE.sugar, duration: .6, delay: delay + k * .3, ease: 'back.out(2.5)'})); } }
+
+/* ---------- labels: few, pinned to parts of the scene ---------- */
+const LAB = {
+  root: ['الجذور', () => ROOTS[1].getPointAt(.75), '#c49a5a'], hair: ['الشعيرات الجذرية', () => ROOTS[0].getPointAt(.85).add(V(0, -.35, 0)), '#c49a5a'],
+  xy: ['الخشب: ماء وأملاح ⬆', () => xyC.getPointAt(.25).add(V(.95, 0, 0)), '#3f9bff'], ph: ['اللحاء: غذاء ⬇', () => phC.getPointAt(.4).add(V(-.95, 0, 0)), '#ff9a3c'],
+  stem: ['الساق', () => stemC.getPointAt(.62).add(V(-.6, 0, 0)), '#56b04a'], leaf: ['الأوراق', () => leafPt(LEAVES[3], .6, .3), '#56b04a'],
+  pore: ['الثغر', () => lens.localToWorld(V(0, .48, .2)), '#1d3b22'], guard: ['خليتان حارستان', () => lens.localToWorld(V(0, -.62, .2)), '#3fa14a'],
+  under: ['السطح السفلي للورقة', () => leafPt(HERO, .7, -.3), '#56b04a'],
+  chl: ['البلاستيدات الخضراء', () => leafPt(HERO, .62, .3).add(V(0, .45, 0)), '#2f8f3a'], sun: ['ضوء الشمس', () => sun.position.clone().add(V(0, -1.35, 0)), '#e3a300'],
+  rab: ['حيوان يتغذّى على النبات', () => rabbit.position.clone().add(V(0, 1.75, 0)), '#c49a5a'],
+};
+const lbEl = {}; for (const [id, [t, , c]] of Object.entries(LAB)) { const e = document.createElement('div'); e.className = 'lb'; e.textContent = t; e.style.opacity = 0; e.style.setProperty('--c', c); $('#labels').appendChild(e); lbEl[id] = e; }
+let shown = [];
+const showLb = ids => { shown = ids; for (const id in lbEl) lbEl[id].style.opacity = ids.includes(id) ? 1 : 0; };
+function placeLb() { const top = 118, bot = $('#dock').getBoundingClientRect().top - 14, v = new THREE.Vector3();
+  for (const id of Object.keys(LAB)) { const e = lbEl[id]; if (!shown.includes(id)) continue; v.copy(LAB[id][1]()).project(camera); const hw = e.offsetWidth / 2 + 6;
+    const x = Math.max(hw, Math.min(innerWidth - hw, (v.x + 1) / 2 * innerWidth)), y = (1 - v.y) / 2 * innerHeight; e.style.left = x + 'px'; e.style.top = Math.max(top, Math.min(bot, y)) + 'px'; e.style.visibility = v.z > 1 ? 'hidden' : ''; } }
+const LEG = {drop: ['#3fa9ff', 'ماء'], co2: ['#9a94b8', 'ثاني أكسيد الكربون'], o2: ['#62d8ee', 'الأكسجين'], sugar: ['#f5e2a8', 'سكر الجلوكوز'], vap: ['#cfeeff', 'ماء يخرج (النتح)']};
+const legend = ks => $('#legend').innerHTML = ks.map(k => `<span><b style="background:${LEG[k][0]}"></b>${LEG[k][1]}</span>`).join('');
+const eq = h => { $('#eq').innerHTML = h || ''; $('#eq').classList.toggle('on', !!h); };
+const EQ = '<b style="color:#5f5890">ثاني أكسيد الكربون</b> + <b style="color:#1f7fd6">ماء</b> ← (☀️ ضوء الشمس) ← <b style="color:#9a7300">غذاء (سكر جلوكوز)</b> + <b style="color:#14879c">الأكسجين</b>';
+
+/* ---------- steps: each follows the book, with its own camera, motion and narration ---------- */
+const camTo = (p, t, d = 2) => { gsap.to(camera.position, {...p, duration: D(d), ease: 'power2.inOut'}); gsap.to(controls.target, {...t, duration: D(d), ease: 'power2.inOut'}); };
+let spawn = null, spawnAcc = 0, made = false;
+function clearLive() { live.forEach(t => t.kill()); live = []; pool.forEach(b => b.visible = false); sugars.length = 0; spawn = null; eq(); $('#lab').classList.remove('on');
+  gsap.to([xyM, phM], {opacity: 0, duration: .6}); gsap.to(beamM, {opacity: 0, duration: .5}); chlM.emissiveIntensity = 0; lens.visible = false; lens.scale.setScalar(.01); rabbit.visible = false; gsap.killTweensOf(stoma); stoma.open = 1; applyStoma(); }
+const lensIn = () => { lens.visible = true; lens.position.copy(lensAt()); tw(gsap.to(lens.scale, {x: .62, y: .62, z: .62, duration: D(.9), ease: 'back.out(1.7)'})); };
+const vapor = () => { const b = buddy('vap'), from = lens.localToWorld(V(0, 0, .25)), to = from.clone().add(V((Math.random() - .5) * 1.2, -1.2 - Math.random() * .6, 1.2)); b.position.copy(from); along(b, [from, to], 2.4, {ease: 'sine.out'}); };
+const STEPS = {
+  roots: {n: '🥕 الجذور', a: ['p01', 'p02', 'p03'], leg: ['drop'],
+    set() { showLb(['root']); camTo({x: .4, y: -.6, z: 6.6}, {x: 0, y: -1.05, z: 0}); spawn = {every: .55, fn: () => water(false)}; },
+    on: [null, () => showLb(['root', 'hair']), () => { showLb(['hair']); hairs[0].scale.setScalar(1); tw(gsap.fromTo(hairs[0].scale, {x: 1, y: 1, z: 1}, {x: 1.25, y: 1.25, z: 1.25, duration: .5, yoyo: true, repeat: 3})); }]},
+  up: {n: '💧 صعود الماء', a: ['p04', 'p05'], leg: ['drop'], lab: 'water',
+    set() { showLb(['xy']); gsap.to(xyM, {opacity: 1, duration: 1}); camTo({x: 1.2, y: 1.3, z: 8.6}, {x: 0, y: 1.1, z: 0}); spawn = {every: .7, fn: () => water(true)}; rain(5); },
+    on: [null, () => { gsap.to(phM, {opacity: 1, duration: 1}); showLb(['xy', 'ph']); }]},
+  leaf: {n: '🍃 الثغور', a: ['p06', 'p07', 'p08'], leg: ['drop', 'vap'],
+    set() { showLb(['under']); gsap.to(xyM, {opacity: 1, duration: 1}); const L = leafPt(HERO, .55, 0); camTo({x: L.x + .9, y: L.y - 1.9, z: L.z + 5.2}, {x: L.x + .35, y: L.y - .95, z: L.z + .5}); lensIn(); stoma.open = 1; applyStoma(); },
+    on: [() => setTimeout(() => showLb(['pore', 'guard']), 900), () => { spawn = {every: .35, fn: vapor}; for (let k = 0; k < 4; k++) water(true, k * .8, HERO); },
+      () => { spawn = null; tw(gsap.to(stoma, {open: 0, duration: D(1.6), ease: 'power2.inOut', onUpdate: applyStoma})); tw(gsap.to(sun.scale, {x: 1.25, y: 1.25, z: 1.25, duration: .8, yoyo: true, repeat: 1})); }]},
+  photo: {n: '☀️ البناء الضوئي', a: ['p09', 'p10', 'p11', 'p16'], leg: ['co2', 'drop', 'sugar', 'o2'], predict: true, lab: 'make',
+    set() { made = false; showLb(['sun', 'chl']); camTo({x: -.6, y: 3.6, z: 9.4}, {x: -.6, y: 2.9, z: 0}); aimBeams(); gsap.to(beamM, {opacity: .45, duration: 1}); gsap.to(xyM, {opacity: 1, duration: 1});
+      tw(gsap.to(chlM, {emissiveIntensity: .55, duration: .8, yoyo: true, repeat: -1})); },
+    on: [null, () => { eq(EQ); sendAll(true); }, () => { if (!made) produce(); }, () => openMake()]},
+  food: {n: '🍬 رحلة الغذاء', a: ['p12', 'p13'], leg: ['sugar'],
+    set() { showLb(['ph']); gsap.to(phM, {opacity: 1, duration: 1}); camTo({x: 1.4, y: 1.2, z: 9.2}, {x: .5, y: 1, z: 0}); makeSugar(5, .3);
+      tw(gsap.delayedCall(2.2, () => sugars.slice(1).forEach((b, k) => { const pts = [b.position.clone(), ...leafPath(HERO, .2).reverse().slice(1), ...[...Array(9)].map((_, i) => phC.getPointAt((8 - i) / 8 * (HERO.at.y / 4.45)).setZ(.17)), ...rootUp(k % 5, .9).reverse()];
+        along(b, pts, 6.5, {delay: k * .7, ease: 'sine.inOut'}); }))); },
+    on: [null, () => { showLb(['rab']); rabbit.visible = true; rabbit.position.set(4.8, .1, -.6); rabbit.rotation.y = -1.3;
+      const tl = gsap.timeline(); tw(tl); for (let k = 0; k < 5; k++) tl.to(rabbit.position, {x: 4.8 - (k + 1) * .6, duration: .38, ease: 'none'}).to(rabbit.position, {y: .55, duration: .19, ease: 'power1.out', yoyo: true, repeat: 1}, '<');
+      tl.to(rabbit.rotation, {y: -.75, duration: .4}).to(rabbit.userData.head.rotation, {x: .35, duration: .25, yoyo: true, repeat: 7});
+      camTo({x: 2.2, y: 1.6, z: 7.8}, {x: 1.1, y: 1.2, z: -.5}, 2.4); }]},
+  sum: {n: '⭐ الخلاصة', a: ['p14', 'p15'], leg: [],
+    set() { showLb(['root', 'stem']); gsap.to(xyM, {opacity: 1, duration: 1}); gsap.to(phM, {opacity: 1, duration: 1}); camTo({x: 2.2, y: 1.7, z: 10.8}, {x: 0, y: .95, z: 0}); spawn = {every: 1.1, fn: () => water(true)}; },
+    on: [null, () => { showLb(['leaf', 'sun']); aimBeams(); gsap.to(beamM, {opacity: .35, duration: 1}); makeSugar(3, .2); }]},
+};
+const ORDER = ['roots', 'up', 'leaf', 'photo', 'food', 'sum'];
+ORDER.forEach(k => { const b = document.createElement('button'); b.textContent = STEPS[k].n; b.dataset.m = k; b.onclick = () => { setPlay(false); go(k); }; $('#modes').appendChild(b); });
+
+/* ---------- hands-on: water the plant; send the three things the leaf needs ---------- */
+const sent = {};
+function sendOne(k, byKid) { if (sent[k]) return; sent[k] = 1; const L = leafPt(HERO, .5, 0);
+  if (k === 'sun') { tw(gsap.fromTo(beamM, {opacity: .2}, {opacity: .8, duration: .4, yoyo: true, repeat: 3})); tw(gsap.to(sun.scale, {x: 1.2, y: 1.2, z: 1.2, duration: .3, yoyo: true, repeat: 1})); }
+  if (k === 'water') for (let i = 0; i < 4; i++) water(true, i * .4, HERO);
+  if (k === 'co2') for (let i = 0; i < 5; i++) gas('co2', L.clone().add(V(1.6 + Math.random(), -1.6 - Math.random(), 1.2)), leafPt(HERO, .3 + i * .12, -.1), 2.4, i * .3);
+  const btn = $(`#lab [data-k="${k}"]`); btn && btn.classList.add('done');
+  if (sent.sun && sent.water && sent.co2 && !made) tw(gsap.delayedCall(k === 'water' ? 3.2 : 2.4, () => produce(byKid))); }
+function sendAll(auto) { ['sun', 'water', 'co2'].forEach((k, i) => tw(gsap.delayedCall(i * .5, () => sendOne(k)))); }
+function produce(byKid) { if (made) return; made = true; makeSugar(3); const top = leafPt(HERO, .5, .3);
+  for (let i = 0; i < 6; i++) gas('o2', leafPt(HERO, .25 + i * .1, .2), top.clone().add(V(-1 + i * .45, 1.8 + Math.random(), .8)), 3, .4 + i * .25);
+  if (byKid) { sayOne('p17'); STATE.make = (STATE.make || 0) + 1; save(); } }
+function openMake() { for (const k in sent) delete sent[k]; made = false; sugars.forEach(b => b.visible = false); sugars.length = 0;
+  eq(); $('#lab').innerHTML = `<div class="row" style="margin:0"><button data-k="sun">☀️ ضوء الشمس</button><button data-k="water">💧 الماء</button><button data-k="co2">⚪ ثاني أكسيد الكربون</button></div>`;
+  $('#lab').classList.add('on'); $('#lab').querySelectorAll('[data-k]').forEach(b => b.onclick = () => sendOne(b.dataset.k, true)); }
+function openWater() { $('#lab').innerHTML = `<b>🧪 جرّب:</b> اسقِ النبات، وتتبّع القطرات حتى تصل إلى الورقة.<div class="row"><button id="wbtn">💧 اسقِ النبات</button></div>`; $('#lab').classList.add('on');
+  $('#wbtn').onclick = () => { rain(6); STATE.water = (STATE.water || 0) + 1; save(); }; }
+
+/* ---------- narration (text is always shown) ---------- */
+let voice = null, muted = false, tour = false, seqTok = 0;
+const STATE = (() => { try { return JSON.parse(localStorage.getItem('sci-L11-plant') || '{}'); } catch (e) { return {}; } })();
+const save = () => { try { localStorage.setItem('sci-L11-plant', JSON.stringify(STATE)); } catch (e) {} };
+function play(id, end) { if (voice) voice.pause(); voice = new Audio('audio/' + id + '.mp3'); voice.muted = muted; voice.onended = end; voice.play().catch(() => setTimeout(end, 2600)); }
+function sayOne(id) { $('#say').textContent = LINES[id].t; play(id, () => {}); }
+function say(m, done) { const tok = ++seqTok; let k = 0;
+  const nx = () => { if (tok !== seqTok) return; if (k >= m.a.length) { done && done(); return; } $('#say').textContent = LINES[m.a[k]].t; m.on && m.on[k] && m.on[k](); const id = m.a[k++]; play(id, () => tok === seqTok && setTimeout(nx, 650)); };
+  nx(); }
+function predict(done) {
+  $('#say').innerHTML = `<b>🤔 توقّع قبل أن ترى:</b> أخذت الورقة ضوء الشمس والماء وثاني أكسيد الكربون. ماذا ستُخرج؟<div class="pred"><button data-j="1">سكر الجلوكوز والأكسجين</button><button data-j="0">الأملاح والتربة</button><button data-j="2">ثاني أكسيد الكربون فقط</button></div>`;
+  $('#say').querySelectorAll('.pred button').forEach(b => b.onclick = () => { const ok = b.dataset.j === '1'; b.classList.add(ok ? 'ok' : 'no'); STATE.pred = ok ? 1 : 0; save();
+    if (!ok) $('#say').querySelector('[data-j="1"]').classList.add('ok'); $('#say').querySelectorAll('.pred button').forEach(x => x.disabled = true);
+    $('#say').insertAdjacentHTML('beforeend', `<div class="note">${ok ? '✅ توقّع موفّق، لنرَ ذلك.' : 'لا بأس، المحاولة تعلّمنا. لنرَ ماذا يحدث.'}</div>`); setTimeout(done, ok ? 1100 : 1800); });
+}
+let cur = 'roots';
+function go(k, done) { cur = k; document.querySelectorAll('#modes button').forEach(b => b.classList.toggle('on', b.dataset.m === k));
+  const S = STEPS[k]; clearLive(); legend(S.leg); if (S.lab === 'water') openWater();
+  const run = () => { S.set(); say(S, done); };
+  if (S.predict && !(STATE.seen || {})[k]) { seqTok++; voice && voice.pause(); camTo({x: -.6, y: 3.6, z: 9.4}, {x: -.6, y: 2.9, z: 0}); showLb(['chl']); predict(run); } else run();
+  STATE.seen = {...(STATE.seen || {}), [k]: 1}; save(); }
+function setPlay(on) { tour = on; $('#play').textContent = on ? '⏸ إيقاف' : '▶️ الجولة'; if (!on) { seqTok++; voice && voice.pause(); } }
+$('#play').onclick = () => { if (tour) return setPlay(false); setPlay(true); let i = Math.max(0, ORDER.indexOf(cur)); if (!document.querySelector('#modes .on')) i = 0;
+  const next = () => { if (!tour) return; if (i >= ORDER.length) { setPlay(false); setTimeout(() => quiz(0), 1000); return; } const k = ORDER[i++]; go(k, () => setTimeout(next, k === 'photo' ? 6000 : 2400)); }; next(); };
+$('#again').onclick = () => go(cur);
+$('#mute').onclick = () => { muted = !muted; $('#mute').textContent = muted ? '🔇' : '🔊'; if (voice) voice.muted = muted; };
+$('#info').onclick = () => $('#ip').classList.add('on'); $('#ix').onclick = () => $('#ip').classList.remove('on');
+$('#go').onclick = () => { $('#start').remove(); $('#play').onclick(); };
+$('#qz').onclick = () => { setPlay(false); quiz(0); };
+
+/* ---------- check: four book questions (Q11), a hint after a wrong answer, then the right scene again ---------- */
+const QS = [
+  {id: 'L11-m16', t: 'رتّب مسار الماء في النبات كما يبيّن الشكل:', o: ['التربة ← القشرة ← الشعيرات الجذرية ← اللحاء ← الأوراق', 'التربة ← الشعيرات الجذرية ← اللحاء ← القشرة ← الأوراق', 'التربة ← الشعيرات الجذرية ← القشرة ← الخشب ← الأوراق', 'التربة ← الخشب ← الشعيرات الجذرية ← القشرة ← الأوراق'], a: 2,
+    why: ['الماء يدخل الشعيرات أولًا، ويصعد في الخشب لا اللحاء.', 'الماء يمر بالقشرة قبل أن يصل إلى الخشب.', 'صحيح: هذا ترتيب الأسهم ١ و٢ و٣ في الشكل.', 'الشعيرات الجذرية أول ما يدخله الماء.'], hint: 'تتبّع قطرة ماء واحدة: من أين تدخل؟ وفي أي خط تصعد؟', redo: 'up'},
+  {id: 'L11-m20', t: 'أين توجد الثغور في الورقة؟', o: ['في البشرة على السطح العلوي', 'في البشرة على السطح السفلي', 'داخل العروق في وسط الورقة', 'في العنق الذي يربطها بالغصن'], a: 1,
+    why: ['الشكل يبين الثغر في البشرة السفلى.', 'صحيح: الكتاب: طبقة البشرة على السطح السفلي فيها فتحات صغيرة جدًا تسمى الثغور.', 'العروق تنقل الماء والغذاء.', 'العنق يربط الورقة بالغصن.'], hint: 'من أين نظرت العدسة إلى الورقة: من فوقها أم من تحتها؟', redo: 'leaf'},
+  {id: 'L11-m25', t: 'ما المواد التي تستخدمها البلاستيدات الخضراء لإنتاج سكر الجلوكوز؟', o: ['ثاني أكسيد الكربون والماء والطاقة الشمسية', 'الأكسجين والماء والطاقة الشمسية معًا', 'ثاني أكسيد الكربون والأكسجين والأملاح', 'الجلوكوز والماء والأملاح المعدنية من التربة'], a: 0,
+    why: ['صحيح: هذه مدخلات البناء الضوئي كما في الكتاب.', 'الأكسجين ناتج من البناء الضوئي لا داخل فيه.', 'الأكسجين ناتج، والطاقة الشمسية غائبة هنا.', 'الجلوكوز هو الناتج نفسه.'], hint: 'تذكّر الأزرار الثلاثة التي أرسلتها إلى الورقة.', redo: 'photo'},
+  {id: 'L11-m26', t: 'أحد نواتج البناء الضوئي يُعدّ فضلات يتخلص منها النبات في الهواء. ما هو؟', o: ['الجلوكوز', 'ثاني أكسيد الكربون', 'الأكسجين', 'الكلوروفيل'], a: 2,
+    why: ['الجلوكوز غذاء يخزنه النبات ويستخدمه.', 'ثاني أكسيد الكربون يدخل في البناء الضوئي.', 'صحيح: الكتاب: الأكسجين يعد فضلات لعملية البناء الضوئي.', 'الكلوروفيل صبغة في البلاستيدات، لا ناتج.'], hint: 'انظر إلى الفقاعات التي طارت من الورقة إلى الهواء.', redo: 'photo'},
+];
+function quiz(k) {
+  const q = QS[k]; $('#qp').classList.add('on'); let tries = (STATE.q?.[k]?.ok === false) ? STATE.q[k].tries : 0;
+  $('#qb').innerHTML = `<b>✏️ اختبر نفسك ${AR(k + 1)} من ${AR(QS.length)}</b><p style="font-size:1.08rem;margin:6px 0;line-height:1.7">${q.t}</p>${q.o.map((x, j) => `<button class="opt" data-j="${j}">${'أبجد'[j]}. ${x}</button>`).join('')}<div id="fb"></div>`;
+  $('#qb').querySelectorAll('.opt').forEach(b => b.onclick = () => {
+    const j = +b.dataset.j, ok = j === q.a; tries++; b.classList.add(ok ? 'ok' : 'no'); STATE.q = STATE.q || {};
+    if (ok) { $('#qb').querySelectorAll('.opt').forEach(x => x.disabled = true); STATE.q[k] = {ok: true, tries}; save();
+      $('#fb').innerHTML = `<div class="fb ok">🌟 ${tries === 1 ? 'ركّزت فوصلت' : 'حاولت حتى وصلت'}، والتوفيق من الله.<br><b>لماذا؟</b> ${q.why[j]}</div>` + (k + 1 < QS.length ? `<button class="big" id="nq">السؤال التالي ←</button>` : `<div class="fb in">أجبت عن ${AR(Object.values(STATE.q).filter(x => x.ok && x.tries === 1).length)} من ${AR(QS.length)} من أول محاولة. كل محاولة تقوّي فهمك.</div><button class="big" id="cl">رجوع للمشهد</button>`);
+      $('#nq') && ($('#nq').onclick = () => quiz(k + 1)); $('#cl') && ($('#cl').onclick = () => $('#qp').classList.remove('on')); }
+    else { STATE.q[k] = {ok: false, tries}; save(); b.disabled = true; $('#fb').innerHTML = `<div class="fb no">${q.why[j]}<br>💡 <b>تلميح:</b> ${q.hint}</div><button class="big" style="background:#2563a6" id="see">👀 شاهد المشهد ثم ارجع</button>`;
+      $('#see').onclick = () => { $('#qp').classList.remove('on'); setPlay(false); go(q.redo, () => setTimeout(() => quiz(k), 1500)); }; }
+  });
+}
+
+/* ---------- loop ---------- */
+const clock = new THREE.Clock(); let tt = 0;
+camera.position.set(2.2, 1.7, 10.8); controls.target.set(0, .95, 0); STEPS.sum.set(); legend([]); showLb(['root', 'stem', 'leaf']); $('#say').textContent = 'اختر من الأعلى، أو اضغط ▶️ للجولة كاملة.'; $('#loading').remove();
+window.__go = go; window.__quiz = quiz; window.__sendOne = sendOne;
+renderer.setAnimationLoop(() => {
+  const dt = Math.min(.05, clock.getDelta()) * (calm ? .5 : 1); tt += dt;
+  if (spawn && (spawnAcc += dt) > spawn.every) { spawnAcc = 0; if (pool.filter(b => b.visible).length < 60) spawn.fn(); }
+  for (const b of pool) if (b.visible) { b.quaternion.copy(camera.quaternion); if (b.userData.kind === 'sugar') b.rotateZ(Math.sin(tt * 2 + b.id) * .15); }
+  sun.lookAt(camera.position); raysG.rotation.z = tt * .25; clouds.forEach((c, i) => c.position.x += Math.sin(tt * .2 + i) * .002);
+  if (lens.visible) { lens.position.copy(lensAt()); lens.quaternion.copy(camera.quaternion); }
+  LEAVES.forEach((l, i) => l.blade.rotation.x = Math.sin(tt * 1.3 + i) * .04);
+  frameBand(); controls.update(); renderer.render(scene, camera); placeLb();
+});
+</script>
+</body>
+</html>

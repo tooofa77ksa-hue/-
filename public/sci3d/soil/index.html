@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>طبقات التربة</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+/* Soil (lesson L26 «التربة»): what soil is made of, how a rock weathers into soil with living things, the three soil
+   horizons on unweathered rock (a clay block that comes apart), a hands-on ordering game, and the three soil types
+   of the book. Only names and facts from the book. Source kept internally: data-src. */
+:root{--ink:#3a2412;--g:#8a5a2b;--y:#ffd84d;--f:'SciBaloo','Segoe UI',Tahoma,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#d8f0ff;color:var(--ink);font-family:var(--f);-webkit-text-size-adjust:100%}
+button{font:inherit;cursor:pointer;touch-action:manipulation;color:inherit}
+#stage{position:fixed;inset:0;touch-action:none}
+.top{position:fixed;top:0;left:0;right:0;z-index:5;display:flex;align-items:center;gap:8px;padding:8px 12px;background:linear-gradient(#ffffffe8,#ffffff00)}
+.top h1{flex:1;margin:0;font-size:1.02rem}
+.ib{border:0;background:rgba(255,255,255,.8);border-radius:12px;min-width:44px;min-height:44px;font-size:1.05rem}
+.modes{position:fixed;top:58px;left:8px;right:8px;z-index:5;display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.modes button{flex:none;border:2px solid #fff;background:rgba(255,255,255,.88);color:var(--ink);box-shadow:0 2px 8px rgba(80,50,20,.15);border-radius:14px;min-height:44px;padding:0 12px;font-size:.92rem}
+.modes button.on{background:var(--y);border-color:var(--y);color:#2a1a0c;font-weight:700}
+#dock{position:fixed;left:10px;right:10px;bottom:calc(70px + env(safe-area-inset-bottom));z-index:5;display:flex;flex-direction:column;gap:6px}
+#say{background:rgba(255,255,255,.96);color:#2a1a0c;border-radius:16px;padding:8px 12px;font-size:1.02rem;line-height:1.7;min-height:2.6em;box-shadow:0 3px 12px rgba(80,50,20,.14)}
+#say .tip{display:block;color:#7a4b16;font-size:.92rem}
+.pred{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.pred button{border:2px solid #ead9c4;background:#fff;color:#2a1a0c;border-radius:12px;min-height:44px;padding:0 10px;font-size:.95rem}
+.pred button.ok{border-color:#1f8a4c;background:#e6f6ec}.pred button.no{border-color:#c2412d;background:#fbebe8}
+#steps{display:none;gap:5px;justify-content:center;flex-wrap:wrap}
+#steps.on{display:flex}
+#steps span{background:rgba(255,255,255,.94);border-radius:10px;padding:2px 9px;font-size:.82rem;border:2px dashed #c9a77c;min-width:44px;text-align:center}
+#steps span.ok{border-style:solid;border-color:#1f8a4c;background:#e6f6ec}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:6;padding:8px 8px calc(8px + env(safe-area-inset-bottom));display:flex;gap:6px;justify-content:center;background:rgba(255,255,255,.97);border-top:1px solid rgba(80,50,20,.1)}
+.bar button{border:2px solid #eadccb;background:#fff;color:var(--ink);border-radius:14px;min-height:46px;min-width:46px;padding:0 10px;font-size:1rem}
+.bar .p{background:var(--g);border-color:var(--g);color:#fff;min-width:92px}
+#labels{position:fixed;inset:0;pointer-events:none;z-index:3}
+.lb{position:absolute;transform:translate(-50%,-50%);background:rgba(255,255,255,.95);color:#2a1a0c;border-radius:10px;padding:0 8px;font-size:.8rem;font-weight:700;white-space:nowrap;transition:opacity .4s;box-shadow:0 2px 6px rgba(80,50,20,.18);border-inline-start:5px solid var(--c,#8a5a2b)}
+.lb.hi{background:#fff6cf;font-size:.86rem}
+#start{position:fixed;inset:0;z-index:7;display:flex;flex-direction:column;gap:12px;align-items:center;justify-content:center;background:rgba(216,240,255,.45);padding:16px}
+#start button{border:0;background:var(--y);color:#2a1a0c;border-radius:20px;padding:14px 22px;font-size:1.2rem;font-weight:700;box-shadow:0 8px 30px rgba(80,50,20,.3);min-height:56px}
+#start p{margin:0;background:rgba(255,255,255,.95);border-radius:14px;padding:8px 14px;max-width:420px;text-align:center;line-height:1.7;font-size:.95rem}
+.panel{position:fixed;inset:0;z-index:8;background:rgba(0,0,0,.5);display:none;align-items:flex-end;justify-content:center}
+.panel.on{display:flex}
+.panel .box{background:#fff;color:#2a1a0c;border-radius:22px 22px 0 0;max-width:640px;width:100%;max-height:86vh;overflow:auto;padding:14px 16px calc(16px + env(safe-area-inset-bottom))}
+.opt{display:block;width:100%;text-align:right;border:2px solid #e8e2d8;background:#fff;color:#2a1a0c;border-radius:14px;padding:8px 12px;margin:7px 0;min-height:52px;font-size:1.02rem}
+.opt.ok{border-color:#1f8a4c;background:#e6f6ec}.opt.no{border-color:#c2412d;background:#fbebe8}
+.fb{border-radius:14px;padding:8px 12px;margin:8px 0;line-height:1.7}.fb.ok{background:#e6f6ec}.fb.no{background:#fbebe8}.fb.in{background:#f6efe4}
+.note{font-size:.8rem;color:#6b5a48;line-height:1.7}
+.big{display:block;width:100%;min-height:50px;border-radius:14px;border:0;background:var(--g);color:#fff;font-size:1.05rem;margin-top:8px}
+#loading{position:fixed;inset:0;z-index:9;display:flex;align-items:center;justify-content:center;background:#d8f0ff;font-size:1.1rem}
+@media (max-width:380px){#say{font-size:.96rem}.modes button{padding:0 9px}}
+@media (min-width:760px){#dock{left:auto;right:16px;width:470px}}
+</style>
+</head>
+<body data-src="L26 «التربة» ص١٦٥، ١٦٨–١٧٠، ١٧٣ (مفردات ص١٦٥، ما التربة ص١٦٨، نطاق التربة ص١٦٩، أنواع التربة وجذور النباتات ص١٧٠، الملخص ص١٧٣)">
+<div id="loading">جاري تجهيز المشهد…</div>
+<div id="stage"></div><div id="labels"></div>
+<header class="top"><h1>🪨 التربة: ممَّ تتكوّن؟ وما طبقاتها؟</h1><button class="ib" id="info" aria-label="عن المشهد">ℹ️</button></header>
+<nav class="modes" id="modes"></nav>
+<div id="dock"><div id="steps"></div><div id="say">اختر من الأعلى، أو اضغط ▶️ للجولة كاملة.</div></div>
+<div class="bar">
+  <button class="p" id="play">▶️ الجولة</button>
+  <button id="again" aria-label="أعد المقطع">↺</button>
+  <button id="qz">✏️ اختبر نفسك</button>
+  <button id="mute" aria-label="كتم الصوت">🔊</button>
+</div>
+<div id="start"><p>🎯 <b>هدفك:</b> أن تعرف ممَّ تتكوّن التربة وكيف تتكوّن، وأن ترتّب نطاقاتها من السطح إلى الصخور غير المجوّاة، وتفرّق بين أنواعها.</p><button id="go">🪨 اضغط لتبدأ</button></div>
+<div class="panel" id="qp"><div class="box" id="qb"></div></div>
+<div class="panel" id="ip"><div class="box"><b>عن هذا المشهد</b>
+  <p class="note">• قطعة أرض من الصلصال صنعناها لهذا الدرس، وقطعناها لنرى الطبقات. الأحجام والألوان والسُّمك مبسّطة للتوضيح، ويختلف سُمك كل نطاق من منطقة إلى أخرى.<br>
+  • المخلوقات المجهرية رسمناها نقاطًا مضيئة كبيرة، وهي في الحقيقة لا تُرى بالعين.<br>
+  • تكوّن التربة يستغرق سنين طويلة جدًا، والمشهد يختصره في ثوانٍ.<br>
+  • الأرنب في المشهد مثال لحيوان يتغذّى على النباتات.<br>
+  • الشرح بصوت مولّد بالذكاء الاصطناعي (صوت حامد من مايكروسوفت).<br>
+  • التقدّم ونتيجة الاختبار تُحفظ في هذا الجهاز فقط.</p>
+  <button class="big" id="ix">إغلاق</button></div></div>
+<script type="application/json" id="lines">
+{
+"s01": {"t": "هدفُنا: نعرفُ ممَّ تتكوّنُ التربة، وكيف تتكوّن، وما طبقاتُها."},
+"s02": {"t": "التربةُ خليطٌ من فتاتِ الصخورِ وبقايا أو أجزاءِ نباتاتٍ ومخلوقاتٍ ميتة. وتغطّي التربةُ معظمَ اليابسة."},
+"s03": {"t": "والتربةُ موردٌ متجدّد، لأنّنا نستطيعُ إعادةَ استخدامِها، رغمَ أنّها تتكوّنُ عبرَ سنينَ طويلة."},
+"s04": {"t": "تتعرّضُ الصخورُ لعواملِ التجوية، فتتشقّقُ وتتكسّرُ على مرِّ السنين."},
+"s05": {"t": "فتنمو في الشقوقِ مخلوقاتٌ حيّةٌ مجهرية، تفكّكُ الصخورَ إلى موادَّ مناسبةٍ لتغذيةِ النبات."},
+"s06": {"t": "فتنمو الحشائشُ ثم الشجيرات، وتأتي الحيواناتُ لتتغذّى على النباتاتِ التي نمت."},
+"s07": {"t": "وعندما تموتُ النباتاتُ والحيوانات، تتحوّلُ إلى موادَّ عضويّةٍ في التربة. وكلمةُ عضويّة تعني أنّ مصدرَها مخلوقاتٌ حيّة."},
+"s08": {"t": "التربةُ تتكوّنُ في طبقات، تظهرُ إذا حفرنا في الأرض. وكلُّ طبقةٍ تُسمّى نطاقَ التربة."},
+"s09": {"t": "النطاقُ (أ) هو التربةُ السطحية: يحملُ معظمَ المغذّيات، ويحوي الدُّبال، وفيه تنمو معظمُ جذورِ النباتات.", "v": "النطاقُ ألِف هو التربةُ السطحية: يحملُ معظمَ المغذّيات، ويحوي الدُّبال، وفيه تنمو معظمُ جذورِ النباتات."},
+"s10": {"t": "والدُّبالُ تكوّنَ من بقايا النباتاتِ والحيواناتِ الميتة التي حلّلتها المخلوقاتُ المجهرية، ويحتفظُ بالماءِ أكثرَ من الفتاتِ الصخري."},
+"s11": {"t": "النطاقُ (ب) هو التربةُ تحتَ السطحية: فيه نسبةٌ قليلةٌ من الدُّبال، ونسبةٌ كبيرةٌ من الصخورِ المفتّتة.", "v": "النطاقُ باء هو التربةُ تحتَ السطحية: فيه نسبةٌ قليلةٌ من الدُّبال، ونسبةٌ كبيرةٌ من الصخورِ المفتّتة."},
+"s12": {"t": "النطاقُ (ج) معظمُه قطعٌ كبيرةٌ من صخورِ التجوية، وهو صلب، ويقعُ فوقَ الصخورِ غيرِ المجوّاة.", "v": "النطاقُ جيم معظمُه قطعٌ كبيرةٌ من صخورِ التجوية، وهو صلب، ويقعُ فوقَ الصخورِ غيرِ المجوّاة."},
+"s13": {"t": "دورُك الآن: اختلطتِ الطبقات! اضغطْ عليها بالترتيب، من الأعلى إلى الأسفل."},
+"s14": {"t": "ركّزتَ فوصلت، والتوفيقُ من الله! هذا ترتيبُ النطاقات، من السطحِ إلى الصخورِ غيرِ المجوّاة."},
+"s15": {"t": "للتربةِ في الأماكنِ المختلفةِ خصائصُ مختلفة، وكلُّ نوعٍ يناسبُ نباتاتٍ وحيواناتٍ معيّنة."},
+"s16": {"t": "تربةُ الغاباتِ طبقتُها رقيقة، فيها القليلُ من الدُّبال، لأنّ الأمطارَ الغزيرةَ تحملُ المعادنَ إلى أعماقٍ أكبر."},
+"s17": {"t": "التربةُ الصحراويةُ رمليّة، لا تحوي الكثيرَ من الدُّبال، لكنّها غنيّةٌ بالمعادن، وغالبًا ما تُروى محاصيلُها صناعيًّا."},
+"s18": {"t": "تربةُ الأراضي العشبيةِ غنيّةٌ بالدُّبال، فهي صالحةٌ للزراعة، ومنها الذرةُ والشعير."},
+"s19": {"t": "جذورُ النباتاتِ تثبّتُ التربةَ في مكانِها."},
+"s20": {"t": "التربةُ خليط، توفّرُ دعمًا لحياةِ النباتِ والحيوان، وهي قابلةٌ للتلوّث، ويمكنُ المحافظةُ عليها بطرقٍ مختلفة."}
+}
+</script>
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
+<script src="vendor/gsap.min.js"></script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from './vendor/OrbitControls.js';
+const $ = s => document.querySelector(s);
+const LINES = JSON.parse($('#lines').textContent);
+const AR = n => String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const lowEnd = (navigator.hardwareConcurrency || 4) <= 4;
+const D = d => calm ? .01 : d;
+gsap.ticker.lagSmoothing(0);   // keep motion in step with the narration, even on a slow frame
+
+/* ---------- renderer: bright sky, warm sunlight, clay shadows ---------- */
+const renderer = new THREE.WebGLRenderer({antialias: true}); renderer.setPixelRatio(Math.min(devicePixelRatio, lowEnd ? 1.5 : 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; $('#stage').appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+{ const c = document.createElement('canvas'); c.width = 4; c.height = 256; const g = c.getContext('2d'), gr = g.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, '#9ed6ff'); gr.addColorStop(.55, '#e6f5ff'); gr.addColorStop(1, '#fbe9d2'); g.fillStyle = gr; g.fillRect(0, 0, 4, 256); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; scene.background = t; }
+const camera = new THREE.PerspectiveCamera(45, 1, .1, 200);
+const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.enablePan = false; controls.minDistance = 2; controls.maxDistance = 22;
+scene.add(new THREE.HemisphereLight(0xffffff, 0xd9b48a, 1.5));
+const key = new THREE.DirectionalLight(0xfff4dc, 2.3); key.position.set(-4, 9, 7); key.castShadow = true; key.shadow.mapSize.set(1024, 1024);
+Object.assign(key.shadow.camera, {left: -8, right: 8, top: 7, bottom: -7, near: 1, far: 30}); key.shadow.bias = -.0015; scene.add(key);
+const fill = new THREE.DirectionalLight(0xbfe3ff, .9); fill.position.set(6, 3, 5); scene.add(fill);
+let bandKey = '', shiftNow = 0;
+function fit() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.fov = innerWidth < innerHeight ? 58 : 40; camera.updateProjectionMatrix(); bandKey = ''; }
+addEventListener('resize', fit); fit();
+// keep the scene centred in the free band between the chips (top) and the narration dock (bottom)
+function frameBand() { const top = 110, bot = $('#dock').getBoundingClientRect().top, want = (top + bot) / 2 - innerHeight / 2;
+  shiftNow += (want - shiftNow) * .12; const k = innerWidth + ':' + innerHeight + ':' + shiftNow.toFixed(1); if (k === bandKey) return; bandKey = k;
+  camera.setViewOffset(innerWidth, innerHeight, 0, -shiftNow, innerWidth, innerHeight); camera.updateProjectionMatrix(); }
+
+/* ---------- clay: soft matte colour with fingerprint-like bumps ---------- */
+const clayBump = (() => { const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'); g.fillStyle = '#808080'; g.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 2600; i++) { const v = 110 + Math.random() * 40 | 0; g.fillStyle = `rgba(${v},${v},${v},.35)`; g.beginPath(); g.arc(Math.random() * 256, Math.random() * 256, 1 + Math.random() * 3, 0, 7); g.fill(); }
+  g.lineWidth = 1.2; for (let i = 0; i < 40; i++) { const x = Math.random() * 256, y = Math.random() * 256, r = 6 + Math.random() * 14; for (let k = 0; k < 4; k++) { g.strokeStyle = `rgba(${Math.random() < .5 ? 90 : 170},${Math.random() < .5 ? 90 : 170},${Math.random() < .5 ? 90 : 170},.25)`; g.beginPath(); g.arc(x, y, r + k * 2.4, Math.random() * 3, Math.random() * 3 + 2); g.stroke(); } }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t; })();
+const clay = (c, o = {}) => new THREE.MeshStandardMaterial({color: c, roughness: .82, metalness: 0, bumpMap: clayBump, bumpScale: 1.2, ...o});
+const mesh = (geo, m, x = 0, y = 0, z = 0) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.castShadow = true; o.receiveShadow = true; return o; };
+const sph = (r, a = 24, b = 18) => new THREE.SphereGeometry(r, a, b);
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+const R = (a, b) => a + Math.random() * (b - a);
+const curve = pts => new THREE.CatmullRomCurve3(pts.map(p => p.isVector3 ? p : V(...p)));
+function rock(r, detail = 1, j = .22) {   // a lumpy stone
+  const g = new THREE.DodecahedronGeometry(r, detail), p = g.attributes.position, v = new THREE.Vector3(), seen = new Map();
+  for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i); const k = v.toArray().map(n => n.toFixed(3)).join(); if (!seen.has(k)) seen.set(k, 1 + (Math.random() - .5) * j); v.multiplyScalar(seen.get(k)); p.setXYZ(i, v.x, v.y, v.z); }
+  g.computeVertexNormals(); return g; }
+const eyeW = new THREE.MeshStandardMaterial({color: 0xffffff, roughness: .3}), eyeB = new THREE.MeshBasicMaterial({color: 0x17202f}), mouthM = new THREE.MeshBasicMaterial({color: 0x7a2238});
+function face(r, y = 0, z = 1) {
+  const f = new THREE.Group();
+  for (const s of [-1, 1]) { const e = new THREE.Mesh(sph(r * .26, 14, 10), eyeW); e.position.set(s * r * .34, y + r * .12, z * r * .86); e.scale.z = .55; f.add(e);
+    const p = new THREE.Mesh(sph(r * .15, 12, 8), eyeB); p.position.set(s * r * .32, y + r * .1, z * r * .86 + r * .14); p.scale.z = .5; f.add(p);
+    const gl = new THREE.Mesh(sph(r * .05, 6, 4), eyeW); gl.position.set(s * r * .32 + r * .05, y + r * .17, z * r * .86 + r * .2); f.add(gl); }
+  const m = new THREE.Mesh(new THREE.TorusGeometry(r * .16, r * .035, 6, 14, Math.PI).rotateZ(Math.PI), mouthM); m.position.set(0, y - r * .2, z * r * .93); f.add(m);
+  return f; }
+function rabbitMake() { const g = new THREE.Group(), fur = clay(0xf3ece2), pink = clay(0xffb3c1);
+  const body = mesh(sph(.42), fur, 0, .38, 0); body.scale.set(1, .9, 1.15); g.add(body);
+  const head = new THREE.Group(); head.position.set(0, .85, .32); g.add(head); head.add(mesh(sph(.3), fur)); head.add(face(.3, -.02, 1)); head.add(mesh(sph(.05, 8, 6), pink, 0, -.04, .3));
+  for (const s of [-1, 1]) { const ear = mesh(new THREE.CapsuleGeometry(.08, .38, 6, 10), fur, s * .13, .42, -.05); ear.rotation.z = -s * .18; head.add(ear); const inn = mesh(new THREE.CapsuleGeometry(.04, .3, 4, 8), pink, s * .13, .42, 0); inn.rotation.z = -s * .18; head.add(inn); g.add(mesh(sph(.12, 12, 8), fur, s * .22, .08, .3)); }
+  g.add(mesh(sph(.13, 12, 8), clay(0xffffff), 0, .45, -.48)); g.userData.head = head; return g; }
+const shadowFloor = new THREE.Mesh(new THREE.CircleGeometry(10, 40), new THREE.ShadowMaterial({opacity: .15})); shadowFloor.rotation.x = -Math.PI / 2; shadowFloor.position.y = -4.4; shadowFloor.receiveShadow = true; scene.add(shadowFloor);
+const clouds = []; for (const [x, y, z, s] of [[3.4, 4.4, -5, 1], [-3.6, 5.2, -7, .9]]) { const c = new THREE.Group(); c.position.set(x, y, z); c.scale.setScalar(s); for (const [a, b, r] of [[0, 0, .6], [.6, -.1, .45], [-.6, -.1, .45], [.25, .3, .45]]) c.add(mesh(sph(r, 20, 14), clay(0xffffff))); scene.add(c); clouds.push(c); }
+
+/* ---------- the soil block: three horizons on unweathered rock, each a wavy clay slab that can move ---------- */
+const LW = 4.4, LD = 3, HS = [.9, 1.0, 1.1, .85], B = [0]; HS.forEach(h => B.push(B[B.length - 1] - h));
+const wv = (k, x, z) => k === 0 ? .03 * Math.sin(x * 2 + z) : .08 * Math.sin(x * 1.9 + k * 1.7 + z * .8) + .05 * Math.cos(z * 2.3 - x * .7 + k);
+const LAYER = [
+  {c: 0x4a2e1b, name: 'النطاق (أ): التربة السطحية', short: 'النطاق (أ)', lc: '#4a2e1b', hint: 'هذه الطبقة الداكنة فيها الجذور والدُّبال.'},
+  {c: 0xb07a45, name: 'النطاق (ب): التربة تحت السطحية', short: 'النطاق (ب)', lc: '#b07a45', hint: 'هذه فيها دُبال قليل وصخور مفتّتة صغيرة.'},
+  {c: 0x948472, name: 'النطاق (ج): قطع كبيرة من صخور التجوية', short: 'النطاق (ج)', lc: '#948472', hint: 'هذه فيها قطع صخرية كبيرة.'},
+  {c: 0x6f7885, name: 'الصخور غير المجوّاة', short: 'الصخور غير المجوّاة', lc: '#6f7885', hint: 'هذه صخور صلبة لم تتفتّت.'},
+];
+const block = new THREE.Group(); scene.add(block);
+const layers = LAYER.map((L, k) => {
+  const h = HS[k], g = new THREE.BoxGeometry(LW, h, LD, 28, 1, 18), p = g.attributes.position, mid = (B[k] + B[k + 1]) / 2;
+  for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i), top = p.getY(i) > 0; p.setY(i, (top ? B[k] + wv(k, x, z) : B[k + 1] + (k === 3 ? 0 : wv(k + 1, x, z))) - mid); }
+  g.computeVertexNormals();
+  const grp = new THREE.Group(); grp.position.y = mid; grp.userData = {k, base: mid}; block.add(grp);
+  const m = mesh(g, clay(L.c)); m.userData.layer = k; grp.add(m); grp.userData.body = m;
+  // what each horizon is made of, pressed onto its front (z) and right (x) faces
+  const onFace = (n, make) => { for (let i = 0; i < n; i++) { const o = make(); const front = Math.random() < .62, y = R(-h * .36, h * .36);
+    if (front) o.position.set(R(-LW / 2 + .2, LW / 2 - .2), y, LD / 2 + .01); else o.position.set(LW / 2 + .01, y, R(-LD / 2 + .2, LD / 2 - .2)); o.rotation.set(R(0, 3), R(0, 3), R(0, 3)); grp.add(o); } };
+  if (k === 0) { onFace(34, () => { const o = mesh(sph(R(.05, .09), 10, 8), clay(Math.random() < .5 ? 0x24160c : 0x6a4527)); o.scale.set(1.4, .6, .5); return o; });   // humus crumbs
+    onFace(10, () => { const o = mesh(sph(.08, 10, 6), clay(0x8a5a2a)); o.scale.set(1.6, .25, .9); return o; }); }   // bits of dead leaves
+  if (k === 1) onFace(40, () => mesh(rock(R(.05, .1), 0), clay([0xd2b48c, 0x9c8a74, 0xc7a27a][Math.random() * 3 | 0])));   // crumbled rock
+  if (k === 2) onFace(18, () => { const o = mesh(rock(R(.16, .3), 1), clay([0xa79a8a, 0x8d8273, 0xb9ad9d][Math.random() * 3 | 0])); o.scale.z = .6; return o; });   // big weathered pieces
+  if (k === 3) for (let i = 0; i < 5; i++) { const cr = mesh(new THREE.BoxGeometry(R(.4, .9), .03, .03), clay(0x4c535c), R(-1.6, 1.6), R(-.25, .25), LD / 2 + .02); cr.rotation.z = R(-.5, .5); grp.add(cr); }
+  return grp;
+});
+// grass, a plant and its roots belong to horizon A, so they move with it
+const A = layers[0], grassM = [clay(0x6fbf45), clay(0x8fd35a)];
+const turf = mesh(new THREE.BoxGeometry(LW + .04, .1, LD + .04), clay(0x79c24a), 0, HS[0] / 2 + .04, 0); A.add(turf);
+for (let i = 0; i < 60; i++) { const b = mesh(new THREE.ConeGeometry(.035, R(.18, .32), 5), grassM[i % 2], R(-LW / 2 + .1, LW / 2 - .1), HS[0] / 2 + .2, R(-LD / 2 + .1, LD / 2 - .1)); b.rotation.z = R(-.3, .3); A.add(b); }
+const plantG = new THREE.Group(); plantG.position.set(-.7, HS[0] / 2 + .05, 1.25); A.add(plantG);
+{ const st = clay(0x56b04a); plantG.add(mesh(new THREE.TubeGeometry(curve([[0, 0, 0], [.05, .6, 0], [-.04, 1.2, 0], [0, 1.6, 0]]), 20, .07, 8), st));
+  for (const [y, s] of [[.7, 1], [1.05, -1], [1.4, 1], [1.55, -1]]) { const lf = mesh(sph(.28, 16, 10), st, s * .3, y, 0); lf.scale.set(1.1, .18, .5); lf.rotation.z = s * .35; plantG.add(lf); }
+  const rm = clay(0xf1dcb3); for (const [ex, ey] of [[-.8, -.75], [.7, -.7], [0, -.82], [-.45, -.4], [.45, -.42]]) A.add(mesh(new THREE.TubeGeometry(curve([[-.7, HS[0] / 2, LD / 2 + .03], [-.7 + ex * .45, HS[0] / 2 + ey * .5, LD / 2 + .04], [-.7 + ex, HS[0] / 2 + ey, LD / 2 + .04]]), 16, .035, 6), rm)); }
+const layerPos = (k, ex) => layers[k].userData.base + ex * (1.5 - k) * .62;
+function stack(ex, d = 1.4) { layers.forEach((g, k) => { gsap.to(g.position, {x: 0, y: layerPos(k, ex), z: 0, duration: D(d), ease: 'power2.inOut'}); gsap.to(g.rotation, {y: 0, duration: D(d)}); gsap.to(g.scale, {x: 1, y: 1, z: 1, duration: D(d)}); }); }
+
+/* ---------- a magnified pinch of soil: rock crumbs and bits of dead plants ---------- */
+const lens = new THREE.Group(); lens.visible = false; scene.add(lens);
+lens.add(mesh(new THREE.CylinderGeometry(1, 1, .06, 48).rotateX(Math.PI / 2), clay(0xf6ead6)));
+lens.add(mesh(new THREE.TorusGeometry(1.02, .07, 12, 48), clay(0xffc845)));
+{ const hd = mesh(new THREE.CapsuleGeometry(.08, .55, 6, 10), clay(0xc2763a), .95, -.95, 0); hd.rotation.z = Math.PI / 4; lens.add(hd);
+  for (let i = 0; i < 14; i++) { const a = R(0, 6.28), r = R(.1, .75); lens.add(mesh(rock(R(.07, .14), 0), clay([0xa79a8a, 0xc7a27a, 0x8d8273][i % 3]), Math.cos(a) * r - .15, Math.sin(a) * r, .1)); }
+  for (let i = 0; i < 6; i++) { const o = mesh(sph(.1, 12, 8), clay(i % 2 ? 0x8a5a2a : 0x6b8a36), R(.05, .65), R(-.55, .55), .1); o.scale.set(1.6, .35, .5); o.rotation.z = R(0, 3); lens.add(o); }
+  for (let i = 0; i < 2; i++) { const t = mesh(new THREE.CylinderGeometry(.025, .025, .5, 6), clay(0x7a5230), R(.1, .5), R(-.3, .3), .12); t.rotation.z = R(.5, 2.5); lens.add(t); } }
+const lensAt = () => V(1.9, .6, 2.2);
+
+/* ---------- how soil forms: a boulder weathers, life moves in, dead plants become organic matter ---------- */
+const formG = new THREE.Group(); formG.visible = false; scene.add(formG);
+const baseRock = mesh(new THREE.CylinderGeometry(2.4, 2.6, .5, 40), clay(0x7d8590), 0, -.25, 0); formG.add(baseRock);
+const pileM = clay(0xb08a62), pile = mesh(new THREE.SphereGeometry(1, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), pileM, 0, 0, 0); pile.scale.set(.01, .01, .01); formG.add(pile);
+const rockM = clay(0x959ca6), CH = [[0, .62, 0], [.6, .5, .25], [-.58, .52, .2], [.12, .55, -.55], [.05, 1.2, .05]].map(([x, y, z], i) => { const c = mesh(rock(.62, 1, .3), rockM, x, y, z); c.userData.home = V(x, y, z); c.visible = false; formG.add(c); return c; });
+const boulder = mesh(rock(1.12, 2, .14), rockM, 0, .85, 0); boulder.scale.y = .85; formG.add(boulder);
+const crackM = new THREE.MeshBasicMaterial({color: 0x2b2f36}), cracks = [[[-.1, 1.6, .75], [.05, 1.1, .95], [-.15, .55, 1.0]], [[.05, 1.1, .95], [.55, .95, .8], [.85, .6, .55]], [[-.15, .55, 1.0], [-.6, .75, .85], [-.95, .5, .5]]].map(p => { const t = new THREE.Mesh(new THREE.TubeGeometry(curve(p), 12, .03, 5), crackM); t.visible = false; formG.add(t); return t; });
+const pileTop = r => .32 * Math.sqrt(Math.max(0, 1 - (r / 2.1) ** 2));
+const crumbs = Array.from({length: 46}, (_, i) => { const c = mesh(rock(R(.08, .16), 0), clay([0xb8ab9a, 0xd4b48a, 0xa9b0ba][i % 3])); c.visible = false; formG.add(c); return c; });
+const microM = new THREE.MeshStandardMaterial({color: 0x9dff7a, emissive: 0x5cff3a, emissiveIntensity: .9, roughness: .4});
+const microbes = Array.from({length: 22}, (_, i) => { const m = new THREE.Mesh(sph(.075, 10, 8), microM); m.visible = false; formG.add(m); return m; });
+const grassF = Array.from({length: 40}, (_, i) => { const a = R(0, 6.28), r = R(1.0, 1.95), h = R(.3, .45), b = mesh(new THREE.ConeGeometry(.05, h, 5), grassM[i % 2], Math.cos(a) * r, pileTop(r) + h / 2 - .04, Math.sin(a) * r); b.scale.y = .01; formG.add(b); return b; });
+const shrubM = clay(0x4f9a3a), shrubs = [[-1.5, .2, .9], [1.55, .2, .6], [-.9, .2, -1.4]].map(([x, y, z]) => { const s = new THREE.Group(); s.position.set(x, y, z); s.scale.setScalar(.01);
+  for (const [a, b, c, r] of [[0, .3, 0, .32], [.25, .2, .1, .25], [-.25, .22, .05, .26], [0, .5, -.05, .24]]) s.add(mesh(sph(r, 16, 12), shrubM, a, b, c)); formG.add(s); return s; });
+const deadLeaves = Array.from({length: 14}, () => { const l = mesh(sph(.09, 10, 6), clay(0x9a6a2a)); l.scale.set(1.5, .3, .9); l.visible = false; formG.add(l); return l; });
+const rabbit = rabbitMake(); rabbit.visible = false; rabbit.scale.setScalar(.8); formG.add(rabbit);
+
+/* ---------- three soil types of the book: forest, desert, grassland ---------- */
+const typesG = new THREE.Group(); typesG.visible = false; scene.add(typesG);
+const TYPES = [];
+function miniBlock(x, top, topH, under, name) {
+  const g = new THREE.Group(); g.position.set(x, 0, 0); typesG.add(g);
+  g.add(mesh(new THREE.BoxGeometry(1.9, 1.5 - topH, 1.6), clay(under), 0, -.75 - topH / 2, 0));
+  g.add(mesh(new THREE.BoxGeometry(1.92, topH, 1.62), clay(top), 0, -topH / 2, 0));
+  TYPES.push({g, name}); return g; }
+const forest = miniBlock(-2.5, 0x3d2616, .16, 0xc08a52, 'تربة الغابات'), desert = miniBlock(0, 0xe6c88e, .5, 0xd9b77c, 'التربة الصحراوية'), grass = miniBlock(2.5, 0x2f1d10, .62, 0x9a6a3c, 'تربة الأراضي العشبية');
+// forest: tall trees and heavy rain; minerals wash down deep
+for (const [x, z, s] of [[-.5, -.3, 1], [.35, -.45, .85], [.1, .35, .7]]) { const t = new THREE.Group(); t.position.set(x, 0, z); t.scale.setScalar(s); t.add(mesh(new THREE.CylinderGeometry(.07, .1, .8, 8), clay(0x7a4e2a), 0, .4, 0)); t.add(mesh(new THREE.ConeGeometry(.42, .9, 10), clay(0x2f8a3e), 0, 1.05, 0)); t.add(mesh(new THREE.ConeGeometry(.34, .7, 10), clay(0x3aa04a), 0, 1.45, 0)); forest.add(t); }
+const rainCloud = new THREE.Group(); rainCloud.position.set(0, 2.55, 0); forest.add(rainCloud); for (const [a, b, r] of [[0, 0, .38], [.38, -.06, .3], [-.38, -.06, .3]]) rainCloud.add(mesh(sph(r, 16, 12), clay(0xc9d3dd), a, b, 0));
+const dropM = new THREE.MeshPhysicalMaterial({color: 0x3fa9ff, roughness: .15, clearcoat: 1}), rainDrops = Array.from({length: 10}, () => { const d = new THREE.Mesh(new THREE.CapsuleGeometry(.025, .09, 4, 6), dropM); forest.add(d); d.userData.t = Math.random(); d.userData.x = R(-.6, .6); d.userData.z = R(-.4, .4); return d; });
+const minM = new THREE.MeshStandardMaterial({color: 0xfff1a8, emissive: 0xffd84d, emissiveIntensity: .5, roughness: .3});
+const minF = Array.from({length: 8}, () => { const m = new THREE.Mesh(new THREE.OctahedronGeometry(.055), minM); m.position.set(R(-.8, .8), 0, .82); m.userData.t = Math.random(); forest.add(m); return m; });
+// desert: sandy, few shrubs, minerals near the surface, a watering pipe for irrigation
+for (const [x, z] of [[-.55, .2], [.5, -.35]]) { const s = new THREE.Group(); s.position.set(x, 0, z); for (const [a, b, r] of [[0, .14, .14], [.1, .1, .1], [-.1, .1, .11]]) s.add(mesh(sph(r, 12, 8), clay(0x8aa04a), a, b, 0)); desert.add(s); }
+for (let i = 0; i < 9; i++) { const m = new THREE.Mesh(new THREE.OctahedronGeometry(.055), minM); m.position.set(R(-.8, .8), R(-.38, -.06), .82); desert.add(m); }
+const pipe = mesh(new THREE.CylinderGeometry(.045, .045, 1.7, 10), clay(0x3b6fb0), 0, .1, .55); pipe.rotation.z = Math.PI / 2; desert.add(pipe);
+const drip = Array.from({length: 4}, (_, i) => { const d = new THREE.Mesh(new THREE.CapsuleGeometry(.02, .06, 4, 6), dropM); d.position.set(-.6 + i * .4, .05, .55); d.userData.t = i / 4; desert.add(d); return d; });
+// grassland: thick, dark humus; corn and barley
+for (let i = 0; i < 3; i++) { const c = new THREE.Group(); c.position.set(-.55 + i * .5, 0, -.3); c.add(mesh(new THREE.CylinderGeometry(.03, .04, 1.1, 6), clay(0x5aa83a), 0, .55, 0)); c.add(mesh(new THREE.CapsuleGeometry(.07, .2, 6, 8), clay(0xf2c230), .07, .7, 0)); for (const s of [-1, 1]) { const lf = mesh(sph(.2, 10, 6), clay(0x5aa83a), s * .14, .45, 0); lf.scale.set(1.2, .12, .3); lf.rotation.z = s * .5; c.add(lf); } grass.add(c); }
+for (let i = 0; i < 5; i++) { const c = new THREE.Group(); c.position.set(-.7 + i * .35, 0, .35); c.add(mesh(new THREE.CylinderGeometry(.015, .02, .6, 5), clay(0xc9a54a), 0, .3, 0)); const ear = mesh(new THREE.CapsuleGeometry(.04, .14, 4, 6), clay(0xe0b84a), .02, .66, 0); ear.rotation.z = -.25; c.add(ear); grass.add(c); }
+for (let i = 0; i < 26; i++) { const o = mesh(sph(R(.04, .07), 8, 6), clay(0x1a0f07), R(-.85, .85), R(-.55, -.06), .81); o.scale.z = .4; grass.add(o); }
+
+/* ---------- labels ---------- */
+const LAB = {
+  A: [LAYER[0].name, () => layers[0].localToWorld(V(LW / 2 - .3, 0, LD / 2)), LAYER[0].lc], B: [LAYER[1].name, () => layers[1].localToWorld(V(LW / 2 - .3, 0, LD / 2)), LAYER[1].lc],
+  C: [LAYER[2].name, () => layers[2].localToWorld(V(LW / 2 - .3, 0, LD / 2)), LAYER[2].lc], R: [LAYER[3].name, () => layers[3].localToWorld(V(LW / 2 - .3, 0, LD / 2)), LAYER[3].lc],
+  roots: ['الجذور', () => layers[0].localToWorld(V(-1.5, -.15, LD / 2)), '#c49a5a'], lensR: ['فتات الصخور', () => lens.localToWorld(V(-.3, .62, .2)), '#948472'], lensP: ['بقايا نباتات ومخلوقات ميتة', () => lens.localToWorld(V(.1, -.68, .2)), '#8a5a2a'],
+  crack: ['الصخور تتشقّق (تجوية)', () => V(0, 2.05, 0), '#6f7885'], micro: ['مخلوقات حيّة مجهرية (مكبّرة)', () => V(.9, 1.3, .6), '#3fae2a'], grassL: ['حشائش ثم شجيرات', () => V(-1.5, .95, .9), '#4f9a3a'],
+  organic: ['مواد عضوية', () => V(.9, .45, 1.5), '#5a3a20'], humus: ['الدُّبال', () => layers[0].localToWorld(V(.6, -.1, LD / 2)), '#24160c'],
+  tF: ['تربة الغابات', () => forest.localToWorld(V(0, -1.75, .8)), '#3d2616'], tD: ['التربة الصحراوية', () => desert.localToWorld(V(0, -1.75, .8)), '#c9a46a'], tG: ['تربة الأراضي العشبية', () => grass.localToWorld(V(0, -1.75, .8)), '#2f1d10'],
+  minF: ['معادن تنزل إلى الأعماق', () => forest.localToWorld(V(0, -1.05, .8)), '#d4a800'], minD: ['معادن قريبة من السطح', () => desert.localToWorld(V(0, -.2, .9)), '#d4a800'], irr: ['ري صناعي', () => desert.localToWorld(V(.6, .45, .55)), '#3b6fb0'],
+  crop: ['الذرة والشعير', () => grass.localToWorld(V(0, 1.35, 0)), '#c99a1a'],
+};
+const lbEl = {}; for (const [id, [t, , c]] of Object.entries(LAB)) { const e = document.createElement('div'); e.className = 'lb'; e.textContent = t; e.style.opacity = 0; e.style.setProperty('--c', c); $('#labels').appendChild(e); lbEl[id] = e; }
+let shown = [];
+const showLb = (ids, hi = []) => { shown = ids; for (const id in lbEl) { lbEl[id].style.opacity = ids.includes(id) ? 1 : 0; lbEl[id].classList.toggle('hi', hi.includes(id)); } };
+function placeLb() { const top = 118, bot = $('#dock').getBoundingClientRect().top - 14, v = new THREE.Vector3();
+  for (const id of shown) { const e = lbEl[id]; v.copy(LAB[id][1]()).project(camera); const hw = e.offsetWidth / 2 + 6;
+    e.style.left = Math.max(hw, Math.min(innerWidth - hw, (v.x + 1) / 2 * innerWidth)) + 'px'; e.style.top = Math.max(top, Math.min(bot, (1 - v.y) / 2 * innerHeight)) + 'px'; } }
+
+/* ---------- scenes ---------- */
+const camTo = (p, t, d = 2) => { gsap.to(camera.position, {...p, duration: D(d), ease: 'power2.inOut'}); gsap.to(controls.target, {...t, duration: D(d), ease: 'power2.inOut'}); };
+let live = []; const tw = t => (live.push(t), t);
+const pop = (o, s = 1, d = .8) => { o.visible = true; return tw(gsap.fromTo(o.scale, {x: .01, y: .01, z: .01}, {x: s, y: s, z: s, duration: D(d), ease: 'back.out(1.6)'})); };
+function show(which) { block.visible = which === 'block'; formG.visible = which === 'form'; typesG.visible = which === 'types'; }
+function hiLayer(k) { layers.forEach((g, i) => { gsap.to(g.position, {z: i === k ? .45 : 0, duration: D(.7)}); g.userData.body.material.emissive.set(i === k ? 0x3a2a10 : 0x000000); }); }
+let rainOn = false, drySoak = [];
+function resetForm() { CH.forEach(c => { c.position.copy(c.userData.home); c.rotation.set(0, 0, 0); c.visible = false; }); boulder.visible = true; cracks.forEach(t => t.visible = false); crumbs.forEach(c => c.visible = false); microbes.forEach(m => m.visible = false);
+  pile.scale.set(.01, .01, .01); pileM.color.set(0xb08a62); grassF.forEach(b => b.scale.y = .01); shrubs.forEach(s => { s.scale.setScalar(.01); s.children.forEach(c => c.material = shrubM); }); deadLeaves.forEach(l => l.visible = false); rabbit.visible = false; }
+const STEPS = {
+  what: {n: '🔍 ما التربة؟', a: ['s01', 's02', 's03'],
+    set() { show('block'); stack(0); hiLayer(-1); showLb([]); camTo({x: 3.6, y: 2.2, z: 8.6}, {x: .4, y: -1.2, z: 0}); },
+    on: [null, () => { lens.visible = true; lens.position.copy(lensAt()); pop(lens, .78); setTimeout(() => showLb(['lensR', 'lensP']), 700); }, () => { lens.visible = false; showLb(['roots']); }]},
+  form: {n: '⛏️ كيف تتكوّن؟', a: ['s04', 's05', 's06', 's07'],
+    set() { show('form'); resetForm(); showLb(['crack']); camTo({x: 0, y: 2.6, z: 7.6}, {x: 0, y: .55, z: 0});
+      cracks.forEach((t, i) => tw(gsap.delayedCall(.3 + i * .25, () => t.visible = true))); tw(gsap.delayedCall(1.4, () => { boulder.visible = false; cracks.forEach(t => t.visible = false); CH.forEach(c => c.visible = true); }));
+      CH.forEach((c, i) => { const out = c.userData.home.clone().setY(0).normalize().multiplyScalar(.28); tw(gsap.to(c.position, {x: c.userData.home.x + out.x, z: c.userData.home.z + out.z, y: c.userData.home.y + (i === 4 ? .15 : 0), duration: D(1.8), delay: .8, ease: 'power2.out'})); tw(gsap.to(c.rotation, {z: R(-.2, .2), x: R(-.15, .15), duration: D(1.8), delay: .8})); });
+      crumbs.forEach((c, i) => { const s = CH[i % 5].userData.home, a = R(0, 6.28), r = R(.9, 1.9); c.position.set(s.x, s.y, s.z); tw(gsap.delayedCall(1.6 + i * .06, () => { c.visible = true; }));
+        tw(gsap.to(c.position, {x: Math.cos(a) * r, z: Math.sin(a) * r, duration: D(1.1), delay: 1.6 + i * .06, ease: 'power1.in'})); tw(gsap.to(c.position, {y: pileTop(r) + .06, duration: D(1.1), delay: 1.6 + i * .06, ease: 'bounce.out'})); });
+      tw(gsap.to(pile.scale, {x: 2.1, y: .32, z: 2.1, duration: D(3), delay: 2.4})); },
+    on: [null, () => { showLb(['micro']); microbes.forEach((m, i) => { const a = i / microbes.length * 6.28, c = CH[i % 4]; m.position.set(c.position.x * .55 + Math.cos(a) * .1, R(.3, 1.1), c.position.z * .55 + Math.sin(a) * .1 + .5); pop(m, 1, .5).delay(i * .07); }); },
+      () => { showLb(['grassL']); microbes.forEach(m => tw(gsap.to(m.scale, {x: .5, y: .5, z: .5, duration: .6}))); grassF.forEach((b, i) => tw(gsap.to(b.scale, {y: 1, duration: D(.7), delay: i * .03, ease: 'back.out(2)'})));
+        shrubs.forEach((s, i) => tw(gsap.to(s.scale, {x: 1, y: 1, z: 1, duration: D(1), delay: 1.6 + i * .3, ease: 'back.out(1.6)'})));
+        tw(gsap.delayedCall(3.2, () => { rabbit.visible = true; rabbit.position.set(3.4, .05, .9); rabbit.rotation.y = -1.4; const tl = gsap.timeline(); tw(tl);
+          for (let k = 0; k < 3; k++) tl.to(rabbit.position, {x: 3.4 - (k + 1) * .55, duration: .36, ease: 'none'}).to(rabbit.position, {y: .45, duration: .18, yoyo: true, repeat: 1}, '<');
+          tl.to(rabbit.rotation, {y: -2.2, duration: .3}).to(rabbit.userData.head.rotation, {x: .35, duration: .22, yoyo: true, repeat: 5}); })); },
+      () => { showLb(['organic']); tw(gsap.to(rabbit.position, {x: 4.5, duration: 1.2, delay: .2})); tw(gsap.to(rabbit.rotation, {y: 1.4, duration: .3}));
+        const olive = clay(0x8f8a3a); shrubs.forEach(s => s.children.forEach(c => c.material = olive));
+        deadLeaves.forEach((l, i) => { const s = shrubs[i % 3].position, a = R(0, 6.28), r = R(.2, .9); l.position.set(s.x + R(-.2, .2), s.y + .6, s.z + R(-.2, .2)); tw(gsap.delayedCall(i * .12, () => l.visible = true));
+          tw(gsap.to(l.position, {x: s.x * .7 + Math.cos(a) * r, y: .3, z: s.z * .7 + Math.sin(a) * r, duration: D(1.6), delay: i * .12, ease: 'sine.in'})); tw(gsap.to(l.rotation, {z: 3, duration: 1.6, delay: i * .12})); });
+        tw(gsap.to(pileM.color, {r: .22, g: .14, b: .08, duration: D(3), delay: 1.4})); tw(gsap.to(shrubs.map(s => s.scale), {x: .7, y: .6, z: .7, duration: 2, delay: 1})); }]},
+  layers: {n: '🍰 النطاقات', a: ['s08', 's09', 's10', 's11', 's12'], predict: true,
+    set() { show('block'); hiLayer(-1); stack(1, 1.8); showLb([]); camTo({x: 4.4, y: 1.6, z: 9.6}, {x: .6, y: -1.9, z: 0}); setTimeout(() => cur === 'layers' && showLb(['A', 'B', 'C', 'R']), 1900); },
+    on: [null, () => { hiLayer(0); showLb(['A', 'B', 'C', 'R'], ['A']); }, () => { showLb(['humus', 'B', 'C', 'R'], ['humus']); soak(); }, () => { hiLayer(1); showLb(['A', 'B', 'C', 'R'], ['B']); }, () => { hiLayer(2); showLb(['A', 'B', 'C', 'R'], ['C', 'R']); }]},
+  order: {n: '🖐️ رتّبها أنت', a: ['s13'], game: true,
+    set() { show('block'); hiLayer(-1); plantG.visible = false; startOrder(); camTo({x: 3.6, y: 1.0, z: 11.6}, {x: .2, y: -1.45, z: 0}); }},
+  types: {n: '🌳🏜️🌾 أنواع التربة', a: ['s15', 's16', 's17', 's18'],
+    set() { show('types'); TYPES.forEach(t => pop(t.g, 1, .7)); showLb(['tF', 'tD', 'tG']); camTo({x: 0, y: 2.6, z: 10.5}, {x: 0, y: .1, z: 0}); rainOn = false; },
+    on: [null, () => { rainOn = true; showLb(['tF', 'minF']); camTo({x: -2.2, y: 2.2, z: 7}, {x: -2.5, y: .7, z: 0}); }, () => { rainOn = false; showLb(['tD', 'minD', 'irr']); camTo({x: .3, y: 1.9, z: 6.4}, {x: 0, y: .2, z: 0}); },
+      () => { showLb(['tG', 'crop']); camTo({x: 2.8, y: 2.1, z: 6.8}, {x: 2.5, y: .5, z: 0}); }]},
+  sum: {n: '⭐ الخلاصة', a: ['s19', 's20'],
+    set() { show('block'); hiLayer(-1); stack(0); showLb(['roots']); camTo({x: 3.4, y: 2.4, z: 9}, {x: .3, y: -1.3, z: 0}); },
+    on: [null, () => showLb(['A', 'B', 'C', 'R'])]},
+};
+const ORDER = ['what', 'form', 'layers', 'order', 'types', 'sum'];
+ORDER.forEach(k => { const b = document.createElement('button'); b.textContent = STEPS[k].n; b.dataset.m = k; b.onclick = () => { setPlay(false); go(k); }; $('#modes').appendChild(b); });
+// humus holds water: drops fall on horizon A and soak in
+function soak() { for (let i = 0; i < 8; i++) { const d = new THREE.Mesh(new THREE.CapsuleGeometry(.045, .12, 4, 8), dropM); const x = R(-1.6, 1.6), z = R(-.8, 1.2), top = layers[0].localToWorld(V(x, HS[0] / 2 + 1.6, z)); scene.add(d); d.position.copy(top); drySoak.push(d);
+  tw(gsap.to(d.position, {y: top.y - 1.6, duration: D(.9), delay: i * .25, ease: 'power2.in', onComplete: () => tw(gsap.to(d.scale, {x: 2.2, y: .15, z: 2.2, duration: .8, onComplete: () => d.visible = false}))})); } }
+
+/* ---------- hands-on: the horizons got mixed up; tap them from top to bottom ---------- */
+let want = 0, solved = false, autoT = null;
+const SHUF = [2, 0, 3, 1];   // the order they appear (top to bottom) when mixed
+function startOrder() { want = 0; solved = false; showLb([]); const ys = [.9, -.55, -2.05, -3.55];
+  SHUF.forEach((k, slot) => { const g = layers[k]; gsap.killTweensOf(g.position); tw(gsap.to(g.position, {x: (slot % 2 ? .45 : -.45), y: ys[slot], z: 0, duration: D(1.4), ease: 'power2.inOut'})); tw(gsap.to(g.scale, {x: .78, y: .78, z: .78, duration: D(1.2)})); tw(gsap.to(g.rotation, {y: (slot % 2 ? -.18 : .18), duration: D(1.2)})); });
+  $('#steps').innerHTML = LAYER.map((L, k) => `<span data-k="${k}">${AR(k + 1)}</span>`).join(''); $('#steps').classList.add('on'); }
+function tapLayer(k) { if (cur !== 'order' || solved) return; const g = layers[k];
+  if (k === want) { STATE.order = STATE.order || {}; want++; const span = $(`#steps [data-k="${k}"]`); span.classList.add('ok'); span.textContent = '✓ ' + LAYER[k].short;
+    tw(gsap.fromTo(g.scale, {x: .78, y: .78, z: .78}, {x: .88, y: .88, z: .88, duration: .25, yoyo: true, repeat: 1})); showLb(['A', 'B', 'C', 'R'].slice(0, want));
+    if (want === 4) { solved = true; clearTimeout(autoT); STATE.ordered = (STATE.ordered || 0) + 1; save(); tw(gsap.delayedCall(.8, () => { stack(.35, 1.6); setTimeout(() => cur === 'order' && showLb(['A', 'B', 'C', 'R']), 1700); }));
+      seqTok++; $('#say').textContent = LINES.s14.t; play('s14', () => { orderDone && orderDone(); orderDone = null; }); }
+    else $('#say').innerHTML = `✅ أحسنت، استمر. <span class="tip">الآن: الطبقة رقم ${AR(want + 1)} من الأعلى.</span>`; }
+  else { tw(gsap.fromTo(g.rotation, {z: 0}, {z: .06, duration: .08, yoyo: true, repeat: 5})); $('#say').innerHTML = `🤔 ليست هذه الآن. ${LAYER[k].hint} <span class="tip">💡 نبحث عن الطبقة رقم ${AR(want + 1)} من الأعلى. ${want === 0 ? 'الطبقة العليا فيها الجذور.' : ''}</span>`; } }
+let orderDone = null;
+function autoSolve() { if (cur !== 'order' || solved) return; const step = () => { if (cur !== 'order' || solved) return; tapLayer(want); if (!solved) autoT = setTimeout(step, 1200); }; step(); }
+// a tap (not a drag) on a horizon picks it
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(); let downAt = null;
+renderer.domElement.addEventListener('pointerdown', e => downAt = [e.clientX, e.clientY]);
+renderer.domElement.addEventListener('pointerup', e => { if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 10) return; downAt = null; if (cur !== 'order') return;
+  ndc.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); ray.setFromCamera(ndc, camera); const hit = ray.intersectObjects(layers.map(g => g.userData.body))[0]; if (hit) tapLayer(hit.object.userData.layer); });
+
+/* ---------- narration (text is always shown) ---------- */
+let voice = null, muted = false, tour = false, seqTok = 0;
+const STATE = (() => { try { return JSON.parse(localStorage.getItem('sci-L26-soil') || '{}'); } catch (e) { return {}; } })();
+const save = () => { try { localStorage.setItem('sci-L26-soil', JSON.stringify(STATE)); } catch (e) {} };
+function play(id, end) { if (voice) voice.pause(); voice = new Audio('audio/' + id + '.mp3'); voice.muted = muted; voice.onended = end; voice.play().catch(() => setTimeout(end, 2600)); }
+function say(m, done) { const tok = ++seqTok; let k = 0;
+  const nx = () => { if (tok !== seqTok) return; if (k >= m.a.length) { done && done(); return; } $('#say').textContent = LINES[m.a[k]].t; m.on && m.on[k] && m.on[k](); const id = m.a[k++]; play(id, () => tok === seqTok && setTimeout(nx, 650)); };
+  nx(); }
+function predict(done) {
+  $('#say').innerHTML = `<b>🤔 توقّع قبل أن ترى:</b> إذا حفرنا في الأرض، في أيّ طبقة تنمو معظم جذور النباتات؟<div class="pred"><button data-j="1">الطبقة العليا</button><button data-j="0">الطبقة الوسطى</button><button data-j="2">السفلى فوق الصخور</button></div>`;
+  $('#say').querySelectorAll('.pred button').forEach(b => b.onclick = () => { const ok = b.dataset.j === '1'; b.classList.add(ok ? 'ok' : 'no'); STATE.pred = ok ? 1 : 0; save();
+    if (!ok) $('#say').querySelector('[data-j="1"]').classList.add('ok'); $('#say').querySelectorAll('.pred button').forEach(x => x.disabled = true);
+    $('#say').insertAdjacentHTML('beforeend', `<div class="note">${ok ? '✅ توقّع موفّق، لنرَ ذلك.' : 'لا بأس، المحاولة تعلّمنا. لنرَ ماذا يحدث.'}</div>`); setTimeout(done, ok ? 1100 : 1800); });
+}
+let cur = 'what';
+function go(k, done) { cur = k; document.querySelectorAll('#modes button').forEach(b => b.classList.toggle('on', b.dataset.m === k));
+  live.forEach(t => t.kill()); live = []; clearTimeout(autoT); orderDone = null; drySoak.forEach(d => scene.remove(d)); drySoak = []; $('#steps').classList.remove('on'); rainOn = false;
+  if (k !== 'what') lens.visible = false; plantG.visible = true; if (k !== 'order') layers.forEach(g => gsap.to(g.rotation, {y: 0, z: 0, duration: .5}));
+  const S = STEPS[k];
+  const run = () => { S.set(); say(S, S.game ? () => { if (solved) return done && done(); orderDone = done; if (tour) autoT = setTimeout(autoSolve, 9000); } : done); };
+  if (S.predict && !(STATE.seen || {})[k]) { seqTok++; voice && voice.pause(); show('block'); stack(0); hiLayer(-1); showLb(['roots']); camTo({x: 3.6, y: 1.6, z: 8.4}, {x: .4, y: -1.5, z: 0}); predict(run); } else run();
+  STATE.seen = {...(STATE.seen || {}), [k]: 1}; save(); }
+function setPlay(on) { tour = on; $('#play').textContent = on ? '⏸ إيقاف' : '▶️ الجولة'; if (!on) { seqTok++; voice && voice.pause(); clearTimeout(autoT); } }
+$('#play').onclick = () => { if (tour) return setPlay(false); setPlay(true); let i = Math.max(0, ORDER.indexOf(cur)); if (!document.querySelector('#modes .on')) i = 0;
+  const next = () => { if (!tour) return; if (i >= ORDER.length) { setPlay(false); setTimeout(() => quiz(0), 1000); return; } go(ORDER[i++], () => setTimeout(next, 2400)); }; next(); };
+$('#again').onclick = () => go(cur);
+$('#mute').onclick = () => { muted = !muted; $('#mute').textContent = muted ? '🔇' : '🔊'; if (voice) voice.muted = muted; };
+$('#info').onclick = () => $('#ip').classList.add('on'); $('#ix').onclick = () => $('#ip').classList.remove('on');
+$('#go').onclick = () => { $('#start').remove(); $('#play').onclick(); };
+$('#qz').onclick = () => { setPlay(false); quiz(0); };
+
+/* ---------- check: four book questions (Q26), a hint after a wrong answer, then the right scene again ---------- */
+const QS = [
+  {id: 'L26-m9', t: 'أيّ مما يلي يرتّب الخطوات الرئيسة لتكوّن التربة ترتيبًا صحيحًا؟', o: ['تجوية الصخور ← نمو المخلوقات الحية ← موتها وتحللها', 'موت المخلوقات الحية ← تجوية الصخور ← نمو الحشائش', 'نمو الشجيرات ← تجوية الصخور ← ظهور المخلوقات المجهرية', 'تحلل المواد العضوية ← نمو الحشائش ← تشقق الصخور'], a: 0,
+    why: ['تبدأ القصة بتجوية الصخور، ثم تنمو المخلوقات، ثم تموت وتتحلل إلى مواد عضوية.', 'لا بد من تجوية الصخور ونمو المخلوقات قبل موتها.', 'لا تنمو الشجيرات قبل تفتت الصخور.', 'تشقق الصخور هو البداية لا النهاية.'], hint: 'تذكّر ما حدث للصخرة الكبيرة أولًا، ثم ماذا نما فيها.', redo: 'form'},
+  {id: 'L26-m13', t: 'انظر إلى شكل نطاقات التربة. بماذا يختلف النطاق (أ) عن النطاق (ج)؟', o: ['(أ) معظمه قطع صخرية كبيرة، و(ج) فيه دبال وجذور كثيرة', '(أ) فيه دبال وجذور كثيرة، و(ج) معظمه قطع صخرية كبيرة', '(أ) و(ج) فيهما الدبال نفسه، ويختلفان في اللون فقط', '(أ) يقع فوق الصخور غير المجوّاة، و(ج) على السطح'], a: 1,
+    why: ['هذا عكس الشكل.', 'في الشكل: النطاق (أ) داكن فيه الجذور والدبال، و(ج) قطع صخرية كبيرة.', 'الدبال كثير في (أ) وقليل جدًا في (ج).', 'النطاق (ج) هو الذي يقع فوق الصخور غير المجوّاة، و(أ) في الأعلى.'], hint: 'أيّ الطبقتين داكنة فيها الجذور، وأيّهما فيها القطع الصخرية الكبيرة؟', redo: 'layers'},
+  {id: 'L26-m14', t: 'ماذا يحتوي النطاق (ب) الذي يسمّى التربة تحت السطحية؟', o: ['نسبة قليلة من الدبال ونسبة كبيرة من الصخور المفتتة', 'نسبة كبيرة من الدبال ونسبة قليلة من الصخور المفتتة', 'معظم جذور النباتات ومعظم المغذيات', 'صخورًا صلبة لم تتعرض للتجوية بعد'], a: 0,
+    why: ['هذا وصف الكتاب للنطاق (ب).', 'الدبال الكثير في النطاق (أ).', 'معظم الجذور والمغذيات في النطاق (أ) التربة السطحية.', 'الصخور غير المجوّاة تحت النطاق (ج).'], hint: 'استمع لوصف النطاق (ب) في مشهد «النطاقات».', redo: 'layers'},
+  {id: 'L26-m36', t: 'أيّ مقارنة بين تربة الغابة والتربة الصحراوية صحيحة؟', o: ['الغابة: غنية بمعادن قريبة من السطح، والصحراوية: غنية بالدبال', 'كلتاهما غنية بالدبال وتصلح للزراعة دون ري', 'الغابة: طبقة رقيقة قليلة الدبال، والصحراوية: رملية غنية بالمعادن', 'الغابة: رملية، والصحراوية: حملت الأمطار الغزيرة معادنها'], a: 2,
+    why: ['المعادن القريبة من السطح في الصحراوية، والدبال قليل فيها.', 'كلتاهما قليلة الدبال، والصحراوية تحتاج غالبًا إلى ري.', 'هذا وصف الكتاب للنوعين.', 'خلط بين النوعين: الرملية هي الصحراوية، والأمطار الغزيرة في الغابات.'], hint: 'قارن المكعّب الذي عليه أشجار ومطر بالمكعّب الرملي.', redo: 'types'},
+];
+function quiz(k) {
+  const q = QS[k]; $('#qp').classList.add('on'); let tries = (STATE.q?.[k]?.ok === false) ? STATE.q[k].tries : 0;
+  $('#qb').innerHTML = `<b>✏️ اختبر نفسك ${AR(k + 1)} من ${AR(QS.length)}</b><p style="font-size:1.08rem;margin:6px 0;line-height:1.7">${q.t}</p>${q.o.map((x, j) => `<button class="opt" data-j="${j}">${'أبجد'[j]}. ${x}</button>`).join('')}<div id="fb"></div>`;
+  $('#qb').querySelectorAll('.opt').forEach(b => b.onclick = () => {
+    const j = +b.dataset.j, ok = j === q.a; tries++; b.classList.add(ok ? 'ok' : 'no'); STATE.q = STATE.q || {};
+    if (ok) { $('#qb').querySelectorAll('.opt').forEach(x => x.disabled = true); STATE.q[k] = {ok: true, tries}; save();
+      $('#fb').innerHTML = `<div class="fb ok">🌟 ${tries === 1 ? 'ركّزت فوصلت' : 'حاولت حتى وصلت'}، والتوفيق من الله.<br><b>لماذا؟</b> ${q.why[j]}</div>` + (k + 1 < QS.length ? `<button class="big" id="nq">السؤال التالي ←</button>` : `<div class="fb in">أجبت عن ${AR(Object.values(STATE.q).filter(x => x.ok && x.tries === 1).length)} من ${AR(QS.length)} من أول محاولة. كل محاولة تقوّي فهمك.</div><button class="big" id="cl">رجوع للمشهد</button>`);
+      $('#nq') && ($('#nq').onclick = () => quiz(k + 1)); $('#cl') && ($('#cl').onclick = () => $('#qp').classList.remove('on')); }
+    else { STATE.q[k] = {ok: false, tries}; save(); b.disabled = true; $('#fb').innerHTML = `<div class="fb no">${q.why[j]}<br>💡 <b>تلميح:</b> ${q.hint}</div><button class="big" style="background:#2563a6" id="see">👀 شاهد المشهد ثم ارجع</button>`;
+      $('#see').onclick = () => { $('#qp').classList.remove('on'); setPlay(false); go(q.redo, () => setTimeout(() => quiz(k), 1500)); }; }
+  });
+}
+
+/* ---------- loop ---------- */
+const clock = new THREE.Clock(); let tt = 0;
+camera.position.set(3.4, 2.4, 9); controls.target.set(.3, -1.3, 0); show('block'); showLb(['A', 'B', 'C', 'R']); $('#loading').remove();
+window.__go = go; window.__quiz = quiz; window.__tap = tapLayer;
+renderer.setAnimationLoop(() => {
+  const dt = Math.min(.05, clock.getDelta()) * (calm ? .5 : 1); tt += dt;
+  if (lens.visible) { lens.position.copy(lensAt()); lens.quaternion.copy(camera.quaternion); }
+  if (formG.visible) microbes.forEach((m, i) => { if (m.visible) m.position.y += Math.sin(tt * 3 + i) * .002; });
+  if (typesG.visible) { rainDrops.forEach(d => { d.visible = rainOn; d.userData.t = (d.userData.t + dt * .9) % 1; d.position.set(d.userData.x, 2.3 - d.userData.t * 2.3, d.userData.z); });
+    minF.forEach(m => { if (rainOn) m.userData.t = (m.userData.t + dt * .25) % 1; m.position.y = -.12 - m.userData.t * 1.25; m.rotation.y += dt; });
+    drip.forEach(d => { d.userData.t = (d.userData.t + dt * .6) % 1; d.position.y = .05 - d.userData.t * .12; d.visible = d.userData.t < .9; }); minM.emissiveIntensity = .4 + Math.sin(tt * 4) * .2; }
+  clouds.forEach((c, i) => c.position.x += Math.sin(tt * .2 + i) * .002);
+  if (block.visible) layers.forEach((g, k) => { g.userData.body.position.y = cur === 'order' && !solved ? Math.sin(tt * 1.6 + k) * .03 : 0; });
+  frameBand(); controls.update(); renderer.render(scene, camera); placeLb();
+});
+</script>
+</body>
+</html>
