@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الخلية ثلاثية الأبعاد</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+/* 3D cells modelled on the book drawings (science grade 6, pp. 34–35): turn, zoom, take apart, tap a part */
+:root{--bg:#f6f3ec;--ink:#1d2733;--g:#2e7d4f;--y:#ffd84d;--muted:#66707d;--f:'SciBaloo','Segoe UI',Tahoma,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--f);-webkit-text-size-adjust:100%;overflow:hidden}
+button{font:inherit;cursor:pointer;touch-action:manipulation;color:inherit}
+.top{position:fixed;top:0;left:0;right:0;z-index:5;display:flex;gap:6px;padding:8px 10px calc(8px) 10px;background:var(--g);color:#fff;align-items:center}
+.top h1{flex:1;margin:0;font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seg{display:flex;gap:4px;background:rgba(255,255,255,.15);border-radius:14px;padding:3px}
+.seg button{border:0;background:none;color:#fff;border-radius:11px;min-height:40px;padding:0 10px;font-size:.92rem}
+.seg button.on{background:#fff;color:var(--g)}
+#stage{position:fixed;inset:0;touch-action:none}
+#labels{position:fixed;inset:0;pointer-events:none;z-index:2}
+.lb{position:absolute;transform:translate(-50%,-120%);background:rgba(255,255,255,.94);border:2px solid var(--y);border-radius:12px;padding:1px 8px;font-size:.82rem;font-weight:600;white-space:nowrap;pointer-events:auto;cursor:pointer;transition:opacity .3s}
+.lb.hi{background:var(--y)}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:5;padding:8px 10px calc(8px + env(safe-area-inset-bottom));display:flex;gap:6px;flex-wrap:wrap;justify-content:center;background:rgba(246,243,236,.94);border-top:1px solid #e7e0d2}
+.bar button{border:2px solid #e7e0d2;background:#fff;border-radius:16px;min-height:50px;padding:0 14px;font-size:1rem}
+.bar button.p{background:var(--g);border-color:var(--g);color:#fff}
+.bar button.on{background:#fff6cc;border-color:var(--y);color:var(--ink)}
+#info{position:fixed;left:10px;right:10px;z-index:6;bottom:calc(76px + env(safe-area-inset-bottom));background:#fff;border:3px solid var(--y);border-radius:18px;padding:10px 14px;font-size:1.05rem;line-height:1.7;display:none;box-shadow:0 6px 24px rgba(0,0,0,.15)}
+#info.on{display:block}
+#info b{color:var(--g);font-size:1.15rem}
+#info .x{float:left;border:0;background:none;font-size:1.3rem;min-width:40px;min-height:40px}
+#hint{position:fixed;top:64px;left:0;right:0;text-align:center;z-index:3;font-size:.88rem;color:var(--muted);pointer-events:none}
+#book{position:fixed;inset:0;z-index:9;background:rgba(10,15,20,.8);display:none;align-items:center;justify-content:center;padding:10px}
+#book.on{display:flex}
+#book .box{background:#fff;border-radius:16px;padding:10px;max-width:900px;width:100%}
+#book img{width:100%;display:block;border-radius:10px}
+.note{font-size:.78rem;color:var(--muted)}
+@media (min-width:700px){#info{left:auto;width:420px}}
+</style>
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
+</head>
+<body>
+<header class="top">
+  <h1>🔬 الخلية ثلاثية الأبعاد</h1>
+  <div class="seg"><button data-c="plant" class="on">🌿 النباتية</button><button data-c="animal">🔴 الحيوانية</button></div>
+</header>
+<div id="stage"></div>
+<div id="labels"></div>
+<div id="hint">👆 حرّك بإصبعك لتدوير الخلية · إصبعان للتكبير · اضغط أي جزء</div>
+<div id="info"><button class="x" id="ix" aria-label="إغلاق">✕</button><div id="it"></div></div>
+<div class="bar">
+  <button class="p" id="explode">🧩 فكّك الخلية</button>
+  <button id="names">🏷️ الأسماء</button>
+  <button id="tour">▶️ جولة</button>
+  <button id="bookb">📖 صورة الكتاب</button>
+</div>
+<div id="book"><div class="box"><div style="display:flex;justify-content:space-between;align-items:center"><b id="bt"></b><button class="bar" style="position:static;border:0;background:none;padding:0" id="bx">✕ إغلاق</button></div><img id="bimg" alt="صورة الكتاب"><p class="note">المجسّم مرسوم على رسم الكتاب نفسه: الأجزاء وأسماؤها وألوانها. التفكيك للتوضيح فقط؛ الخلية الحقيقية لا تتفكك هكذا.</p></div></div>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from './vendor/OrbitControls.js';
+const D = {"cells": {"plant": {"page": "٣٥", "img": "fig/f35a.webp", "parts": [{"id": "p1", "name": "الجدار الخلوي", "fn": "طبقة صلبة تحيط بالغشاء البلازمي، تدعم الخلية النباتية، وتعطيها شكلها، وتحميها من الظروف البيئية.", "a": "v73fb0d6a8baf"}, {"id": "p2", "name": "الغشاء البلازمي", "fn": "يحيط بالخلية، ويعطيها شكلها المميز، ويسمح بدخول المواد وخروجها.", "a": "vf442df65418c"}, {"id": "p3", "name": "السيتوبلازم", "fn": "مادة تشبه الهلام فيها ماء كثير، وفيها أجزاء الخلية الداخلية. ويمتد فيه نظام النقل في الخلية.", "a": "v6044d7ba731b"}, {"id": "p4", "name": "النواة", "fn": "مركز التحكم في الخلية: تنظّم التفاعلات الكيميائية، وتخزن المعلومات الضرورية لانقسام الخلية.", "a": "v6c188612db63"}, {"id": "p5", "name": "الكروموسومات", "fn": "أشرطة طويلة من الأحماض النووية تخزن المعلومات اللازمة لكل الأنشطة، لتنتقل إلى خلايا النسل الجديد.", "a": "va281c25bd7bc"}, {"id": "p6", "name": "الفجوة", "fn": "تراكيب تشبه الكيس، تخزن الماء والغذاء، وتخزن بعض الفضلات قبل التخلص منها.", "a": "v4d4b93d6f581"}, {"id": "p7", "name": "البلاستيدة الخضراء", "fn": "تصنع الغذاء؛ تمتص طاقة الضوء بصبغة خضراء فيها تسمى الكلوروفيل.", "a": "v0b6150490272"}, {"id": "p8", "name": "الميتوكندريا", "fn": "مصدر طاقة الخلية: تقوم بالتنفس الهوائي، فتحوّل المواد الكيميائية في الغذاء إلى طاقة.", "a": "v15b6ade0d1b6"}, {"id": "p9", "name": "الشبكة الإندوبلازمية", "fn": "اسمه مكتوب على الشكل، ولم يشرح الكتاب وظيفته في هذا الدرس.", "a": "v1616304c86d1"}, {"id": "p10", "name": "أجسام جولجي", "fn": "اسمه مكتوب على الشكل، ولم يشرح الكتاب وظيفته في هذا الدرس.", "a": "v56d8f5d05d1b"}]}, "animal": {"page": "٣٤", "img": "fig/f34a.webp", "parts": [{"id": "p1", "name": "الغشاء البلازمي", "fn": "يحيط بالخلية، ويعطيها شكلها المميز، ويسمح بدخول المواد وخروجها.", "a": "vf442df65418c"}, {"id": "p2", "name": "النواة", "fn": "مركز التحكم في الخلية: تنظّم التفاعلات الكيميائية، وتخزن المعلومات الضرورية لانقسام الخلية.", "a": "v6c188612db63"}, {"id": "p3", "name": "الكروموسومات", "fn": "أشرطة طويلة من الأحماض النووية تخزن المعلومات اللازمة لكل الأنشطة، لتنتقل إلى خلايا النسل الجديد.", "a": "va281c25bd7bc"}, {"id": "p4", "name": "السيتوبلازم", "fn": "مادة تشبه الهلام فيها ماء كثير، وفيها أجزاء الخلية الداخلية. ويمتد فيه نظام النقل في الخلية.", "a": "v6044d7ba731b"}, {"id": "p5", "name": "الميتوكندريا", "fn": "مصدر طاقة الخلية: تقوم بالتنفس الهوائي، فتحوّل المواد الكيميائية في الغذاء إلى طاقة.", "a": "v15b6ade0d1b6"}, {"id": "p6", "name": "الفجوة", "fn": "تراكيب تشبه الكيس، تخزن الماء والغذاء، وتخزن بعض الفضلات قبل التخلص منها.", "a": "v4d4b93d6f581"}, {"id": "p7", "name": "الشبكة الإندوبلازمية", "fn": "اسمه مكتوب على الشكل، ولم يشرح الكتاب وظيفته في هذا الدرس.", "a": "v1616304c86d1"}, {"id": "p8", "name": "الرايبوسوم", "fn": "اسمه مكتوب على الشكل، ولم يشرح الكتاب وظيفته في هذا الدرس.", "a": "veb1415879d57"}, {"id": "p9", "name": "أجسام جولجي", "fn": "اسمه مكتوب على الشكل، ولم يشرح الكتاب وظيفته في هذا الدرس.", "a": "v56d8f5d05d1b"}, {"id": "p10", "name": "الأجسام المحللة", "fn": "اسمه مكتوب على الشكل، ولم يشرح الكتاب وظيفته في هذا الدرس.", "a": "vf43b0bf2a30c"}]}}, "audio": "audio/"};   // parts: name, fn (book text), audio id; book page and figure per cell
+const $ = s => document.querySelector(s);
+const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- renderer ---------- */
+const host = $('#stage');
+const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); host.appendChild(renderer.domElement);
+renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(40, 1, .1, 100);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.minDistance = 3; controls.maxDistance = 14; controls.enablePan = false;
+scene.add(new THREE.HemisphereLight(0xffffff, 0xb9a77a, 1.6));
+const sun = new THREE.DirectionalLight(0xffffff, 2.2); sun.position.set(3, 6, 4); scene.add(sun);
+const rim = new THREE.DirectionalLight(0xfff2cc, .8); rim.position.set(-4, 2, -3); scene.add(rim);
+function fit() { const w = innerWidth, h = innerHeight; renderer.setSize(w, h); camera.aspect = w / h; camera.fov = w < h ? 52 : 38; camera.updateProjectionMatrix(); }
+addEventListener('resize', fit); fit();
+
+/* ---------- helpers: soft, glossy materials like the book's airbrushed drawing ---------- */
+const mat = (c, o = {}) => new THREE.MeshPhysicalMaterial({color: c, roughness: .45, clearcoat: .6, clearcoatRoughness: .4, ...o});
+const tube = (pts, r, m, closed = false) => new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, closed), Math.max(32, pts.length * 8), r, 10, closed), m);
+// a wavy line (cristae of mitochondria, chromosome threads)
+const wave = (len, amp, n, y = 0) => { const p = []; for (let i = 0; i <= n * 8; i++) { const t = i / (n * 8); p.push(new THREE.Vector3((t - .5) * len, y, Math.sin(t * n * Math.PI * 2) * amp)); } return p; };
+// rounded slab shaped like the book's cell (an oval drum cut open on top)
+function drum(rx, rz, h, r, m) {
+  const sh = new THREE.Shape(); const n = 64;
+  for (let i = 0; i <= n; i++) { const a = i / n * Math.PI * 2, x = Math.cos(a) * rx, z = Math.sin(a) * rz; i ? sh.lineTo(x, z) : sh.moveTo(x, z); }
+  const g = new THREE.ExtrudeGeometry(sh, {depth: h, bevelEnabled: true, bevelThickness: r, bevelSize: r, bevelSegments: 6, curveSegments: 48});
+  g.rotateX(Math.PI / 2); g.translate(0, h / 2, 0); return new THREE.Mesh(g, m);
+}
+function ring(rx, rz, h, t, m) {   // a wall around the drum (cell wall / membrane band)
+  const sh = new THREE.Shape(), hole = new THREE.Path(), n = 72;
+  for (let i = 0; i <= n; i++) { const a = i / n * Math.PI * 2; i ? sh.lineTo(Math.cos(a) * rx, Math.sin(a) * rz) : sh.moveTo(Math.cos(a) * rx, Math.sin(a) * rz); }
+  for (let i = 0; i <= n; i++) { const a = -i / n * Math.PI * 2; i ? hole.lineTo(Math.cos(a) * (rx - t), Math.sin(a) * (rz - t)) : hole.moveTo(Math.cos(a) * (rx - t), Math.sin(a) * (rz - t)); }
+  sh.holes.push(hole);
+  const g = new THREE.ExtrudeGeometry(sh, {depth: h, bevelEnabled: true, bevelThickness: .02, bevelSize: .02, bevelSegments: 3, curveSegments: 64});
+  g.rotateX(Math.PI / 2); g.translate(0, h / 2, 0); return new THREE.Mesh(g, m);
+}
+function capsule(r, l, m) { const g = new THREE.CapsuleGeometry(r, l, 8, 24); g.rotateZ(Math.PI / 2); g.scale(1, .55, 1); return new THREE.Mesh(g, m); }
+function mito(color, inner) {   // bean with folded inner membrane (cristae), as drawn in the book
+  const g = new THREE.Group(); const body = capsule(.17, .42, mat(color, {roughness: .5}));
+  g.add(body); const cr = tube(wave(.55, .09, 4, .1), .022, mat(inner)); g.add(cr); return g;
+}
+function chloro() {   // chloroplast: green bean with stacks of discs (grana)
+  const g = new THREE.Group(); g.add(capsule(.2, .5, mat(0x5e9e2f, {roughness: .55})));
+  const dm = mat(0x9fd14b, {roughness: .4});
+  for (let i = 0; i < 6; i++) for (let k = 0; k < 2; k++) { const d = new THREE.Mesh(new THREE.CylinderGeometry(.06, .06, .035, 18), dm); d.position.set(-.3 + i * .12, .12, (k - .5) * .14); g.add(d); const d2 = d.clone(); d2.position.y += .045; g.add(d2); }
+  return g;
+}
+function golgi(c) {   // stacked curved sacs
+  const g = new THREE.Group(); const m = mat(c, {roughness: .4});
+  for (let i = 0; i < 4; i++) { const t = new THREE.Mesh(new THREE.TorusGeometry(.32 - i * .05, .028, 10, 40, Math.PI * .9), m); t.rotation.x = -Math.PI / 2; t.rotation.z = Math.PI * .05; t.position.set(0, .05 + i * .002, i * .06); g.add(t); }
+  return g;
+}
+function er(c, rib, r0, r1) {   // rough ER: folded bands around the nucleus, with ribosome dots
+  const g = new THREE.Group(); const m = mat(c, {roughness: .45}); const rm = mat(rib, {roughness: .3, metalness: .2});
+  for (let i = 0; i < 4; i++) { const r = r0 + i * (r1 - r0) / 3; const t = new THREE.Mesh(new THREE.TorusGeometry(r, .035, 10, 64, Math.PI * 1.55), m); t.rotation.x = -Math.PI / 2; t.rotation.z = Math.PI * .72; g.add(t); }
+  const ribs = new THREE.Group();
+  for (let i = 0; i < 22; i++) { const a = Math.PI * .72 + Math.random() * Math.PI * 1.5, r = r0 + Math.random() * (r1 - r0); const s = new THREE.Mesh(new THREE.SphereGeometry(.035, 12, 10), rm); s.position.set(Math.cos(a) * r, .06, -Math.sin(a) * r); ribs.add(s); }
+  return [g, ribs];
+}
+function nucleus(c, inner) {   // sphere cut open (a quarter removed) to show the chromosomes, like the book
+  const g = new THREE.Group();
+  const shell = new THREE.Mesh(new THREE.SphereGeometry(.42, 48, 32, 0, Math.PI * 1.5), mat(c, {side: THREE.DoubleSide, roughness: .4}));
+  g.add(shell);
+  const cut = mat(inner, {side: THREE.DoubleSide, roughness: .6});
+  for (const rot of [0, Math.PI * 1.5]) { const d = new THREE.Mesh(new THREE.CircleGeometry(.42, 48, 0, Math.PI), cut); d.rotation.y = rot; d.rotation.z = Math.PI / 2; g.add(d); }
+  const chrom = new THREE.Group(); const cm = mat(0xc0392b, {roughness: .5});
+  for (let i = 0; i < 5; i++) { const p = []; for (let k = 0; k < 9; k++) p.push(new THREE.Vector3(.05 + Math.random() * .28, -.3 + Math.random() * .6, .05 + Math.random() * .28)); chrom.add(tube(p, .012, cm)); }
+  const nl = new THREE.Mesh(new THREE.SphereGeometry(.12, 24, 18), mat(0xfbe3e8, {roughness: .3})); nl.position.set(-.16, .02, -.16); g.add(nl); g.rotation.y = Math.PI;   // the open quarter faces the viewer
+  return [g, chrom];
+}
+
+/* ---------- the two cells (shapes, colours and positions from the book drawings) ---------- */
+const parts = [];   // {id, obj, home, dir}
+let cell = null;
+function addPart(id, obj, pos, lift = 1) {
+  obj.position.copy(pos); obj.userData.pid = id; obj.userData.s0 = obj.scale.clone(); cell.add(obj);
+  const many = obj.isGroup && obj.children.length > 1 && obj.children.every(c => c.isGroup || c.isMesh) && pos.lengthSq() === 0;
+  parts.push({id, obj, home: pos.clone(), shell: lift === 0 || (lift < .5), many, kids: obj.children.map(c => c.position.clone())}); return obj;
+}
+function layout() {   // where each part goes when the cell is taken apart
+  const free = parts.filter(p => !p.shell), n = free.length;
+  let sh = 0; parts.filter(p => p.shell).reverse().forEach(p => { p.to = p.home.clone().add(new THREE.Vector3(0, -.75 * sh++, 0)); });
+  free.forEach((p, i) => {
+    const nar = camera.aspect < 1, a = Math.PI * (.15 + 1.7 * i / Math.max(1, n - 1)) - Math.PI * 1.0, slot = new THREE.Vector3(Math.cos(a) * (nar ? 1.55 : 2.35), (nar ? 1.5 : 1.35) + (i % 3) * (nar ? .75 : .3), Math.sin(a) * (nar ? .9 : 1.25));
+    if (p.many) { const m = p.kids.reduce((v, k) => v.add(k), new THREE.Vector3()).multiplyScalar(1 / p.kids.length);
+      p.kidsTo = p.kids.map(k => m.clone().add(k.clone().sub(m).multiplyScalar(.28))); p.to = slot.clone().sub(m); }
+    else p.to = slot;
+  });
+}
+function build(kind) {
+  if (cell) { scene.remove(cell); cell.traverse(o => { o.geometry && o.geometry.dispose(); }); }
+  parts.length = 0; cell = new THREE.Group(); scene.add(cell);
+  const P = D.cells[kind].parts, id = n => P.find(p => p.name.replace(/[ًٌٍَُِّْ]/g, '') === n).id;
+  const V = (x, y, z) => new THREE.Vector3(x, y, z);
+  if (kind === 'plant') {
+    // cell wall (thick yellow-green drum), plasma membrane (thin lighter band inside), cytoplasm (the open top)
+    addPart(id('الجدار الخلوي'), ring(2.1, 1.35, .7, .12, mat(0x8fbf2a, {roughness: .5})), V(0, -.35, 0), .0);
+    addPart(id('الغشاء البلازمي'), ring(1.97, 1.22, .66, .05, mat(0xc9e86b, {roughness: .4})), V(0, -.34, 0), .45);
+    addPart(id('السيتوبلازم'), drum(1.92, 1.17, .5, .04, mat(0x9ccf3c, {roughness: .7, transmission: .05})), V(0, -.33, 0), .0);
+    const vac = new THREE.Mesh(new THREE.SphereGeometry(1, 48, 32), mat(0x6fd0d9, {transparent: true, opacity: .78, roughness: .15, clearcoat: 1}));
+    vac.scale.set(.85, .16, .62); addPart(id('الفجوة'), vac, V(.15, .2, -.1), 1.2);
+    const [nu, ch] = nucleus(0xf2a33a, 0xf7c46d); addPart(id('النواة'), nu, V(-1.05, .32, -.45), 1.4); addPart(id('الكروموسومات'), ch, V(-1.05, .32, -.45), 2);
+    const [e] = er(0xf1d66b, 0xffffff, .5, .66); addPart(id('الشبكة الإندوبلازمية'), e, V(-1.05, .2, -.45), .7);
+    addPart(id('أجسام جولجي'), golgi(0xd9ec7a), V(-.35, .2, -.95), 1);
+    const mg = new THREE.Group(); [[-1.55, .15, .2, .4], [-.7, .15, .7, -.3], [1.25, .15, .55, .5]].forEach(([x, y, z, r]) => { const m = mito(0xb5d84a, 0xe8f59a); m.position.set(x, y, z); m.rotation.y = r; mg.add(m); });
+    addPart(id('الميتوكندريا'), mg, V(0, 0, 0), 1.6);
+    const cg = new THREE.Group(); [[-1, .17, .55, .2], [.05, .17, .8, -.1], [1.35, .17, -.35, 1.2], [1.55, .17, .25, .3], [.75, .17, .85, .2]].forEach(([x, y, z, r]) => { const c = chloro(); c.position.set(x, y, z); c.rotation.y = r; cg.add(c); });
+    cg.children.forEach(c => c.scale.setScalar(.85)); addPart(id('البلاستيدة الخضراء'), cg, V(0, 0, 0), 2.2);
+  } else {
+    // animal cell: rounded red drum (plasma membrane), cut open top showing the beige cytoplasm, as on p. 34
+    addPart(id('الغشاء البلازمي'), ring(1.95, 1.45, .75, .1, mat(0xd8344f, {roughness: .45})), V(0, -.4, 0), 0);
+    addPart(id('السيتوبلازم'), drum(1.86, 1.36, .55, .05, mat(0xf3c9a6, {roughness: .75})), V(0, -.37, 0), 0);
+    const [nu, ch] = nucleus(0xe0436b, 0xf08aa3); nu.scale.setScalar(1.25); ch.scale.setScalar(1.25); addPart(id('النواة'), nu, V(-.05, .42, -.1), 1.4); addPart(id('الكروموسومات'), ch, V(-.05, .42, -.1), 2.1);
+    const [e, rb] = er(0xd02d5c, 0xb59a3a, .62, .9); addPart(id('الشبكة الإندوبلازمية'), e, V(-.05, .22, -.1), .7); addPart(id('الرايبوسوم'), rb, V(-.05, .22, -.1), 1.2);
+    addPart(id('أجسام جولجي'), golgi(0xc8205a), V(-.1, .22, .95), 1);
+    const mg = new THREE.Group(); [[-1.3, .2, -.65, .5], [1.05, .2, -.8, -.3], [-1.35, .2, .45, -.5], [1.4, .2, .3, 1.3]].forEach(([x, y, z, r]) => { const m = mito(0xe2405f, 0xf6a3b4); m.position.set(x, y, z); m.rotation.y = r; mg.add(m); });
+    addPart(id('الميتوكندريا'), mg, V(0, 0, 0), 1.6);
+    const vg = new THREE.Group(); [[-1.55, .22, -.05], [1.2, .26, -.15], [.85, .22, .85]].forEach(([x, y, z]) => { const s = new THREE.Mesh(new THREE.SphereGeometry(.16, 32, 24), mat(0x9b6fd1, {roughness: .2, clearcoat: 1})); s.position.set(x, y, z); vg.add(s); });
+    addPart(id('الفجوة'), vg, V(0, 0, 0), 1.8);
+    const lg = new THREE.Group(); [[.55, .18, .9], [1.05, .18, .55], [-.75, .18, -1.05], [-1.2, .18, -.2]].forEach(([x, y, z]) => { const s = capsule(.07, .1, mat(0xc0213f)); s.position.set(x, y, z); lg.add(s); });
+    addPart(id('الأجسام المحللة'), lg, V(0, 0, 0), 2);
+  }
+  cell.rotation.y = -.35; makeLabels(kind); setExplode(false, true);
+  camera.position.set(0, 4.2, 6.2); controls.target.set(0, .1, 0); controls.update();
+  $('#bt').textContent = (kind === 'plant' ? 'الخلية النباتية' : 'الخلية الحيوانية') + ' · صفحة الكتاب ' + D.cells[kind].page; $('#bimg').src = D.cells[kind].img;
+}
+
+/* ---------- labels that follow the parts ---------- */
+let labels = [], showNames = false;
+function makeLabels(kind) {
+  $('#labels').innerHTML = ''; labels = parts.map(p => { const P = D.cells[kind].parts.find(x => x.id === p.id); const e = document.createElement('div'); e.className = 'lb'; e.textContent = P.name; e.onclick = () => pick(p.id); $('#labels').appendChild(e); return {e, p}; });
+}
+const tmp = new THREE.Vector3(), box = new THREE.Box3();
+function placeLabels() {
+  const R = [];
+  for (const L of labels) {
+    box.setFromObject(L.p.obj); box.getCenter(tmp); tmp.y = box.max.y; tmp.project(camera);
+    R.push({L, x: (tmp.x + 1) / 2 * innerWidth, y: (1 - tmp.y) / 2 * innerHeight, w: L.e.offsetWidth || 80, h: (L.e.offsetHeight || 26) + 4, vis: tmp.z < 1 && (showNames || L.p.id === hiId)});
+  }
+  R.sort((a, b) => a.y - b.y); const put = [];
+  for (const r of R) { if (!r.vis) { r.L.e.style.opacity = 0; continue; }
+    for (let k = 0; k < 12 && put.some(q => Math.abs(q.x - r.x) < (q.w + r.w) / 2 && Math.abs(q.y - r.y) < r.h); k++) r.y += r.h * .6;
+    put.push(r); r.L.e.style.left = r.x + 'px'; r.L.e.style.top = r.y + 'px'; r.L.e.style.opacity = 1; }
+}
+
+/* ---------- take apart / put back ---------- */
+let exploded = false, anim = null;
+function setExplode(on, instant) {
+  exploded = on; $('#explode').textContent = on ? '🔁 ركّب الخلية' : '🧩 فكّك الخلية'; $('#explode').classList.toggle('on', on);
+  layout(); showNames = on; $('#names').classList.toggle('on', on);
+  const from = parts.map(p => p.obj.position.clone()), to = parts.map(p => on ? p.to : p.home), kf = parts.map(p => p.obj.children.map(c => c.position.clone())), t0 = performance.now(), T = instant || calm ? 1 : 1200;
+  anim = now => { const k = Math.min(1, (now - t0) / T), e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+    parts.forEach((p, i) => { p.obj.position.lerpVectors(from[i], to[i], e); if (p.many) p.obj.children.forEach((c, j) => c.position.lerpVectors(kf[i][j], on ? p.kidsTo[j] : p.kids[j], e)); }); if (k >= 1) anim = null; };
+  if (on && !instant) { camera.position.set(0, 4.8, camera.aspect < 1 ? 8.6 : 7.4); controls.target.set(0, .55, 0); } else if (!instant) controls.target.set(0, .1, 0);
+}
+
+/* ---------- tap a part: glow + name + what it does (book text) + voice ---------- */
+let hiId = null, audio = null;
+function glow(id) {
+  hiId = id; parts.forEach(p => p.obj.traverse(o => { if (o.material) { o.material.emissive = new THREE.Color(p.id === id ? 0xffd84d : 0x000000); o.material.emissiveIntensity = p.id === id ? .45 : 0; } }));
+  labels.forEach(L => L.e.classList.toggle('hi', L.p.id === id));
+}
+function say(a) { if (audio) audio.pause(); if (!a) return; audio = new Audio(D.audio + a + '.mp3'); audio.play().catch(() => {}); }
+function pick(id) {
+  const kind = cur, P = D.cells[kind].parts.find(x => x.id === id); glow(id);
+  $('#it').innerHTML = `<b>${P.name}</b><br>${P.fn}`; $('#info').classList.add('on'); say(P.a);
+}
+$('#ix').onclick = () => { $('#info').classList.remove('on'); glow(null); if (audio) audio.pause(); };
+const ray = new THREE.Raycaster(), ptr = new THREE.Vector2(); let down = null;
+renderer.domElement.addEventListener('pointerdown', e => down = [e.clientX, e.clientY]);
+renderer.domElement.addEventListener('pointerup', e => {
+  if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 8) return;   // a drag turns the cell; a tap picks a part
+  ptr.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); ray.setFromCamera(ptr, camera);
+  const hit = ray.intersectObjects(cell.children, true)[0]; if (!hit) return;
+  let o = hit.object; while (o && o.userData.pid == null) o = o.parent; o && pick(o.userData.pid);
+});
+
+/* ---------- tour: every part in turn, the cell opens on the way ---------- */
+let tourOn = false;
+async function tour() {
+  if (tourOn) { tourOn = false; $('#tour').textContent = '▶️ جولة'; return; }
+  tourOn = true; $('#tour').textContent = '⏹️ أوقف'; if (!exploded) setExplode(true);
+  for (const p of D.cells[cur].parts) {
+    if (!tourOn) break; pick(p.id);
+    await new Promise(r => { const t = setTimeout(r, 4500); if (audio) audio.onended = () => { clearTimeout(t); setTimeout(r, 500); }; });
+  }
+  tourOn = false; $('#tour').textContent = '▶️ جولة';
+}
+
+/* ---------- controls ---------- */
+let cur = 'plant';
+document.querySelectorAll('.seg button').forEach(b => b.onclick = () => { document.querySelectorAll('.seg button').forEach(x => x.classList.toggle('on', x === b)); cur = b.dataset.c; tourOn = false; $('#info').classList.remove('on'); build(cur); });
+$('#explode').onclick = () => setExplode(!exploded);
+$('#names').onclick = () => { showNames = !showNames; $('#names').classList.toggle('on', showNames); };
+$('#tour').onclick = tour;
+$('#bookb').onclick = () => $('#book').classList.add('on');
+$('#bx').onclick = () => $('#book').classList.remove('on');
+$('#book').onclick = e => { if (e.target.id === 'book') e.target.classList.remove('on'); };
+setTimeout(() => $('#hint').style.opacity = 0, 6000);
+
+build(cur);
+let idle = 0;
+renderer.setAnimationLoop(now => {
+  anim && anim(now);
+  if (!calm && !tourOn && hiId == null) cell.rotation.y += .0015;   // a slow turn while nobody touches it
+  if (hiId != null && !calm) { const s = 1 + Math.sin(now / 180) * .04; parts.forEach(p => p.obj.scale.copy(p.obj.userData.s0).multiplyScalar(p.id === hiId ? s : 1)); }
+  controls.update(); renderer.render(scene, camera); placeLabels();
+});
+</script>
+</body>
+</html>
