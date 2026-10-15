@@ -1,10 +1,9 @@
 /**
  * «من ذُكرت باسمها» — بطاقاتٌ صغيرةٌ بالقلوب.
  *
- * ورقةٌ للإدارة وحدها، تُسلَّم كلُّ بطاقةٍ لصاحبتها على حدة: الأهالي
- * سمَّوا بعضَ المنسوبات ولم يُسمُّوا بعضًا، ونشرُ الأسماء في مجموعةٍ
- * يجعل من غابَ اسمُها تظنّ أنها لم تُشكر. فالجماعيُّ بلا أسماء في
- * ورقته، وهذه بطاقاتٌ فرديّة.
+ * بطاقةٌ لكلِّ من سمّاها الأهالي، فيها اسمُها وما قيل فيها وحده. ولا
+ * مقدّمةَ فوقها ولا خاتمةَ تحتها: الورقة ثناءٌ يُقرأ، لا ورقةٌ تشرح
+ * نفسها. والثناءُ العامُّ لكلِّ المنسوبات في ورقته الأخرى بلا أسماء.
  *
  * وتُبنى من ملفّ بياناتٍ لا من نصٍّ مكتوبٍ هنا: هذا الملفّ يُرفع إلى
  * مستودعٍ عامّ، وأسماءُ المنسوبات وكلماتُ الأهالي لا تُرفع.
@@ -99,9 +98,6 @@ body { font-family:'Baloo',sans-serif; color:var(--navy); }
 h1 { text-align:center; font-size:21px; font-weight:800; margin-top:9px; line-height:1.35; }
 h1 small { display:block; font-size:11.5px; font-weight:700; color:var(--rose); margin-top:4px; }
 
-.only { margin-top:8px; border:1.8px solid var(--rose); border-radius:13px; padding:8px 13px;
-        background:#fdf6f8; text-align:center; font-size:10.4px; line-height:1.75; color:#7a4a57; }
-.only b { color:var(--navy); font-weight:800; }
 
 .grid { margin-top:9px; column-count:2; column-gap:9px; }
 .c { break-inside:avoid; margin-bottom:9px; border:1.6px solid var(--border);
@@ -122,11 +118,7 @@ h1 small { display:block; font-size:11.5px; font-weight:700; color:var(--rose); 
 .c li p { font-size:9.9px; line-height:1.8; }
 .c li em { display:block; font-style:normal; font-size:8.8px; color:var(--muted); margin-top:3px; }
 
-.foot { margin-top:4px; border:2px solid var(--green); border-radius:14px; padding:9px 13px;
-        background:linear-gradient(170deg,#f2fbf7,#f6fbfb); text-align:center; }
-.foot b { display:block; font-size:12.5px; margin-bottom:4px; }
-.foot p { font-size:10.2px; line-height:1.75; color:#2d5c54; }
-.hearts { text-align:center; font-size:15px; margin-top:8px; letter-spacing:3px; }
+.hearts { text-align:center; font-size:15px; margin-top:10px; letter-spacing:3px; }
 </style></head><body>
 
 <div class="sheet">
@@ -139,19 +131,7 @@ h1 small { display:block; font-size:11.5px; font-weight:700; color:var(--rose); 
     <small>كما كتبها أولياء الأمور — ${ar(cards.length)} بطاقة، و${ar(total)} كلمة</small>
   </h1>
 
-  <div class="only">
-    هذه الورقة <b>للإدارة وحدها</b>، وتُسلَّم كلُّ بطاقةٍ لصاحبتها على حدة.<br>
-    فالأهالي سمَّوا بعضَهنّ ولم يُسمُّوا بعضًا، ونشرُ الأسماء في المجموعة يجعل
-    مَن غابَ اسمُها تظنّ أنها لم تُشكر — والثناءُ العامّ له ورقتُه بلا أسماء.
-  </div>
-
   <div class="grid">${cards.map(card).join('')}</div>
-
-  <section class="foot">
-    <b>🤍 ومن لم يُذكر اسمُها — لم يغب عنها الثناء 🤍</b>
-    <p>أكثرُ ما وصلنا من الأهالي جاء للمدرسة كلِّها: «المعلمات»، «الإداريات»،
-    «كلّ من في المدرسة». فغيابُ الاسم غيابُ صُدفةٍ لا غيابُ تقدير.</p>
-  </section>
 
   <div class="hearts">💙 🤍 💚 🩵 💗 🌸 💛 💜 🧡 ❤️</div>
 </div>
