@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>غشاء الخلية</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+/* How substances cross the cell membrane: a living bilayer (phospholipid heads and tails), a channel protein and a pump.
+   Diffusion, osmosis, equilibrium and active transport are simulated with moving particles, and the boy can change the
+   concentrations and watch the result. Source kept internally: data-src. */
+:root{--ink:#e9f1f7;--g:#2e7d4f;--y:#ffd84d;--muted:#a9b8c6;--f:'SciBaloo','Segoe UI',Tahoma,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#0d1620;color:var(--ink);font-family:var(--f);-webkit-text-size-adjust:100%}
+button,select,input{font:inherit;cursor:pointer;touch-action:manipulation;color:inherit}
+#stage{position:fixed;inset:0;touch-action:none}
+.top{position:fixed;top:0;left:0;right:0;z-index:5;display:flex;align-items:center;gap:8px;padding:8px 12px;background:linear-gradient(#0d1620f0,#0d162000)}
+.top h1{flex:1;margin:0;font-size:1.02rem}
+.top button{border:0;background:rgba(255,255,255,.12);color:#fff;border-radius:12px;min-width:44px;min-height:44px;font-size:1.1rem}
+.modes{position:fixed;top:58px;left:8px;right:8px;z-index:5;display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+.modes button{flex:none;border:1.5px solid rgba(255,255,255,.25);background:rgba(13,22,32,.7);color:#fff;border-radius:14px;min-height:44px;padding:0 12px;font-size:.92rem}
+.modes button.on{background:var(--y);border-color:var(--y);color:#1d2733;font-weight:700}
+#goal{position:fixed;top:110px;left:10px;right:10px;z-index:4;background:rgba(255,244,229,.95);color:#1d2733;border-inline-start:6px solid #e3871c;border-radius:14px;padding:6px 12px;font-size:.9rem;line-height:1.6}
+#goal.off{opacity:0;pointer-events:none}#goal{transition:opacity .8s}
+#dock{position:fixed;left:10px;right:10px;bottom:calc(70px + env(safe-area-inset-bottom));z-index:5;display:flex;flex-direction:column;gap:6px;max-height:calc(100% - 200px);overflow:auto}
+#count{display:flex;justify-content:space-between;gap:8px;font-size:.88rem;pointer-events:none}
+#count div{background:rgba(13,22,32,.75);border-radius:12px;padding:4px 10px;border:1px solid rgba(255,255,255,.15)}
+#say{background:rgba(255,255,255,.95);color:#1d2733;border-radius:16px;padding:8px 12px;font-size:1.08rem;line-height:1.75;min-height:2.6em}
+#say .fx{display:block;font-size:.76rem;color:#66707d}
+.lab{background:rgba(13,22,32,.88);border:1px solid rgba(255,255,255,.18);border-radius:16px;padding:8px 12px;display:none;font-size:.92rem}
+.lab.on{display:block}
+
+.lab label{display:flex;align-items:center;gap:8px;margin:2px 0}
+.lab input[type=range]{flex:1;accent-color:#ffd84d;min-height:36px}
+.lab .row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.lab .row button{border:1.5px solid rgba(255,255,255,.3);background:transparent;color:#fff;border-radius:12px;min-height:42px;padding:0 10px}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:6;padding:8px 8px calc(8px + env(safe-area-inset-bottom));display:flex;gap:6px;justify-content:center;background:rgba(13,22,32,.95);border-top:1px solid rgba(255,255,255,.1)}
+.bar button,.bar select{border:1.5px solid rgba(255,255,255,.25);background:rgba(255,255,255,.06);color:#fff;border-radius:14px;min-height:46px;min-width:46px;padding:0 10px;font-size:1rem}
+.bar .p{background:var(--g);border-color:var(--g);min-width:92px}
+.bar .on{background:var(--y);color:#1d2733;border-color:var(--y)}
+#labels{position:fixed;inset:0;pointer-events:none;z-index:3}
+.lb{position:absolute;transform:translate(-50%,-50%);background:rgba(255,255,255,.93);color:#1d2733;border-radius:10px;padding:0 8px;font-size:.82rem;font-weight:700;white-space:nowrap;transition:opacity .4s}
+.panel{position:fixed;inset:0;z-index:8;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center}
+.panel.on{display:flex}
+.panel .box{background:#fff;color:#1d2733;border-radius:22px 22px 0 0;max-width:640px;width:100%;max-height:86vh;overflow:auto;padding:14px 16px calc(16px + env(safe-area-inset-bottom))}
+.opt{display:block;width:100%;text-align:right;border:2px solid #e2e6df;background:#fff;color:#1d2733;border-radius:14px;padding:8px 12px;margin:7px 0;min-height:52px;font-size:1.02rem}
+.opt.ok{border-color:#1f8a4c;background:#e6f6ec}.opt.no{border-color:#c2412d;background:#fbebe8}
+.fb{border-radius:14px;padding:8px 12px;margin:8px 0}.fb.ok{background:#e6f6ec}.fb.no{background:#fbebe8}.fb.in{background:#eaf1fa}
+.note{font-size:.78rem;color:#5d6874;line-height:1.6}
+.big{display:block;width:100%;min-height:50px;border-radius:14px;border:0;background:var(--g);color:#fff;font-size:1.05rem;margin-top:8px}
+#loading{position:fixed;inset:0;z-index:9;display:flex;align-items:center;justify-content:center;background:#0d1620;font-size:1.1rem}
+@media (min-width:760px){#goal,#dock{left:auto;right:16px;width:460px}}
+</style>
+</head>
+<body data-src="L03 «الخلية النباتية والخلية الحيوانية» p.36–37, 40">
+<div id="loading">جاري تجهيز المشهد…</div>
+<div id="stage"></div><div id="labels"></div>
+<header class="top"><h1>🧫 كيف تعبر المواد غشاء الخلية؟</h1><button id="info" aria-label="عن المشهد">ℹ️</button></header>
+<nav class="modes" id="modes"></nav>
+<div id="goal">🎯 <b>هدفك:</b> أن تفرّق بين النقل السلبي (الانتشار والخاصية الأسموزية) والنقل النشط، وتعرف متى تحتاج الخلية إلى طاقة.</div>
+<div id="dock"><div id="say">اختر من الأعلى، أو اضغط ▶️ للجولة كاملة.</div>
+<div id="count"><div id="cOut">خارج الخلية: ٠</div><div id="cIn">داخل الخلية: ٠</div></div>
+<div class="lab" id="lab"></div></div>
+<div class="bar">
+  <button class="p" id="play">▶️ الجولة</button>
+  <button id="again" aria-label="أعد المقطع">↺</button>
+  <button id="labb">🧪 جرّب بنفسك</button>
+  <button id="slow" aria-label="حركة بطيئة">🐢</button>
+  <button id="mute" aria-label="كتم الصوت">🔊</button>
+</div>
+<div class="panel" id="qp"><div class="box" id="qb"></div></div>
+<div class="panel" id="ip"><div class="box"><b>عن هذا المشهد</b>
+  <p class="note">• رسم ثلاثي الأبعاد صنعناه لهذا الدرس: الغشاء من جزيئات صغيرة (رؤوس وذيول)، وبروتين قناة، ومضخة. الأحجام مكبّرة جدًا والأشكال مبسّطة.<br>
+  • المحاكاة تتبع القاعدة العلمية في الدرس: الجسيمات تتحرك عشوائيًا، فيصبح عبورها من الجهة المزدحمة أكثر حتى يتساوى العدد (الاتزان). أما المضخة فتنقل عكس التركيز وتستهلك طاقة (الوميض).<br>
+  • الألوان والأعداد للتوضيح فقط، وليست قياسات حقيقية.<br>
+  • الشرح: صوت «محمد» المولّد بالذكاء الاصطناعي (ElevenLabs). صوت الشرارة مؤثر مولّد.<br>
+  • التقدّم يُحفظ في هذا الجهاز فقط.</p>
+  <button class="big" id="ix">إغلاق</button></div></div>
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
+<script src="vendor/gsap.min.js"></script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from './vendor/OrbitControls.js';
+const $ = s => document.querySelector(s);
+const AR = n => String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const lowEnd = (navigator.hardwareConcurrency || 4) <= 4 || Math.min(screen.width, screen.height) < 400;
+
+/* ---------- renderer: dark, deep, softly lit like a microscope film ---------- */
+const renderer = new THREE.WebGLRenderer({antialias: true}); renderer.setPixelRatio(Math.min(devicePixelRatio, lowEnd ? 1.5 : 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.1; $('#stage').appendChild(renderer.domElement);
+const scene = new THREE.Scene(); scene.fog = new THREE.FogExp2(0x071526, .06);
+{ const c = document.createElement('canvas'); c.width = 2; c.height = 256; const g = c.getContext('2d'), gr = g.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, '#1b4a73'); gr.addColorStop(.45, '#0b2340'); gr.addColorStop(1, '#030a14'); g.fillStyle = gr; g.fillRect(0, 0, 2, 256); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; scene.background = t; }
+const camera = new THREE.PerspectiveCamera(45, 1, .1, 200);
+const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.enablePan = false; controls.minDistance = 4; controls.maxDistance = 22;
+scene.add(new THREE.HemisphereLight(0xbfe4ff, 0x0a1830, 1.1));
+const key = new THREE.DirectionalLight(0xffffff, 2.4); key.position.set(4, 8, 6); scene.add(key);
+const rim = new THREE.DirectionalLight(0x9fd0ff, 1.4); rim.position.set(-6, 2, -5); scene.add(rim);
+function fit() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.fov = innerWidth < innerHeight ? 60 : 42; camera.updateProjectionMatrix(); }
+addEventListener('resize', fit); fit();
+
+/* ---------- the bilayer: two sheets of phospholipids (round head + two wavy tails), heads facing the water ---------- */
+const SX = 14, SZ = 7, GAP = .34, HALF = .55;   // patch size, head spacing, half thickness of the membrane
+const CHS = [{x: -2.6, z: 0, r: .62}, {x: -5.2, z: -1.6, r: .55}, {x: -.4, z: 1.9, r: .55}, {x: .3, z: -2, r: .55}, {x: 5.2, z: 1.5, r: .55}, {x: -3.6, z: 2.3, r: .5}, {x: -1.4, z: -1.2, r: .5}, {x: 4.9, z: -1.9, r: .5}], CH = CHS[0], PU = {x: 2.6, z: 0, r: .66};   // channel proteins and the pump (holes in the sheet)
+const nx = Math.floor(SX / GAP), nz = Math.floor(SZ / GAP), spots = [];
+for (let i = 0; i < nx; i++) for (let k = 0; k < nz; k++) { const x = -SX / 2 + i * GAP + (k % 2) * GAP / 2, z = -SZ / 2 + k * GAP; if (CHS.some(c => Math.hypot(x - c.x, z - c.z) < c.r + .15) || Math.hypot(x - PU.x, z - PU.z) < PU.r + .15) continue; spots.push([x, z]); }
+const headGeo = new THREE.SphereGeometry(.15, 14, 10), tailGeo = new THREE.CylinderGeometry(.028, .02, .4, 6); tailGeo.translate(0, -.2, 0);
+const headMat = new THREE.MeshPhysicalMaterial({color: 0xffffff, roughness: .3, clearcoat: .8, clearcoatRoughness: .25, emissive: 0x0b3a66, emissiveIntensity: .35});
+const tailMat = new THREE.MeshStandardMaterial({color: 0xe8d9a8, roughness: .5, emissive: 0x3a2c08, emissiveIntensity: .4});
+const heads = new THREE.InstancedMesh(headGeo, headMat, spots.length * 2), tails = new THREE.InstancedMesh(tailGeo, tailMat, spots.length * 4);
+const M = new THREE.Matrix4(), Q = new THREE.Quaternion(), S = new THREE.Vector3(1, 1, 1), P = new THREE.Vector3(), E = new THREE.Euler();
+const wave = (x, z) => Math.sin(x * .45) * .18 + Math.cos(z * .6 + x * .2) * .12;   // the sheet is gently curved, like a living membrane
+let hi = 0, ti = 0;
+for (const [x, z] of spots) for (const side of [1, -1]) {
+  const y = wave(x, z) + side * HALF; heads.setMatrixAt(hi++, M.compose(P.set(x, y, z), Q.identity(), S.set(1, 1, 1)));
+  for (const dx of [-.05, .05]) { E.set(side > 0 ? (Math.random() - .5) * .25 : Math.PI + (Math.random() - .5) * .25, 0, (Math.random() - .5) * .3); tails.setMatrixAt(ti++, M.compose(P.set(x + dx, y - side * .1, z), Q.setFromEuler(E), S.set(1, 1, 1))); }
+}
+heads.count = hi; tails.count = ti; scene.add(heads, tails);
+// a few coloured heads like real membranes (cholesterol and other lipids), for depth
+const tint = new THREE.Color(); for (let k = 0; k < hi; k++) heads.setColorAt(k, k % 11 === 0 ? tint.setHSL(.1, .7, .6) : tint.setHSL(.55 + Math.random() * .05, .65, .55 + Math.random() * .12)); heads.instanceColor.needsUpdate = true;
+
+/* ---------- proteins: a channel (passive) and a pump (active), built from many small beads like the films ---------- */
+function protein(at, colA, colB, tall = 1.9) {
+  const g = new THREE.Group(), n = lowEnd ? 260 : 520, geo = new THREE.SphereGeometry(.075, 8, 6);
+  const im = new THREE.InstancedMesh(geo, new THREE.MeshPhysicalMaterial({roughness: .5, clearcoat: .4}), n); const c = new THREE.Color();
+  for (let k = 0; k < n; k++) { const a = Math.random() * Math.PI * 2, y = (Math.random() - .5) * tall, r = at.r * (.7 + Math.random() * .35) * (1 - Math.abs(y) / tall * .25);
+    const lobe = Math.floor((a / (Math.PI * 2)) * 4); im.setMatrixAt(k, M.compose(P.set(Math.cos(a) * r, y, Math.sin(a) * r), Q.identity(), S.setScalar(.8 + Math.random() * .6)));
+    im.setColorAt(k, c.set(lobe % 2 ? colA : colB).offsetHSL(0, 0, (Math.random() - .5) * .08)); }
+  g.add(im); g.position.set(at.x, wave(at.x, at.z), at.z); scene.add(g); return g;
+}
+const chans = CHS.map((c, i) => protein(c, i ? 0x2f9e6a : 0x3fa86f, 0xe8c547)), channel = chans[0], pump = protein(PU, 0xd2457a, 0xf08a3c, 2.1);
+// energy flash for the pump
+const flashMat = new THREE.SpriteMaterial({map: (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'), r = g.createRadialGradient(64, 64, 0, 64, 64, 64); r.addColorStop(0, 'rgba(255,250,200,1)'); r.addColorStop(.3, 'rgba(255,210,80,.8)'); r.addColorStop(1, 'rgba(255,160,0,0)'); g.fillStyle = r; g.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c); })(), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0});
+const flash = new THREE.Sprite(flashMat); flash.scale.setScalar(1.6); flash.position.set(PU.x, wave(PU.x, PU.z) - 1.1, PU.z); scene.add(flash);
+
+// slow drifting specks in the water, for depth like a microscope film
+const specks = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(Array.from({length: 900}, (_, i) => i % 3 === 1 ? (Math.random() - .5) * 12 : (Math.random() - .5) * 30), 3)), new THREE.PointsMaterial({color: 0x9fd6ff, size: .05, transparent: true, opacity: .5, depthWrite: false, blending: THREE.AdditiveBlending})); scene.add(specks);
+/* ---------- particles: random motion on both sides; they can cross only through the proteins ---------- */
+const TYPES = {
+  sugar: {c: 0x47c46b, r: .1, name: 'جزيئات السكر والأكسجين'},
+  water: {c: 0x4fb3ff, r: .075, name: 'جزيئات الماء'},
+  K: {c: 0xb070ff, r: .11, name: 'البوتاسيوم'},
+  Na: {c: 0xff9a3c, r: .11, name: 'الصوديوم'},
+};
+const MAXP = 520, parts = [];
+const pMesh = {}; for (const [k, T] of Object.entries(TYPES)) { const m = new THREE.InstancedMesh(new THREE.SphereGeometry(T.r, 14, 10), new THREE.MeshPhysicalMaterial({color: T.c, roughness: .25, clearcoat: 1, emissive: T.c, emissiveIntensity: .12}), MAXP); m.count = 0; scene.add(m); pMesh[k] = m; }
+const BOX = {x: SX / 2 - .3, z: SZ / 2 - .3, top: 3.4};
+function spawn(type, n, side) { for (let k = 0; k < n; k++) { const y = side > 0 ? HALF + .4 + Math.random() * (BOX.top - HALF - .4) : -(HALF + .4 + Math.random() * (BOX.top - HALF - .4)); parts.push({type, p: new THREE.Vector3((Math.random() * 2 - 1) * BOX.x, y, (Math.random() * 2 - 1) * BOX.z), v: new THREE.Vector3(), side}); } }
+const sideOf = p => Math.sign(p.p.y - wave(p.p.x, p.p.z)) || 1;
+let mode = 'diffusion', tScale = 1, pumpOn = false, pumpTimer = 0, through = 0;
+function stepParticles(dt) {
+  const kick = 2.4 * Math.sqrt(dt);
+  for (const q of parts) {
+    if (q.ride) { // carried by the pump: no random motion until it is out on the other side
+      q.ride.t = Math.min(1, q.ride.t + dt / .6); q.p.lerpVectors(q.ride.a, q.ride.b, q.ride.t * q.ride.t * (3 - 2 * q.ride.t)); if (q.ride.t >= 1) q.ride = null; continue; }
+    q.v.multiplyScalar(.9).add(new THREE.Vector3((Math.random() - .5) * kick, (Math.random() - .5) * kick, (Math.random() - .5) * kick));
+    q.p.addScaledVector(q.v, dt * 11);
+    q.p.x = Math.max(-BOX.x, Math.min(BOX.x, q.p.x)); q.p.z = Math.max(-BOX.z, Math.min(BOX.z, q.p.z)); q.p.y = Math.max(-BOX.top, Math.min(BOX.top, q.p.y));
+    const w = wave(q.p.x, q.p.z), inSheet = Math.abs(q.p.y - w) < HALF + .12;
+    if (inSheet) { // passive particles may enter an open channel and walk through its tube; everything else bounces off the membrane
+      if (q.pore == null && (q.type === 'sugar' || q.type === 'water')) { const i = CHS.findIndex(c => Math.hypot(q.p.x - c.x, q.p.z - c.z) < c.r * 1.25); if (i >= 0) { q.pore = i; q.v.y = -q.side * Math.abs(q.v.y); } }
+      if (q.pore != null) { const c = CHS[q.pore], dx = q.p.x - c.x, dz = q.p.z - c.z, d = Math.hypot(dx, dz), lim = c.r * .35; if (d > lim) { q.p.x = c.x + dx / d * lim; q.p.z = c.z + dz / d * lim; } q.v.x *= .5; q.v.z *= .5; q.v.y -= q.side * dt * 2; }
+      else { q.p.y = w + q.side * (HALF + .13); q.v.y *= -.5; }
+    } else q.pore = null;
+    const now = sideOf(q); if (!inSheet && now !== q.side) { q.side = now; through++; }
+  }
+  // the pump: uses energy to move K inwards (down) and Na outwards (up), against their concentration
+  if (pumpOn && (pumpTimer -= dt) <= 0) { pumpTimer = .9;
+    const at = new THREE.Vector3(PU.x, 0, PU.z), pick = (type, side) => parts.filter(q => q.type === type && q.side === side && !q.ride).sort((a, b) => a.p.distanceTo(at) - b.p.distanceTo(at))[0];
+    const k = pick('K', 1), n = pick('Na', -1), y0 = wave(PU.x, PU.z);
+    const carry = (q, dir) => { q.ride = {a: q.p.clone(), b: new THREE.Vector3(PU.x + (Math.random() - .5) * .4, y0 + dir * (HALF + .8), PU.z + (Math.random() - .5) * .4), t: 0}; q.v.set(0, dir * .3, 0); q.side = dir; };
+    if (k) carry(k, -1); if (n) carry(n, 1);
+    if ((k || n) && !window.__fast) { gsap.fromTo(flashMat, {opacity: 1}, {opacity: 0, duration: .7 / tScale}); gsap.fromTo(flash.scale, {x: .6, y: .6}, {x: 2.2, y: 2.2, duration: .5 / tScale}); fxPump(); }
+  }
+}
+function drawParticles() {
+  const n = {}; for (const k in TYPES) n[k] = 0;
+  for (const q of parts) { const m = pMesh[q.type]; m.setMatrixAt(n[q.type]++, M.compose(q.p, Q.identity(), S.set(1, 1, 1))); }
+  for (const k in TYPES) { pMesh[k].count = n[k]; pMesh[k].instanceMatrix.needsUpdate = true; }
+}
+function counts() { const types = mode === 'active' ? ['K', 'Na'] : mode === 'osmosis' ? ['water'] : ['sugar'];
+  const c = t => [parts.filter(q => q.type === t && q.side > 0).length, parts.filter(q => q.type === t && q.side < 0).length];
+  if (types.length === 2) { const [ko, ki] = c('K'), [no, ni] = c('Na'); $('#cOut').innerHTML = `خارج الخلية: <b style="color:#ff9a3c">صوديوم ${AR(no)}</b> · <b style="color:#b070ff">بوتاسيوم ${AR(ko)}</b>`; $('#cIn').innerHTML = `داخل الخلية: <b style="color:#ff9a3c">صوديوم ${AR(ni)}</b> · <b style="color:#b070ff">بوتاسيوم ${AR(ki)}</b>`; }
+  else { const [o, i] = c(types[0]); $('#cOut').textContent = `خارج الخلية: ${AR(o)}`; $('#cIn').textContent = `داخل الخلية: ${AR(i)}`; return [o, i]; } }
+
+/* ---------- labels (few, placed beside the scene, fading in when relevant) ---------- */
+const LAB = [['out', 'خارج الخلية', () => new THREE.Vector3(-SX / 2 + 1.6, 3.2, 0)], ['in', 'داخل الخلية', () => new THREE.Vector3(-SX / 2 + 1.6, -3.2, 0)], ['mem', 'الغشاء البلازمي', () => new THREE.Vector3(-.5, wave(-.5, 1.5) + 1.1, 1.5)], ['ch', 'بروتين قناة', () => new THREE.Vector3(CH.x, 1.7, CH.z)], ['pu', 'مضخة (تحتاج طاقة)', () => new THREE.Vector3(PU.x, 1.85, PU.z)]];
+const lbEl = {}; LAB.forEach(([id, t]) => { const e = document.createElement('div'); e.className = 'lb'; e.textContent = t; e.style.opacity = 0; $('#labels').appendChild(e); lbEl[id] = e; });
+const showLb = ids => LAB.forEach(([id]) => lbEl[id].style.opacity = ids.includes(id) ? 1 : 0);
+function placeLb() { LAB.forEach(([id, , at]) => { const v = at().project(camera); const hw = lbEl[id].offsetWidth / 2 + 8; lbEl[id].style.left = Math.max(hw, Math.min(innerWidth - hw, (v.x + 1) / 2 * innerWidth)) + 'px'; lbEl[id].style.top = Math.min($('#dock').getBoundingClientRect().top - 22, Math.max(130, (1 - v.y) / 2 * innerHeight)) + 'px'; }); }
+
+/* ---------- modes: each is a small experiment with its own camera, particles and narration ---------- */
+const camTo = (p, t, d = 2) => { gsap.to(camera.position, {...p, duration: calm ? .01 : d, ease: 'power2.inOut'}); gsap.to(controls.target, {...t, duration: calm ? .01 : d, ease: 'power2.inOut'}); };
+const MODES = {
+  intro: {n: 'الغشاء', a: ['L03-mem-goal', 'L03-mem-1'], t: ['هدفُنا: نعرفُ كيف تعبُرُ الموادُّ غشاءَ الخلية، ومتى تحتاجُ إلى طاقة.', 'الغشاءُ البلازميُّ يحيطُ بالخلية، ومن خلالِه تدخلُ الموادُّ وتخرج.'],
+    set() { reset(); spawn('sugar', 40, 1); spawn('sugar', 40, -1); showLb(['out', 'in', 'mem']); camTo({x: 5, y: 3.2, z: 9}, {x: 0, y: 0, z: 0}); }},
+  diffusion: {n: 'الانتشار', a: ['L03-mem-2', 'L03-mem-3'], t: ['في الانتشار، تنتقلُ الموادُّ من منطقةِ التركيزِ المرتفع إلى منطقةِ التركيزِ المنخفض، من دونِ طاقة.', 'مثلُ نقطةِ حبرٍ في كأسِ ماء، تنتشرُ وحدَها حتى تتوزّع.'],
+    set() { reset(); spawn('sugar', lab.out, 1); spawn('sugar', lab.in, -1); showLb(['out', 'in', 'ch']); camTo({x: CH.x + 3.2, y: 1.2, z: 6.2}, {x: CH.x, y: 0, z: 0}); }},
+  osmosis: {n: 'الخاصية الأسموزية', a: ['L03-mem-4'], t: ['الخاصيّةُ الأسموزيّة هي انتقالُ جزيئاتِ الماء عبرَ الغشاءِ البلازميّ. إنّها انتشارٌ للماءِ فقط.'],
+    set() { reset(); spawn('water', lab.out, 1); spawn('water', lab.in, -1); showLb(['out', 'in', 'ch']); camTo({x: CH.x - 3, y: 1.6, z: 6}, {x: CH.x, y: 0, z: 0}); }},
+  balance: {n: 'الاتزان', a: ['L03-mem-5'], t: ['يستمرُّ الانتشارُ حتى يتساوى التركيزُ على جانبَيِ الغشاء، فيحدثُ الاتّزان.'],
+    set() { reset(); spawn('sugar', 120, 1); spawn('sugar', 10, -1); showLb(['out', 'in', 'ch']); camTo({x: 0, y: 2.5, z: 12}, {x: 0, y: 0, z: 0}); }},
+  active: {n: 'النقل النشط', a: ['L03-mem-6', 'L03-mem-7'], t: ['في النقلِ النشط، تنتقلُ الموادُّ من التركيزِ المنخفض إلى التركيزِ المرتفع، وهذا يحتاجُ إلى طاقة.', 'فالخليّةُ العصبيّةُ تضخُّ البوتاسيوم إلى داخلِها، وتضخُّ الصوديوم إلى خارجِها.'], fx: true,
+    set() { reset(); spawn('K', 30, 1); spawn('K', 60, -1); spawn('Na', 60, 1); spawn('Na', 30, -1); pumpOn = true; showLb(['out', 'in', 'pu']); camTo({x: PU.x + 2.8, y: 1, z: 6}, {x: PU.x, y: -.2, z: 0}); }},
+};
+const ORDER = ['intro', 'diffusion', 'osmosis', 'balance', 'active'];
+const lab = {out: 110, in: 15};
+function reset() { parts.length = 0; pumpOn = false; through = 0; }
+ORDER.forEach(k => { const b = document.createElement('button'); b.textContent = MODES[k].n; b.dataset.m = k; b.onclick = () => { tour = false; setPlay(false); go(k); }; $('#modes').appendChild(b); });
+
+/* ---------- narration ---------- */
+let voice = null, muted = false, tour = false, seqTok = 0, fxA = null;
+const STATE = (() => { try { return JSON.parse(localStorage.getItem('sci-L03-mem') || '{}'); } catch (e) { return {}; } })();
+const save = () => { try { localStorage.setItem('sci-L03-mem', JSON.stringify(STATE)); } catch (e) {} };
+function fxPump() { if (muted || !fxA) return; const a = fxA.cloneNode(); a.volume = .18; a.play().catch(() => {}); }
+function say(m, done) { const tok = ++seqTok; let k = 0; const nx = () => { if (tok !== seqTok) return; if (k >= m.a.length) { done && done(); return; }
+    $('#say').innerHTML = m.t[k] + (m.fx ? '<span class="fx">🔈 الوميض مع صوت شرارة: مؤثر مولّد</span>' : ''); if (voice) voice.pause(); voice = new Audio('audio/' + m.a[k] + '.mp3'); voice.muted = muted; k++;
+    voice.onended = () => setTimeout(nx, 500); voice.play().catch(() => setTimeout(nx, 2500)); }; nx(); }
+function go(k, done) { mode = k === 'balance' ? 'diffusion' : k === 'intro' ? 'diffusion' : k; document.querySelectorAll('#modes button').forEach(b => b.classList.toggle('on', b.dataset.m === k)); MODES[k].set(); STATE.seen = {...(STATE.seen || {}), [k]: 1}; save(); say(MODES[k], done); buildLab(k); }
+function setPlay(on) { tour = on; $('#play').textContent = on ? '⏸ إيقاف' : '▶️ الجولة'; if (!on) { seqTok++; voice && voice.pause(); } }
+$('#play').onclick = () => { if (tour) return setPlay(false); setPlay(true); let i = 0; const next = () => { if (!tour) return; if (i >= ORDER.length) { setPlay(false); setTimeout(() => quiz(0), 800); return; } go(ORDER[i++], () => setTimeout(next, 3500)); }; next(); };
+$('#again').onclick = () => { const k = document.querySelector('#modes .on')?.dataset.m || 'intro'; go(k); };
+$('#slow').onclick = () => { tScale = tScale === 1 ? .3 : 1; $('#slow').classList.toggle('on', tScale < 1); };
+$('#mute').onclick = () => { muted = !muted; $('#mute').textContent = muted ? '🔇' : '🔊'; if (voice) voice.muted = muted; };
+$('#info').onclick = () => $('#ip').classList.add('on'); $('#ix').onclick = () => $('#ip').classList.remove('on');
+
+/* ---------- try it yourself: predict, then change the concentrations and watch ---------- */
+function buildLab(k) {
+  const L = $('#lab');
+  if (k === 'active') { L.innerHTML = `<b>🧪 جرّب:</b> أطفئ المضخة وشغّلها. ماذا يحدث للبوتاسيوم والصوديوم؟<div class="row"><button id="pt">⏻ المضخة: تعمل</button></div><div class="note" style="color:#a9b8c6">بدون طاقة تتوقف المضخة، فلا تنتقل المواد عكس التركيز.</div>`;
+    $('#pt').onclick = () => { pumpOn = !pumpOn; $('#pt').textContent = pumpOn ? '⏻ المضخة: تعمل' : '⏻ المضخة: متوقفة (لا طاقة)'; }; return; }
+  const what = k === 'osmosis' ? 'جزيئات الماء' : 'جزيئات السكر';
+  L.innerHTML = `<b>🧪 جرّب:</b> غيّر عدد ${what} في كل جهة، ثم توقّع: إلى أين ستتحرك أكثر؟
+    <label>خارج <input type="range" id="ro" min="0" max="200" value="${lab.out}"><span id="vo">${AR(lab.out)}</span></label>
+    <label>داخل <input type="range" id="ri" min="0" max="200" value="${lab.in}"><span id="vi">${AR(lab.in)}</span></label>
+    <div class="row"><button data-p="in">أتوقع: إلى الداخل</button><button data-p="out">أتوقع: إلى الخارج</button><button data-p="none">أتوقع: لا تتحرك</button></div><div id="pr" class="note" style="color:#ffd84d"></div>`;
+  $('#ro').oninput = e => { lab.out = +e.target.value; $('#vo').textContent = AR(lab.out); }; $('#ri').oninput = e => { lab.in = +e.target.value; $('#vi').textContent = AR(lab.in); };
+  L.querySelectorAll('[data-p]').forEach(b => b.onclick = () => {
+    const right = lab.out > lab.in ? 'in' : lab.out < lab.in ? 'out' : 'none'; reset(); spawn(k === 'osmosis' ? 'water' : 'sugar', lab.out, 1); spawn(k === 'osmosis' ? 'water' : 'sugar', lab.in, -1);
+    const ok = b.dataset.p === right; STATE.lab = (STATE.lab || 0) + (ok ? 1 : 0); save();
+    $('#pr').textContent = (ok ? '✅ توقّعك صحيح! ' : '🤔 لنرَ ماذا يحدث فعلًا: ') + (right === 'none' ? 'التركيز متساوٍ، فالعبور متساوٍ في الاتجاهين (اتزان).' : 'تتحرك أكثر من الجهة الأكثر تركيزًا إلى الأقل، حتى يتساوى العدد.');
+  });
+}
+$('#labb').onclick = () => { $('#lab').classList.toggle('on'); $('#labb').classList.toggle('on'); document.body.classList.toggle('labon'); };
+
+/* ---------- check: book questions, hint after a wrong answer, then the right scene again ---------- */
+const QS = [
+  {t: 'ما الذي يميّز النقل النشط عن الانتشار؟', o: ['يحتاج إلى طاقة من الخلية', 'يحدث من التركيز المرتفع إلى المنخفض', 'يحدث للماء فقط', 'لا يحتاج إلى غشاء'], a: 0, why: ['صحيح: النقل النشط يحتاج طاقة لأنه عكس التركيز.', 'هذا وصف الانتشار، لا النقل النشط.', 'انتقال الماء وحده هو الخاصية الأسموزية.', 'النقل النشط يحدث عبر الغشاء.'], hint: 'انظر إلى المضخة: ماذا يظهر كلما نقلت شيئًا؟', redo: 'active'},
+  {t: 'وضعتَ كيس شاي في كأس ماء دافئ. لماذا انتشر لون الشاي في الماء؟', o: ['لأن الماء يدفع الشاي بقوة', 'لأن مواد الشاي تنتقل من التركيز المرتفع إلى المنخفض', 'لأن الكأس يستهلك طاقة', 'لأن الماء ينتقل إلى داخل الكيس فقط'], a: 1, why: ['الماء لا يدفع الشاي؛ الحركة عشوائية.', 'صحيح: هذا هو الانتشار، ولا يحتاج طاقة.', 'الانتشار لا يحتاج طاقة.', 'لو انتقل الماء فقط لما خرج لون الشاي إلى الكأس.'], hint: 'تذكّر نقطة الحبر في كأس الماء.', redo: 'diffusion'},
+  {t: 'متى يتوقف الانتشار والخاصية الأسموزية؟', o: ['عندما تنفد طاقة الخلية', 'عندما يتساوى التركيز على جانبي الغشاء', 'عندما يمتلئ الغشاء بالماء', 'لا يتوقفان أبدًا'], a: 1, why: ['الانتشار لا يحتاج طاقة أصلًا.', 'صحيح: عندها يحدث الاتزان.', 'الغشاء لا يمتلئ.', 'يتوقف صافي الانتقال عند الاتزان.'], hint: 'شاهد مشهد «الاتزان»: ماذا يحدث للعددين؟', redo: 'balance'},
+];
+function quiz(k) {
+  const q = QS[k]; $('#qp').classList.add('on'); let tries = (STATE.q?.[k]?.ok === false) ? STATE.q[k].tries : 0;
+  $('#qb').innerHTML = `<b>✏️ تحقّق من فهمك ${AR(k + 1)} من ${AR(QS.length)}</b><p style="font-size:1.08rem;margin:6px 0">${q.t}</p>${q.o.map((x, j) => `<button class="opt" data-j="${j}">${'أبجد'[j]}. ${x}</button>`).join('')}<div id="fb"></div>`;
+  $('#qb').querySelectorAll('.opt').forEach(b => b.onclick = () => {
+    const j = +b.dataset.j, ok = j === q.a; tries++; b.classList.add(ok ? 'ok' : 'no'); STATE.q = STATE.q || {};
+    if (ok) { $('#qb').querySelectorAll('.opt').forEach(x => x.disabled = true); STATE.q[k] = {ok: true, tries}; save();
+      $('#fb').innerHTML = `<div class="fb ok">⚡ أحسنت! ${tries === 1 ? 'فكّرت ووصلت.' : 'حاولت حتى وصلت.'} والتوفيق من الله.<br><b>لماذا؟</b> ${q.why[j]}</div>` + (k + 1 < QS.length ? `<button class="big" id="nq">السؤال التالي ←</button>` : `<div class="fb in">أجبت عن ${AR(Object.values(STATE.q).filter(x => x.ok && x.tries === 1).length)} من ${AR(QS.length)} من أول محاولة.</div><button class="big" id="cl">رجوع للمشهد</button>`);
+      $('#nq') && ($('#nq').onclick = () => quiz(k + 1)); $('#cl') && ($('#cl').onclick = () => $('#qp').classList.remove('on')); }
+    else { STATE.q[k] = {ok: false, tries}; save(); $('#fb').innerHTML = `<div class="fb no">${q.why[j]}<br>💡 <b>تلميح:</b> ${q.hint}</div><button class="big" style="background:#2563a6" id="see">👀 شاهد المشهد ثم ارجع</button>`;
+      $('#see').onclick = () => { $('#qp').classList.remove('on'); go(q.redo, () => setTimeout(() => quiz(k), 1500)); }; }
+  });
+}
+
+/* ---------- loop ---------- */
+fetch('audio/L03-mem-fx-pump.mp3').then(r => r.ok && (fxA = new Audio('audio/L03-mem-fx-pump.mp3'))).catch(() => {});
+const clock = new THREE.Clock(); let tt = 0;
+camera.position.set(5, 3.2, 9); controls.target.set(0, 0, 0); go('intro'); seqTok++; setTimeout(() => $('#goal').classList.add('off'), 9000); $('#say').textContent = 'اختر من الأعلى، أو اضغط ▶️ للجولة كاملة.'; $('#loading').remove();
+window.__quiz = quiz; window.__sim = (sec) => { window.__fast = 1; for (let t = 0; t < sec; t += .03) stepParticles(.03); window.__fast = 0; return counts(); };
+renderer.setAnimationLoop(() => {
+  const dt = Math.min(.05, clock.getDelta()) * (calm ? .5 : tScale); tt += dt;
+  stepParticles(dt); drawParticles(); counts();
+  chans.forEach((c, i) => c.rotation.y += dt * (i % 2 ? -.12 : .15)); pump.rotation.y -= dt * .1; pump.scale.y = 1 + Math.sin(tt * 3) * .02;
+  specks.rotation.y = tt * .02; heads.position.y = Math.sin(tt * .8) * .03; tails.position.y = heads.position.y;   // the membrane breathes a little
+  controls.update(); renderer.render(scene, camera); placeLb();
+});
+</script>
+</body>
+</html>
