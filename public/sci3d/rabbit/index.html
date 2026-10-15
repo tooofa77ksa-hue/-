@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الأرنب والثعلب</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+/* «الحركة والإحساس»: how a rabbit's body responds to danger. A skeleton-rigged rabbit and a rigged fox; the narration
+   drives each step (camera, x-ray, signal along the nerves, glands, heart). Source kept internally: data-src below. */
+:root{--bg:#eef3ea;--ink:#1d2733;--g:#2e7d4f;--y:#ffd84d;--muted:#5d6874;--f:'SciBaloo','Segoe UI',Tahoma,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--f);-webkit-text-size-adjust:100%}
+button,select{font:inherit;cursor:pointer;touch-action:manipulation;color:inherit}
+#stage{position:fixed;inset:0;touch-action:none}
+.top{position:fixed;top:0;left:0;right:0;z-index:5;display:flex;align-items:center;gap:8px;padding:8px 12px;background:linear-gradient(#2e7d4fee,#2e7d4fcc);color:#fff}
+.top h1{flex:1;margin:0;font-size:1rem;line-height:1.4}
+.top button{border:0;background:rgba(255,255,255,.18);color:#fff;border-radius:12px;min-width:44px;min-height:44px;font-size:1.1rem}
+#goal{position:fixed;top:62px;left:10px;right:10px;z-index:4;background:rgba(255,244,229,.96);border-inline-start:6px solid #e3871c;border-radius:14px;padding:6px 12px;font-size:.92rem;line-height:1.6}
+#say{position:fixed;left:10px;right:10px;bottom:calc(128px + env(safe-area-inset-bottom));z-index:4;background:rgba(255,255,255,.95);border-radius:16px;padding:8px 12px;font-size:1.12rem;line-height:1.75;box-shadow:0 4px 18px rgba(0,0,0,.12);min-height:2.6em}
+#say .fx{display:block;font-size:.78rem;color:var(--muted)}
+#dots{position:fixed;left:0;right:0;bottom:calc(112px + env(safe-area-inset-bottom));z-index:4;display:flex;gap:4px;justify-content:center}
+#dots i{width:20px;height:6px;border-radius:3px;background:#cfd8cc}#dots i.on{background:var(--g)}#dots i.done{background:#9fd1b1}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:5;padding:8px 8px calc(8px + env(safe-area-inset-bottom));display:flex;gap:6px;flex-wrap:wrap;justify-content:center;background:rgba(238,243,234,.97);border-top:1px solid #d7dfd3}
+.bar button,.bar select{border:2px solid #d7dfd3;background:#fff;border-radius:14px;min-height:46px;min-width:46px;padding:0 10px;font-size:1rem}
+.bar .p{background:var(--g);border-color:var(--g);color:#fff;min-width:96px}
+.bar .on{background:#fff6cc;border-color:var(--y)}
+#labels{position:fixed;inset:0;pointer-events:none;z-index:3}
+.lb{position:absolute;transform:translate(-50%,-130%);background:rgba(255,255,255,.95);border:2px solid var(--y);border-radius:10px;padding:0 8px;font-size:.85rem;font-weight:600;white-space:nowrap;transition:opacity .3s}
+#loading{position:fixed;inset:0;z-index:9;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;background:var(--bg);font-size:1.1rem}
+#loading .sp{width:44px;height:44px;border-radius:50%;border:5px solid #cfe6d6;border-top-color:var(--g);animation:r 1s linear infinite}@keyframes r{to{transform:rotate(1turn)}}
+.panel{position:fixed;inset:0;z-index:8;background:rgba(10,20,15,.55);display:none;align-items:flex-end;justify-content:center}
+.panel.on{display:flex}
+.panel .box{background:#fff;border-radius:22px 22px 0 0;max-width:640px;width:100%;max-height:86vh;overflow:auto;padding:14px 16px calc(16px + env(safe-area-inset-bottom))}
+.opt{display:block;width:100%;text-align:right;border:2px solid #e2e6df;background:#fff;border-radius:14px;padding:8px 12px;margin:7px 0;min-height:52px;font-size:1.05rem}
+.opt.ok{border-color:#1f8a4c;background:#e6f6ec}.opt.no{border-color:#c2412d;background:#fbebe8}
+.fb{border-radius:14px;padding:8px 12px;margin:8px 0}.fb.ok{background:#e6f6ec}.fb.no{background:#fbebe8}.fb.in{background:#eaf1fa}
+.note{font-size:.78rem;color:var(--muted);line-height:1.6}
+.big{display:block;width:100%;min-height:50px;border-radius:14px;border:0;background:var(--g);color:#fff;font-size:1.05rem;margin-top:8px}
+@media (min-width:760px){#say,#goal{left:auto;right:16px;width:440px}}
+</style>
+</head>
+<body data-src="L18 «الحركة والإحساس» p.123–124">
+<div id="loading"><div class="sp"></div><div>جاري تجهيز المشهد…</div></div>
+<div id="stage"></div>
+<div id="labels"></div>
+<header class="top"><h1>🐇 كيف يستجيب جسم الأرنب للخطر؟</h1><button id="xr" aria-label="أظهر ما بداخل الأرنب">🩻</button><button id="info" aria-label="المصادر">ℹ️</button></header>
+<div id="goal">🎯 <b>هدفك:</b> أن تشرح كيف تنتقل الإشارة من العين إلى الدماغ ثم إلى عضلات الأرجل، وماذا يفعل الأدرينالين بالقلب.</div>
+<div id="dots"></div>
+<div id="say">اضغط ▶️ لتبدأ. وتقدر تدوّر المشهد بإصبعك وتكبّره بإصبعين.</div>
+<div class="bar">
+  <button id="prev" aria-label="الخطوة السابقة">⏮</button>
+  <button class="p" id="play">▶️ تشغيل</button>
+  <button id="again" aria-label="أعد الخطوة">↺</button>
+  <button id="next" aria-label="الخطوة التالية">⏭</button>
+  <button id="slow" aria-label="حركة بطيئة">🐢</button>
+  <select id="spd" aria-label="سرعة الصوت"><option value=".85">صوت أبطأ</option><option value="1" selected>صوت عادي</option><option value="1.15">صوت أسرع</option></select>
+  <button id="mute" aria-label="كتم الصوت">🔊</button>
+</div>
+<div class="panel" id="qp"><div class="box" id="qb"></div></div>
+<div class="panel" id="ip"><div class="box"><b>عن هذا المشهد</b>
+  <p class="note">• الثعلب: نموذج «Fox» من مجموعة glTF Sample Assets (Khronos)؛ المجسم PixelMannen (CC0)، والهيكل والحركة tomkranis (CC BY 4.0)، والتحويل AsoboStudio و scurest (CC BY 4.0).<br>
+  • الأرنب: نموذج بنيناه لهذا الدرس بهيكل عظمي للحركة (عمود فقري وأرجل وأذنان)، وأعضاؤه الداخلية مبسّطة للتوضيح: الدماغ والحبل الشوكي والأعصاب والغدتان الكظريتان والقلب وزوج عضلات الرجل. ليس تشريحًا دقيقًا.<br>
+  • الشرح: صوت «محمد» المولّد بالذكاء الاصطناعي من ElevenLabs. المؤثرات (خطوات الركض، نبض القلب) مولّدة وليست تسجيلًا حقيقيًا.<br>
+  • التقدّم يُحفظ في هذا الجهاز فقط.<br>
+  • المحاكاة مبسّطة: السرعات والأحجام للتوضيح، والإشارة العصبية الحقيقية أسرع بكثير مما تراه هنا.</p>
+  <button class="big" id="ix">إغلاق</button></div></div>
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
+<script src="vendor/gsap.min.js"></script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from './vendor/OrbitControls.js';
+import { GLTFLoader } from './vendor/GLTFLoader.js';
+const $ = s => document.querySelector(s);
+const AR = n => String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const lowEnd = (navigator.hardwareConcurrency || 4) <= 4 || Math.min(screen.width, screen.height) < 400;
+
+/* ---------- renderer, sky, ground ---------- */
+const renderer = new THREE.WebGLRenderer({antialias: !lowEnd, powerPreference: 'high-performance'});
+renderer.setPixelRatio(Math.min(devicePixelRatio, lowEnd ? 1.5 : 2)); renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+$('#stage').appendChild(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0xcfe6f2); scene.fog = new THREE.Fog(0xcfe6f2, 18, 46);
+const camera = new THREE.PerspectiveCamera(45, 1, .05, 120);
+const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.enablePan = false; controls.minDistance = 1.2; controls.maxDistance = 16; controls.maxPolarAngle = Math.PI * .49;
+scene.add(new THREE.HemisphereLight(0xeaf6ff, 0x6d7a3a, 1.4));
+const sun = new THREE.DirectionalLight(0xfff3dc, 2.6); sun.position.set(6, 10, 4); sun.castShadow = true;
+sun.shadow.mapSize.set(lowEnd ? 1024 : 2048, lowEnd ? 1024 : 2048); Object.assign(sun.shadow.camera, {left: -8, right: 8, top: 8, bottom: -8, near: 1, far: 30}); scene.add(sun);
+function fit() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.fov = innerWidth < innerHeight ? 55 : 42; camera.updateProjectionMatrix(); }
+addEventListener('resize', fit); fit();
+{ // meadow: gently uneven ground with grass tones, tufts and a few stones
+  const g = new THREE.PlaneGeometry(80, 80, 120, 120); g.rotateX(-Math.PI / 2); const c = [], p = g.attributes.position, col = new THREE.Color();
+  for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i), n = Math.sin(x * .35) * Math.cos(z * .3) * .12 + Math.sin(x * 1.7 + z) * .03; p.setY(i, Math.hypot(x, z) < 6 ? n * .2 : n);
+    col.setHSL(.26 + Math.sin(x * .8 + z * .6) * .02, .45, .38 + Math.sin(x * 2.1 - z * 1.3) * .05); c.push(col.r, col.g, col.b); }
+  g.setAttribute('color', new THREE.Float32BufferAttribute(c, 3)); g.computeVertexNormals();
+  const ground = new THREE.Mesh(g, new THREE.MeshStandardMaterial({vertexColors: true, roughness: .95})); ground.receiveShadow = true; scene.add(ground);
+  const tg = new THREE.PlaneGeometry(.035, .26, 1, 3); tg.translate(0, .13, 0); { const a = tg.attributes.position; for (let k = 0; k < a.count; k++) { const y = a.getY(k) / .26; a.setX(k, a.getX(k) * (1 - y * .9)); a.setZ(k, y * y * .05); } }
+  const tm = new THREE.MeshStandardMaterial({color: 0xffffff, roughness: .9, side: THREE.DoubleSide});
+  const tufts = new THREE.InstancedMesh(tg, tm, lowEnd ? 4000 : 9000); const gc = new THREE.Color(); const m = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), v = new THREE.Vector3();
+  for (let i = 0; i < tufts.count; i++) { if (i % 7 === 0) { const r = 1.2 + Math.random() * 22, a = Math.random() * 6.28; v.set(Math.cos(a) * r, 0, Math.sin(a) * r); } const w = v.clone().add(new THREE.Vector3((Math.random() - .5) * .25, 0, (Math.random() - .5) * .25));
+    q.setFromEuler(new THREE.Euler((Math.random() - .5) * .6, Math.random() * 6.28, (Math.random() - .5) * .6)); s.setScalar(.5 + Math.random() * .8); tufts.setMatrixAt(i, m.compose(w, q, s)); tufts.setColorAt(i, gc.setHSL(.24 + Math.random() * .06, .5, .26 + Math.random() * .14)); }
+  scene.add(tufts);
+  const sm = new THREE.MeshStandardMaterial({color: 0x9b9486, roughness: .8, flatShading: true});
+  for (let i = 0; i < 14; i++) { const st = new THREE.Mesh(new THREE.DodecahedronGeometry(.15 + Math.random() * .35, 0), sm); const a = Math.random() * 6.28, r = 4 + Math.random() * 14; st.position.set(Math.cos(a) * r, .05, Math.sin(a) * r); st.castShadow = true; scene.add(st); }
+}
+
+/* ---------- the rabbit: one skinned mesh on a real skeleton (spine, head, ears, four legs, tail) ---------- */
+const B = {}; // bones by name
+function bone(name, parent, x, y, z) { const b = new THREE.Bone(); b.name = name; b.position.set(x, y, z); (parent ? B[parent] : null)?.add(b); B[name] = b; return b; }
+bone('root', null, 0, .42, 0); bone('spine', 'root', 0, .02, .02); bone('chest', 'spine', 0, .03, .26); bone('neck', 'chest', 0, .12, .1); bone('head', 'neck', 0, .08, .06);
+bone('earL', 'head', .05, .1, -.02); bone('earR', 'head', -.05, .1, -.02); bone('tail', 'root', 0, .04, -.26);
+for (const [s, x] of [['L', .09], ['R', -.09]]) {
+  bone('hip' + s, 'root', x, -.02, -.12); bone('knee' + s, 'hip' + s, 0, -.17, .1); bone('heel' + s, 'knee' + s, 0, -.14, -.1); bone('toe' + s, 'heel' + s, 0, -.06, .14);
+  bone('sho' + s, 'chest', x * .8, -.08, .04); bone('elb' + s, 'sho' + s, 0, -.14, .01); bone('paw' + s, 'elb' + s, 0, -.12, .03);
+}
+const bones = Object.values(B), bi = n => bones.indexOf(B[n]);
+const parts = []; // [geometry already in rabbit space, bone name]
+const world = n => { B.root.updateMatrixWorld(true); return new THREE.Vector3().setFromMatrixPosition(B[n].matrixWorld); };
+function part(geo, at, boneName, rot) { if (rot) geo.applyMatrix4(new THREE.Matrix4().makeRotationFromEuler(rot)); geo.translate(at.x, at.y, at.z); parts.push([geo, boneName]); }
+const E = (x, y, z) => new THREE.Euler(x, y, z);
+B.root.updateMatrixWorld(true);
+// body, chest, head, snout, ears, tail, legs (rabbit space, facing +z)
+part(new THREE.SphereGeometry(.22, 40, 30).scale(1, .92, 1.3), world('spine').add(new THREE.Vector3(0, .01, .02)), 'spine');
+part(new THREE.SphereGeometry(.17, 28, 20).scale(.9, .95, 1.05), world('chest').add(new THREE.Vector3(0, -.01, -.03)), 'chest');
+part(new THREE.SphereGeometry(.11, 28, 20).scale(.9, .92, 1.15), world('head').add(new THREE.Vector3(0, .02, .05)), 'head');
+part(new THREE.SphereGeometry(.06, 20, 14).scale(1, .85, 1), world('head').add(new THREE.Vector3(0, -.005, .15)), 'head');
+for (const s of ['L', 'R']) {
+  part(new THREE.CapsuleGeometry(.032, .2, 6, 12).scale(1.25, 1, .45), world('ear' + s).add(new THREE.Vector3(0, .11, 0)), 'ear' + s, E(-.15, 0, s === 'L' ? -.18 : .18));
+  part(new THREE.SphereGeometry(.12, 24, 18).scale(.62, 1.05, 1.25), world('hip' + s).add(new THREE.Vector3(s === 'L' ? .02 : -.02, -.04, .04)), 'hip' + s);       // haunch
+  part(new THREE.CapsuleGeometry(.032, .13, 6, 10), world('knee' + s).add(new THREE.Vector3(0, -.06, -.05)), 'knee' + s, E(.6, 0, 0));    // lower leg
+  part(new THREE.CapsuleGeometry(.028, .14, 6, 10).scale(1.1, 1, 1), world('heel' + s).add(new THREE.Vector3(0, -.035, .06)), 'heel' + s, E(Math.PI / 2, 0, 0)); // long hind foot
+  part(new THREE.CapsuleGeometry(.03, .11, 6, 10), world('sho' + s).add(new THREE.Vector3(0, -.06, 0)), 'sho' + s);
+  part(new THREE.CapsuleGeometry(.024, .1, 6, 10), world('elb' + s).add(new THREE.Vector3(0, -.06, .01)), 'elb' + s);
+  part(new THREE.SphereGeometry(.03, 12, 10).scale(1, .6, 1.5), world('paw' + s).add(new THREE.Vector3(0, -.01, .02)), 'paw' + s);
+}
+part(new THREE.SphereGeometry(.06, 16, 12), world('tail').add(new THREE.Vector3(0, .02, -.03)), 'tail');
+// merge into one skinned geometry; every vertex follows its part's bone (fur colour varies a little, light belly and tail)
+function mergeSkinned() {
+  const pos = [], nor = [], col = [], si = [], sw = [], idx = []; let off = 0; const c = new THREE.Color();
+  for (const [g0, bn] of parts) { const g = g0.index ? g0 : g0; const p = g.attributes.position, n = g.attributes.normal;
+    for (let i = 0; i < p.count; i++) { pos.push(p.getX(i), p.getY(i), p.getZ(i)); nor.push(n.getX(i), n.getY(i), n.getZ(i));
+      const belly = n.getY(i) < -.4 && (bn === 'spine' || bn === 'chest'), light = bn === 'tail' || belly;
+      const ear = bn.startsWith('ear') && n.getZ(i) > .3;
+      if (ear) c.setHSL(.98, .45, .72); else c.setHSL(.07 + Math.random() * .012, light ? .12 : .28, light ? .8 : .26 + Math.random() * .06 + Math.max(0, n.getY(i)) * .06); col.push(c.r, c.g, c.b);
+      si.push(bi(bn), 0, 0, 0); sw.push(1, 0, 0, 0); }
+    for (let i = 0; i < g.index.count; i++) idx.push(g.index.getX(i) + off); off += p.count; }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(si, 4)); g.setAttribute('skinWeight', new THREE.Float32BufferAttribute(sw, 4)); g.setIndex(idx); return g;
+}
+const furMat = new THREE.MeshStandardMaterial({vertexColors: true, roughness: .92, transparent: true, opacity: 1});
+const rabbitMesh = new THREE.SkinnedMesh(mergeSkinned(), furMat); rabbitMesh.castShadow = true;
+const rabbit = new THREE.Group(); rabbit.add(rabbitMesh); rabbitMesh.add(B.root); rabbitMesh.bind(new THREE.Skeleton(bones)); scene.add(rabbit);
+// eyes (dark, glossy) on the head bone
+for (const s of [1, -1]) { const e = new THREE.Mesh(new THREE.SphereGeometry(.022, 14, 10), new THREE.MeshStandardMaterial({color: 0x120c08, roughness: .1})); e.position.set(.072 * s, .03, .1); B.head.add(e); }
+
+/* ---------- inside the rabbit (shown in x-ray): the parts the lesson names ---------- */
+const inner = new THREE.Group(); const glow = c => new THREE.MeshStandardMaterial({color: c, emissive: c, emissiveIntensity: .15, roughness: .4, transparent: true, opacity: 0});
+const brain = new THREE.Mesh(new THREE.SphereGeometry(.07, 24, 18).scale(1, .75, 1.3), glow(0xf27aa0)); brain.position.set(0, .04, .02); B.head.add(brain);
+const eyeGlow = new THREE.Mesh(new THREE.SphereGeometry(.032, 14, 10), glow(0xfff176)); eyeGlow.position.set(.072, .03, .1); B.head.add(eyeGlow);
+const heart = new THREE.Mesh(new THREE.SphereGeometry(.045, 20, 16).scale(1, 1.15, .9), glow(0xd8344f)); heart.position.set(.02, -.06, -.02); B.chest.add(heart);
+const glands = new THREE.Group(); for (const s of [1, -1]) { const k = new THREE.Mesh(new THREE.SphereGeometry(.03, 14, 10).scale(.8, 1.3, .7), glow(0xb04aa8)); k.position.set(.06 * s, -.02, -.05); glands.add(k); } B.spine.add(glands);
+// thigh muscle pair (front and back of the hind leg), as the lesson describes: one contracts while the other relaxes
+const musF = new THREE.Mesh(new THREE.CapsuleGeometry(.018, .08, 6, 10), glow(0xe2584f)); musF.position.set(.02, -.05, .06); B.hipL.add(musF);
+const musB = new THREE.Mesh(new THREE.CapsuleGeometry(.018, .08, 6, 10), glow(0x4f8fe2)); musB.position.set(.02, -.06, -.02); B.hipL.add(musB);
+// spinal cord and nerves: tubes rebuilt each frame from the bones so they bend with the running rabbit
+const cordMat = glow(0xf6a6bd), nerveMat = glow(0xf0b43c);
+let cord = null, nerves = [];
+function tubeFrom(pts, r, m) { return new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 24, r, 6), m); }
+const W = n => new THREE.Vector3().setFromMatrixPosition(B[n].matrixWorld);
+function rebuildNerves() {
+  if (!xray && !cord) return; [cord, ...nerves].forEach(x => x && (scene.remove(x), x.geometry.dispose()));
+  const hd = W('head'), nk = W('neck'), ch = W('chest'), sp = W('spine'), tl = W('tail');
+  cord = tubeFrom([hd, nk, ch, sp, tl], .012, cordMat); scene.add(cord);
+  nerves = ['L', 'R'].flatMap(s => [tubeFrom([sp, W('hip' + s), W('knee' + s), W('heel' + s), W('toe' + s)], .006, nerveMat), tubeFrom([ch, W('sho' + s), W('elb' + s), W('paw' + s)], .006, nerveMat)]);
+  nerves.forEach(n => scene.add(n));
+}
+const innerMats = [brain, eyeGlow, heart, ...glands.children].map(m => m.material).concat([cordMat, nerveMat]);
+const muscles = on => [musF, musB].forEach(m => gsap.to(m.material, {opacity: on ? .95 : 0, duration: .5}));
+let xray = false;
+function setXray(on) { xray = on; $('#xr').style.background = on ? '#ffd84d' : ''; gsap.to(furMat, {opacity: on ? .28 : 1, duration: .6}); furMat.depthWrite = !on;
+  innerMats.forEach(m => gsap.to(m, {opacity: on ? .95 : 0, duration: .6})); if (!on) setTimeout(() => { [cord, ...nerves].forEach(x => x && scene.remove(x)); cord = null; }, 650); }
+
+/* ---------- the fox (rigged glTF with Survey / Walk / Run) ---------- */
+let fox = null, foxMix = null, foxAct = {};
+const loader = new GLTFLoader();
+const ready = new Promise((ok, bad) => loader.load('assets/Fox.glb', g => {
+  fox = g.scene; fox.scale.setScalar(.012); fox.traverse(o => { if (o.isMesh) { o.castShadow = true; o.material.roughness = .8; } });
+  fox.position.set(-7, 0, -3); scene.add(fox); foxMix = new THREE.AnimationMixer(fox);
+  for (const c of g.animations) foxAct[c.name] = foxMix.clipAction(c);
+  foxAct.Survey.play(); ok();
+}, undefined, bad));
+
+/* ---------- motion: rabbit gait from bone rotations (sitting → bounding run), fox chase ---------- */
+let gait = 0, run = 0, runTarget = 0, tScale = 1, t = 0, rabbitSpeed = 0, foxSpeed = 0, heartRate = 1.2;
+const rabbitDir = new THREE.Vector3(1, 0, .35).normalize();
+function poseRabbit(dt) {
+  run += (runTarget - run) * Math.min(1, dt * 3); gait += dt * (1.6 + run * 7.5);
+  const s = Math.sin(gait), c = Math.cos(gait), r = run;
+  // sitting: ears up and twitching, nose sniff; running: whole body bounds, hind legs push together, front legs reach
+  B.root.position.y = .42 - r * .06 + Math.max(0, s) * .1 * r; B.root.rotation.x = -.1 * (1 - r) + s * .18 * r;
+  B.spine.rotation.x = s * .15 * r; B.chest.rotation.x = -s * .12 * r;
+  B.neck.rotation.x = -.15 * (1 - r) + .2 * r; B.head.rotation.x = .1 * r + Math.sin(t * 9) * .02 * (1 - r);
+  B.earL.rotation.x = -.1 - r * .9 + Math.sin(t * 3.1) * .05 * (1 - r); B.earR.rotation.x = -.1 - r * .9 + Math.sin(t * 2.7 + 1) * .05 * (1 - r);
+  for (const k of ['L', 'R']) {
+    B['hip' + k].rotation.x = (-.5 * (1 - r)) + (c * .9) * r; B['knee' + k].rotation.x = (.9 * (1 - r)) + (-.4 - c * .5) * r;
+    B['heel' + k].rotation.x = (-.5 * (1 - r)) + (.3 + c * .6) * r;
+    B['sho' + k].rotation.x = (.1 * (1 - r)) + (-c * .8) * r; B['elb' + k].rotation.x = (-.1) + (Math.max(0, c) * .7) * r;
+  }
+  B.tail.rotation.x = .3 + s * .2 * r;
+  // muscle pair on the hind leg: front contracts (short and thick) when the leg swings forward, back contracts when it pushes
+  const f = (c + 1) / 2 * r + .5 * (1 - r); musF.scale.set(1 + f * .5, 1.2 - f * .5, 1 + f * .5); musB.scale.set(1.5 - f * .5, .7 + f * .5, 1.5 - f * .5);
+  heart.scale.setScalar(1 + Math.max(0, Math.sin(t * heartRate * 6.28)) ** 4 * .25);
+}
+
+/* ---------- steps: narration clip + camera + what happens ---------- */
+const cam = (px, py, pz, tx, ty, tz, d = 1.6) => { gsap.to(camera.position, {x: px, y: py, z: pz, duration: calm ? .01 : d, ease: 'power2.inOut'}); gsap.to(controls.target, {x: tx, y: ty, z: tz, duration: calm ? .01 : d, ease: 'power2.inOut'}); };
+const rp = () => rabbit.position;
+// look at a part of the rabbit from its side (side > 0: rabbit's left), so the camera follows wherever the rabbit faces
+function camOn(obj, d, h, side = 1, back = 0, dur = 1.6) { rabbit.updateMatrixWorld(true); const tgt = (obj.isObject3D ? obj : B[obj]).getWorldPosition(new THREE.Vector3());
+  const fwd = rabbitDir.clone(), left = new THREE.Vector3(fwd.z, 0, -fwd.x).multiplyScalar(side);
+  const pos = tgt.clone().addScaledVector(left, d).addScaledVector(fwd, -back).add(new THREE.Vector3(0, h, 0)); cam(pos.x, pos.y, pos.z, tgt.x, tgt.y, tgt.z, dur); }
+const label = new Map();
+function showLabel(id, obj, text) { let e = label.get(id); if (!e) { e = document.createElement('div'); e.className = 'lb'; $('#labels').appendChild(e); label.set(id, e); } e.textContent = text; e.obj = obj; e.style.opacity = 1; }
+function hideLabels() { label.forEach(e => e.style.opacity = 0); }
+let pulse = null, sigTw = null; // a glowing signal running along bones (killed when the step changes)
+function signal(path, dur, after) {
+  const s = new THREE.Mesh(new THREE.SphereGeometry(.03, 14, 10), new THREE.MeshBasicMaterial({color: 0xfff59d})); scene.add(s);
+  const o = {k: 0}; pulse = {s, path, k: 0}; sigTw = gsap.to(o, {k: 1, duration: calm ? .01 : dur / tScale, ease: 'none', onUpdate() { pulse && (pulse.k = o.k); }, onComplete() { scene.remove(s); pulse = null; after && after(); }});
+}
+function signalPos() { if (!pulse) return; const P = pulse.path.map(n => n === 'eye' ? new THREE.Vector3().setFromMatrixPosition(eyeGlow.matrixWorld) : W(n)); const curve = new THREE.CatmullRomCurve3(P); pulse.s.position.copy(curve.getPoint(pulse.k)); }
+const flash = (m, on = true) => gsap.to(m.material, {emissiveIntensity: on ? 1.2 : .15, duration: .4});
+const STEPS = [
+  {a: 'L18-124-goal', t: 'هدفنا اليوم: نعرف كيف يستجيب جسمُ الأرنب عندما يرى الخطر.', go() { setXray(false); muscles(false); runTarget = 0; rabbitSpeed = 0; foxSpeed = 0; cam(rp().x + 2.2, 1.1, rp().z + 2.4, rp().x, .4, rp().z); }},
+  {a: 'L18-124-s1', t: 'رأى الأرنبُ ثعلبًا يركضُ نحوه ليفترسه.', go() { foxAct.Survey.fadeOut(.4); foxAct.Run.reset().fadeIn(.4).play(); foxSpeed = 1.6; cam(rp().x + 1.6, 1.3, rp().z - 2.8, (rp().x + fox.position.x) / 2, .4, (rp().z + fox.position.z) / 2, 2); }},
+  {a: 'L18-124-s2', t: 'الخلايا العصبية في عينَيِ الأرنب ترسل المعلومات إلى الدماغ.', go() { foxSpeed = .25; setXray(true); camOn('head', .75, .18, 1, -.25); flash(eyeGlow); showLabel('eye', eyeGlow, 'العين'); signal(['eye', 'head'], 2.2, () => { flash(brain); showLabel('brain', brain, 'الدماغ'); }); }},
+  {a: 'L18-124-s3', t: 'يرسل الدماغُ أوامرَ، ينقلها الجهازُ العصبيّ إلى عضلات الأرجل.', go() { flash(brain); camOn('spine', 1.5, .45, 1, .2); showLabel('cord', B.spine, 'الحبل الشوكي'); muscles(true); signal(['head', 'neck', 'chest', 'spine', 'hipL', 'kneeL', 'heelL'], 3, () => { flash(musF); flash(musB); showLabel('mus', musF, 'عضلات الرجل'); }); }},
+  {a: 'L18-124-s4', t: 'يحدث هذا في أقلَّ من جزءٍ من الثانية، فيبدأ الأرنبُ الركض.', fx: 'L18-124-fx-run', fxl: 'مؤثر مولّد: خطوات ركض', go() { hideLabels(); runTarget = 1; rabbitSpeed = 2.4; foxSpeed = 1.9; showLabel('mus', musF, 'عضلة تنقبض وأخرى تنبسط'); camOn('spine', 2.2, .6, 1, -.7, 1.2); }},
+  {a: 'L18-124-s5', t: 'وفي الوقت نفسِه، يُفرز جهازُ الغدد الصَّمّاء هرمونًا اسمُه الأدرينالين.', go() { hideLabels(); muscles(false); rabbitSpeed = 0; runTarget = 0; foxSpeed = 0; foxAct.Run.fadeOut(.5); foxAct.Survey.reset().fadeIn(.5).play(); glands.children.forEach(g => flash(g)); showLabel('gl', glands, 'الغدتان الكظريتان'); camOn('spine', 1.15, .55, 1, 0, 1.2); }},
+  {a: 'L18-124-s6', t: 'الأدرينالين يُسرّع نبضاتِ القلب، فيتدفّق دمٌ أكثرُ إلى العضلات.', fx: 'L18-124-fx-heart', fxl: 'مؤثر مولّد: نبض قلب يتسارع', go() { flash(heart); showLabel('heart', heart, 'القلب'); gsap.to({h: 1.2}, {h: 3.2, duration: 3, onUpdate() { heartRate = this.targets()[0].h; }}); camOn('chest', 1.05, .35, 1, -.1, 1.2); }},
+  {a: 'L18-124-s7', t: 'وجسمُ الإنسان يستجيب للخطر بطريقةٍ مشابهةٍ تقريبًا.', go() { hideLabels(); setXray(false); runTarget = 1; rabbitSpeed = 2.4; foxSpeed = 1.6; foxAct.Survey.fadeOut(.4); foxAct.Run.reset().fadeIn(.4).play(); cam(rp().x - 3, 2.2, rp().z + 3.5, rp().x + 1, .3, rp().z, 2); }},
+];
+let i = -1, playing = false, muted = false, voice = null, fx = null;
+STEPS.forEach(() => $('#dots').appendChild(document.createElement('i')));
+const spd = () => +$('#spd').value;
+function stopAudio() { [voice, fx].forEach(a => a && a.pause()); }
+function step(k) {
+  stopAudio(); if (sigTw) { sigTw.kill(); sigTw = null; } if (pulse) { scene.remove(pulse.s); pulse = null; } hideLabels();
+  i = Math.max(0, Math.min(STEPS.length - 1, k)); const s = STEPS[i];
+  [...$('#dots').children].forEach((d, j) => d.className = j === i ? 'on' : j < i ? 'done' : '');
+  $('#say').innerHTML = s.t + (s.fxl ? `<span class="fx">🔈 ${s.fxl}</span>` : ''); s.go();
+  voice = new Audio('audio/' + s.a + '.mp3'); voice.playbackRate = spd(); voice.muted = muted;
+  voice.onended = () => { if (playing && i < STEPS.length - 1) setTimeout(() => playing && step(i + 1), 700 / tScale); else if (i === STEPS.length - 1) { setPlay(false); setTimeout(() => quiz(0), 900); } };
+  voice.play().catch(() => {});
+  if (s.fx) { fx = new Audio('audio/' + s.fx + '.mp3'); fx.volume = .3; fx.muted = muted; setTimeout(() => fx && fx.play().catch(() => {}), 1200); }   // quiet, after the words begin
+}
+function setPlay(on) { playing = on; $('#play').textContent = on ? '⏸ إيقاف' : '▶️ تشغيل'; }
+$('#play').onclick = () => { if (playing) { setPlay(false); stopAudio(); } else { setPlay(true); step(i < 0 || i >= STEPS.length - 1 ? 0 : i); } };
+$('#again').onclick = () => step(Math.max(0, i));
+$('#next').onclick = () => step(i + 1);
+$('#prev').onclick = () => step(i - 1);
+$('#slow').onclick = () => { tScale = tScale === 1 ? .3 : 1; $('#slow').classList.toggle('on', tScale < 1); };
+$('#spd').onchange = () => voice && (voice.playbackRate = spd());
+$('#mute').onclick = () => { muted = !muted; $('#mute').textContent = muted ? '🔇' : '🔊'; [voice, fx].forEach(a => a && (a.muted = muted)); };
+$('#xr').onclick = () => setXray(!xray);
+$('#info').onclick = () => $('#ip').classList.add('on'); $('#ix').onclick = () => $('#ip').classList.remove('on');
+
+/* ---------- check for understanding: try first, hint on a wrong answer, then a second question on the same idea ---------- */
+const Q = [
+  {t: 'رأى أرنبٌ ثعلبًا. ما الترتيب الصحيح لاستجابته؟', o: ['الدماغ ← العين ← عضلات الأرجل', 'عضلات الأرجل ← الدماغ ← العين', 'العين ← الدماغ ← عضلات الأرجل', 'العين ← عضلات الأرجل ← الدماغ'], a: 2,
+   why: ['الاستجابة تبدأ من العين، لا من الدماغ.', 'العضلات تنفّذ في النهاية بعد وصول الأمر.', 'صحيح: العين ترى، والدماغ يقرر ويرسل الأمر، والعضلات تنفّذ.', 'العضلات لا تتحرك قبل أمر الدماغ.'], hint: 'شاهد الإشارة الصفراء: من أين بدأت؟ وإلى أين ذهبت أولًا؟', redo: 2},
+  {t: 'ما أثر هرمون الأدرينالين عند الخطر؟', o: ['يسرّع نبضات القلب ليزيد الدم المتدفق إلى العضلات', 'يبطئ نبضات القلب ليرتاح الجسم', 'يوقف عمل الدماغ', 'يحوّل العضلات إلى أوتار'], a: 0,
+   why: ['صحيح: نبض أسرع ودم أكثر للعضلات، فيستعد للهرب.', 'هذا عكس عمله.', 'الدماغ يبقى يعمل ويرسل الأوامر.', 'العضلات لا تتحول إلى أوتار.'], hint: 'ماذا حدث للقلب بعد أن أضاءت الغدتان؟', redo: 6},
+  {t: 'عندما يركض الأرنب، كيف تعمل عضلتا رجله الخلفية؟', o: ['تنقبضان معًا في الوقت نفسه', 'تنقبض إحداهما وتنبسط الأخرى', 'تدفعان العظم إلى الأمام', 'لا تتحركان، والعظم يتحرك وحده'], a: 1,
+   why: ['لو انقبضتا معًا لما تحركت الرجل ذهابًا وإيابًا.', 'صحيح: العضلات تعمل في أزواج؛ واحدة تنقبض والأخرى تنبسط.', 'العضلات تسحب ولا تدفع أبدًا.', 'العظام لا تتحرك وحدها؛ العضلات تحركها.'], hint: 'شغّل الحركة البطيئة 🐢 وانظر إلى العضلتين: الحمراء والزرقاء.', redo: 4},
+];
+let S = {}; try { S = JSON.parse(localStorage.getItem('sci-L18-124') || '{}'); } catch (e) {}
+const save = () => { try { localStorage.setItem('sci-L18-124', JSON.stringify(S)); } catch (e) {} };
+function quiz(k) {
+  const q = Q[k]; $('#qp').classList.add('on'); let tries = S[k] && !S[k].ok ? S[k].tries : 0;   // a retry after a hint still counts the earlier wrong try
+  $('#qb').innerHTML = `<b>✏️ تحقّق من فهمك ${AR(k + 1)} من ${AR(Q.length)}</b><p style="font-size:1.1rem;margin:6px 0">${q.t}</p>${q.o.map((x, j) => `<button class="opt" data-j="${j}">${'أبجد'[j]}. ${x}</button>`).join('')}<div id="fb"></div>`;
+  $('#qb').querySelectorAll('.opt').forEach(b => b.onclick = () => {
+    const j = +b.dataset.j, ok = j === q.a; tries++; b.classList.add(ok ? 'ok' : 'no');
+    if (ok) { $('#qb').querySelectorAll('.opt').forEach(x => x.disabled = true); S[k] = {ok: true, tries, at: Date.now()}; save();
+      $('#fb').innerHTML = `<div class="fb ok">⚡ أحسنت! ${tries === 1 ? 'فكّرت ووصلت.' : 'حاولت حتى وصلت، وهذا هو التعلّم.'} والتوفيق من الله.<br><b>لماذا؟</b> ${q.why[j]}</div>` + (k + 1 < Q.length ? `<button class="big" id="nq">السؤال التالي ←</button>` : `<div class="fb in">أجبت عن ${AR(Object.values(S).filter(x => x.ok && x.tries === 1).length)} من ${AR(Q.length)} من أول محاولة. ما احتاج أكثر من محاولة سنرجع له في المراجعة القادمة.</div><button class="big" id="cl">رجوع للمشهد</button>`);
+      const n = $('#nq'); n && (n.onclick = () => quiz(k + 1)); const cl = $('#cl'); cl && (cl.onclick = () => $('#qp').classList.remove('on')); }
+    else { S[k] = {ok: false, tries}; save();
+      $('#fb').innerHTML = `<div class="fb no">${q.why[j]}<br>💡 <b>تلميح:</b> ${q.hint}</div><button class="big" style="background:#2563a6" id="see">👀 شاهد هذه الخطوة ثم ارجع</button>`;
+      $('#see').onclick = () => { $('#qp').classList.remove('on'); step(q.redo); voice.addEventListener('ended', () => setTimeout(() => quiz(k), 600), {once: true}); }; }
+  });
+}
+
+/* ---------- loop ---------- */
+const clock = new THREE.Clock();
+ready.then(() => {
+  $('#loading').remove(); step(0); stopAudio(); i = 0; $('#say').textContent = 'اضغط ▶️ لتبدأ. وتقدر تدوّر المشهد بإصبعك وتكبّره بإصبعين.';
+  renderer.setAnimationLoop(() => {
+    const dt = Math.min(.05, clock.getDelta()) * tScale; t += dt;
+    poseRabbit(dt); foxMix.update(dt * (foxSpeed > 1 ? 1 : .9));
+    const before = rabbit.position.clone();
+    rabbit.position.addScaledVector(rabbitDir, rabbitSpeed * dt); rabbit.rotation.y = Math.atan2(rabbitDir.x, rabbitDir.z);
+    if (rabbit.position.length() > 14) { rabbit.position.multiplyScalar(-.9); if (fox) fox.position.add(rabbit.position.clone().sub(before)); }   // keep the chase inside the meadow
+    const moved = rabbit.position.clone().sub(before); camera.position.add(moved); controls.target.add(moved);   // the camera runs along with the rabbit
+    if (fox) { const to = rabbit.position.clone().sub(fox.position); to.y = 0; const d = to.length();
+      if (foxSpeed > 0 && d > 1.4) { to.normalize(); fox.position.addScaledVector(to, Math.min(foxSpeed * dt, d - 1.4)); fox.rotation.y = Math.atan2(to.x, to.z); }
+      if (foxSpeed > 1 && d < 1.6) foxSpeed = .9; }
+    rabbit.updateMatrixWorld(true); if (xray) rebuildNerves(); signalPos();
+    controls.update(); renderer.render(scene, camera);
+    label.forEach(e => { if (!e.obj) return; const v = new THREE.Vector3(); e.obj.getWorldPosition(v); v.y += .06; v.project(camera); e.style.left = (v.x + 1) / 2 * innerWidth + 'px'; e.style.top = (1 - v.y) / 2 * innerHeight + 'px'; if (v.z > 1) e.style.opacity = 0; });
+  });
+}).catch(() => { $('#loading').innerHTML = '⚠️ تعذّر تحميل المشهد. تأكد من الاتصال ثم أعد فتح الصفحة.'; });
+</script>
+</body>
+</html>
