@@ -87,7 +87,7 @@ const html = `<!doctype html>
 @font-face { font-family:'Baloo'; src:url('${font('BalooBhaijaan2-Variable.woff2')}') format('woff2'); font-weight:400 800; }
 :root { --navy:#15445a; --green:#07a869; --teal:#0da9a6; --rose:#ec6f9a; --sun:#ffb938; --violet:#8a6fb0; }
 * { box-sizing:border-box; margin:0; padding:0; }
-body { width:1080px; height:1700px; font-family:'Baloo',sans-serif; color:var(--navy);
+body { width:1080px; height:1780px; font-family:'Baloo',sans-serif; color:var(--navy);
        background:linear-gradient(175deg,#fff4f8 0%,#fff9ec 38%,#eefaf6 100%); position:relative; overflow:hidden; }
 
 /* ملصق: رمزٌ كبير بحدٍّ أبيض وظلٍّ ناعم، كما تُلصق الملصقات على صورة */
@@ -126,9 +126,12 @@ h1 small { display:block; font-size:40px; font-weight:700; color:var(--navy); ma
 .c2 { top:1250px; background:linear-gradient(160deg,#fff0f6,#fffaf0); }
 .c2 .day { background:var(--rose); }
 
-.foot { position:absolute; bottom:38px; right:0; left:0; text-align:center; }
+.foot { position:absolute; bottom:26px; right:0; left:0; text-align:center; }
 .foot b { display:block; font-size:44px; font-weight:800; color:var(--green); }
-.foot span { font-size:30px; font-weight:700; }
+.foot .sign { display:grid; grid-template-columns:1fr 1fr; gap:30px; margin:12px 190px 0; }
+.foot .sign div { border-top:3px dotted var(--navy); padding-top:8px; }
+.foot .sign i { display:block; font-style:normal; font-size:26px; font-weight:700; color:#4a6b78; }
+.foot .sign u { display:block; text-decoration:none; font-size:38px; font-weight:800; margin-top:2px; }
 </style></head><body>
 <div class="dots"></div>
 
@@ -153,7 +156,13 @@ h1 small { display:block; font-size:40px; font-weight:700; color:var(--navy); ma
   <em>ليكون جهد أسبوعهنّ كله مشكورًا 🤍</em>
 </div>
 
-<div class="foot"><b>💙 شكرًا لأنكم معنا 💙</b><span>إدارة المدرسة</span></div>
+<div class="foot">
+  <b>💙 شكرًا لأنكم معنا 💙</b>
+  <div class="sign">
+    <div><i>مديرة المدرسة</i><u>جازية السميري</u></div>
+    <div><i>وكيلة شؤون الطالبات</i><u>ناهد الحربي</u></div>
+  </div>
+</div>
 
 <!-- الملصقات: رسميّةٌ هادئة — كتبٌ وقبّعة تخرّج وورود ونجوم، لا حيواناتٌ ولا ألعاب -->
 <span class="st" style="top:40px;right:36px;font-size:116px;transform:rotate(-10deg)">🌟</span>
@@ -166,15 +175,15 @@ h1 small { display:block; font-size:40px; font-weight:700; color:var(--navy); ma
 <span class="st" style="top:830px;right:30px;font-size:104px;transform:rotate(9deg)">🌷</span>
 <span class="st" style="top:1040px;left:30px;font-size:96px;transform:rotate(-10deg)">💙</span>
 <span class="st" style="top:1030px;right:30px;font-size:100px;transform:rotate(10deg)">🏫</span>
-<span class="st" style="top:1540px;left:36px;font-size:100px;transform:rotate(-8deg)">💐</span>
-<span class="st" style="top:1540px;right:38px;font-size:100px;transform:rotate(8deg)">🤍</span>
+<span class="st" style="top:1625px;left:36px;font-size:100px;transform:rotate(-8deg)">💐</span>
+<span class="st" style="top:1625px;right:38px;font-size:100px;transform:rotate(8deg)">🤍</span>
 </body></html>`
 
 mkdirSync(dirname(out), { recursive: true })
 const executablePath = process.env.CHROMIUM_PATH
   ?? globSync('/opt/pw-browsers/chromium-*/chrome-linux/chrome').sort().at(-1)
 const browser = await chromium.launch(executablePath ? { executablePath } : {})
-const page = await browser.newPage({ viewport: { width: 1080, height: 1700 }, deviceScaleFactor: 1 })
+const page = await browser.newPage({ viewport: { width: 1080, height: 1780 }, deviceScaleFactor: 1 })
 await page.setContent(html, { waitUntil: 'networkidle' })
 await page.screenshot({ path: out })
 await browser.close()
