@@ -159,15 +159,15 @@ h1 small { display:block; font-size:40px; font-weight:700; color:var(--navy); ma
 <span class="st" style="top:40px;right:36px;font-size:120px;transform:rotate(-12deg)">🌟</span>
 <span class="st" style="top:46px;left:36px;font-size:112px;transform:rotate(10deg)">🎈</span>
 <span class="st" style="top:350px;right:22px;font-size:130px;transform:rotate(-8deg)">🌈</span>
-<span class="st" style="top:360px;left:26px;font-size:120px;transform:rotate(12deg)">🎀</span>
+<span class="st" style="top:318px;left:22px;font-size:160px;transform:rotate(-8deg)">🐻</span>
 <span class="st" style="top:440px;left:36px;font-size:120px;transform:rotate(-14deg)">📚</span>
 <span class="st" style="top:450px;right:34px;font-size:116px;transform:rotate(14deg)">✏️</span>
 <span class="st" style="top:830px;left:24px;font-size:100px;transform:rotate(-10deg)">🦋</span>
 <span class="st" style="top:830px;right:30px;font-size:104px;transform:rotate(9deg)">🌷</span>
 <span class="st" style="top:1035px;left:30px;font-size:96px;transform:rotate(-10deg)">💖</span>
-<span class="st" style="top:1025px;right:30px;font-size:98px;transform:rotate(10deg)">🧸</span>
+<span class="st" style="top:1000px;right:18px;font-size:130px;transform:rotate(10deg)">🧸</span>
 <span class="st" style="top:1540px;left:36px;font-size:100px;transform:rotate(-8deg)">🌼</span>
-<span class="st" style="top:1542px;right:38px;font-size:100px;transform:rotate(8deg)">🐝</span>
+<span class="st" style="top:1500px;right:26px;font-size:150px;transform:rotate(8deg)">🐝</span>
 </body></html>`
 
 mkdirSync(dirname(out), { recursive: true })
