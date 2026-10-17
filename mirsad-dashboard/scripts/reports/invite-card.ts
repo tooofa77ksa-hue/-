@@ -5,9 +5,10 @@
  * وملصقاتٌ كثيرة، لأنّ من يقرؤها تعب من الرسائل الطويلة. وفيها موعدان:
  * الأحد لأولياء الأمور، والخميس للمنسوبات.
  *
- * ومكانُ الصورة مدرسةٌ كرتونيّةٌ مرسومةٌ بالكود لا صورةٌ فوتوغرافيّة: لم
- * تكن بين الصور المتاحة واجهةٌ للمبنى، وأخذُ أيّ صورةٍ غيرها يضع في الدعوة
- * ما ليس المدرسة. والمرسومةُ لا تُظهر وجوهَ طالبات ولا تحتاج مجلّدًا غير مرفوع.
+ * وصورةُ المدرسة تُقرأ من `.report-out/school-photo.png` ولا تُكتب في الكود:
+ * المجلّد غيرُ مرفوع. فإن غابت رُسمت مكانها مدرسةٌ كرتونيّةٌ بالكود، لا
+ * صورةٌ من غير المدرسة — وقد وُضعت مرّةً صورةُ كرسيٍّ في ساحةٍ على أنها
+ * المدرسة، فصار الاحتياطُ رسمًا صريحًا لا صورةً مشابهة.
  *
  * والملصقات رموزٌ تعبيريّة تُرسم بخطّ الإيموجي نفسه فتظهر كما هي على كلّ
  * جهاز، لا صورًا مولَّدةً. وتوليدُ الصور بالذكاء الاصطناعي ينتظر تسجيلَ
@@ -15,7 +16,7 @@
  *
  *   npx vite-node scripts/reports/invite-card.ts
  */
-import { globSync, mkdirSync, readFileSync } from 'node:fs'
+import { existsSync, globSync, mkdirSync, readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 
 import { chromium } from 'playwright'
@@ -27,10 +28,12 @@ const option = (name: string) => {
   return i >= 0 ? args[i + 1] : undefined
 }
 const out = resolve(ROOT, option('out') ?? '.report-out/دعوة-استقبال-الأسبوع.png')
+const photoPath = resolve(ROOT, option('photo') ?? '.report-out/school-photo.png')
 
 const asset = (path: string, mime: string) =>
   `data:${mime};base64,${readFileSync(path).toString('base64')}`
 const font = (file: string) => asset(resolve(ROOT, `public/fonts/${file}`), 'font/woff2')
+const photo = existsSync(photoPath) ? asset(photoPath, 'image/png') : null
 
 const SCHOOL = `
 <svg viewBox="0 0 780 260" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" direction="rtl">
@@ -84,7 +87,7 @@ const html = `<!doctype html>
 @font-face { font-family:'Baloo'; src:url('${font('BalooBhaijaan2-Variable.woff2')}') format('woff2'); font-weight:400 800; }
 :root { --navy:#15445a; --green:#07a869; --teal:#0da9a6; --rose:#ec6f9a; --sun:#ffb938; --violet:#8a6fb0; }
 * { box-sizing:border-box; margin:0; padding:0; }
-body { width:1080px; height:1500px; font-family:'Baloo',sans-serif; color:var(--navy);
+body { width:1080px; height:1700px; font-family:'Baloo',sans-serif; color:var(--navy);
        background:linear-gradient(175deg,#fff4f8 0%,#fff9ec 38%,#eefaf6 100%); position:relative; overflow:hidden; }
 
 /* ملصق: رمزٌ كبير بحدٍّ أبيض وظلٍّ ناعم، كما تُلصق الملصقات على صورة */
@@ -105,10 +108,12 @@ h1 { position:absolute; top:206px; right:70px; left:70px; text-align:center;
 h1 small { display:block; font-size:40px; font-weight:700; color:var(--navy); margin-top:6px;
            text-shadow:none; }
 
-.pic { position:absolute; top:480px; right:150px; left:150px; height:250px; border-radius:46px;
+.pic { position:absolute; top:470px; right:110px; left:110px; height:440px; border-radius:46px;
        border:12px solid #fff; box-shadow:0 18px 40px rgba(21,68,90,.25); overflow:hidden;
        background:linear-gradient(135deg,#bfe9ef,#ffd9e6); transform:rotate(-1.4deg); }
 .pic svg { display:block; }
+.pic img { width:100%; height:100%; object-fit:cover; object-position:center 42%; display:block;
+           filter:saturate(1.12) brightness(1.05) contrast(1.04); }
 
 .card { position:absolute; right:70px; left:70px; border-radius:46px; padding:26px 34px;
         text-align:center; border:6px solid #fff; box-shadow:0 14px 30px rgba(21,68,90,.16); }
@@ -116,9 +121,9 @@ h1 small { display:block; font-size:40px; font-weight:700; color:var(--navy); ma
              border-radius:999px; padding:4px 34px; margin-bottom:8px; }
 .card p { font-size:46px; font-weight:800; line-height:1.4; }
 .card em { display:block; font-style:normal; font-size:32px; font-weight:700; margin-top:4px; opacity:.85; }
-.c1 { top:775px; background:linear-gradient(160deg,#e6fbf1,#fffdf2); }
+.c1 { top:965px; background:linear-gradient(160deg,#e6fbf1,#fffdf2); }
 .c1 .day { background:var(--green); }
-.c2 { top:1060px; background:linear-gradient(160deg,#fff0f6,#fffaf0); }
+.c2 { top:1250px; background:linear-gradient(160deg,#fff0f6,#fffaf0); }
 .c2 .day { background:var(--rose); }
 
 .foot { position:absolute; bottom:38px; right:0; left:0; text-align:center; }
@@ -134,7 +139,7 @@ h1 small { display:block; font-size:40px; font-weight:700; color:var(--navy); ma
 
 <h1>🌞 استقبال الأسبوع 🌞<small>دعوةٌ لأولياء أمورنا الغاليين</small></h1>
 
-<div class="pic">${SCHOOL}</div>
+<div class="pic">${photo ? `<img src="${photo}" alt="">` : SCHOOL}</div>
 
 <div class="card c1">
   <span class="day">☀️ كلَّ أحد</span>
@@ -155,23 +160,23 @@ h1 small { display:block; font-size:40px; font-weight:700; color:var(--navy); ma
 <span class="st" style="top:46px;left:36px;font-size:112px;transform:rotate(10deg)">🎈</span>
 <span class="st" style="top:350px;right:22px;font-size:130px;transform:rotate(-8deg)">🌈</span>
 <span class="st" style="top:360px;left:26px;font-size:120px;transform:rotate(12deg)">🎀</span>
-<span class="st" style="top:470px;left:50px;font-size:120px;transform:rotate(-14deg)">📚</span>
-<span class="st" style="top:490px;right:50px;font-size:116px;transform:rotate(14deg)">✏️</span>
-<span class="st" style="top:690px;left:24px;font-size:96px;transform:rotate(-10deg)">🦋</span>
-<span class="st" style="top:690px;right:30px;font-size:100px;transform:rotate(9deg)">🌷</span>
-<span class="st" style="top:985px;left:36px;font-size:90px;transform:rotate(-10deg)">💖</span>
-<span class="st" style="top:975px;right:36px;font-size:92px;transform:rotate(10deg)">🧸</span>
-<span class="st" style="top:1330px;left:40px;font-size:96px;transform:rotate(-8deg)">🌼</span>
-<span class="st" style="top:1332px;right:44px;font-size:96px;transform:rotate(8deg)">🐝</span>
+<span class="st" style="top:440px;left:36px;font-size:120px;transform:rotate(-14deg)">📚</span>
+<span class="st" style="top:450px;right:34px;font-size:116px;transform:rotate(14deg)">✏️</span>
+<span class="st" style="top:830px;left:24px;font-size:100px;transform:rotate(-10deg)">🦋</span>
+<span class="st" style="top:830px;right:30px;font-size:104px;transform:rotate(9deg)">🌷</span>
+<span class="st" style="top:1035px;left:30px;font-size:96px;transform:rotate(-10deg)">💖</span>
+<span class="st" style="top:1025px;right:30px;font-size:98px;transform:rotate(10deg)">🧸</span>
+<span class="st" style="top:1540px;left:36px;font-size:100px;transform:rotate(-8deg)">🌼</span>
+<span class="st" style="top:1542px;right:38px;font-size:100px;transform:rotate(8deg)">🐝</span>
 </body></html>`
 
 mkdirSync(dirname(out), { recursive: true })
 const executablePath = process.env.CHROMIUM_PATH
   ?? globSync('/opt/pw-browsers/chromium-*/chrome-linux/chrome').sort().at(-1)
 const browser = await chromium.launch(executablePath ? { executablePath } : {})
-const page = await browser.newPage({ viewport: { width: 1080, height: 1500 }, deviceScaleFactor: 1 })
+const page = await browser.newPage({ viewport: { width: 1080, height: 1700 }, deviceScaleFactor: 1 })
 await page.setContent(html, { waitUntil: 'networkidle' })
 await page.screenshot({ path: out })
 await browser.close()
 
-console.log(`✓ ${out}`)
+console.log(`✓ ${out}${photo ? '' : ' (مدرسة مرسومة — لا صورة)'}`)
