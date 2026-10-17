@@ -273,14 +273,13 @@ function spellCard(c, done, word, emoji, ar, scrambled, dict) {
   const letters = [...word.replace(/ /g, '')], pool = scrambled ? [...scrambled] : shuf(letters);
   c.innerHTML = `<div class="ct"><span>${dict ? '🎧 إملاء: اسمع واكتب' : '🔡 رتّب الحروف'}</span></div><div class="big" style="font-size:3.6rem">${emoji}</div>${ar ? `<p class="ar">${esc(ar)}</p>` : ''}
     <div class="built" id="bt"></div><div class="tiles2">${pool.map((ch, k) => `<button data-k="${k}">${esc(ch)}</button>`).join('')}</div>
-    <div class="row"><button class="chip" id="rs">↺ من جديد</button><button class="chip" id="hint">💡 أول حرف</button><button class="chip" id="hear">🔊 اسمع الكلمة</button></div><div id="fb"></div>`;
+    <div class="row"><button class="chip" id="rs">↺ من جديد</button><button class="chip" id="hear">🔊 اسمع الكلمة</button></div><div id="fb"></div>`;
   let got = '';
   const bt = $('#bt', c), fb = $('#fb', c);
   $$('.tiles2 button', c).forEach(b => b.onclick = () => { got += pool[+b.dataset.k]; b.disabled = true; bt.textContent = got;
     if (got.length === letters.length) { if (got.toLowerCase() === letters.join('').toLowerCase()) { bt.classList.add('ok'); fb.innerHTML = `<div class="fb ok">👏 ${pick(D.praise)} <span class="en">${esc(word)}</span></div>`; say([[A('E|' + word)], [A('E|' + pick(D.praise_en))], [A('R|' + pick(D.praise))]], done); }
       else { fb.innerHTML = `<div class="fb no">قريبة! الصحيح: <b class="en">${esc(word)}</b> · اضغط «من جديد» وجرّب</div>`; say([[A('R|' + D.retry)]]); } } });
   $('#rs', c).onclick = () => { got = ''; bt.textContent = ''; bt.classList.remove('ok'); fb.innerHTML = ''; $$('.tiles2 button', c).forEach(x => x.disabled = false); };
-  $('#hint', c).onclick = () => toast('أول حرف: ' + letters[0]);
   $('#hear', c).onclick = () => say([[A('E|' + word)]]);
   if (dict) { view.replay = () => say([[A('E|' + word)], [A('E|' + word)]]); view.replay(); }
 }
