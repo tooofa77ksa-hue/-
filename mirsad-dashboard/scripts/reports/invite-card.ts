@@ -159,8 +159,8 @@ h1 small { display:block; font-size:40px; font-weight:700; color:var(--navy); ma
 <div class="foot">
   <b>💙 شكرًا لأنكم معنا 💙</b>
   <div class="sign">
-    <div><i>مديرة المدرسة</i><u>جازية السميري</u></div>
     <div><i>وكيلة شؤون الطالبات</i><u>ناهد الحربي</u></div>
+    <div><i>مديرة المدرسة</i><u>جازية السميري</u></div>
   </div>
 </div>
 
