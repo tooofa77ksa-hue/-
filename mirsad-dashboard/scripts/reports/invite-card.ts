@@ -137,7 +137,7 @@ h1 small { display:block; font-size:40px; font-weight:700; color:var(--navy); ma
   <b>الابتدائية الخامسة والستون بعد المائة</b>
 </div>
 
-<h1>🌞 استقبال الأسبوع 🌞<small>دعوةٌ لأولياء أمورنا الغاليين</small></h1>
+<h1>🌟 استقبال الأسبوع 🌟<small>دعوةٌ لأولياء أمورنا الغاليين</small></h1>
 
 <div class="pic">${photo ? `<img src="${photo}" alt="">` : SCHOOL}</div>
 
@@ -155,19 +155,19 @@ h1 small { display:block; font-size:40px; font-weight:700; color:var(--navy); ma
 
 <div class="foot"><b>💙 شكرًا لأنكم معنا 💙</b><span>إدارة المدرسة</span></div>
 
-<!-- الملصقات -->
-<span class="st" style="top:40px;right:36px;font-size:120px;transform:rotate(-12deg)">🌟</span>
-<span class="st" style="top:46px;left:36px;font-size:112px;transform:rotate(10deg)">🎈</span>
-<span class="st" style="top:350px;right:22px;font-size:130px;transform:rotate(-8deg)">🌈</span>
-<span class="st" style="top:318px;left:22px;font-size:160px;transform:rotate(-8deg)">🐻</span>
-<span class="st" style="top:440px;left:36px;font-size:120px;transform:rotate(-14deg)">📚</span>
-<span class="st" style="top:450px;right:34px;font-size:116px;transform:rotate(14deg)">✏️</span>
-<span class="st" style="top:830px;left:24px;font-size:100px;transform:rotate(-10deg)">🦋</span>
+<!-- الملصقات: رسميّةٌ هادئة — كتبٌ وقبّعة تخرّج وورود ونجوم، لا حيواناتٌ ولا ألعاب -->
+<span class="st" style="top:40px;right:36px;font-size:116px;transform:rotate(-10deg)">🌟</span>
+<span class="st" style="top:44px;left:36px;font-size:110px;transform:rotate(8deg)">🎓</span>
+<span class="st" style="top:350px;right:26px;font-size:120px;transform:rotate(-8deg)">✨</span>
+<span class="st" style="top:350px;left:30px;font-size:120px;transform:rotate(10deg)">📖</span>
+<span class="st" style="top:440px;left:36px;font-size:112px;transform:rotate(-12deg)">📚</span>
+<span class="st" style="top:450px;right:34px;font-size:112px;transform:rotate(12deg)">✏️</span>
+<span class="st" style="top:830px;left:24px;font-size:100px;transform:rotate(-10deg)">🌹</span>
 <span class="st" style="top:830px;right:30px;font-size:104px;transform:rotate(9deg)">🌷</span>
-<span class="st" style="top:1035px;left:30px;font-size:96px;transform:rotate(-10deg)">💖</span>
-<span class="st" style="top:1000px;right:18px;font-size:130px;transform:rotate(10deg)">🧸</span>
-<span class="st" style="top:1540px;left:36px;font-size:100px;transform:rotate(-8deg)">🌼</span>
-<span class="st" style="top:1500px;right:26px;font-size:150px;transform:rotate(8deg)">🐝</span>
+<span class="st" style="top:1040px;left:30px;font-size:96px;transform:rotate(-10deg)">💙</span>
+<span class="st" style="top:1030px;right:30px;font-size:100px;transform:rotate(10deg)">🏫</span>
+<span class="st" style="top:1540px;left:36px;font-size:100px;transform:rotate(-8deg)">💐</span>
+<span class="st" style="top:1540px;right:38px;font-size:100px;transform:rotate(8deg)">🤍</span>
 </body></html>`
 
 mkdirSync(dirname(out), { recursive: true })
