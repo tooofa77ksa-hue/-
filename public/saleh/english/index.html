@@ -576,9 +576,9 @@ function pathCard(u){var s=U(u.id),ls=s.ls||{},L=u.lessons||[],dl=L.filter(funct
 // ---------- LEARN ----------
 function ytId(u){var m=String(u).match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);return m?m[1]:null}
 // the teacher's video plays right here inside the page (no leaving to YouTube)
-function vidBox(v){var w=el('div','vid');var id=ytId(v.url);w.appendChild(el('div','vt','▶️ '+fmtA(v.t)+(v.p?' <small class="muted">· صفحة '+v.p+'</small>':'')));
-  if(id){var f=document.createElement('iframe');f.src='https://www.youtube-nocookie.com/embed/'+id+'?rel=0&playsinline=1&modestbranding=1';f.loading='lazy';f.allow='accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen';f.allowFullscreen=true;f.referrerPolicy='strict-origin-when-cross-origin';f.title=plain(v.t);w.appendChild(f)}
-  var a=el('a','muted vl','إن لم يظهر الفيديو، افتحه من هنا ↗');a.href=v.url;a.target='_blank';a.rel='noopener';w.appendChild(a);return w}
+function vidBox(v){var w=el('div','vid');w.appendChild(el('div','vt','▶️ '+fmtA(v.t)+(v.p?' <small class="muted">· صفحة '+v.p+'</small>':'')));
+  // a plain link (opens YouTube in its own tab): embedded players did not load on the child's phone
+  var a=el('a','btn green','▶️ شاهد الفيديو');a.href=v.url;a.target='_blank';a.rel='noopener';a.style.display='block';a.style.textAlign='center';a.style.textDecoration='none';w.appendChild(a);return w}
 function videoCard(list,title){var c=el('div','card');c.appendChild(el('span','pill','🎬 '+title));c.appendChild(el('p','muted','شرح المعلمة نفسها بالفيديو (يحتاج إنترنت). شاهده هنا، ثم حلّ التدريبات.'));
   list.forEach(function(v){c.appendChild(vidBox(v))});return c}
 function learnTab(u){
