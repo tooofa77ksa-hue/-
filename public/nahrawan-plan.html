@@ -426,7 +426,7 @@ const SAVE_TIMEOUT_MS = 15000;
 function withTimeout(promise, ms = SAVE_TIMEOUT_MS){
   let timer;
   const timeout = new Promise(resolve => {
-    timer = setTimeout(() => resolve({data:null, error:{message:'انتهت مهلة الاتصال — تحقّقي من الشبكة وحاولي مجددًا', timeout:true}}), ms);
+    timer = setTimeout(() => resolve({data:null, error:{message:'انتهت مهلة الاتصال — تحقّق من الشبكة وحاول مجددًا', timeout:true}}), ms);
   });
   return Promise.race([promise, timeout]).finally(()=>clearTimeout(timer));
 }
@@ -452,14 +452,17 @@ function resolveLoginEmail(user){
 
 const params = new URLSearchParams(location.search);
 const MODE = params.get('mode') === 'admin' ? 'admin' : 'dashboard';
-const DOMAINS = ["نواتج التعلم","التعليم والتعلم","الأنشطة المدرسية","النشاط الطلابي","التوجيه الطلابي","التطوير المهني المستمر","الإدارة المدرسية","البيئة المدرسية"];
 function normDomain(d){
   if (d === "التدريس") return "التعليم والتعلم";
   if (d === "النشاط الطلابي") return "الأنشطة المدرسية";
   if (d === "المبنى المدرسي") return "البيئة المدرسية";
   return d;
 }
-const DOMAIN_LIST = ["نواتج التعلم","التعليم والتعلم","الأنشطة المدرسية","التوجيه الطلابي","التطوير المهني المستمر","الإدارة المدرسية","البيئة المدرسية"];
+// Seed only — the live, editable list is state.domainList (loaded from meta.quick_summary.domainList,
+// seeded from this on first run). Admins can add/rename/delete domains from الإعدادات → إدارة المجالات.
+const DEFAULT_DOMAIN_LIST = ["نواتج التعلم","التعليم والتعلم","الأنشطة المدرسية","التوجيه الطلابي","التطوير المهني المستمر","الإدارة المدرسية","البيئة المدرسية"];
+// Tables carrying a free-text `domain` column, kept in sync when a domain is renamed.
+const DOMAIN_TABLES = ['priorities','actions','programs','domain_analysis','domain_notes'];
 
 const state = {
   session: null,
@@ -475,6 +478,8 @@ const state = {
   domainAnalysis: [],
   domainNotes: [],
   planImprovements: [],
+  domainList: DEFAULT_DOMAIN_LIST.slice(),
+  faqItems: [],
   trash: {priorities:[], programs:[], team:[], actions:[], domainAnalysis:[], planImprovements:[]},
   editMode: true,
   activeDomain: null,
@@ -677,6 +682,9 @@ async function loadAll(){
   state.domainAnalysis = allDa.filter(x=>!x.deleted);
   state.domainNotes = (dnRes.data||[]).map(domainNoteFromDb);
   state.planImprovements = allPi.filter(x=>!x.deleted);
+  const qs0 = state.meta?.quickSummary || {};
+  state.domainList = (qs0.domainList && qs0.domainList.length) ? qs0.domainList.slice() : DEFAULT_DOMAIN_LIST.slice();
+  state.faqItems = (qs0.faqItems && qs0.faqItems.length) ? qs0.faqItems.slice() : DEFAULT_FAQ_ITEMS.slice();
   state.trash = {
     team: allTeam.filter(x=>x.deleted),
     priorities: allPri.filter(x=>x.deleted),
@@ -698,6 +706,70 @@ async function softDelete(table, id, confirmMsg){
 async function restoreFromTrash(table, id){
   const {error} = await withTimeout(sb.from(table).update({deleted:false, deleted_at:null}).eq('id', id));
   return !error;
+}
+
+/* ---------------- quick_summary-backed lists: domains & FAQ ----------------
+   Both reuse the existing meta.quick_summary JSONB column (no schema change) —
+   domainList under quickSummary.domainList, FAQ items under quickSummary.faqItems. */
+async function saveQuickSummaryPatch(patch){
+  const qs = Object.assign({}, state.meta.quickSummary, patch);
+  const {error} = await withTimeout(sb.from('meta').update({quick_summary: qs}).eq('id','main'));
+  if (!error) state.meta.quickSummary = qs;
+  return !error;
+}
+async function addDomain(name){
+  name = (name||'').trim();
+  if (!name) return false;
+  if (state.domainList.includes(name)) return true;
+  const newList = state.domainList.concat([name]);
+  const ok = await saveQuickSummaryPatch({domainList:newList});
+  if (ok) state.domainList = newList;
+  return ok;
+}
+async function deleteDomain(name){
+  const newList = state.domainList.filter(d=>d!==name);
+  const ok = await saveQuickSummaryPatch({domainList:newList});
+  if (ok) state.domainList = newList;
+  return ok;
+}
+async function renameDomain(oldName, newName){
+  newName = (newName||'').trim();
+  if (!newName || newName===oldName) return false;
+  const newList = state.domainList.map(d=>d===oldName?newName:d);
+  const ok = await saveQuickSummaryPatch({domainList:newList});
+  if (!ok) return false;
+  state.domainList = newList;
+  for (const t of DOMAIN_TABLES){
+    await withTimeout(sb.from(t).update({domain:newName}).eq('domain', oldName));
+  }
+  // Update local state in place (no full reload) so the caller's DOM references stay valid.
+  [state.priorities, state.actions, state.programs, state.domainAnalysis].forEach(arr=>{
+    arr.forEach(x=>{ if (x.domain===oldName) x.domain=newName; });
+  });
+  state.domainNotes.forEach(n=>{ if (n.domain===oldName) n.domain=newName; });
+  return true;
+}
+async function addFaqItem(q, a){
+  q = (q||'').trim(); a = (a||'').trim();
+  if (!q || !a) return false;
+  const newItems = state.faqItems.concat([{q,a}]);
+  const ok = await saveQuickSummaryPatch({faqItems:newItems});
+  if (ok) state.faqItems = newItems;
+  return ok;
+}
+async function updateFaqItem(index, q, a){
+  const newItems = state.faqItems.slice();
+  if (!newItems[index]) return false;
+  newItems[index] = {q:(q||'').trim(), a:(a||'').trim()};
+  const ok = await saveQuickSummaryPatch({faqItems:newItems});
+  if (ok) state.faqItems = newItems;
+  return ok;
+}
+async function deleteFaqItem(index){
+  const newItems = state.faqItems.filter((_,i)=>i!==index);
+  const ok = await saveQuickSummaryPatch({faqItems:newItems});
+  if (ok) state.faqItems = newItems;
+  return ok;
 }
 
 /* ---------------- helpers ---------------- */
@@ -722,7 +794,7 @@ function render(){
   if (MODE === 'admin' && !state.authed){ renderGate(); return; }
   if (state.loadError && !state.loaded){
     root.innerHTML = `<div class="loading" style="flex-direction:column;gap:14px">
-      <div>تعذّر تحميل بيانات الخطة — تحقّقي من الاتصال بالإنترنت</div>
+      <div>تعذّر تحميل بيانات الخطة — تحقّق من الاتصال بالإنترنت</div>
       <button type="button" class="btn primary" id="retryLoadBtn">إعادة المحاولة</button>
     </div>`;
     document.getElementById('retryLoadBtn').addEventListener('click', loadAll);
@@ -869,7 +941,7 @@ const DOMAIN_COLOR = {
   'التطوير المهني المستمر':'blue','الإدارة المدرسية':'blue','البيئة المدرسية':'green',
 };
 function domainPillsRow(){
-  const items = [{d:null,label:'كل المجالات'}, ...DOMAIN_LIST.map(d=>({d,label:d}))];
+  const items = [{d:null,label:'كل المجالات'}, ...state.domainList.map(d=>({d,label:d}))];
   return `<div class="card">
     <div class="card-hd"><h3>مجالات الخطة</h3></div>
     <div class="card-bd"><div class="domain-row">
@@ -1022,7 +1094,10 @@ function renderPriorities(c){
       <div id="detailPane"></div>
       <div class="card">
         <div class="card-hd"><h3>${state.showArchived?'المؤشرات المؤرشفة':'المؤشرات'} (${list.length})</h3>
-          ${canEdit() && archivedCount>0 ? `<button class="btn sm ${state.showArchived?'primary':''}" id="toggleArchivedBtn">${icon('archive')} ${state.showArchived?'عرض النشط':'عرض الأرشيف ('+archivedCount+')'}</button>` : ''}
+          <div class="actions">
+            ${canEdit() ? `<button class="btn sm teal" id="addPriorityBtn">${icon('plus')} إضافة مؤشر جديد</button>` : ''}
+            ${canEdit() && archivedCount>0 ? `<button class="btn sm ${state.showArchived?'primary':''}" id="toggleArchivedBtn">${icon('archive')} ${state.showArchived?'عرض النشط':'عرض الأرشيف ('+archivedCount+')'}</button>` : ''}
+          </div>
         </div>
         <div class="card-bd">
           <div class="search">${icon('search')}<input id="priSearch" placeholder="البحث في المؤشرات…"></div>
@@ -1033,9 +1108,12 @@ function renderPriorities(c){
       </div>
     </div>
     <div style="margin-top:18px">${domainPillsRow()}</div>
+    <div id="newPriModal"></div>
   `;
   const toggleArchivedBtn = document.getElementById('toggleArchivedBtn');
   if (toggleArchivedBtn) toggleArchivedBtn.addEventListener('click', ()=>{ state.showArchived=!state.showArchived; state.selectedPriority=null; renderPriorities(c); });
+  const addPriorityBtn = document.getElementById('addPriorityBtn');
+  if (addPriorityBtn) addPriorityBtn.addEventListener('click', ()=>openNewPriorityModal(c));
   c.querySelectorAll('.pri-item').forEach(el=>el.addEventListener('click',()=>{state.selectedPriority=el.dataset.id;renderPriorities(c);}));
   const search = document.getElementById('priSearch');
   search.addEventListener('input', ()=>{
@@ -1048,9 +1126,64 @@ function renderPriorities(c){
   renderDetail(document.getElementById('detailPane'), selected, {showAdminForm:true});
 }
 
+function openNewPriorityModal(c){
+  const modal = document.getElementById('newPriModal');
+  modal.innerHTML = `
+    <div style="position:fixed;inset:0;background:rgba(15,27,32,.5);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px" id="newPriModalBg">
+      <div class="card" style="max-width:560px;width:100%;max-height:88vh;overflow-y:auto">
+        <div class="card-hd"><h3>إضافة مؤشر جديد</h3><button type="button" class="btn sm ghost" id="newPriModalClose">✕</button></div>
+        <div class="card-bd">
+          <form id="newPriForm">
+            <div class="form-grid">
+              <div class="f-field full"><label>نص المؤشر</label><textarea name="text" required></textarea></div>
+              <div class="f-field"><label>المجال</label><select name="domain">${state.domainList.map(d=>`<option>${esc(d)}</option>`).join('')}</select></div>
+              <div class="f-field"><label>المستوى</label><input name="level"></div>
+              <div class="f-field full"><label>الإطار الموجه</label><input name="framework"></div>
+              <div class="f-field"><label>خط الأساس (%)</label><input name="baseline"></div>
+              <div class="f-field"><label>المستهدف (%)</label><input name="target"></div>
+              <div class="f-field"><label>آخر قياس موثق (%)</label><input name="lastMeasured"></div>
+              <div class="f-field"><label>حالة التنفيذ</label><select name="executionStatus">${['لم يبدأ','قيد التنفيذ','مكتمل'].map(o=>`<option>${o}</option>`).join('')}</select></div>
+              <div class="f-field"><label>المسؤول عن التنفيذ</label><input name="responsible"></div>
+              <div class="f-field full"><label>رابط الشاهد</label><input name="evidenceUrl" placeholder="https://‏..."></div>
+              <div class="f-field full"><label>ملاحظات</label><textarea name="notes"></textarea></div>
+            </div>
+            <div class="save-bar">
+              <button type="submit" class="btn teal">إضافة المؤشر</button>
+              <span class="save-msg" id="newPriSaveMsg"></span>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('newPriModalClose').addEventListener('click', ()=>modal.innerHTML='');
+  document.getElementById('newPriModalBg').addEventListener('click', e=>{ if(e.target.id==='newPriModalBg') modal.innerHTML=''; });
+  document.getElementById('newPriForm').addEventListener('submit', e=>{
+    e.preventDefault();
+    const submitBtn = e.target.querySelector('button[type=submit]');
+    guardedAction(submitBtn, async ()=>{
+      const fd = new FormData(e.target);
+      const patch = Object.fromEntries(fd.entries());
+      const msg = document.getElementById('newPriSaveMsg');
+      if (!patch.text || !patch.text.trim()){ msg.textContent='أدخل نص المؤشر'; msg.className='save-msg err'; return; }
+      msg.textContent = 'جارِ الحفظ…'; msg.className='save-msg';
+      const newId = 'p' + String(Date.now()).slice(-8);
+      const dbRow = Object.assign({id:newId}, priorityPatchToDb(patch));
+      const {error} = await withTimeout(sb.from('priorities').insert(dbRow));
+      if (!error){
+        const row = Object.assign({id:newId, archived:false, deleted:false, evidenceType:'link', evidenceNote:''}, patch);
+        state.priorities.push(row);
+        state.selectedPriority = newId;
+        msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
+        setTimeout(()=>{ modal.innerHTML=''; renderPriorities(c); }, 400);
+      } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+    });
+  });
+}
+
 function renderDetail(el, p, opts){
   opts = opts || {showAdminForm:true};
-  if (!p){ el.innerHTML = `<div class="card"><div class="card-bd empty">اختاري مؤشرًا من القائمة</div></div>`; return; }
+  if (!p){ el.innerHTML = `<div class="card"><div class="card-bd empty">اختر مؤشرًا من القائمة</div></div>`; return; }
   const acts = priorityActions(p);
   const statusLabel = p.executionStatus || 'لم يُحدَّث';
   const statusCls = p.executionStatus==='مكتمل' ? 'ok' : (p.executionStatus==='قيد التنفيذ' ? 'warn' : 'idle');
@@ -1103,7 +1236,7 @@ function renderDetail(el, p, opts){
     }));
     document.querySelectorAll('[data-delete-action]').forEach(b=>b.addEventListener('click', ()=>guardedAction(b, async ()=>{
       const id = b.dataset.deleteAction;
-      const ok = await softDelete('actions', id, 'هل تريدين حذف هذا الإجراء؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
+      const ok = await softDelete('actions', id, 'هل تريد حذف هذا الإجراء؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
       if (ok){
         const item = state.actions.find(x=>x.id===id);
         state.actions = state.actions.filter(x=>x.id!==id);
@@ -1181,7 +1314,7 @@ function adminPriorityForm(p){
         <div class="f-field full"><label>نص المؤشر</label><textarea name="text">${esc(p.text||'')}</textarea></div>
         <div class="f-field"><label>المجال</label>
           <select name="domain">
-            ${DOMAIN_LIST.map(d=>`<option ${normDomain(p.domain)===d?'selected':''}>${d}</option>`).join('')}
+            ${state.domainList.map(d=>`<option ${normDomain(p.domain)===d?'selected':''}>${d}</option>`).join('')}
           </select>
         </div>
         <div class="f-field"><label>المستوى</label><input name="level" value="${esc(p.level||'')}"></div>
@@ -1224,7 +1357,7 @@ function wireAdminPriorityForm(p){
         Object.assign(p, patch);
         msg.textContent = 'تم الحفظ ✓'; msg.className='save-msg ok';
       } else {
-        msg.textContent = 'تعذّر الحفظ — حاولي مجددًا'; msg.className='save-msg err';
+        msg.textContent = 'تعذّر الحفظ — حاول مجددًا'; msg.className='save-msg err';
       }
     });
   });
@@ -1236,7 +1369,7 @@ function wireAdminPriorityForm(p){
   }));
   const deleteBtn = document.getElementById('deletePriBtn');
   if (deleteBtn) deleteBtn.addEventListener('click', ()=>guardedAction(deleteBtn, async ()=>{
-    const ok = await softDelete('priorities', p.id, 'هل تريدين حذف هذا المؤشر؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
+    const ok = await softDelete('priorities', p.id, 'هل تريد حذف هذا المؤشر؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
     if (ok){
       state.priorities = state.priorities.filter(x=>x.id!==p.id);
       state.trash.priorities.push(Object.assign({}, p, {deleted:true}));
@@ -1254,7 +1387,10 @@ function renderPrograms(c){
   c.innerHTML = `
     <div class="card">
       <div class="card-hd"><h3>${state.showArchived?'البرامج المؤرشفة':'البرامج'} (${list.length})</h3>
-        ${canEdit() && archivedCount>0 ? `<button class="btn sm ${state.showArchived?'primary':''}" id="toggleArchivedBtn">${icon('archive')} ${state.showArchived?'عرض النشط':'عرض الأرشيف ('+archivedCount+')'}</button>` : ''}
+        <div class="actions">
+          ${canEdit() ? `<button class="btn sm teal" id="addProgramBtn">${icon('plus')} إضافة برنامج جديد</button>` : ''}
+          ${canEdit() && archivedCount>0 ? `<button class="btn sm ${state.showArchived?'primary':''}" id="toggleArchivedBtn">${icon('archive')} ${state.showArchived?'عرض النشط':'عرض الأرشيف ('+archivedCount+')'}</button>` : ''}
+        </div>
       </div>
       <div class="card-bd table-wrap">
         <table>
@@ -1280,39 +1416,42 @@ function renderPrograms(c){
   `;
   if (canEdit()){
     c.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>openProgramEditor(list.find(p=>p.id===b.dataset.edit))));
+    const addProgramBtn = document.getElementById('addProgramBtn');
+    if (addProgramBtn) addProgramBtn.addEventListener('click', ()=>openProgramEditor(null));
     const toggleArchivedBtn = document.getElementById('toggleArchivedBtn');
     if (toggleArchivedBtn) toggleArchivedBtn.addEventListener('click', ()=>{ state.showArchived=!state.showArchived; renderPrograms(c); });
   }
 }
 
 function openProgramEditor(p){
+  const isNew = !p;
   const modal = document.getElementById('programModal');
   modal.innerHTML = `
     <div style="position:fixed;inset:0;background:rgba(15,27,32,.5);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px" id="modalBg">
       <div class="card" style="max-width:520px;width:100%;max-height:88vh;overflow-y:auto">
-        <div class="card-hd"><h3>تحديث حالة البرنامج</h3><button class="btn sm ghost" id="modalClose">✕</button></div>
+        <div class="card-hd"><h3>${isNew?'إضافة برنامج جديد':'تحديث حالة البرنامج'}</h3><button type="button" class="btn sm ghost" id="modalClose">✕</button></div>
         <div class="card-bd">
           <form id="progForm">
             <div class="form-grid">
-              <div class="f-field full"><label>اسم البرنامج / المشروع</label><input name="name" value="${esc(p.name)}"></div>
+              <div class="f-field full"><label>اسم البرنامج / المشروع</label><input name="name" value="${esc(p?.name||'')}" required></div>
               <div class="f-field"><label>المجال</label>
-                <select name="domain">${DOMAIN_LIST.map(d=>`<option ${normDomain(p.domain)===d?'selected':''}>${d}</option>`).join('')}</select>
+                <select name="domain">${state.domainList.map(d=>`<option ${normDomain(p?.domain)===d?'selected':''}>${d}</option>`).join('')}</select>
               </div>
-              <div class="f-field"><label>تاريخ التنفيذ</label><input name="executionDate" value="${esc(p.executionDate||'')}"></div>
+              <div class="f-field"><label>تاريخ التنفيذ</label><input name="executionDate" value="${esc(p?.executionDate||'')}"></div>
               <div class="f-field"><label>حالة التنفيذ</label>
-                <select name="executed"><option value="" ${!p.executed?'selected':''}>لم يُحدَّث</option><option value="true" ${p.executed===true?'selected':''}>نُفّذ</option><option value="false" ${p.executed===false?'selected':''}>لم يُنفَّذ</option></select>
+                <select name="executed"><option value="" ${!p?.executed?'selected':''}>لم يُحدَّث</option><option value="true" ${p?.executed===true?'selected':''}>نُفّذ</option><option value="false" ${p?.executed===false?'selected':''}>لم يُنفَّذ</option></select>
               </div>
               <div class="f-field"><label>مستوى الإنجاز</label>
-                <select name="achievementLevel"><option value="">—</option>${['عالي','متوسط','ضعيف'].map(o=>`<option ${p.achievementLevel===o?'selected':''}>${o}</option>`).join('')}</select>
+                <select name="achievementLevel"><option value="">—</option>${['عالي','متوسط','ضعيف'].map(o=>`<option ${p?.achievementLevel===o?'selected':''}>${o}</option>`).join('')}</select>
               </div>
-              <div class="f-field full"><label>أسباب عدم التنفيذ (إن وجدت)</label><input name="notExecutedReason" value="${esc(p.notExecutedReason||'')}"></div>
-              <div class="f-field full"><label>تاريخ التنفيذ المقترح</label><input name="proposedDate" value="${esc(p.proposedDate||'')}"></div>
-              <div class="f-field full"><label>أداة التقويم المستخدمة</label><input name="evaluationTool" value="${esc(p.evaluationTool||'')}"></div>
+              <div class="f-field full"><label>أسباب عدم التنفيذ (إن وجدت)</label><input name="notExecutedReason" value="${esc(p?.notExecutedReason||'')}"></div>
+              <div class="f-field full"><label>تاريخ التنفيذ المقترح</label><input name="proposedDate" value="${esc(p?.proposedDate||'')}"></div>
+              <div class="f-field full"><label>أداة التقويم المستخدمة</label><input name="evaluationTool" value="${esc(p?.evaluationTool||'')}"></div>
             </div>
             <div class="save-bar">
-              <button type="submit" class="btn teal">حفظ</button>
-              <button type="button" class="btn sm ghost" id="archiveProgBtn">${icon('archive')} ${p.archived?'إلغاء الأرشفة':'أرشفة'}</button>
-              <button type="button" class="btn sm ghost" id="deleteProgBtn" style="color:#a33">${icon('trash')} حذف</button>
+              <button type="submit" class="btn teal">${isNew?'إضافة البرنامج':'حفظ'}</button>
+              ${!isNew?`<button type="button" class="btn sm ghost" id="archiveProgBtn">${icon('archive')} ${p.archived?'إلغاء الأرشفة':'أرشفة'}</button>
+              <button type="button" class="btn sm ghost" id="deleteProgBtn" style="color:#a33">${icon('trash')} حذف</button>`:''}
               <span class="save-msg" id="progSaveMsg"></span>
             </div>
           </form>
@@ -1331,30 +1470,45 @@ function openProgramEditor(p){
     if (patch.executed==='true') patch.executed = true; else if (patch.executed==='false') patch.executed=false; else patch.executed=null;
     const msg = document.getElementById('progSaveMsg');
     msg.textContent='جارِ الحفظ…'; msg.className='save-msg';
-    const {error} = await withTimeout(sb.from('programs').update(programPatchToDb(patch)).eq('id', p.id));
-    if (!error){
-      Object.assign(p, patch);
-      msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
-      setTimeout(()=>{modal.innerHTML='';}, 700);
-    } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+    if (isNew){
+      if (!patch.name || !patch.name.trim()){ msg.textContent='أدخل اسم البرنامج'; msg.className='save-msg err'; return; }
+      const newId = 'g' + String(Date.now()).slice(-8);
+      const dbRow = Object.assign({id:newId}, programPatchToDb(patch));
+      const {error} = await withTimeout(sb.from('programs').insert(dbRow));
+      if (!error){
+        const row = Object.assign({id:newId, archived:false, deleted:false}, patch);
+        state.programs.push(row);
+        msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
+        setTimeout(()=>{ modal.innerHTML=''; renderPrograms(document.getElementById('content')); }, 400);
+      } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+    } else {
+      const {error} = await withTimeout(sb.from('programs').update(programPatchToDb(patch)).eq('id', p.id));
+      if (!error){
+        Object.assign(p, patch);
+        msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
+        setTimeout(()=>{modal.innerHTML='';}, 700);
+      } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+    }
     });
   });
-  const archiveProgBtn = document.getElementById('archiveProgBtn');
-  archiveProgBtn.addEventListener('click', ()=>guardedAction(archiveProgBtn, async ()=>{
-    const newVal = !p.archived;
-    const {error} = await withTimeout(sb.from('programs').update({archived:newVal}).eq('id', p.id));
-    if (!error){ p.archived = newVal; modal.innerHTML=''; renderPrograms(document.getElementById('content')); }
-  }));
-  const deleteProgBtn = document.getElementById('deleteProgBtn');
-  deleteProgBtn.addEventListener('click', ()=>guardedAction(deleteProgBtn, async ()=>{
-    const ok = await softDelete('programs', p.id, 'هل تريدين حذف هذا البرنامج؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
-    if (ok){
-      state.programs = state.programs.filter(x=>x.id!==p.id);
-      state.trash.programs.push(Object.assign({}, p, {deleted:true}));
-      modal.innerHTML='';
-      renderPrograms(document.getElementById('content'));
-    }
-  }));
+  if (!isNew){
+    const archiveProgBtn = document.getElementById('archiveProgBtn');
+    archiveProgBtn.addEventListener('click', ()=>guardedAction(archiveProgBtn, async ()=>{
+      const newVal = !p.archived;
+      const {error} = await withTimeout(sb.from('programs').update({archived:newVal}).eq('id', p.id));
+      if (!error){ p.archived = newVal; modal.innerHTML=''; renderPrograms(document.getElementById('content')); }
+    }));
+    const deleteProgBtn = document.getElementById('deleteProgBtn');
+    deleteProgBtn.addEventListener('click', ()=>guardedAction(deleteProgBtn, async ()=>{
+      const ok = await softDelete('programs', p.id, 'هل تريد حذف هذا البرنامج؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
+      if (ok){
+        state.programs = state.programs.filter(x=>x.id!==p.id);
+        state.trash.programs.push(Object.assign({}, p, {deleted:true}));
+        modal.innerHTML='';
+        renderPrograms(document.getElementById('content'));
+      }
+    }));
+  }
 }
 
 /* ---------------- evidence ---------------- */
@@ -1363,7 +1517,7 @@ function evidenceAddForm(){
   <form id="evidenceForm" style="margin-bottom:20px;padding-bottom:18px;border-bottom:1px dashed var(--border)">
     <h3 style="margin:0 0 12px;font-size:14.5px">إضافة شاهد جديد (وضع الإدارة)</h3>
     <div class="form-grid">
-      <div class="f-field full"><label>اختاري المؤشر</label>
+      <div class="f-field full"><label>اختر المؤشر</label>
         <select name="priorityId" required>
           ${state.priorities.map(p=>`<option value="${p.id}">${esc(p.text.length>70?p.text.slice(0,70)+'…':p.text)}${p.evidenceUrl||p.evidenceNote?' — يوجد شاهد حاليًا':''}</option>`).join('')}
         </select>
@@ -1379,7 +1533,7 @@ function evidenceAddForm(){
         <input name="url" type="url" placeholder="https://drive.google.com/... أو https://youtube.com/...">
       </div>
       <div class="f-field full hidden" id="evTextWrap"><label>النص</label>
-        <textarea name="note" placeholder="اكتبي وصف الشاهد أو ملاحظة نصية..."></textarea>
+        <textarea name="note" placeholder="اكتب وصف الشاهد أو ملاحظة نصية..."></textarea>
       </div>
     </div>
     <div class="save-bar">
@@ -1425,8 +1579,8 @@ function wireEvidenceAddForm(){
     const url = evType === 'text' ? '' : (fd.get('url')||'');
     const note = evType === 'text' ? (fd.get('note')||'') : '';
     const msg = document.getElementById('evSaveMsg');
-    if (evType !== 'text' && !url){ msg.textContent='أدخلي رابطًا صحيحًا'; msg.className='save-msg err'; return; }
-    if (evType === 'text' && !note){ msg.textContent='أدخلي نصًا'; msg.className='save-msg err'; return; }
+    if (evType !== 'text' && !url){ msg.textContent='أدخل رابطًا صحيحًا'; msg.className='save-msg err'; return; }
+    if (evType === 'text' && !note){ msg.textContent='أدخل نصًا'; msg.className='save-msg err'; return; }
     msg.textContent = 'جارِ الحفظ…'; msg.className = 'save-msg';
     const {error} = await withTimeout(sb.from('priorities').update({evidence_url: url, evidence_type: evType, evidence_note: note}).eq('id', id));
     if (!error){
@@ -1436,7 +1590,7 @@ function wireEvidenceAddForm(){
       form.reset();
       renderEvidence(document.getElementById('content'));
     } else {
-      msg.textContent = 'تعذّر الحفظ — حاولي مجددًا'; msg.className = 'save-msg err';
+      msg.textContent = 'تعذّر الحفظ — حاول مجددًا'; msg.className = 'save-msg err';
     }
     });
   });
@@ -1453,7 +1607,7 @@ function evidenceCard(p){
     <div class="txt">${esc(p.text.length>70?p.text.slice(0,70)+'…':p.text)}</div>
     ${p.evidenceType==='text' ? `<div class="val" style="text-align:right;padding:10px;background:var(--surface-2);border-radius:8px;font-size:12.5px">${esc(p.evidenceNote)}</div>` :
       embed ? `<div style="aspect-ratio:16/9;border-radius:10px;overflow:hidden;margin:6px 0"><iframe src="${esc(embed)}" style="width:100%;height:100%;border:0" allowfullscreen></iframe></div>` :
-      `<div class="qr-box" id="qr-${p.id}" title="اضغطي لفتح رابط الشاهد"></div>`}
+      `<div class="qr-box" id="qr-${p.id}" title="اضغط لفتح رابط الشاهد"></div>`}
     <div class="evidence-actions">
       ${p.evidenceType!=='text' ? `<a href="${esc(p.evidenceUrl)}" target="_blank" rel="noopener" class="btn sm">${icon('doc')} فتح الرابط</a>` : ''}
       ${canEdit() ? `<button type="button" class="btn sm ghost" data-remove-ev="${p.id}" title="حذف الشاهد">${icon('trash')} حذف الشاهد</button>` : ''}
@@ -1562,7 +1716,7 @@ function renderTeam(c){
     })));
     c.querySelectorAll('[data-remove-team]').forEach(b=>b.addEventListener('click', ()=>guardedAction(b, async ()=>{
       const id = b.dataset.removeTeam;
-      const ok = await softDelete('team', id, 'هل تريدين حذف هذا العضو؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
+      const ok = await softDelete('team', id, 'هل تريد حذف هذا العضو؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
       if (ok){
         const item = state.team.find(t=>t.id===id);
         state.team = state.team.filter(t=>t.id!==id);
@@ -1574,38 +1728,122 @@ function renderTeam(c){
 }
 
 /* ---------------- FAQ ---------------- */
-const FAQ_ITEMS = [
-  {q:'كيف أدخل لوضع الإدارة؟', a:'افتحي رابط الإدارة (نفس رابط الداشبورد مضافًا له ?mode=admin)، ثم سجّلي الدخول باسم المستخدم والرمز السري الخاصين بك.'},
-  {q:'كيف أعدّل مؤشرًا؟', a:'من قائمة "مجالات التحسين"، اختاري المؤشر من القائمة، ثم عدّلي الحقول في نموذج "تعديل المؤشر" أسفل التفاصيل واضغطي "حفظ التعديلات".'},
-  {q:'كيف أضيف أو أحذف عضو فريق؟', a:'من قسم "فريق العمل" في وضع الإدارة، استخدمي نموذج "إضافة عضو جديد" أعلى الصفحة، أو زر "حذف" أسفل بطاقة أي عضو.'},
+// Seed only — the live, editable list is state.faqItems (loaded from
+// meta.quick_summary.faqItems, seeded from this on first run).
+const DEFAULT_FAQ_ITEMS = [
+  {q:'كيف أدخل لوضع الإدارة؟', a:'افتح رابط الإدارة (نفس رابط الداشبورد مضافًا له ?mode=admin)، ثم سجّل الدخول باسم المستخدم والرمز السري الخاصين بك.'},
+  {q:'كيف أعدّل مؤشرًا، أو أضيف مؤشرًا أو برنامجًا جديدًا؟', a:'من قائمة "مجالات التحسين" أو "البرامج والإجراءات"، استخدم زر "إضافة مؤشر/برنامج جديد" أعلى القائمة لإنشاء عنصر جديد، أو اختر عنصرًا موجودًا وعدّل حقوله ثم اضغط "حفظ".'},
+  {q:'كيف أضيف أو أحذف عضو فريق؟', a:'من قسم "فريق العمل" في وضع الإدارة، استخدم نموذج "إضافة عضو جديد" أعلى الصفحة، أو زر "حذف" أسفل بطاقة أي عضو.'},
   {q:'ما الفرق بين الحذف والأرشفة؟', a:'الأرشفة تخفي المؤشر أو البرنامج من القائمة الرئيسية دون حذف بياناته، ويمكن استعادته لاحقًا من زر "عرض الأرشيف". الحذف ينقل العنصر إلى "سلة المحذوفات" ويمكن استعادته من هناك في أي وقت.'},
-  {q:'حذفت عنصرًا بالخطأ، كيف أستعيده؟', a:'من قسم "سلة المحذوفات" في وضع الإدارة، ستجدين كل ما حذفتيه (مؤشرات، برامج، إجراءات، أعضاء فريق، عناصر تحليل واقع) مع زر "استعادة" لإرجاعه لمكانه.'},
+  {q:'حذفت عنصرًا بالخطأ، كيف أستعيده؟', a:'من قسم "سلة المحذوفات" في وضع الإدارة، ستجد كل ما حذفته (مؤشرات، برامج، إجراءات، أعضاء فريق، عناصر تحليل واقع) مع زر "استعادة" لإرجاعه لمكانه.'},
   {q:'أين أجد كل محتوى ملف الوورد (تحليل الواقع الكامل، نقاط القوة، البيانات الأساسية للمدرسة)؟', a:'قسم "تحليل الواقع" يعرض كل مؤشرات التقويم (نقاط القوة والضعف) حسب المجال مع الملاحظات. قسم "الإعدادات" و"نظرة عامة" يعرضان البيانات الأساسية للمدرسة، أعداد المنسوبين والطلاب، ونتائج التقويم الذاتي والخارجي.'},
-  {q:'كيف أضيف شاهدًا (رابط، يوتيوب، أو نص)؟', a:'من قسم "الشواهد" في وضع الإدارة، اختاري المؤشر ونوع الشاهد (رابط / يوتيوب / نص)، ثم أدخلي المحتوى واضغطي "إضافة الشاهد".'},
-  {q:'كيف أصدّر ملف Excel أو أطبع تقرير PDF؟', a:'من أعلى الصفحة اضغطي "تصدير Excel" لحفظ ملف إكسل احترافي يشمل كل الأقسام (تحليل الواقع، الأولويات، الإجراءات، البرامج، الفريق)، أو "طباعة / PDF" لفتح معاينة طباعة يمكن حفظها كـ PDF من نافذة الطباعة.'},
+  {q:'كيف أضيف شاهدًا (رابط، يوتيوب، أو نص)؟', a:'من قسم "الشواهد" في وضع الإدارة، اختر المؤشر ونوع الشاهد (رابط / يوتيوب / نص)، ثم أدخل المحتوى واضغط "إضافة الشاهد".'},
+  {q:'كيف أصدّر الخطة (Excel، Word، أو PDF)؟', a:'من أعلى الصفحة: "تصدير Excel" لملف إكسل بكل الأقسام، "تصدير Word" لملف وورد قابل للتعديل، "طباعة / PDF" لمعاينة طباعة القسم الحالي، أو "تقرير كامل PDF" لتصدير كل أقسام الخطة في ملف PDF واحد مرتب بترقيم صفحات.'},
+  {q:'كيف أضيف أو أحذف مجالًا من مجالات الخطة؟', a:'من "الإعدادات" → "إدارة المجالات"، أضف مجالًا جديدًا من الحقل أسفل القائمة، أو عدّل اسم مجال موجود مباشرة (يُحدَّث اسمه تلقائيًا في كل العناصر المرتبطة به)، أو احذفه من القائمة (العناصر المرتبطة به تبقى كما هي).'},
   {q:'هل التعديلات تظهر فورًا لباقي المشاهدين؟', a:'التعديلات تُحفظ فورًا في قاعدة البيانات، وتظهر لأي شخص يفتح الرابط أو يعيد تحميل الصفحة.'},
 ];
 function renderFaq(c){
   c.innerHTML = `
     <div class="card"><div class="card-bd">
-      ${FAQ_ITEMS.map(item=>`
+      ${canEdit() ? `
+      <form id="faqAddForm" style="margin-bottom:20px;padding-bottom:18px;border-bottom:1px dashed var(--border)">
+        <h3 style="margin:0 0 12px;font-size:14.5px">إضافة سؤال جديد</h3>
+        <div class="form-grid">
+          <div class="f-field full"><label>السؤال</label><input name="q" required></div>
+          <div class="f-field full"><label>الإجابة</label><textarea name="a" required></textarea></div>
+        </div>
+        <div class="save-bar"><button type="submit" class="btn teal">${icon('plus')} إضافة السؤال</button><span class="save-msg" id="faqAddMsg"></span></div>
+      </form>` : ''}
+      ${state.faqItems.map((item,i)=>canEdit() ? `
+        <div style="border-bottom:1px solid var(--border);padding:14px 0" data-faq-row="${i}">
+          <div class="f-field full"><label>السؤال</label><input data-faq-field="q" value="${esc(item.q)}"></div>
+          <div class="f-field full" style="margin-top:8px"><label>الإجابة</label><textarea data-faq-field="a">${esc(item.a)}</textarea></div>
+          <div class="save-bar">
+            <button type="button" class="btn sm teal" data-faq-save="${i}">حفظ</button>
+            <button type="button" class="btn sm ghost" data-faq-delete="${i}" style="color:#a33">${icon('trash')} حذف</button>
+            <span class="save-msg" id="faqRowMsg-${i}"></span>
+          </div>
+        </div>` : `
         <div style="border-bottom:1px solid var(--border);padding:14px 0">
           <div style="font-weight:800;font-size:14px;margin-bottom:6px">${esc(item.q)}</div>
           <div style="font-size:13px;color:var(--ink-2);line-height:1.7">${esc(item.a)}</div>
         </div>
-      `).join('')}
+      `).join('') || '<div class="empty">لا توجد أسئلة بعد</div>'}
     </div></div>
   `;
+  if (canEdit()){
+    const addForm = document.getElementById('faqAddForm');
+    addForm.addEventListener('submit', e=>{
+      e.preventDefault();
+      const submitBtn = addForm.querySelector('button[type=submit]');
+      guardedAction(submitBtn, async ()=>{
+        const fd = new FormData(addForm);
+        const msg = document.getElementById('faqAddMsg');
+        msg.textContent='جارِ الحفظ…'; msg.className='save-msg';
+        const ok = await addFaqItem(fd.get('q'), fd.get('a'));
+        if (ok){ msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok'; renderFaq(c); }
+        else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+      });
+    });
+    c.querySelectorAll('[data-faq-save]').forEach(btn=>btn.addEventListener('click', ()=>guardedAction(btn, async ()=>{
+      const i = Number(btn.dataset.faqSave);
+      const row = c.querySelector(`[data-faq-row="${i}"]`);
+      const q = row.querySelector('[data-faq-field="q"]').value;
+      const a = row.querySelector('[data-faq-field="a"]').value;
+      const msg = document.getElementById('faqRowMsg-'+i);
+      msg.textContent='جارِ الحفظ…'; msg.className='save-msg';
+      const ok = await updateFaqItem(i, q, a);
+      if (ok){ msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok'; }
+      else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
+    })));
+    c.querySelectorAll('[data-faq-delete]').forEach(btn=>btn.addEventListener('click', ()=>guardedAction(btn, async ()=>{
+      const i = Number(btn.dataset.faqDelete);
+      if (!confirm('هل تريد حذف هذا السؤال؟')) return;
+      const ok = await deleteFaqItem(i);
+      if (ok) renderFaq(c);
+    })));
+  }
 }
 
 /* ---------------- Settings (admin only) ---------------- */
 const STAFF_LABELS = ['الفصول الدراسية','الوكلاء','المعلمون','موجهو الطلاب','رواد النشاط','محضرو المختبر','الوظائف الادارية','الطلاب'];
+/* ---------------- generic add/remove-row dynamic table (settings) ----------------
+   Used for staff counts, learning outcomes, and performance rows — all stored as
+   JSON arrays/objects on meta, so adding/removing a row never needs a schema change.
+   Rows are DOM-manipulated (not re-rendered from state) so an add/remove never
+   discards other unsaved edits sitting in the same settingsForm. */
+function dynRowKey(){ return 'r'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function dynRowHtml(rowKey, fields, values){
+  values = values || {};
+  return `<tr data-rowkey="${rowKey}">${fields.map(f=>`<td><input data-field="${esc(f.key)}" value="${esc(values[f.key]||'')}" placeholder="${esc(f.placeholder||'')}" style="width:100%"></td>`).join('')}<td><button type="button" class="btn sm ghost" data-remove-row title="حذف الصف" style="color:#a33">${icon('trash')}</button></td></tr>`;
+}
+function wireDynTable(tbody, addBtn, fields){
+  const wireRemove = tr => { const b = tr.querySelector('[data-remove-row]'); if (b) b.addEventListener('click', ()=>tr.remove()); };
+  tbody.querySelectorAll('tr[data-rowkey]').forEach(wireRemove);
+  if (addBtn) addBtn.addEventListener('click', ()=>{
+    tbody.insertAdjacentHTML('beforeend', dynRowHtml(dynRowKey(), fields, {}));
+    wireRemove(tbody.lastElementChild);
+  });
+}
+function readDynTable(tbody, fields){
+  return Array.from(tbody.querySelectorAll('tr[data-rowkey]')).map(tr=>{
+    const o = {};
+    fields.forEach(f=>{ const inp = tr.querySelector(`[data-field="${f.key}"]`); o[f.key] = inp ? inp.value : ''; });
+    return o;
+  }).filter(o => Object.values(o).some(v=>String(v).trim()));
+}
+
 function renderSettings(c){
   const m = state.meta || {};
-  const staff = m.staff || {};
+  const staffObj = m.staff || {};
+  const staffRows = Object.keys(staffObj).length ? Object.entries(staffObj).map(([label,value])=>({label,value})) : STAFF_LABELS.map(label=>({label,value:''}));
   const mo = m.monitoringOfficials || {};
   const lo = (m.learningOutcomes && m.learningOutcomes.length) ? m.learningOutcomes : [{domain:'القدرات',y2024:'',y2025:'',y2026:''},{domain:'التخصص',y2024:'',y2025:'',y2026:''}];
+  const perf = m.performance || [];
   const qs = m.quickSummary || {};
+  const STAFF_FIELDS = [{key:'label',placeholder:'اسم الفئة'},{key:'value',placeholder:'العدد'}];
+  const LO_FIELDS = [{key:'domain',placeholder:'اسم الصف'},{key:'y2024'},{key:'y2025'},{key:'y2026'}];
+  const PERF_FIELDS = [{key:'domain',placeholder:'اسم المجال'},{key:'selfEval',placeholder:'% ذاتي'},{key:'selfLevel',placeholder:'مستوى ذاتي'},{key:'externalEval',placeholder:'% خارجي'},{key:'externalLevel',placeholder:'مستوى خارجي'}];
   c.innerHTML = `
     <div class="card"><div class="card-bd">
       <form id="settingsForm">
@@ -1624,19 +1862,23 @@ function renderSettings(c){
         </div>
 
         <h3 style="margin:20px 0 12px;font-size:14.5px">أعداد المنسوبين والطلاب</h3>
-        <div class="form-grid">
-          ${STAFF_LABELS.map(l=>`<div class="f-field"><label>${esc(l)}</label><input data-staff="${esc(l)}" value="${esc(staff[l]||'')}"></div>`).join('')}
-        </div>
+        <div class="table-wrap"><table><thead><tr><th>الفئة</th><th>العدد</th><th></th></tr></thead>
+          <tbody id="staffRowsBody">${staffRows.map(r=>dynRowHtml(dynRowKey(), STAFF_FIELDS, r)).join('')}</tbody>
+        </table></div>
+        <button type="button" class="btn sm ghost" id="addStaffRowBtn" style="margin-top:8px">${icon('plus')} إضافة فئة</button>
 
-        <h3 style="margin:20px 0 12px;font-size:14.5px">نواتج التعلم عبر الأعوام (القدرات / التخصص)</h3>
-        <div class="table-wrap"><table><thead><tr><th>المجال</th><th>العام 2024</th><th>العام 2025</th><th>العام 2026</th></tr></thead><tbody>
-          ${lo.map((row,i)=>`<tr>
-            <td><input data-lo="${i}-domain" value="${esc(row.domain||'')}" style="width:100%"></td>
-            <td><input data-lo="${i}-y2024" value="${esc(row.y2024||'')}" style="width:100%"></td>
-            <td><input data-lo="${i}-y2025" value="${esc(row.y2025||'')}" style="width:100%"></td>
-            <td><input data-lo="${i}-y2026" value="${esc(row.y2026||'')}" style="width:100%"></td>
-          </tr>`).join('')}
-        </tbody></table></div>
+        <h3 style="margin:20px 0 12px;font-size:14.5px">نواتج التعلم عبر الأعوام</h3>
+        <div class="table-wrap"><table><thead><tr><th>الصف</th><th>العام 2024</th><th>العام 2025</th><th>العام 2026</th><th></th></tr></thead>
+          <tbody id="loRowsBody">${lo.map(r=>dynRowHtml(dynRowKey(), LO_FIELDS, r)).join('')}</tbody>
+        </table></div>
+        <button type="button" class="btn sm ghost" id="addLoRowBtn" style="margin-top:8px">${icon('plus')} إضافة صف</button>
+
+        <h3 style="margin:20px 0 12px;font-size:14.5px">مؤشرات الأداء العام (التقويم الذاتي والخارجي)</h3>
+        <p style="margin:0 0 10px;font-size:12px;color:var(--muted)">أضف صفًا باسم "الأداء العام للمدرسة" ليظهر كبطاقة رئيسية في نظرة عامة، وصفوفًا بأسماء المجالات لتظهر كبطاقات فرعية.</p>
+        <div class="table-wrap"><table><thead><tr><th>المجال</th><th>ذاتي %</th><th>مستوى ذاتي</th><th>خارجي %</th><th>مستوى خارجي</th><th></th></tr></thead>
+          <tbody id="perfRowsBody">${perf.map(r=>dynRowHtml(dynRowKey(), PERF_FIELDS, r)).join('')}</tbody>
+        </table></div>
+        <button type="button" class="btn sm ghost" id="addPerfRowBtn" style="margin-top:8px">${icon('plus')} إضافة مجال</button>
 
         <h3 style="margin:20px 0 12px;font-size:14.5px">ملخص الأداء السريع</h3>
         <div class="form-grid">
@@ -1659,10 +1901,29 @@ function renderSettings(c){
         </div>
       </form>
     </div></div>
+
+    <div class="card" style="margin-top:18px">
+      <div class="card-hd"><h3>إدارة المجالات</h3></div>
+      <div class="card-bd">
+        <p style="margin:0 0 14px;font-size:12.5px;color:var(--muted)">هذه المجالات تظهر في كل القوائم المنسدلة وشرائط التصفية. تغيير الاسم يحدّث كل العناصر المرتبطة به تلقائيًا، وحذف مجال لا يحذف عناصره — فقط يزيله من قائمة الاختيار.</p>
+        <div id="domainMgrList" style="display:flex;flex-direction:column;gap:8px">
+          ${state.domainList.map(d=>`<div class="domain-mgr-row" style="display:flex;gap:8px;align-items:center">
+            <input data-domain-name="${esc(d)}" value="${esc(d)}" style="flex:1;border:1px solid var(--border);border-radius:9px;padding:9px 11px;font-family:inherit;font-size:13.5px">
+            <button type="button" class="btn sm ghost" data-delete-domain="${esc(d)}" style="color:#a33">${icon('trash')} حذف</button>
+          </div>`).join('') || '<div class="empty">لا توجد مجالات</div>'}
+        </div>
+        <div class="save-bar">
+          <input id="newDomainInput" placeholder="اسم مجال جديد" style="flex:1;border:1px solid var(--border);border-radius:9px;padding:9px 11px;font-family:inherit;font-size:13.5px">
+          <button type="button" class="btn sm teal" id="addDomainBtn">${icon('plus')} إضافة مجال</button>
+          <span class="save-msg" id="domainMgrMsg"></span>
+        </div>
+      </div>
+    </div>
+
     <div class="card" style="margin-top:18px">
       <div class="card-hd"><h3>ألوان الموقع</h3></div>
       <div class="card-bd">
-        <p style="margin:0 0 14px;font-size:12.5px;color:var(--muted)">غيّري ألوان الموقع بنفسك مباشرة — التغيير فوري، ومحفوظ في هذا الجهاز/المتصفح فقط.</p>
+        <p style="margin:0 0 14px;font-size:12.5px;color:var(--muted)">غيّر ألوان الموقع بنفسك مباشرة — التغيير فوري، ومحفوظ في هذا الجهاز/المتصفح فقط.</p>
         <div class="form-grid" id="themeColorGrid">
           ${Object.keys(THEME_DEFAULTS).map(key => `
             <div class="f-field">
@@ -1681,6 +1942,40 @@ function renderSettings(c){
     inp.addEventListener('input', ()=>{ saveThemeColor(inp.dataset.themeColor, inp.value); });
   });
   document.getElementById('resetThemeBtn').addEventListener('click', ()=>{ resetTheme(); renderSettings(c); });
+
+  wireDynTable(document.getElementById('staffRowsBody'), document.getElementById('addStaffRowBtn'), STAFF_FIELDS);
+  wireDynTable(document.getElementById('loRowsBody'), document.getElementById('addLoRowBtn'), LO_FIELDS);
+  wireDynTable(document.getElementById('perfRowsBody'), document.getElementById('addPerfRowBtn'), PERF_FIELDS);
+
+  const domainMsg = document.getElementById('domainMgrMsg');
+  c.querySelectorAll('[data-domain-name]').forEach(inp=>{
+    inp.addEventListener('change', ()=>guardedAction(inp, async ()=>{
+      const oldName = inp.dataset.domainName;
+      const newName = inp.value.trim();
+      if (!newName || newName===oldName) { inp.value = oldName; return; }
+      domainMsg.textContent='جارِ الحفظ…'; domainMsg.className='save-msg';
+      const ok = await renameDomain(oldName, newName);
+      if (ok){ domainMsg.textContent='تم الحفظ ✓'; domainMsg.className='save-msg ok'; renderSettings(c); }
+      else { domainMsg.textContent='تعذّر الحفظ'; domainMsg.className='save-msg err'; inp.value = oldName; }
+    }));
+  });
+  c.querySelectorAll('[data-delete-domain]').forEach(btn=>{
+    btn.addEventListener('click', ()=>guardedAction(btn, async ()=>{
+      const name = btn.dataset.deleteDomain;
+      if (!confirm(`هل تريد حذف مجال "${name}" من قائمة الاختيار؟ العناصر المرتبطة به تبقى كما هي.`)) return;
+      const ok = await deleteDomain(name);
+      if (ok) renderSettings(c);
+    }));
+  });
+  document.getElementById('addDomainBtn').addEventListener('click', ()=>guardedAction(document.getElementById('addDomainBtn'), async ()=>{
+    const inp = document.getElementById('newDomainInput');
+    const name = inp.value.trim();
+    if (!name) return;
+    domainMsg.textContent='جارِ الحفظ…'; domainMsg.className='save-msg';
+    const ok = await addDomain(name);
+    if (ok){ renderSettings(c); } else { domainMsg.textContent='تعذّر الحفظ'; domainMsg.className='save-msg err'; }
+  }));
+
   document.getElementById('settingsForm').addEventListener('submit', e=>{
     e.preventDefault();
     const submitBtn = e.target.querySelector('button[type=submit]');
@@ -1691,12 +1986,10 @@ function renderSettings(c){
     msg.textContent = 'جارِ الحفظ…'; msg.className='save-msg';
 
     const newStaff = {};
-    c.querySelectorAll('[data-staff]').forEach(inp=>{ newStaff[inp.dataset.staff] = inp.value; });
-    const newLo = lo.map((row,i)=>({
-      domain: c.querySelector(`[data-lo="${i}-domain"]`).value,
-      y2024: c.querySelector(`[data-lo="${i}-y2024"]`).value,
-      y2025: c.querySelector(`[data-lo="${i}-y2025"]`).value,
-      y2026: c.querySelector(`[data-lo="${i}-y2026"]`).value,
+    readDynTable(document.getElementById('staffRowsBody'), STAFF_FIELDS).forEach(r=>{ if (r.label) newStaff[r.label] = r.value; });
+    const newLo = readDynTable(document.getElementById('loRowsBody'), LO_FIELDS);
+    const newPerf = readDynTable(document.getElementById('perfRowsBody'), PERF_FIELDS).map(r=>({
+      domain: r.domain, selfEval: r.selfEval||null, selfLevel: r.selfLevel||'', externalEval: r.externalEval||null, externalLevel: r.externalLevel||'',
     }));
     const newQs = Object.assign({}, qs);
     c.querySelectorAll('[data-qs]').forEach(inp=>{ newQs[inp.dataset.qs] = inp.value; });
@@ -1704,11 +1997,11 @@ function renderSettings(c){
     c.querySelectorAll('[data-mo]').forEach(inp=>{ newMo[inp.dataset.mo] = inp.value; });
 
     const dbPatch = Object.assign(metaPatchToDb(patch), {
-      staff: newStaff, learning_outcomes: newLo, quick_summary: newQs, monitoring_officials: newMo,
+      staff: newStaff, learning_outcomes: newLo, performance: newPerf, quick_summary: newQs, monitoring_officials: newMo,
     });
     const {error} = await withTimeout(sb.from('meta').update(dbPatch).eq('id','main'));
     if (!error){
-      Object.assign(state.meta, patch, {staff:newStaff, learningOutcomes:newLo, quickSummary:newQs, monitoringOfficials:newMo});
+      Object.assign(state.meta, patch, {staff:newStaff, learningOutcomes:newLo, performance:newPerf, quickSummary:newQs, monitoringOfficials:newMo});
       msg.textContent='تم الحفظ ✓'; msg.className='save-msg ok';
       render();
     } else { msg.textContent='تعذّر الحفظ'; msg.className='save-msg err'; }
@@ -1778,7 +2071,7 @@ function openAnalysisEditor(a, c){
           <form id="anForm">
             <div class="form-grid">
               <div class="f-field"><label>المجال</label>
-                <select name="domain">${DOMAIN_LIST.map(d=>`<option ${normDomain(a?.domain)===d?'selected':''}>${d}</option>`).join('')}</select>
+                <select name="domain">${state.domainList.map(d=>`<option ${normDomain(a?.domain)===d?'selected':''}>${d}</option>`).join('')}</select>
               </div>
               <div class="f-field"><label>الرمز</label><input name="code" value="${esc(a?.code||'')}"></div>
               <div class="f-field full"><label>المؤشر</label><textarea name="indicatorText">${esc(a?.indicatorText||'')}</textarea></div>
@@ -1830,7 +2123,7 @@ function openAnalysisEditor(a, c){
   if (!isNew){
     const deleteAnalysisBtn = document.getElementById('deleteAnalysisBtn');
     deleteAnalysisBtn.addEventListener('click', ()=>guardedAction(deleteAnalysisBtn, async ()=>{
-      const ok = await softDelete('domain_analysis', a.id, 'هل تريدين حذف هذا العنصر؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
+      const ok = await softDelete('domain_analysis', a.id, 'هل تريد حذف هذا العنصر؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
       if (ok){
         state.domainAnalysis = state.domainAnalysis.filter(x=>x.id!==a.id);
         state.trash.domainAnalysis.push(Object.assign({}, a, {deleted:true}));
@@ -1899,7 +2192,7 @@ function renderImprovement(c){
               <td>${esc(p.alternateResponsible||'—')}</td>
               <td>${esc(p.followupResponsible||'—')}</td>
               ${canEdit()?`<td><button class="btn sm" data-edit-imp="${p.id}">تعديل</button></td>`:''}
-            </tr>`).join('') || `<tr><td colspan="7" class="empty">لا توجد عناصر بعد — أضيفي أول عنصر من زر "إضافة عنصر"</td></tr>`}
+            </tr>`).join('') || `<tr><td colspan="7" class="empty">لا توجد عناصر بعد — أضف أول عنصر من زر "إضافة عنصر"</td></tr>`}
           </tbody>
         </table>
       </div>
@@ -1974,7 +2267,7 @@ function openImprovementEditor(p, c){
   if (!isNew){
     const deleteImpBtn = document.getElementById('deleteImpBtn');
     deleteImpBtn.addEventListener('click', ()=>guardedAction(deleteImpBtn, async ()=>{
-      const ok = await softDelete('plan_improvements', p.id, 'هل تريدين حذف هذا العنصر؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
+      const ok = await softDelete('plan_improvements', p.id, 'هل تريد حذف هذا العنصر؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
       if (ok){
         state.planImprovements = state.planImprovements.filter(x=>x.id!==p.id);
         state.trash.planImprovements.push(Object.assign({}, p, {deleted:true}));
@@ -2059,7 +2352,7 @@ function xlStyleBody(row, i){
 
 async function exportExcel(){
   const btn = document.getElementById('btnExcel');
-  if (!window.ExcelJS){ alert('تعذّر تحميل مكتبة إكسل. جرّبي إعادة فتح الصفحة.'); return; }
+  if (!window.ExcelJS){ alert('تعذّر تحميل مكتبة إكسل. جرّب إعادة فتح الصفحة.'); return; }
   const origHtml = btn.innerHTML;
   btn.disabled = true; btn.innerHTML = 'جارِ التجهيز…';
   try{
@@ -2406,6 +2699,26 @@ function buildWordChildren(){
     ));
   } else children.push(wEmptyNote('لا توجد بيانات تحليل واقع'));
 
+  children.push(wSectionTitle(`تحسين الخطة (${state.planImprovements.length})`));
+  if (state.planImprovements.length){
+    children.push(wTable(
+      ['اسم البرنامج','مستوى التنفيذ','أسباب التدني','إجراءات التحسين','المسؤول البديل','مسؤول المتابعة'],
+      state.planImprovements.map(p=>[p.programName||'', p.executionLevel||'—', p.lowExecutionReason||'—', p.improvementActions||'—', p.alternateResponsible||'—', p.followupResponsible||'—'])
+    ));
+  } else children.push(wEmptyNote('لا توجد عناصر تحسين خطة'));
+
+  children.push(wSectionTitle('أعداد المنسوبين والطلاب'));
+  const staff = m.staff || {};
+  if (Object.keys(staff).length){
+    children.push(wTable(['الفئة','العدد'], Object.entries(staff).filter(([k])=>k!=='الوصف').map(([k,v])=>[k, v||'—'])));
+  } else children.push(wEmptyNote('لا توجد بيانات'));
+
+  const lo = m.learningOutcomes || [];
+  children.push(wSectionTitle('نواتج التعلم عبر الأعوام'));
+  if (lo.length){
+    children.push(wTable(['الصف','2024','2025','2026'], lo.map(r=>[r.domain||'', r.y2024||'—', r.y2025||'—', r.y2026||'—'])));
+  } else children.push(wEmptyNote('لا توجد بيانات'));
+
   children.push(wSectionTitle(`فريق العمل (${state.team.length})`));
   if (state.team.length){
     children.push(wTable(['الاسم','الدور','المهمة'], state.team.map(t=>[t.name||'', t.role||'', t.task||'—'])));
@@ -2415,7 +2728,7 @@ function buildWordChildren(){
 }
 async function exportWordReal(){
   const btn = document.getElementById('btnWord');
-  if (!window.docx){ alert('تعذّر تحميل مكتبة Word. جرّبي إعادة فتح الصفحة.'); return; }
+  if (!window.docx){ alert('تعذّر تحميل مكتبة Word. جرّب إعادة فتح الصفحة.'); return; }
   const origHtml = btn.innerHTML;
   btn.disabled = true; btn.innerHTML = 'جارِ التجهيز…';
   try{
@@ -2593,7 +2906,7 @@ function buildPdfFilename(){
 async function exportPdfReal(){
   const btn = document.getElementById('btnPrint');
   if (!window.html2canvas || !window.jspdf){
-    alert('تعذّر تحميل أدوات إنشاء PDF (تحقّقي من الاتصال بالإنترنت). سيتم فتح نافذة الطباعة العادية بدلاً من ذلك.');
+    alert('تعذّر تحميل أدوات إنشاء PDF (تحقّق من الاتصال بالإنترنت). سيتم فتح نافذة الطباعة العادية بدلاً من ذلك.');
     window.print();
     return;
   }
@@ -2721,7 +3034,7 @@ async function exportPdfReal(){
     if (!shared) downloadPdfBlob(blob, filename);
 
   }catch(err){
-    alert('تعذّر إنشاء ملف PDF: ' + (err?.message || 'حدث خطأ غير متوقع') + '\nجرّبي مرة أخرى.');
+    alert('تعذّر إنشاء ملف PDF: ' + (err?.message || 'حدث خطأ غير متوقع') + '\nجرّب مرة أخرى.');
   }finally{
     if (capture && capture.parentNode) capture.parentNode.removeChild(capture);
     btn.disabled = false; btn.innerHTML = origHtml;
@@ -2809,7 +3122,7 @@ async function captureSectionPdfPages(){
 async function exportFullReportPdf(){
   const btn = document.getElementById('btnFullReport');
   if (!window.html2canvas || !window.jspdf){
-    alert('تعذّر تحميل أدوات إنشاء PDF (تحقّقي من الاتصال بالإنترنت).');
+    alert('تعذّر تحميل أدوات إنشاء PDF (تحقّق من الاتصال بالإنترنت).');
     return;
   }
   const origHtml = btn.innerHTML;
@@ -2895,7 +3208,7 @@ async function exportFullReportPdf(){
     if (!shared) downloadPdfBlob(blob, filename);
 
   }catch(err){
-    alert('تعذّر إنشاء التقرير الكامل: ' + (err?.message || 'حدث خطأ غير متوقع') + '\nجرّبي مرة أخرى.');
+    alert('تعذّر إنشاء التقرير الكامل: ' + (err?.message || 'حدث خطأ غير متوقع') + '\nجرّب مرة أخرى.');
   }finally{
     state.activeSection = savedSection;
     state.selectedPriority = savedPriority;
