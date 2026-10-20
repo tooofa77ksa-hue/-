@@ -2012,13 +2012,18 @@ function renderSettings(c){
 /* ---------------- تحليل الواقع (full situation analysis: strengths + weaknesses per domain) ---------------- */
 function renderAnalysis(c){
   const notes = state.domainNotes;
-  const list = state.domainAnalysis.filter(a=>!a.archived && (!state.activeDomain || normDomain(a.domain)===state.activeDomain));
+  const all = state.domainAnalysis.filter(a=>!state.activeDomain || normDomain(a.domain)===state.activeDomain);
+  const list = all.filter(a=>state.showArchived ? a.archived : !a.archived);
+  const archivedCount = all.filter(a=>a.archived).length;
   const byDomain = {};
   list.forEach(a=>{ const d=normDomain(a.domain)||'—'; (byDomain[d]=byDomain[d]||[]).push(a); });
   c.innerHTML = `
     <div class="card">
-      <div class="card-hd"><h3>تحليل واقع مجالات الممارسات الإشرافية (${list.length})</h3>
-        ${canEdit() ? `<button class="btn sm teal" id="addAnalysisBtn">${icon('plus')} إضافة عنصر</button>` : ''}
+      <div class="card-hd"><h3>${state.showArchived?'عناصر تحليل الواقع المؤرشفة':'تحليل واقع مجالات الممارسات الإشرافية'} (${list.length})</h3>
+        <div class="actions">
+          ${canEdit() ? `<button class="btn sm teal" id="addAnalysisBtn">${icon('plus')} إضافة عنصر</button>` : ''}
+          ${canEdit() && archivedCount>0 ? `<button class="btn sm ${state.showArchived?'primary':''}" id="toggleArchivedBtn">${icon('archive')} ${state.showArchived?'عرض النشط':'عرض الأرشيف ('+archivedCount+')'}</button>` : ''}
+        </div>
       </div>
       <div class="card-bd">
         ${Object.keys(byDomain).length ? Object.keys(byDomain).map(dom=>{
@@ -2058,6 +2063,8 @@ function renderAnalysis(c){
     }));
     const addBtn = document.getElementById('addAnalysisBtn');
     if (addBtn) addBtn.addEventListener('click', ()=>openAnalysisEditor(null, c));
+    const toggleArchivedBtn = document.getElementById('toggleArchivedBtn');
+    if (toggleArchivedBtn) toggleArchivedBtn.addEventListener('click', ()=>{ state.showArchived=!state.showArchived; renderAnalysis(c); });
   }
 }
 function openAnalysisEditor(a, c){
@@ -2083,7 +2090,8 @@ function openAnalysisEditor(a, c){
             </div>
             <div class="save-bar">
               <button type="submit" class="btn teal">${isNew?'إضافة':'حفظ'}</button>
-              ${!isNew?`<button type="button" class="btn sm ghost" id="deleteAnalysisBtn" style="color:#a33">${icon('trash')} حذف</button>`:''}
+              ${!isNew?`<button type="button" class="btn sm ghost" id="archiveAnalysisBtn">${icon('archive')} ${a.archived?'إلغاء الأرشفة':'أرشفة'}</button>
+              <button type="button" class="btn sm ghost" id="deleteAnalysisBtn" style="color:#a33">${icon('trash')} حذف</button>`:''}
               <span class="save-msg" id="anSaveMsg"></span>
             </div>
           </form>
@@ -2121,6 +2129,12 @@ function openAnalysisEditor(a, c){
     });
   });
   if (!isNew){
+    const archiveAnalysisBtn = document.getElementById('archiveAnalysisBtn');
+    archiveAnalysisBtn.addEventListener('click', ()=>guardedAction(archiveAnalysisBtn, async ()=>{
+      const newVal = !a.archived;
+      const {error} = await withTimeout(sb.from('domain_analysis').update({archived:newVal}).eq('id', a.id));
+      if (!error){ a.archived = newVal; modal.innerHTML=''; renderAnalysis(c); }
+    }));
     const deleteAnalysisBtn = document.getElementById('deleteAnalysisBtn');
     deleteAnalysisBtn.addEventListener('click', ()=>guardedAction(deleteAnalysisBtn, async ()=>{
       const ok = await softDelete('domain_analysis', a.id, 'هل تريد حذف هذا العنصر؟ يمكن استعادته لاحقًا من سلة المحذوفات.');
