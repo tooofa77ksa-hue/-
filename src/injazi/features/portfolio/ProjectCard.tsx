@@ -6,7 +6,7 @@
 */
 import { motion } from "motion/react";
 import { Media } from "@/injazi/ui/Media";
-import { ArchiveRestore, Archive, CalendarDays, ExternalLink, Eye, FileText, Film, Pencil, Trash2 } from "lucide-react";
+import { ArchiveRestore, CalendarDays, ExternalLink, Eye, FileText, Film, Pencil, Trash2 } from "lucide-react";
 import { ClayCard } from "@/injazi/components/ClayCard";
 import { ClayObject } from "@/injazi/components/ClayObject";
 import { Chip } from "@/injazi/ui/primitives";
@@ -127,15 +127,21 @@ export function ProjectCard({ project, subject, evaluations, canEdit, onEdit, on
               <button type="button" className="iz-icon-btn" onClick={onEdit} aria-label={`تعديل ${project.title}`}>
                 <Pencil size={16} strokeWidth={2.5} />
               </button>
-              {/* المؤرشف يُستعاد بكلمة مكتوبة لا بأيقونة: من يبحث عن التراجع
-                  لا يعرف أي رسم يعنيه، و title لا يظهر على شاشة تُلمَس.
-                  الأرشفة نفسها تبقى أيقونة — فهي فعل يُبحث عنه لا يُتعثَّر به. */}
+              {/*
+                الفعل مكتوب بكلمته: «حذف» لا أيقونة صندوق.
+                ------------------------------------------------------
+                كان الفعل أيقونة أرشفة صامتة، فمن ترفع مشروعًا مكرّرًا
+                تبحث عن كلمة «حذف» ولا تجدها، فتترك المكرّر في الملف.
+                الكلمة هنا هي ما يُبحث عنه، والفعل تحتها آمن: ينتقل
+                المشروع إلى الأرشيف لا إلى العدم، ويُستعاد من رسالة
+                «تراجع» فورًا أو من الأرشيف متى شاءت. والحذف الذي لا
+                رجعة فيه يبقى داخل الأرشيف وحده.
+              */}
               <button
                 type="button"
-                className={project.archived ? "iz-icon-btn iz-icon-btn--wide" : "iz-icon-btn"}
+                className="iz-icon-btn iz-icon-btn--wide"
                 onClick={onArchive}
-                aria-label={`${project.archived ? "استعادة" : "أرشفة"} ${project.title}`}
-                title={project.archived ? "استعادة" : "أرشفة"}
+                aria-label={`${project.archived ? "استعادة" : "حذف"} ${project.title}`}
               >
                 {project.archived ? (
                   <>
@@ -143,7 +149,10 @@ export function ProjectCard({ project, subject, evaluations, canEdit, onEdit, on
                     استعادة
                   </>
                 ) : (
-                  <Archive size={16} strokeWidth={2.5} />
+                  <>
+                    <Trash2 size={16} strokeWidth={2.5} />
+                    حذف
+                  </>
                 )}
               </button>
               {/*

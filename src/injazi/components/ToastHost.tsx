@@ -7,7 +7,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
-import { Check, Info, TriangleAlert } from "lucide-react";
+import { Check, Info, TriangleAlert, Undo2 } from "lucide-react";
 import { DUR, EASE_CLAY, EASE_SOFT } from "@/injazi/motion/motion";
 import { dismissToast, subscribeToasts } from "@/injazi/lib/toast";
 import type { Toast, ToastTone } from "@/injazi/lib/toast";
@@ -29,9 +29,17 @@ export function ToastHost() {
         {toasts.map((toast) => {
           const Icon = ICONS[toast.tone];
           return (
-            <motion.button
+            /*
+              الرسالة لوحٌ لا زر.
+              ------------------------------------------------------
+              كانت الرسالة كلها <button> لتُغلق باللمس. ولمّا صار فيها
+              «تراجع» لم يعد ذلك ممكنًا: زرٌّ داخل زر لا يصحّ، والمتصفّح
+              يبتلع الضغطة الداخلية. فاللمس على اللوح يُغلق كما كان،
+              و«تراجع» زرٌّ حقيقي يوقف انتشار الضغطة فلا يُغلق قبل أن
+              يعمل.
+            */
+            <motion.div
               key={toast.id}
-              type="button"
               className={`iz-toast iz-toast--${toast.tone}`}
               onClick={() => dismissToast(toast.id)}
               initial={{ opacity: 0, y: 24, scale: 0.94 }}
@@ -44,7 +52,21 @@ export function ToastHost() {
                 <Icon size={18} strokeWidth={2.6} aria-hidden="true" />
               </span>
               <span>{toast.text}</span>
-            </motion.button>
+              {toast.action && (
+                <button
+                  type="button"
+                  className="iz-toast__action"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    toast.action?.run();
+                    dismissToast(toast.id);
+                  }}
+                >
+                  <Undo2 size={15} strokeWidth={2.6} aria-hidden="true" />
+                  {toast.action.label}
+                </button>
+              )}
+            </motion.div>
           );
         })}
       </AnimatePresence>

@@ -415,9 +415,31 @@ export function StudentPortfolio({ presentation = false }: { presentation?: bool
                         canEdit={canEdit}
                         onOpen={canEdit ? () => setProjectEditor({ open: true, project }) : undefined}
                         onEdit={() => setProjectEditor({ open: true, project })}
-                        onArchive={async () => {
-                          await archiveProject(project.id, !project.archived);
-                          showToast(project.archived ? "تمت الاستعادة" : "تمت الأرشفة");
+                        onArchive={() => {
+                          if (project.archived) {
+                            void archiveProject(project.id, false).then(() =>
+                              showToast("تمت الاستعادة"),
+                            );
+                            return;
+                          }
+                          askDelete(
+                            `حذف «${project.title}»؟ ينتقل إلى الأرشيف، وتستطيعين استعادته متى شئتِ.`,
+                            async () => {
+                              await archiveProject(project.id, true);
+                              setConfirm((current) => ({ ...current, open: false }));
+                              /* «تراجع» في الرسالة نفسها: الاستعادة من
+                                 الأرشيف تحتاج أن تعرف أن الأرشيف موجود
+                                 وأين هو. التراجع الفوري لا يحتاج شيئًا. */
+                              showToast("حُذف — في الأرشيف", "info", {
+                                label: "تراجع",
+                                run: () => {
+                                  void archiveProject(project.id, false).then(() =>
+                                    showToast("تمت الاستعادة"),
+                                  );
+                                },
+                              });
+                            },
+                          );
                         }}
                         onDelete={() =>
                           askDelete(
@@ -516,12 +538,30 @@ export function StudentPortfolio({ presentation = false }: { presentation?: bool
                           </button>
                           <button
                             type="button"
-                            className={row.archived ? "iz-icon-btn iz-icon-btn--wide" : "iz-icon-btn"}
-                            aria-label={`${row.archived ? "استعادة" : "أرشفة"} ${row.title}`}
-                            title={row.archived ? "استعادة" : "أرشفة"}
-                            onClick={async () => {
-                              await archiveAchievement(row.id, !row.archived);
-                              showToast(row.archived ? "تمت الاستعادة" : "تمت الأرشفة");
+                            className="iz-icon-btn iz-icon-btn--wide"
+                            aria-label={`${row.archived ? "استعادة" : "حذف"} ${row.title}`}
+                            onClick={() => {
+                              if (row.archived) {
+                                void archiveAchievement(row.id, false).then(() =>
+                                  showToast("تمت الاستعادة"),
+                                );
+                                return;
+                              }
+                              askDelete(
+                                `حذف «${row.title}»؟ ينتقل إلى الأرشيف، وتستطيعين استعادته متى شئتِ.`,
+                                async () => {
+                                  await archiveAchievement(row.id, true);
+                                  setConfirm((current) => ({ ...current, open: false }));
+                                  showToast("حُذف — في الأرشيف", "info", {
+                                    label: "تراجع",
+                                    run: () => {
+                                      void archiveAchievement(row.id, false).then(() =>
+                                        showToast("تمت الاستعادة"),
+                                      );
+                                    },
+                                  });
+                                },
+                              );
                             }}
                           >
                             {row.archived ? (
@@ -530,10 +570,13 @@ export function StudentPortfolio({ presentation = false }: { presentation?: bool
                                 استعادة
                               </>
                             ) : (
-                              <Archive size={16} strokeWidth={2.5} />
+                              <>
+                                <Trash2 size={16} strokeWidth={2.5} />
+                                حذف
+                              </>
                             )}
                           </button>
-                          {/* أرشفة ثم حذف — كما في المشاريع تمامًا. */}
+                          {/* الحذف الذي لا رجعة فيه — من الأرشيف وحده. */}
                           {row.archived && (
                             <button
                               type="button"

@@ -2782,6 +2782,28 @@
   box-shadow: var(--iz-sh-3);
 }
 
+/* «تراجع» داخل الرسالة: هدف لمس كامل الارتفاع وحدٌّ يفصله عن النص،
+   فلا تُخطئه الإبهام ولا يُقرأ كجزء من الجملة. */
+.iz-toast__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-inline-start: var(--iz-s-2);
+  padding: 7px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: var(--iz-r-pill);
+  background: rgba(255, 255, 255, 0.16);
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.iz-toast__action:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
 .iz-toast--success {
   background: linear-gradient(180deg, #4bb98c, #35996f);
 }

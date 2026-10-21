@@ -8,15 +8,28 @@
 
 export type ToastTone = "success" | "info" | "danger";
 
+/** زر داخل الرسالة — «تراجع» بعد فعل قابل للرجوع. */
+export type ToastAction = { label: string; run: () => void };
+
 export type Toast = {
   id: number;
   text: string;
   tone: ToastTone;
+  action?: ToastAction;
 };
 
 type Listener = (toasts: Toast[]) => void;
 
 const LIFETIME_MS = 3200;
+
+/*
+  الرسالة التي تحمل «تراجع» تبقى أطول.
+  ------------------------------------------------------------------
+  ٣٫٢ ثانية تكفي لقراءة «تم الحفظ»، ولا تكفي لأن تقرأ أمٌّ الرسالة ثم
+  تقرّر ثم تصل بإبهامها إلى الزر. والتراجع الذي يختفي قبل أن يُضغط
+  ليس تراجعًا.
+*/
+const UNDO_LIFETIME_MS = 8000;
 
 let toasts: Toast[] = [];
 let listeners: Listener[] = [];
@@ -34,11 +47,11 @@ export function subscribeToasts(listener: Listener): () => void {
   };
 }
 
-export function showToast(text: string, tone: ToastTone = "success") {
-  const toast: Toast = { id: nextId++, text, tone };
+export function showToast(text: string, tone: ToastTone = "success", action?: ToastAction) {
+  const toast: Toast = { id: nextId++, text, tone, action };
   toasts = [...toasts, toast];
   emit();
-  window.setTimeout(() => dismissToast(toast.id), LIFETIME_MS);
+  window.setTimeout(() => dismissToast(toast.id), action ? UNDO_LIFETIME_MS : LIFETIME_MS);
 }
 
 export function dismissToast(id: number) {

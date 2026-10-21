@@ -433,13 +433,32 @@ ok("إضافة إنجاز", achievements >= 1, `العدد: ${achievements}`);
 
 // --- أرشفة ثم حذف: لا زرّ حذفٍ نهائي في الملف نفسه
 const deleteBeforeArchive = await page.locator('.iz-achievement button[aria-label*="نهائيًا"]').count();
-ok("لا حذف نهائي قبل الأرشفة", deleteBeforeArchive === 0, `ظهر: ${deleteBeforeArchive}`);
+ok("لا حذف نهائي في الملف نفسه", deleteBeforeArchive === 0, `ظهر: ${deleteBeforeArchive}`);
 
-// --- الأرشفة والاستعادة: الإخفاء بلا فقد
-await page.locator('.iz-achievement button[aria-label^="أرشفة"]').first().click();
-await page.waitForTimeout(2200);
+/* --- «حذف» في الملف: تنبيه، ثم نقل إلى الأرشيف، ثم «تراجع» فوري ---
+   الزر صار مكتوبًا بكلمته لا أيقونة صندوق، لأن من ترفع مشروعًا مكرّرًا
+   تبحث عن «حذف» ولا تعرف ما تعنيه أيقونة الأرشفة. */
+await page.locator('.iz-achievement button[aria-label^="حذف"]').first().click();
+await page.waitForTimeout(1200);
+const warnText = await page
+  .locator(".iz-modal")
+  .filter({ hasText: "تأكيد الحذف" })
+  .innerText()
+  .catch(() => "");
+ok(
+  "تنبيه قبل الحذف يقول أين يذهب",
+  /الأرشيف/.test(warnText) && /استعادت/.test(warnText),
+  warnText.replace(/\s+/g, " ").slice(0, 80),
+);
+await page.locator(".iz-modal__foot button").last().click();
+await page.waitForTimeout(2600);
 const afterArchive = await page.locator(".iz-achievement").count();
-ok("أرشفة الإنجاز تُخفيه من الملف", afterArchive === 0, `المعروض: ${afterArchive}`);
+ok("الحذف يُخفيه من الملف", afterArchive === 0, `المعروض: ${afterArchive}`);
+ok(
+  "ورسالة فيها «تراجع»",
+  (await page.locator(".iz-toast__action").count()) === 1,
+  (await page.locator(".iz-toast").innerText().catch(() => "")).replace(/\s+/g, " "),
+);
 
 const archiveBtn = page.getByRole("button", { name: /^الأرشيف/ });
 ok("زر الأرشيف يظهر بعد أول أرشفة", (await archiveBtn.count()) === 1);
