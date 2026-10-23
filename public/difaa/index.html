@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>بفكرٍ واعٍ… لوطنٍ آمن</title>
+<meta name="description" content="منصة الدفاع عن الوطن — المدرسة الابتدائية الخامسة والستون بعد المائة">
+<meta name="theme-color" content="#04241a">
+<meta property="og:title" content="بفكرٍ واعٍ… لوطنٍ آمن">
+<meta property="og:description" content="وعيٌ يحمي، وفكرٌ يبني، وانتماءٌ يثمر — شاركونا رسائلكم في حب الوطن">
+<meta property="og:image" content="assets/photos/flag-wave.jpg">
+<link rel="icon" href="assets/flag.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;700;800;900&family=Tajawal:wght@400;500;700;800&family=Aref+Ruqaa:wght@700&display=swap" rel="stylesheet">
+<link rel="preload" href="assets/earth.jpg" as="image" crossorigin>
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+
+<div class="intro-veil" id="introVeil" aria-hidden="true"></div>
+
+<!-- ============ الترويسة ============ -->
+<header class="topbar" id="topbar">
+  <a class="brand" href="#home" aria-label="الرئيسية">
+    <img src="assets/moe-white.png" alt="وزارة التعليم" class="brand-logo">
+    <span class="brand-sep"></span>
+    <span class="brand-txt">
+      <b>بفكرٍ واعٍ… لوطنٍ آمن</b>
+      <small>الابتدائية الخامسة والستون بعد المائة</small>
+    </span>
+  </a>
+  <nav class="nav" id="nav" aria-label="أقسام الموقع">
+    <a href="#home" class="active">الرئيسية</a>
+    <a href="#awareness">الوعي الفكري</a>
+    <a href="#duty">واجبنا تجاه الوطن</a>
+    <a href="#soldiers">جنود الوطن</a>
+    <a href="#messages" class="nav-cta">رسائل في حب الوطن</a>
+  </nav>
+  <button class="burger" id="burger" aria-label="القائمة" aria-expanded="false"><span></span><span></span><span></span></button>
+</header>
+
+<main>
+<!-- ============ ١. الرئيسية ============ -->
+<section class="hero" id="home">
+  <canvas id="globe" aria-hidden="true"></canvas>
+  <div class="hero-shade"></div>
+  <div class="hero-content">
+    <div class="hero-kicker" data-hero>
+      <img src="assets/flag.svg" alt="" class="kicker-flag">
+      <span>الدفاع عن الوطن</span>
+    </div>
+    <h1 class="hero-title" id="heroTitle"><span class="ln">بفكرٍ واعٍ…</span> <span class="ln">لوطنٍ آمن</span></h1>
+    <p class="hero-sub" data-hero>
+      <span>وعيٌ يحمي</span><i></i><span>وفكرٌ يبني</span><i></i><span>وانتماءٌ يثمر</span>
+    </p>
+    <div class="hero-actions" data-hero>
+      <a href="#messages" class="btn btn-gold">
+        <svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        شاركونا رسالتكم للوطن
+      </a>
+      <a href="#awareness" class="btn btn-ghost">تعرّفوا على الوعي الفكري</a>
+    </div>
+  </div>
+  <a href="#stats" class="scroll-cue" aria-label="انزل للأسفل"><span></span></a>
+</section>
+
+<!-- ============ أرقام ============ -->
+<section class="stats" id="stats">
+  <div class="stat" data-reveal>
+    <b class="num" data-count="0" id="statMsgs">0</b>
+    <span>رسالة حبٍّ للوطن</span>
+  </div>
+  <div class="stat" data-reveal>
+    <b class="num" data-count="0" id="statVideos">0</b>
+    <span>مشاركة مرئية</span>
+  </div>
+  <div class="stat" data-reveal>
+    <b class="num" data-count="6">0</b>
+    <span>قيمٍ نعتزّ بها</span>
+  </div>
+  <div class="stat" data-reveal>
+    <b class="num" data-count="34">0</b>
+    <span>المادة من النظام الأساسي للحكم</span>
+  </div>
+</section>
+
+<div class="ornament" aria-hidden="true">
+  <svg viewBox="0 0 1200 60" preserveAspectRatio="none"><path class="draw" d="M0 30 H520 L560 10 L600 30 L640 10 L680 30 H1200"/><path class="draw" d="M560 50 L600 30 L640 50"/></svg>
+  <span class="ornament-star"></span>
+</div>
+
+<!-- ============ ٢. الوعي الفكري ============ -->
+<section class="section awareness" id="awareness">
+  <header class="sec-head" data-reveal>
+    <span class="sec-mark" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M20 2 25 15 38 20 25 25 20 38 15 25 2 20 15 15Z"/></svg></span>
+    <p class="eyebrow">الوعي الفكري</p>
+    <h2>عقلٌ واعٍ… درعٌ للوطن</h2>
+    <p class="lead">الوعي يبدأ بسؤال: من قال؟ ولماذا؟ وما الدليل؟ اضغطوا على كل بطاقة لتقرؤوا ما خلفها.</p>
+  </header>
+
+  <div class="flip-grid" data-stagger>
+    <button class="flip" type="button">
+      <span class="flip-in">
+        <span class="face front"><i class="ico"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5M11 8v3l2 2"/></svg></i><b>التحقق من المعلومات</b><small>اضغط للقراءة</small></span>
+        <span class="face back"><b>التحقق من المعلومات</b><p>نأخذ الأخبار من المصادر الرسمية الموثوقة، ونفرّق بين الرأي والحقيقة، ولا نصدّق كل ما يصلنا.</p></span>
+      </span>
+    </button>
+    <button class="flip" type="button">
+      <span class="flip-in">
+        <span class="face front"><i class="ico"><svg viewBox="0 0 24 24"><path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1Z"/><path d="m16 9 5 6M21 9l-5 6"/></svg></i><b>مكافحة الشائعات</b><small>اضغط للقراءة</small></span>
+        <span class="face back"><b>مكافحة الشائعات</b><p>الشائعة سلاحٌ يستهدف وحدة المجتمع؛ نوقفها عندنا ولا نعيد نشرها، ونبلّغ الجهات المختصة عند الحاجة.</p></span>
+      </span>
+    </button>
+    <button class="flip" type="button">
+      <span class="flip-in">
+        <span class="face front"><i class="ico"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 7h14M7 7l-3 7a3 3 0 0 0 6 0L7 7Zm10 0-3 7a3 3 0 0 0 6 0l-3-7Z"/></svg></i><b>الاعتدال والوسطية</b><small>اضغط للقراءة</small></span>
+        <span class="face back"><b>الاعتدال والوسطية</b><p>الوسطية منهج حياة: نرفض الغلو والتطرف، ونحاور بالحكمة، ونتقبّل الاختلاف بأدب.</p></span>
+      </span>
+    </button>
+    <button class="flip" type="button">
+      <span class="flip-in">
+        <span class="face front"><i class="ico"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.6-7 10-7 10Z"/></svg></i><b>الانتماء الوطني</b><small>اضغط للقراءة</small></span>
+        <span class="face back"><b>الانتماء الوطني</b><p>نعتزّ بديننا وهويتنا وقيادتنا، ونحب وطننا قولًا وعملًا، فكلنا أبناء وطنٍ واحد.</p></span>
+      </span>
+    </button>
+    <button class="flip" type="button">
+      <span class="flip-in">
+        <span class="face front"><i class="ico"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.4 1 1.1 1 1.8V16h5v-.3c0-.7.4-1.4 1-1.8A6 6 0 0 0 12 3Z"/></svg></i><b>التفكير الناقد</b><small>اضغط للقراءة</small></span>
+        <span class="face back"><b>التفكير الناقد</b><p>العقل الواعي يزن الأفكار قبل أن يقبلها، ويسأل عن الدليل، ولا ينخدع بالعناوين المثيرة.</p></span>
+      </span>
+    </button>
+    <button class="flip" type="button">
+      <span class="flip-in">
+        <span class="face front"><i class="ico"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01M9 9l2 2 4-4"/></svg></i><b>الوعي الرقمي</b><small>اضغط للقراءة</small></span>
+        <span class="face back"><b>الوعي الرقمي</b><p>نحذر الحسابات المجهولة والمحتوى المضلل، ونحمي بياناتنا، ونكون قدوة في وسائل التواصل.</p></span>
+      </span>
+    </button>
+  </div>
+
+  <!-- تحدٍّ: ماذا تفعل؟ -->
+  <div class="quiz" id="quiz" data-reveal>
+    <div class="quiz-head">
+      <span class="quiz-badge">تحدٍّ قصير</span>
+      <h3>ماذا تفعل لو…؟</h3>
+      <div class="quiz-progress"><span id="quizBar"></span></div>
+    </div>
+    <div class="quiz-body" id="quizBody"></div>
+  </div>
+</section>
+
+<!-- ============ شريط صورة ============ -->
+<section class="band" aria-label="الوطن أمانة">
+  <div class="band-img" style="background-image:url('assets/photos/flag-wave.jpg')"></div>
+  <div class="band-shade"></div>
+  <blockquote class="band-quote" data-reveal>
+    <p>الوطن أمانة… وحمايته شرف</p>
+  </blockquote>
+</section>
+
+<!-- ============ ٣. واجبنا تجاه الوطن ============ -->
+<section class="section duty" id="duty">
+  <header class="sec-head" data-reveal>
+    <span class="sec-mark" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M20 2 25 15 38 20 25 25 20 38 15 25 2 20 15 15Z"/></svg></span>
+    <p class="eyebrow">واجبنا تجاه الوطن</p>
+    <h2>مسؤوليةٌ نحملها… وأمانةٌ نصونها</h2>
+  </header>
+
+  <figure class="law" data-reveal>
+    <div class="law-frame">
+      <span class="law-tag">النظام الأساسي للحكم · المادة الرابعة والثلاثون</span>
+      <blockquote>«الدفاع عن العقيدة الإسلامية، والمجتمع، والوطن، واجبٌ على كل مواطن، ويبيّن النظام أحكام الخدمة العسكرية».</blockquote>
+    </div>
+  </figure>
+
+  <div class="duty-wrap">
+    <div class="duty-photo" data-reveal>
+      <img src="assets/photos/national-guard.jpg" alt="رجال الحرس الوطني السعودي مع راية الوطن" loading="lazy">
+      <span class="duty-photo-cap">حماة الوطن… عيونٌ ساهرة</span>
+    </div>
+    <ol class="duty-list" data-stagger>
+      <li><i><svg viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 5 3.4 8.3 8 9 4.6-.7 8-4 8-9V6l-8-3Z"/></svg></i><div><b>حماية أمن الوطن</b><p>نحافظ على أمن وطننا واستقراره، ونكون عونًا لرجال الأمن.</p></div></li>
+      <li><i><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6"/></svg></i><div><b>صون مقدّرات الوطن</b><p>نحافظ على الممتلكات والمرافق العامة كما نحافظ على بيوتنا.</p></div></li>
+      <li><i><svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg></i><div><b>احترام الأنظمة</b><p>نلتزم بالأنظمة والتعليمات في المدرسة والطريق وكل مكان.</p></div></li>
+      <li><i><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></i><div><b>المعلومة من مصدرها</b><p>نستقي الأخبار من الجهات الرسمية، ولا نشارك ما لم نتحقق منه.</p></div></li>
+      <li><i><svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01M10.3 3.9 2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></i><div><b>الإبلاغ عن الخطر</b><p>نتعاون مع الجهات المختصة ونبلّغ عن كل ما يهدد أمن الوطن.</p></div></li>
+      <li><i><svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.9L22 9.3l-5.5 4.7L18.2 21 12 17.3 5.8 21l1.7-7L2 9.3l7.1-.4L12 2Z"/></svg></i><div><b>القدوة الحسنة</b><p>نعكس صورة وطننا المشرقة بأخلاقنا وتعاملنا مع الجميع.</p></div></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============ ٤. جنود الوطن ============ -->
+<section class="section soldiers" id="soldiers">
+  <header class="sec-head light" data-reveal>
+    <span class="sec-mark" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M20 2 25 15 38 20 25 25 20 38 15 25 2 20 15 15Z"/></svg></span>
+    <p class="eyebrow">جنود الوطن</p>
+    <h2 class="thanks">شكرًا لجنودنا البواسل، حماة الوطن ودرعه الحصين</h2>
+  </header>
+
+  <div class="gallery" id="gallery" data-stagger>
+    <figure class="g g-tall"><img src="assets/photos/soldier-desert.jpg" alt="جندي سعودي في الميدان" loading="lazy"><figcaption>جنديٌّ سعودي في الميدان</figcaption></figure>
+    <figure class="g g-wide"><img src="assets/photos/hawks-2.jpg" alt="الصقور السعودية ترسم ألوان الوطن في السماء" loading="lazy"><figcaption>الصقور السعودية في سماء الوطن</figcaption></figure>
+    <figure class="g"><img src="assets/photos/rsaf-night.jpg" alt="القوات الجوية الملكية السعودية" loading="lazy"><figcaption>القوات الجوية الملكية السعودية</figcaption></figure>
+    <figure class="g"><img src="assets/photos/hawks-1.jpg" alt="تشكيل الصقور السعودية" loading="lazy"><figcaption>تشكيلٌ في سماء العزّ</figcaption></figure>
+    <figure class="g g-tall"><img src="assets/photos/flag-crowd.jpg" alt="رفع راية التوحيد" loading="lazy"><figcaption>رايةُ التوحيد خفّاقة</figcaption></figure>
+    <figure class="g"><img src="assets/photos/national-guard.jpg" alt="الحرس الوطني السعودي" loading="lazy"><figcaption>الحرس الوطني</figcaption></figure>
+    <figure class="g g-wide"><img src="assets/photos/flag-wave.jpg" alt="الراية الخضراء ترفرف" loading="lazy"><figcaption>فخرٌ بالراية الخضراء</figcaption></figure>
+    <figure class="g"><img src="assets/photos/hawks-3.jpg" alt="الصقور السعودية بألوان العلم" loading="lazy"><figcaption>بألوان العلم</figcaption></figure>
+  </div>
+
+  <details class="credits">
+    <summary>مصادر الصور وتراخيصها</summary>
+    <ul>
+      <li>جندي سعودي في الميدان — TECH. SGT. H. H. DEFFNER، ملكية عامة، <a href="https://commons.wikimedia.org/wiki/File:Saudi_Soldier_with_G3.JPEG" target="_blank" rel="noopener">ويكيميديا كومنز</a></li>
+      <li>راية التوحيد — CW02 Bailey، ملكية عامة، <a href="https://commons.wikimedia.org/wiki/File:Gulf_War_Saudi_Flag.JPEG" target="_blank" rel="noopener">ويكيميديا كومنز</a></li>
+      <li>القوات الجوية الملكية السعودية (صورتان) — Senior Airman DeQuan Simmons، ملكية عامة، <a href="https://commons.wikimedia.org/wiki/File:Royal_Saudi_Air_Force_hosts_cultural_event_(9365419).jpg" target="_blank" rel="noopener">ويكيميديا كومنز</a></li>
+      <li>الحرس الوطني — Qrmoo3، رخصة CC BY-SA 4.0، <a href="https://commons.wikimedia.org/wiki/File:33-_Saudi_Arabian_National_Guard_(My_Trip_To_Al-Jenadriyah_32).jpg" target="_blank" rel="noopener">ويكيميديا كومنز</a></li>
+      <li>الصقور السعودية (ثلاث صور) — Meshari Alawfi، رخصة CC BY 4.0، <a href="https://commons.wikimedia.org/wiki/File:Saudi_Hawks91.jpg" target="_blank" rel="noopener">ويكيميديا كومنز</a></li>
+      <li>صورة الأرض — NASA Visible Earth (Blue Marble)، ملكية عامة · حدود المملكة — Natural Earth، ملكية عامة</li>
+    </ul>
+  </details>
+</section>
+
+<!-- ============ ٥. رسائل في حب الوطن ============ -->
+<section class="section messages" id="messages">
+  <header class="sec-head" data-reveal>
+    <span class="sec-mark" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M20 2 25 15 38 20 25 25 20 38 15 25 2 20 15 15Z"/></svg></span>
+    <p class="eyebrow">رسائل في حب الوطن</p>
+    <h2>كلماتٌ من القلب… إلى وطنٍ يسكن القلب</h2>
+    <p class="lead">اكتبوا رسالتكم أو أرفقوا مقطعًا قصيرًا، وتظهر المشاركة على جدار الوطن بعد مراجعتها واعتمادها.</p>
+  </header>
+
+  <div class="msg-layout">
+    <form class="msg-form" id="msgForm" novalidate data-reveal>
+      <div class="form-title">
+        <i><svg viewBox="0 0 24 24"><path d="M4 4h16v12H5.2L4 17.2V4Z"/><path d="M8 9h8M8 12h5"/></svg></i>
+        <div><b>شاركونا رسالتكم</b><small>جميع الحقول اختيارية عدا الرسالة أو المقطع</small></div>
+      </div>
+      <div class="row2">
+        <label class="field"><span>الاسم</span><input name="name" maxlength="60" autocomplete="name" placeholder="مثال: أم سارة"></label>
+        <label class="field"><span>الصفة</span>
+          <select name="role"><option value="">اختر…</option></select>
+        </label>
+      </div>
+      <label class="field"><span>صف الطالبة</span>
+        <select name="grade"><option value="">—</option></select>
+      </label>
+      <label class="field"><span>رسالتك للوطن</span>
+        <textarea name="text" rows="5" placeholder="اكتب كلمتك في حب الوطن، أو شكرك لجنودنا البواسل…"></textarea>
+        <em class="counter"><span id="cnt">0</span> / <span id="cntMax">600</span></em>
+      </label>
+      <label class="upload" id="upload">
+        <input type="file" name="video" accept="video/*">
+        <i><svg viewBox="0 0 24 24"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="m16 10 6-3v10l-6-3"/></svg></i>
+        <span class="up-txt"><b>أرفق مقطعًا (اختياري)</b><small id="upHint">مقطع قصير حتى 35 ميجابايت</small></span>
+        <button type="button" class="up-clear" id="upClear" hidden aria-label="إزالة المقطع">✕</button>
+      </label>
+      <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <div class="form-err" id="formErr" role="alert"></div>
+      <div class="progress" id="progress" hidden><span></span></div>
+      <button class="btn btn-green btn-block" id="sendBtn" type="submit">
+        <svg viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4 20-7Z"/></svg>
+        إرسال الرسالة
+      </button>
+      <p class="form-note">نسعد بكل كلمة صادقة تجمع ولا تفرّق. تُراجَع المشاركات قبل نشرها.</p>
+
+      <div class="form-done" id="formDone" hidden>
+        <svg class="check" viewBox="0 0 52 52"><circle cx="26" cy="26" r="24"/><path d="m15 27 7 7 15-15"/></svg>
+        <b>وصلت رسالتك، شكرًا لك!</b>
+        <p>جزاك الله خيرًا على حبك لوطنك. ستظهر مشاركتك على جدار الوطن بعد مراجعتها.</p>
+        <button type="button" class="btn btn-ghost-green" id="again">إرسال رسالة أخرى</button>
+      </div>
+    </form>
+
+    <div class="wall-wrap">
+      <div class="wall-head">
+        <h3>جدار الوطن</h3>
+        <span class="wall-count" id="wallCount"></span>
+      </div>
+      <div class="wall" id="wall" aria-live="polite">
+        <div class="wall-loading"><span></span><span></span><span></span></div>
+      </div>
+      <button class="btn btn-ghost-green btn-block" id="more" hidden>عرض المزيد</button>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ============ التذييل ============ -->
+<footer class="footer">
+  <div class="footer-glow"></div>
+  <img src="assets/moe-white.png" alt="وزارة التعليم" class="footer-logo">
+  <p class="footer-title">بفكرٍ واعٍ… لوطنٍ آمن</p>
+  <p class="footer-school">المدرسة الابتدائية الخامسة والستون بعد المائة</p>
+  <div class="footer-line"></div>
+  <p class="footer-principal"><span>مديرة المدرسة</span><b>أ. جازية السميري</b></p>
+  <p class="footer-assistant">المساعد الإداري: عواطف الجهني</p>
+</footer>
+
+<a href="#home" class="to-top" id="toTop" aria-label="إلى الأعلى"><svg viewBox="0 0 24 24"><path d="m6 15 6-6 6 6"/></svg></a>
+
+<!-- نافذة الصور والمقاطع -->
+<div class="lightbox" id="lightbox" hidden>
+  <button class="lb-close" id="lbClose" aria-label="إغلاق">✕</button>
+  <button class="lb-nav lb-prev" id="lbPrev" aria-label="السابق">›</button>
+  <div class="lb-stage" id="lbStage"></div>
+  <button class="lb-nav lb-next" id="lbNext" aria-label="التالي">‹</button>
+  <p class="lb-cap" id="lbCap"></p>
+</div>
+
+<div class="demo-badge" id="demoBadge" hidden>نسخة معاينة</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="config.js"></script>
+<script src="api.js"></script>
+<script src="site.js"></script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
+<script type="module" src="globe.js"></script>
+</body>
+</html>
