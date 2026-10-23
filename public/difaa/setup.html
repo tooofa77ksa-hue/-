@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>ربط قاعدة البيانات · بفكرٍ واعٍ… لوطنٍ آمن</title>
+<link rel="icon" href="assets/flag.svg">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root { --g900:#04241a; --g800:#073826; --green:#006c35; --gold:#c9a44c; --gold-2:#e3c67d; --ivory:#fbf7ee; --sand:#eadfc6; --ink:#1b2a23; --muted:#5d6b63;
+  --head:"Noto Kufi Arabic","Tajawal",system-ui,sans-serif; --body:"Tajawal","Noto Kufi Arabic",system-ui,sans-serif; }
+* { box-sizing:border-box; }
+body { margin:0; font-family:var(--body); font-size:17px; line-height:1.85; color:var(--ink); background:var(--ivory); }
+header { background:linear-gradient(135deg,var(--g800),var(--g900)); color:#fff; padding:28px max(16px,4vw) 30px; text-align:center; }
+header img { height:56px; display:block; margin:0 auto 10px; }
+h1 { font-family:var(--head); color:var(--gold-2); font-size:clamp(22px,4vw,32px); margin:0; line-height:1.5; }
+header p { margin:6px 0 0; opacity:.85; }
+main { max-width:900px; margin:0 auto; padding:26px max(16px,4vw) 60px; }
+.note { background:#fff3cd; border:1px solid #f0d58a; color:#6b5000; border-radius:16px; padding:12px 16px; font-weight:700; font-size:15.5px; }
+ol.steps { list-style:none; padding:0; margin:22px 0 0; display:grid; gap:14px; counter-reset:s; }
+ol.steps > li { counter-increment:s; position:relative; background:#fff; border:1px solid var(--sand); border-radius:20px; padding:18px 18px 18px 18px; padding-inline-start:66px; }
+ol.steps > li::before { content:counter(s); position:absolute; right:16px; top:16px; width:36px; height:36px; border-radius:12px; display:grid; place-items:center; background:var(--green); color:#fff; font-family:var(--head); font-weight:800; }
+ol.steps b.t { display:block; font-family:var(--head); color:var(--g800); font-size:17.5px; margin-bottom:4px; }
+.btn { display:inline-flex; align-items:center; gap:8px; min-height:46px; padding:10px 20px; border-radius:14px; border:0; cursor:pointer; font-family:var(--head); font-weight:700; font-size:15px; text-decoration:none; }
+.gold { background:linear-gradient(135deg,#f4e4b5,var(--gold-2) 40%,var(--gold)); color:var(--g900); }
+.green { background:var(--green); color:#fff; }
+.row { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; align-items:center; }
+.ok { color:var(--green); font-weight:800; }
+textarea { width:100%; height:120px; margin-top:10px; font:13px/1.5 ui-monospace,Menlo,monospace; direction:ltr; text-align:left; border:1px solid var(--sand); border-radius:12px; padding:10px; background:var(--ivory); }
+kbd { font-family:var(--body); background:var(--ivory); border:1px solid var(--sand); border-bottom-width:3px; border-radius:8px; padding:0 8px; font-weight:700; white-space:nowrap; }
+.muted { color:var(--muted); font-size:15px; }
+</style>
+</head>
+<body>
+<header>
+  <img src="assets/moe-white.png" alt="وزارة التعليم">
+  <h1>ربط المنصة بقاعدة البيانات</h1>
+  <p>مرة واحدة فقط · بحساب Gmail الخاص بك · حوالي 5 دقائق</p>
+</header>
+<main>
+  <p class="note">💻 افعلها من <b>الكمبيوتر</b> (محرّر Google لا يعمل جيدًا على الجوال)، وأنت مسجّل دخولك في Gmail.</p>
+  <ol class="steps">
+    <li><b class="t">افتح مشروعًا جديدًا</b>
+      اضغط الزر، فيفتح محرّر Google Apps Script بمشروع فارغ.
+      <div class="row"><a class="btn green" href="https://script.new" target="_blank" rel="noopener">افتح script.new ↗</a></div></li>
+    <li><b class="t">انسخ الكود والصقه</b>
+      اضغط «نسخ الكود»، ثم في المحرّر امسح كل ما فيه (<kbd>Ctrl</kbd> + <kbd>A</kbd> ثم <kbd>Delete</kbd>) والصق (<kbd>Ctrl</kbd> + <kbd>V</kbd>)، ثم احفظ 💾 (<kbd>Ctrl</kbd> + <kbd>S</kbd>).
+      <div class="row"><button class="btn gold" id="copy" type="button">📋 نسخ الكود</button><span id="copied" class="ok" hidden>✓ تم النسخ</span></div>
+      <textarea id="code" readonly spellcheck="false">/**
+ * منصة «بفكرٍ واعٍ… لوطنٍ آمن» — الخادم (Google Apps Script)
+ * المدرسة الابتدائية الخامسة والستون بعد المائة
+ *
+ * يحفظ الرسائل في هذا الجدول (ورقة «الرسائل») والمقاطع في مجلد على Google Drive.
+ * مفتاح المديرة يُنشأ تلقائيًا في ورقة «الإعدادات» (B1)، ورابطها الخاص الجاهز في B4.
+ * المديرة تفتح رابطها فقط، دون كتابة أي رمز.
+ *
+ * التشغيل لأول مرة: اختاري الدالة setup ثم «تشغيل»، ثم «نشر ← نشر جديد ← تطبيق ويب».
+ */
+
+const SHEET = &#x27;الرسائل&#x27;;
+const SETTINGS = &#x27;الإعدادات&#x27;;
+const HEAD = [&#x27;id&#x27;, &#x27;created&#x27;, &#x27;name&#x27;, &#x27;role&#x27;, &#x27;grade&#x27;, &#x27;text&#x27;, &#x27;video_id&#x27;, &#x27;video_url&#x27;, &#x27;status&#x27;, &#x27;source&#x27;, &#x27;updated&#x27;];
+const HEAD_AR = [&#x27;المعرّف&#x27;, &#x27;التاريخ&#x27;, &#x27;الاسم&#x27;, &#x27;الصفة&#x27;, &#x27;الصف&#x27;, &#x27;الرسالة&#x27;, &#x27;معرّف المقطع&#x27;, &#x27;رابط المقطع&#x27;, &#x27;الحالة&#x27;, &#x27;المصدر&#x27;, &#x27;آخر تعديل&#x27;];
+const ROLES = [&#x27;ولي أمر&#x27;, &#x27;ولية أمر&#x27;, &#x27;طالبة&#x27;, &#x27;معلمة&#x27;, &#x27;منسوبة المدرسة&#x27;, &#x27;زائر&#x27;];
+const GRADES = [&#x27;الأول&#x27;, &#x27;الثاني&#x27;, &#x27;الثالث&#x27;, &#x27;الرابع&#x27;, &#x27;الخامس&#x27;, &#x27;السادس&#x27;];
+const STATUSES = [&#x27;pending&#x27;, &#x27;approved&#x27;, &#x27;rejected&#x27;];
+const MAX_TEXT = 1500;
+const MAX_VIDEO_MB = 36;
+const ADMIN_URL = &#x27;https://tooofa77ksa-hue.github.io/-/difaa/admin.html&#x27;;
+
+// الجدول: إن كان المشروع داخل جدول يستخدمه، وإلا يُنشئ جدولًا جديدًا مرة واحدة ويتذكّره
+function book() {
+  const props = PropertiesService.getScriptProperties();
+  const id = props.getProperty(&#x27;SHEET_ID&#x27;);
+  if (id) return SpreadsheetApp.openById(id);
+  const active = SpreadsheetApp.getActive();
+  if (active) return active;
+  const ss = SpreadsheetApp.create(&#x27;منصة الدفاع عن الوطن — الرسائل&#x27;);
+  props.setProperty(&#x27;SHEET_ID&#x27;, ss.getId());
+  return ss;
+}
+
+// ---------------- الإعداد لأول مرة ----------------
+function setup() {
+  const ss = book();
+  let sh = ss.getSheetByName(SHEET);
+  if (!sh) sh = ss.insertSheet(SHEET);
+  if (sh.getLastRow() === 0) {
+    sh.getRange(1, 1, 1, HEAD_AR.length).setValues([HEAD_AR]).setFontWeight(&#x27;bold&#x27;).setBackground(&#x27;#006c35&#x27;).setFontColor(&#x27;#ffffff&#x27;);
+    sh.setFrozenRows(1);
+    sh.setRightToLeft(true);
+    sh.getRange(&#x27;B:B&#x27;).setNumberFormat(&#x27;yyyy-mm-dd hh:mm&#x27;);
+    sh.getRange(&#x27;K:K&#x27;).setNumberFormat(&#x27;yyyy-mm-dd hh:mm&#x27;);
+    sh.setColumnWidth(6, 420);
+    sh.hideColumns(1);
+    sh.hideColumns(7);
+  }
+  let st = ss.getSheetByName(SETTINGS);
+  if (!st) st = ss.insertSheet(SETTINGS);
+  st.setRightToLeft(true);
+  if (!st.getRange(&#x27;A1&#x27;).getValue()) {
+    st.getRange(&#x27;A1:A4&#x27;).setValues([[&#x27;مفتاح المديرة (لا تعدّليه)&#x27;], [&#x27;مجلد المقاطع (لا تعدّليه)&#x27;], [&#x27;ملاحظة&#x27;], [&#x27;رابط المديرة الخاص&#x27;]]).setFontWeight(&#x27;bold&#x27;);
+    st.getRange(&#x27;B3&#x27;).setValue(&#x27;أرسلي «رابط المديرة الخاص» (الخانة B4) للمديرة وحدها. لتغييره: امسحي B1 وشغّلي setup مرة أخرى، فيتولّد رابط جديد ويتوقف القديم.&#x27;);
+    st.setColumnWidth(1, 200);
+    st.setColumnWidth(2, 520);
+  }
+  if (!String(st.getRange(&#x27;B1&#x27;).getValue() || &#x27;&#x27;).trim()) {
+    const key = Utilities.getUuid().replace(/-/g, &#x27;&#x27;).slice(0, 20);
+    st.getRange(&#x27;B1&#x27;).setValue(key);
+    st.getRange(&#x27;B4&#x27;).setValue(ADMIN_URL + &#x27;#key=&#x27; + key).setFontWeight(&#x27;bold&#x27;).setFontColor(&#x27;#006c35&#x27;);
+  }
+  if (!st.getRange(&#x27;B2&#x27;).getValue()) {
+    const folder = DriveApp.createFolder(&#x27;مقاطع منصة الدفاع عن الوطن&#x27;);
+    st.getRange(&#x27;B2&#x27;).setValue(folder.getId());
+  }
+  const first = ss.getSheets()[0];
+  if (first.getName() !== SHEET &amp;&amp; first.getName() !== SETTINGS &amp;&amp; first.getLastRow() === 0) ss.deleteSheet(first);
+  Logger.log(&#x27;جدول الرسائل: &#x27; + ss.getUrl());
+  Logger.log(&#x27;رابط المديرة الخاص: &#x27; + st.getRange(&#x27;B4&#x27;).getValue());
+}
+
+// ---------------- نقاط الدخول ----------------
+function doGet() {
+  return json({ ok: true, service: &#x27;difaa&#x27; });
+}
+
+function doPost(e) {
+  let body;
+  try { body = JSON.parse(e.postData.contents); } catch (err) { return json({ ok: false, error: &#x27;طلب غير صالح&#x27; }); }
+  try {
+    switch (body.action) {
+      case &#x27;public&#x27;: return json(publicList());
+      case &#x27;submit&#x27;: return json(withLock(() =&gt; submit(body)));
+      case &#x27;admin_login&#x27;: auth(body.pw); return json({ ok: true });
+      case &#x27;admin_list&#x27;: auth(body.pw); return json({ ok: true, items: readAll() });
+      case &#x27;admin_update&#x27;: auth(body.pw); return json(withLock(() =&gt; update(body.ids, body.patch)));
+      case &#x27;admin_delete&#x27;: auth(body.pw); return json(withLock(() =&gt; remove(body.ids)));
+      case &#x27;admin_add&#x27;: auth(body.pw); return json(withLock(() =&gt; add(body.item)));
+    }
+    return json({ ok: false, error: &#x27;طلب غير معروف&#x27; });
+  } catch (err) {
+    return json({ ok: false, error: String(err &amp;&amp; err.message || err) });
+  }
+}
+
+// ---------------- الأدوات ----------------
+function json(o) {
+  return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
+}
+function withLock(fn) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(25000);
+  try { return fn(); } finally { lock.releaseLock(); }
+}
+function sheet() {
+  const sh = book().getSheetByName(SHEET);
+  if (!sh) throw new Error(&#x27;لم يُجهَّز الجدول بعد، شغّلي الدالة setup&#x27;);
+  return sh;
+}
+function settings() {
+  return book().getSheetByName(SETTINGS);
+}
+// يمنع تحويل النص إلى معادلة داخل الجدول
+function safe(v, max) {
+  let s = String(v == null ? &#x27;&#x27; : v).replace(/\r/g, &#x27;&#x27;).trim();
+  if (max) s = s.slice(0, max);
+  if (/^[=+\-@]/.test(s)) s = &quot;&#x27;&quot; + s;
+  return s;
+}
+function unsafe(v) {
+  if (v instanceof Date) return v.toISOString();
+  const s = String(v == null ? &#x27;&#x27; : v);
+  return s.charAt(0) === &quot;&#x27;&quot; ? s.slice(1) : s;
+}
+function newId() {
+  return Date.now().toString(36) + Utilities.getUuid().slice(0, 6);
+}
+
+function auth(pw) {
+  const cache = CacheService.getScriptCache();
+  const fails = Number(cache.get(&#x27;fails&#x27;) || 0);
+  if (fails &gt;= 8) throw new Error(&#x27;محاولات كثيرة، انتظري عشر دقائق ثم حاولي مرة أخرى&#x27;);
+  const real = String(settings().getRange(&#x27;B1&#x27;).getValue() || &#x27;&#x27;).trim();
+  if (!real) throw new Error(&#x27;لم يُجهَّز مفتاح المديرة بعد، شغّلي الدالة setup&#x27;);
+  if (String(pw || &#x27;&#x27;).trim() !== real) {
+    cache.put(&#x27;fails&#x27;, String(fails + 1), 600);
+    Utilities.sleep(800);
+    throw new Error(&#x27;الرابط أو الرمز غير صحيح، افتحي اللوحة من رابطك الخاص&#x27;);
+  }
+}
+
+function readAll() {
+  const sh = sheet();
+  const n = sh.getLastRow() - 1;
+  if (n &lt; 1) return [];
+  const rows = sh.getRange(2, 1, n, HEAD.length).getValues();
+  return rows.filter((r) =&gt; r[0]).map((r) =&gt; {
+    const o = {};
+    HEAD.forEach((h, i) =&gt; (o[h] = unsafe(r[i])));
+    return o;
+  });
+}
+
+function rowIndexById() {
+  const sh = sheet();
+  const n = sh.getLastRow() - 1;
+  const map = {};
+  if (n &lt; 1) return map;
+  sh.getRange(2, 1, n, 1).getValues().forEach((r, i) =&gt; { if (r[0]) map[String(r[0])] = i + 2; });
+  return map;
+}
+
+// ---------------- الموقع العام ----------------
+function publicList() {
+  const cache = CacheService.getScriptCache();
+  const hit = cache.get(&#x27;public&#x27;);
+  if (hit) return JSON.parse(hit);
+  const ok = readAll().filter((m) =&gt; m.status === &#x27;approved&#x27;).sort((a, b) =&gt; b.created.localeCompare(a.created));
+  const items = ok.map((m) =&gt; ({ id: m.id, created: m.created, name: m.name, role: m.role, grade: m.grade, text: m.text, video_url: m.video_url }));
+  const out = { ok: true, items: items, stats: { approved: ok.length, videos: ok.filter((m) =&gt; m.video_url).length } };
+  try { cache.put(&#x27;public&#x27;, JSON.stringify(out), 20); } catch (e) {}
+  return out;
+}
+function clearPublicCache() {
+  try { CacheService.getScriptCache().remove(&#x27;public&#x27;); } catch (e) {}
+}
+
+function submit(b) {
+  if (b.website) return { ok: true }; // حماية من الرسائل الآلية
+  const cache = CacheService.getScriptCache();
+  const recent = Number(cache.get(&#x27;rate&#x27;) || 0);
+  if (recent &gt; 40) throw new Error(&#x27;الضغط كبير الآن، حاولوا بعد دقيقة&#x27;);
+  cache.put(&#x27;rate&#x27;, String(recent + 1), 60);
+
+  const text = safe(b.text, 600);
+  if (!text &amp;&amp; !b.video) throw new Error(&#x27;اكتبوا رسالة أو أرفقوا مقطعًا&#x27;);
+  let videoId = &#x27;&#x27;, videoUrl = &#x27;&#x27;;
+  if (b.video &amp;&amp; b.video.data) {
+    const bytes = Utilities.base64Decode(b.video.data);
+    if (bytes.length &gt; MAX_VIDEO_MB * 1024 * 1024) throw new Error(&#x27;حجم المقطع أكبر من المسموح&#x27;);
+    const mime = /^video\//.test(b.video.mime || &#x27;&#x27;) ? b.video.mime : &#x27;video/mp4&#x27;;
+    const name = new Date().toISOString().slice(0, 16).replace(/[:T]/g, &#x27;-&#x27;) + &#x27;-&#x27; + safe(b.name || &#x27;مشاركة&#x27;, 30) + &#x27;-&#x27; + safe(b.video.name || &#x27;video.mp4&#x27;, 60);
+    const folder = DriveApp.getFolderById(String(settings().getRange(&#x27;B2&#x27;).getValue()));
+    const file = folder.createFile(Utilities.newBlob(bytes, mime, name));
+    try { file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) {}
+    videoId = file.getId();
+    videoUrl = &#x27;https://drive.google.com/file/d/&#x27; + videoId + &#x27;/preview&#x27;;
+  }
+  const role = ROLES.indexOf(b.role) &gt;= 0 ? b.role : &#x27;&#x27;;
+  const grade = GRADES.indexOf(b.grade) &gt;= 0 ? b.grade : &#x27;&#x27;;
+  const id = newId();
+  sheet().appendRow([id, new Date(), safe(b.name, 60), role, grade, text, videoId, videoUrl, &#x27;pending&#x27;, &#x27;زائر&#x27;, &#x27;&#x27;]);
+  return { ok: true, id: id };
+}
+
+// ---------------- لوحة المديرة ----------------
+function update(ids, patch) {
+  if (!Array.isArray(ids) || !ids.length) throw new Error(&#x27;لم تُحدَّد أي مشاركة&#x27;);
+  patch = patch || {};
+  const sh = sheet();
+  const idx = rowIndexById();
+  const cols = { name: 3, role: 4, grade: 5, text: 6, status: 9 };
+  ids.forEach((id) =&gt; {
+    const r = idx[String(id)];
+    if (!r) return;
+    Object.keys(cols).forEach((k) =&gt; {
+      if (!(k in patch)) return;
+      let v = patch[k];
+      if (k === &#x27;status&#x27; &amp;&amp; STATUSES.indexOf(v) &lt; 0) return;
+      if (k === &#x27;role&#x27; &amp;&amp; v &amp;&amp; ROLES.indexOf(v) &lt; 0) return;
+      if (k === &#x27;grade&#x27; &amp;&amp; v &amp;&amp; GRADES.indexOf(v) &lt; 0) return;
+      sh.getRange(r, cols[k]).setValue(safe(v, k === &#x27;text&#x27; ? MAX_TEXT : 60));
+    });
+    sh.getRange(r, 11).setValue(new Date());
+  });
+  clearPublicCache();
+  return { ok: true };
+}
+
+function remove(ids) {
+  if (!Array.isArray(ids) || !ids.length) throw new Error(&#x27;لم تُحدَّد أي مشاركة&#x27;);
+  const sh = sheet();
+  const idx = rowIndexById();
+  const rows = ids.map((id) =&gt; idx[String(id)]).filter(Boolean).sort((a, b) =&gt; b - a);
+  rows.forEach((r) =&gt; {
+    const vid = String(sh.getRange(r, 7).getValue() || &#x27;&#x27;);
+    if (vid) { try { DriveApp.getFileById(vid).setTrashed(true); } catch (e) {} }
+    sh.deleteRow(r);
+  });
+  clearPublicCache();
+  return { ok: true };
+}
+
+function add(item) {
+  item = item || {};
+  const text = safe(item.text, MAX_TEXT);
+  if (!text) throw new Error(&#x27;اكتبي نص الرسالة&#x27;);
+  const status = STATUSES.indexOf(item.status) &gt;= 0 ? item.status : &#x27;approved&#x27;;
+  const role = ROLES.indexOf(item.role) &gt;= 0 ? item.role : &#x27;&#x27;;
+  const grade = GRADES.indexOf(item.grade) &gt;= 0 ? item.grade : &#x27;&#x27;;
+  const id = newId();
+  const now = new Date();
+  sheet().appendRow([id, now, safe(item.name, 60), role, grade, text, &#x27;&#x27;, &#x27;&#x27;, status, &#x27;المديرة&#x27;, &#x27;&#x27;]);
+  clearPublicCache();
+  return { ok: true, item: { id: id, created: now.toISOString(), name: unsafe(safe(item.name, 60)), role: role, grade: grade, text: unsafe(text), video_id: &#x27;&#x27;, video_url: &#x27;&#x27;, status: status, source: &#x27;المديرة&#x27;, updated: &#x27;&#x27; } };
+}
+</textarea></li>
+    <li><b class="t">شغّل الإعداد</b>
+      في الشريط العلوي تأكّد أن الدالة المختارة <kbd>setup</kbd> ثم اضغط <kbd>▶ Run (تشغيل)</kbd>.<br>
+      سيطلب إذنًا: <kbd>Review permissions</kbd> ← اختر حسابك ← <kbd>Advanced</kbd> ← <kbd>Go to … (unsafe)</kbd> ← <kbd>Allow</kbd>.<br>
+      <span class="muted">كلمة «unsafe» طبيعية: تظهر لأي مشروع صنعته بنفسك ولم تراجعه Google، والمشروع يعمل داخل حسابك فقط.</span></li>
+    <li><b class="t">انشر المشروع</b>
+      <kbd>Deploy (نشر)</kbd> ← <kbd>New deployment</kbd> ← من ⚙️ اختر <kbd>Web app</kbd>:<br>
+      • Execute as: <kbd>Me</kbd> &nbsp; • Who has access: <kbd>Anyone</kbd><br>
+      ثم <kbd>Deploy</kbd>، وانسخ الرابط الذي ينتهي بـ <b>/exec</b>.</li>
+    <li><b class="t">أرسل الرابط لـ Claude</b>
+      الصق رابط <b>/exec</b> في المحادثة (ليس سرًّا)، فيربطه بالموقع ويختبر الإرسال والعرض الحقيقي.</li>
+  </ol>
+  <p class="muted" style="margin-top:22px">بعد الإعداد ستجد في Google Drive ملفًا اسمه <b>«منصة الدفاع عن الوطن — الرسائل»</b>؛ في ورقة «الإعدادات» الخانة <b>B4</b> رابط المديرة الخاص لترسله لها، وتُحفظ المقاطع في مجلد «مقاطع منصة الدفاع عن الوطن».</p>
+</main>
+<script>
+document.getElementById("copy").addEventListener("click", async () => {
+  const t = document.getElementById("code");
+  try { await navigator.clipboard.writeText(t.value); }
+  catch (e) { t.focus(); t.select(); document.execCommand("copy"); }
+  document.getElementById("copied").hidden = false;
+});
+</script>
+</body>
+</html>
