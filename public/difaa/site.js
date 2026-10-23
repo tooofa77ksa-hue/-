@@ -55,7 +55,21 @@
       .from("#anthem", { y: 14, opacity: 0, duration: 0.8, ease: "power3.out" }, 3.15)
       .from(".scroll-cue", { opacity: 0, duration: 0.8 }, 3.3);
   }
-  intro();
+  // ---------- شاشة الدخول ----------
+  const gate = $("#gate");
+  function enter(withSound) {
+    if (withSound) {
+      const el = document.documentElement;
+      try { const f = el.requestFullscreen || el.webkitRequestFullscreen; if (f) { const r = f.call(el); if (r && r.catch) r.catch(() => {}); } } catch (e) {}
+      playAnthem();
+    }
+    const done = () => { gate.remove(); if (window.__startIntro) window.__startIntro(); intro(); };
+    if (anim) gsap.to(gate, { opacity: 0, scale: 1.04, duration: 0.7, ease: "power2.inOut", onComplete: done });
+    else done();
+  }
+  $("#gateGo").addEventListener("click", () => enter(true));
+  $("#gateQuiet").addEventListener("click", () => enter(false));
+  if (anim) gsap.from(".gate-in > *", { y: 24, opacity: 0, duration: 0.9, stagger: 0.09, ease: "power3.out", delay: 0.1 });
 
   // ---------- الظهور عند التمرير ----------
   if (anim) {
@@ -86,13 +100,14 @@
     aSub.textContent = on ? "اضغطوا للإيقاف" : "اضغطوا للاستماع";
     window.__anthemOn = on;
   }
+  function playAnthem() {
+    au.volume = 1;
+    const p = au.play();
+    if (p && p.catch) p.catch(() => anthemUI(false));
+    anthemUI(true);
+  }
   anthem.addEventListener("click", () => {
-    if (au.paused) {
-      au.volume = 1;
-      const p = au.play();
-      if (p && p.catch) p.catch(() => anthemUI(false));
-      anthemUI(true);
-    } else { au.pause(); anthemUI(false); }
+    if (au.paused) playAnthem(); else { au.pause(); anthemUI(false); }
   });
   au.addEventListener("timeupdate", () => { if (au.duration) aBar.style.width = (au.currentTime / au.duration) * 100 + "%"; });
   au.addEventListener("ended", () => { anthemUI(false); au.currentTime = 0; aBar.style.width = "0"; });

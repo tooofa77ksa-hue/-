@@ -164,6 +164,7 @@ async function init() {
     tilt.rotation.x = 0.35;
     holder.position.set(0, 0, 0);
     camera.position.z = 9;
+    if (window.DIFAA_START) await window.DIFAA_START;
     const tl = gsap.timeline({ delay: 0.2, onComplete: () => { introRunning = false; gsap.to(state, { idle: 1, duration: 2.5, ease: "sine.inOut" }); } });
     tl.to(spin.rotation, { y: A, duration: 3.6, ease: "power3.inOut" }, 0)
       .to(tilt.rotation, { x: B, duration: 3.6, ease: "power2.inOut" }, 0)
