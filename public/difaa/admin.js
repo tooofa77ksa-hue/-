@@ -278,14 +278,75 @@
     const rows = scope === "view" ? filtered() : filtered(scope === "approved" ? "approved" : "all");
     const scopeLabel = scope === "view" ? ({ pending: "بانتظار المراجعة", approved: "المعتمدة", rejected: "المرفوضة", flagged: "التنبيهات", all: "كل المشاركات" }[tab]) : scope === "approved" ? "المعتمدة" : "كل المشاركات";
     if (!rows.length) return toast("لا توجد مشاركات للتصدير في هذا الاختيار", true);
-    if (exportKind === "pdf") exportPDF(rows, orient, scopeLabel);
+    if (exportKind === "pdf") exportPDF(rows, orient, scopeLabel).catch(() => printPDF(rows, orient, scopeLabel));
     else exportXLSX(rows, orient, scopeLabel).catch((ex) => toast("تعذّر إنشاء ملف Excel: " + ex.message, true));
   });
 
   const today = () => D.fmtDate(new Date().toISOString());
   const todayG = () => new Date().toLocaleDateString("ar-EG-u-nu-latn", { year: "numeric", month: "long", day: "numeric" });
 
-  function exportPDF(rows, orient, scopeLabel) {
+  // ملف PDF جاهز بالاتجاه المختار (يعمل في الآيفون أيضًا)، صفحة صفحة مع تكرار رأس الجدول وترقيم الصفحات
+  async function exportPDF(rows, orient, scopeLabel) {
+    if (!window.html2canvas || !window.jspdf) return printPDF(rows, orient, scopeLabel);
+    toast("جارٍ تجهيز ملف PDF…");
+    const land = orient === "landscape";
+    const W = land ? 1123 : 794, H = land ? 794 : 1123;
+    const c = { approved: 0, pending: 0, rejected: 0 };
+    rows.forEach((m) => (c[m.status] = (c[m.status] || 0) + 1));
+    const vids = rows.filter((m) => m.video_url).length;
+    const head = `<thead><tr><th style="width:4%">م</th><th style="width:${land ? 12 : 14}%">التاريخ</th><th style="width:${land ? 12 : 14}%">الاسم</th><th style="width:${land ? 10 : 12}%">الصفة</th>${land ? '<th style="width:7%">الصف</th>' : ""}<th>الرسالة</th><th style="width:${land ? 6 : 8}%">مقطع</th><th style="width:${land ? 9 : 11}%">الحالة</th></tr></thead>`;
+    const rowHTML = (m, i) => `<tr><td>${i + 1}</td><td>${D.fmtDate(m.created)}</td><td>${D.esc(m.name || "—")}</td><td>${D.esc(m.role || "—")}${!land && m.grade ? "<br>الصف " + D.esc(m.grade) : ""}</td>${land ? `<td>${D.esc(m.grade || "—")}</td>` : ""}<td class="msg">${D.esc(m.text || "(مشاركة مرئية)")}</td><td>${m.video_url ? "يوجد" : "—"}</td><td class="st-${m.status}">${D.STATUS[m.status] || ""}</td></tr>`;
+    const host = document.createElement("div");
+    host.className = "pdf-host";
+    host.style.width = W + "px";
+    document.body.appendChild(host);
+    const pages = [];
+    function newPage() {
+      const first = pages.length === 0;
+      const pg = document.createElement("div");
+      pg.className = "pdf-page";
+      pg.style.width = W + "px"; pg.style.height = H + "px";
+      pg.innerHTML = (first
+        ? `<div class="rp-head"><img src="assets/moe-white.png" alt=""><div class="t"><h1>سجل رسائل منصة «بفكرٍ واعٍ… لوطنٍ آمن»</h1><p>المدرسة الابتدائية الخامسة والستون بعد المائة</p></div><div class="d">${today()}<br>${todayG()}</div></div>
+           <div class="rp-sum"><span>المحتوى: ${scopeLabel}</span><span>العدد: ${rows.length}</span><span>معتمدة: ${c.approved}</span><span>بانتظار المراجعة: ${c.pending}</span><span>مرفوضة: ${c.rejected}</span><span>مقاطع مرئية: ${vids}</span></div>`
+        : `<div class="rp-mini"><b>سجل رسائل منصة «بفكرٍ واعٍ… لوطنٍ آمن»</b><span>المدرسة الابتدائية الخامسة والستون بعد المائة</span></div>`) +
+        `<div class="pdf-body"><table class="rp-table">${head}<tbody></tbody></table></div>
+         <div class="rp-foot"><div><b>مديرة المدرسة: أ. جازية السميري</b><small>المساعد الإداري: عواطف الجهني</small></div><div class="pno"></div></div>`;
+      host.appendChild(pg);
+      pages.push(pg);
+      return pg;
+    }
+    try {
+      if (document.fonts && document.fonts.ready) await document.fonts.ready;
+      let pg = newPage();
+      for (let i = 0; i < rows.length; i++) {
+        const body = pg.querySelector(".pdf-body");
+        const tb = pg.querySelector("tbody");
+        tb.insertAdjacentHTML("beforeend", rowHTML(rows[i], i));
+        if (body.scrollHeight > body.clientHeight && tb.children.length > 1) {
+          tb.lastElementChild.remove();
+          pg = newPage();
+          pg.querySelector("tbody").insertAdjacentHTML("beforeend", rowHTML(rows[i], i));
+        }
+      }
+      pages.forEach((p, i) => (p.querySelector(".pno").textContent = `صفحة ${i + 1} من ${pages.length} · منصة الدفاع عن الوطن`));
+      await Promise.all([...host.querySelectorAll("img")].map((im) => (im.complete ? 0 : new Promise((r) => (im.onload = im.onerror = r)))));
+      const pdf = new window.jspdf.jsPDF({ orientation: orient, unit: "mm", format: "a4", compress: true });
+      const pw = land ? 297 : 210, ph = land ? 210 : 297;
+      for (let i = 0; i < pages.length; i++) {
+        const cv = await window.html2canvas(pages[i], { scale: 2, backgroundColor: "#ffffff", useCORS: true, logging: false });
+        if (i) pdf.addPage("a4", orient);
+        pdf.addImage(cv.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, pw, ph);
+      }
+      pdf.setProperties({ title: "سجل رسائل منصة بفكر واع لوطن آمن" });
+      pdf.save(`Watan-Messages-${land ? "landscape" : "portrait"}-${new Date().toISOString().slice(0, 10)}.pdf`);
+      toast(`تم تجهيز ملف PDF ${land ? "بالعرض" : "بالطول"} (${pages.length} ${pages.length > 2 ? "صفحات" : "صفحة"}) ✓`);
+    } finally {
+      host.remove();
+    }
+  }
+
+  function printPDF(rows, orient, scopeLabel) {
     const land = orient === "landscape";
     $("#pageStyle").textContent = `@page { size: A4 ${orient}; margin: 12mm 10mm; }`;
     const c = { approved: 0, pending: 0, rejected: 0 };

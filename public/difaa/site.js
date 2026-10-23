@@ -52,6 +52,7 @@
       .from(".hero-title .w > span", { yPercent: 110, opacity: 0, rotate: 4, duration: 1.1, stagger: 0.12, ease: "expo.out" }, 2.05)
       .from(".hero-sub > *", { y: 16, opacity: 0, duration: 0.7, stagger: 0.08, ease: "power3.out" }, 2.6)
       .from(".hero-actions .btn", { y: 18, opacity: 0, duration: 0.8, stagger: 0.1, ease: "power3.out" }, 2.9)
+      .from("#anthem", { y: 14, opacity: 0, duration: 0.8, ease: "power3.out" }, 3.15)
       .from(".scroll-cue", { opacity: 0, duration: 0.8 }, 3.3);
   }
   intro();
@@ -76,6 +77,27 @@
     // الصورة في قسم الواجب
     gsap.fromTo(".duty-photo img", { scale: 1.18 }, { scale: 1, ease: "none", scrollTrigger: { trigger: ".duty-photo", start: "top bottom", end: "bottom center", scrub: true } });
   }
+
+  // ---------- النشيد الوطني (لا يعمل إلا بالضغط، ويُشغَّل مرة واحدة) ----------
+  const anthem = $("#anthem"), au = $("#anthemAudio"), aBar = $(".anthem-bar span", anthem), aSub = $(".anthem-txt small", anthem);
+  function anthemUI(on) {
+    anthem.classList.toggle("on", on);
+    anthem.setAttribute("aria-pressed", on);
+    aSub.textContent = on ? "اضغطوا للإيقاف" : "اضغطوا للاستماع";
+    window.__anthemOn = on;
+  }
+  anthem.addEventListener("click", () => {
+    if (au.paused) {
+      au.volume = 1;
+      const p = au.play();
+      if (p && p.catch) p.catch(() => anthemUI(false));
+      anthemUI(true);
+    } else { au.pause(); anthemUI(false); }
+  });
+  au.addEventListener("timeupdate", () => { if (au.duration) aBar.style.width = (au.currentTime / au.duration) * 100 + "%"; });
+  au.addEventListener("ended", () => { anthemUI(false); au.currentTime = 0; aBar.style.width = "0"; });
+  // يتوقف إذا خرج الزائر من الصفحة
+  document.addEventListener("visibilitychange", () => { if (document.hidden && !au.paused) { au.pause(); anthemUI(false); } });
 
   // ---------- العدّادات ----------
   function countUp(el, to) {

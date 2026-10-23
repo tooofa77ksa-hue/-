@@ -192,10 +192,14 @@ async function init() {
       spin.rotation.y = A + (Math.sin(t * 0.22) * 0.05 - look.x) * k;
       tilt.rotation.x = B + (Math.cos(t * 0.18) * 0.025 + look.y) * k;
     }
-    const p = (t * 0.7) % 1;
-    pulse.scale.setScalar(0.03 + p * 0.06);
+    const glow = window.__anthemOn ? 1 : 0;
+    state.glow = (state.glow || 0) + (glow - (state.glow || 0)) * 0.04;
+    const p = (t * (0.7 + state.glow * 0.5)) % 1;
+    pulse.scale.setScalar(0.03 + p * (0.06 + state.glow * 0.05));
     if (!introRunning) pulse.material.opacity = 1 - p * 0.85;
     tubeMat.opacity = 0.85 + Math.sin(t * 2) * 0.15;
+    tubeMat.color.setHex(state.glow > 0.5 ? 0xfff0b8 : 0xf2d27e);
+    if (!introRunning) fillMat.opacity = 0.42 + state.glow * 0.2;
     renderer.render(scene, camera);
   }
   loop();
