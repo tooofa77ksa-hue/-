@@ -84,7 +84,17 @@
       xhr.open("POST", API);
       xhr.setRequestHeader("Content-Type", "text/plain;charset=utf-8");
       xhr.timeout = 180000;
-      if (onProgress && xhr.upload) xhr.upload.onprogress = (e) => e.lengthComputable && onProgress(e.loaded / e.total);
+      // لا نستخدم xhr.upload.onprogress: يجعل المتصفح يرسل طلب فحص (preflight) يرفضه خادم Google.
+      // بدلًا منه شريط تقدّم تقديري حسب حجم الإرسال.
+      const body = JSON.stringify(Object.assign({ action }, payload || {}));
+      let tick = null;
+      if (onProgress) {
+        const est = Math.max(1500, (body.length / (400 * 1024)) * 1000);
+        const t0 = Date.now();
+        tick = setInterval(() => onProgress(Math.min(0.92, 1 - Math.exp(-(Date.now() - t0) / est))), 250);
+      }
+      const stop = () => tick && clearInterval(tick);
+      xhr.onloadend = stop;
       xhr.onload = () => {
         let j;
         try { j = JSON.parse(xhr.responseText); } catch (e) { return reject(new Error("تعذّر قراءة الرد من الخادم")); }
@@ -93,7 +103,7 @@
       };
       xhr.onerror = () => reject(new Error("تعذّر الاتصال، تأكّدي من الإنترنت وحاولي مرة أخرى"));
       xhr.ontimeout = () => reject(new Error("انتهت مهلة الإرسال، جرّبي مقطعًا أقصر"));
-      xhr.send(JSON.stringify(Object.assign({ action }, payload || {})));
+      xhr.send(body);
     });
   }
 
