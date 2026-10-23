@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>عالم صالح</title>
+<style>
+  :root{color-scheme:light dark}
+  html,body{margin:0;height:100%;overflow:hidden;font-family:system-ui,"Baloo Bhaijaan 2",sans-serif;background:#8fd3ff}
+  #hud{position:fixed;top:10px;inset-inline:10px;display:flex;justify-content:space-between;gap:8px;pointer-events:none;z-index:2}
+  .box{background:rgba(255,255,255,.92);border-radius:14px;padding:8px 12px;box-shadow:0 4px 0 rgba(0,0,0,.15);font-size:15px;color:#1d2733;min-width:150px}
+  .box b{display:block;margin-bottom:4px}
+  .bar{height:10px;border-radius:6px;background:#e5e7eb;overflow:hidden;margin-top:4px}
+  .bar i{display:block;height:100%;width:0;background:#2e7d4f;transition:width .4s}
+  #toast{position:fixed;top:40%;inset-inline:0;margin:auto;width:max-content;max-width:90%;padding:12px 18px;border-radius:16px;background:#fff;color:#1d2733;font-weight:700;font-size:18px;box-shadow:0 6px 0 rgba(0,0,0,.2);opacity:0;transition:opacity .3s;pointer-events:none;z-index:3;text-align:center}
+  #toast.on{opacity:1}
+  #pad{position:fixed;bottom:18px;inset-inline:0;display:flex;justify-content:space-between;padding:0 18px;z-index:2;pointer-events:none}
+  #pad button{pointer-events:auto;width:84px;height:84px;border-radius:50%;border:0;background:rgba(255,255,255,.85);font-size:30px;box-shadow:0 5px 0 rgba(0,0,0,.2);touch-action:none}
+  #pad button:active{transform:translateY(3px)}
+  #pad .j{background:#f2b13b}
+  #shopBtn{position:fixed;top:120px;inset-inline:10px;z-index:2;pointer-events:auto;width:max-content;margin-inline-start:auto;background:#f2b13b;border:0;border-radius:14px;padding:10px 14px;font-weight:700;box-shadow:0 4px 0 rgba(0,0,0,.2);font-size:15px}
+  #shop{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:5}
+  #shop.on{display:flex}
+  #shop .panel{background:#fff;color:#1d2733;border-radius:18px;padding:16px;width:min(92%,380px);max-height:80vh;overflow:auto}
+  #shop .it{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px;border-radius:12px;background:#f5f7fa;margin:8px 0}
+  #shop .it button{border:0;border-radius:10px;padding:8px 12px;font-weight:700;background:#2e7d4f;color:#fff}
+  #shop .it button:disabled{background:#9ca3af}
+</style>
+</head>
+<body>
+<div id="hud">
+  <div class="box"><b>🧱 صالح</b><span id="lvl">المستوى ١</span><div class="bar"><i id="xp"></i></div></div>
+  <div class="box"><b>🏆 الإنجازات</b><span id="ach">٠ / ٤</span></div>
+</div>
+<div id="toast"></div>
+<button id="shopBtn">🛍️ المتجر (⭐ <span id="stars">0</span>)</button>
+<div id="shop"><div class="panel"><b style="font-size:18px">🛍️ متجر صالح</b><p style="margin:6px 0 2px;font-size:14px">تشتري بالنجوم اللي تكسبها من الإنجازات.</p><div id="items"></div><button id="shopClose" style="margin-top:8px;width:100%;padding:10px;border:0;border-radius:10px;background:#1d2733;color:#fff;font-weight:700">إغلاق</button></div></div>
+<div id="pad">
+  <button id="left" aria-label="يسار">◀</button>
+  <button id="jump" class="j" aria-label="قفز">⤴</button>
+  <button id="right" aria-label="يمين">▶</button>
+</div>
+
+<script type="importmap">
+{"imports":{"three":"./vendor/three.module.min.js"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+
+// ---------- state (saved on this device only) ----------
+const KEY = 'saleh-world-v1';
+let S = {xp: 0, done: {}, color: 0x4f8ee8};
+try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+
+// ---------- achievements: each one unlocks a zone and changes Saleh's color ----------
+const ACH = [
+  {id: 'cell',    name: 'الخلية',        zone: 1, color: 0x2e7d4f, text: 'وصلت إلى منطقة الخلية! افتحها بإجابة صح.'},
+  {id: 'english', name: 'Unit 1 Words',  zone: 2, color: 0xf2b13b, text: 'منطقة الإنجليزي فتحت! Living Things.'},
+  {id: 'breath',  name: 'التنفس',        zone: 3, color: 0xe0603a, text: 'منطقة التنفس فتحت! الحويصلات الهوائية.'},
+  {id: 'climb',   name: 'قمة الإنجاز',    zone: 4, color: 0x7b4bd1, text: 'وصلت القمة! ركّزت فوصلت، والتوفيق من الله.'},
+];
+
+// ---------- audio: small synth sounds, no files needed ----------
+let ac = null;
+function beep(freq, dur = .15, type = 'sine', vol = .15, when = 0) {
+  if (S.mute) return;
+  ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+  const o = ac.createOscillator(), g = ac.createGain();
+  o.type = type; o.frequency.value = freq; o.connect(g); g.connect(ac.destination);
+  const t = ac.currentTime + when; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+  o.start(t); o.stop(t + dur + .02);
+}
+const sfx = {
+  jump: () => beep(520, .12, 'triangle', .12),
+  win: () => { [523, 659, 784, 1047].forEach((f, i) => beep(f, .18, 'square', .09, i * .1)); },
+  step: () => beep(160, .05, 'sine', .04),
+};
+
+// ---------- toast ----------
+const toast = (t) => { const e = document.getElementById('toast'); e.textContent = t; e.classList.add('on'); clearTimeout(e._t); e._t = setTimeout(() => e.classList.remove('on'), 2200); };
+
+// ---------- three.js world ----------
+const renderer = new THREE.WebGLRenderer({antialias: true});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x8fd3ff);
+scene.fog = new THREE.Fog(0x8fd3ff, 60, 160);
+const cam = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, .1, 400);
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0x4a7a3a, 1.1));
+const sun = new THREE.DirectionalLight(0xffffff, 1.2);
+sun.position.set(30, 50, 20); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024);
+Object.assign(sun.shadow.camera, {left: -40, right: 40, top: 40, bottom: -40});
+scene.add(sun);
+
+// ground (grass blocks)
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(260, 260), new THREE.MeshLambertMaterial({color: 0x5cb85c}));
+ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+
+// zones: each is a raised platform (block) that opens with an achievement
+const zones = [];
+function block(x, y, z, w, h, d, color) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshLambertMaterial({color}));
+  m.position.set(x, y + h / 2, z); m.castShadow = true; m.receiveShadow = true; scene.add(m); return m;
+}
+const zoneSpots = [[-18, 0, -18], [18, 0, -18], [-18, 0, 18], [18, 0, 18]];
+ACH.forEach((a, i) => {
+  const [x, , z] = zoneSpots[i];
+  const base = block(x, 0, z, 10, 1.2, 10, 0x9e9e9e);
+  const top = block(x, 1.2, z, 8, .2, 8, a.color);
+  zones.push({a, base, top, x, z});
+});
+
+// Saleh: a block character (original, not copied from any game)
+const hero = new THREE.Group();
+const bodyMat = new THREE.MeshLambertMaterial({color: S.color});
+const body = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.3, .7), bodyMat);
+body.position.y = 1.35; body.castShadow = true; hero.add(body);
+const head = new THREE.Mesh(new THREE.BoxGeometry(.9, .9, .9), new THREE.MeshLambertMaterial({color: 0xffd6a5}));
+head.position.y = 2.6; head.castShadow = true; hero.add(head);
+const legL = new THREE.Mesh(new THREE.BoxGeometry(.45, .8, .5), new THREE.MeshLambertMaterial({color: 0x2c3e6b}));
+const legR = legL.clone();
+legL.position.set(-.3, .4, 0); legR.position.set(.3, .4, 0);
+hero.add(legL, legR);
+scene.add(hero);
+hero.position.set(0, 0, 0);
+
+// ---------- controls ----------
+const keys = {};
+addEventListener('keydown', e => { keys[e.code] = true; if (e.code === 'Space') jump(); });
+addEventListener('keyup', e => { keys[e.code] = false; });
+const press = {left: false, right: false};
+['left', 'right'].forEach(k => {
+  const b = document.getElementById(k);
+  b.addEventListener('pointerdown', () => press[k] = true);
+  b.addEventListener('pointerup', () => press[k] = false);
+  b.addEventListener('pointerleave', () => press[k] = false);
+});
+document.getElementById('jump').addEventListener('pointerdown', jump);
+
+let vy = 0, onGround = true, speed = 0;
+function jump() { if (onGround) { vy = 9; onGround = false; sfx.jump(); } }
+
+
+// ---------- store: stars buy items; items change Saleh's look ----------
+const STORE = [
+  {id: 'crown', name: '👑 تاج ذهبي', price: 10, color: 0xf2b13b},
+  {id: 'flame', name: '🔥 جناح نار', price: 15, color: 0xe0603a},
+  {id: 'rainbow', name: '🌈 أثر قوس قزح', price: 20, color: 0x7b4bd1},
+  {id: 'star', name: '⭐ قبعة نجمة', price: 25, color: 0xffd166},
+];
+let crownMesh = null, trail = [];
+function buildItems() {
+  const box = document.getElementById('items'); box.innerHTML = '';
+  STORE.forEach(it => {
+    const row = document.createElement('div'); row.className = 'it';
+    const own = S.owned && S.owned[it.id];
+    row.innerHTML = `<span>${it.name} · ${it.price} ⭐</span>`;
+    const b = document.createElement('button');
+    b.textContent = own ? 'مُلك' : 'شراء';
+    b.disabled = !!own || (S.stars || 0) < it.price;
+    b.onclick = () => {
+      if ((S.stars || 0) < it.price) return;
+      S.stars -= it.price; S.owned = S.owned || {}; S.owned[it.id] = 1; save();
+      applyLook(); refreshHud(); buildItems(); toast('✅ اشتريت ' + it.name);
+      sfx.win();
+    };
+    row.appendChild(b); box.appendChild(row);
+  });
+  document.getElementById('stars').textContent = S.stars || 0;
+}
+function applyLook() {
+  if (S.owned && S.owned.crown && !crownMesh) {
+    crownMesh = new THREE.Mesh(new THREE.BoxGeometry(.9, .35, .9), new THREE.MeshLambertMaterial({color: 0xf2b13b}));
+    crownMesh.position.y = 3.2; hero.add(crownMesh);
+  }
+  if (S.owned && S.owned.star && !hero.getObjectByName('starHat')) {
+    const st = new THREE.Mesh(new THREE.ConeGeometry(.5, .6, 5), new THREE.MeshLambertMaterial({color: 0xffd166}));
+    st.position.y = 3.3; st.name = 'starHat'; hero.add(st);
+  }
+}
+const shop = document.getElementById('shop');
+document.getElementById('shopBtn').onclick = () => { buildItems(); shop.classList.add('on'); };
+document.getElementById('shopClose').onclick = () => shop.classList.remove('on');
+
+// ---------- game loop ----------
+const clock = new THREE.Clock();
+let t = 0;
+function update(dt) {
+  t += dt;
+  const left = keys.ArrowLeft || keys.KeyA || press.left;
+  const right = keys.ArrowRight || keys.KeyD || press.right;
+  const dir = (right ? 1 : 0) - (left ? 1 : 0);
+  const turn = dir !== 0;
+  if (turn) hero.rotation.y = dir > 0 ? Math.PI / 2 : -Math.PI / 2;
+  speed = turn ? 7 : 0;
+  hero.position.x += Math.cos(hero.rotation.y) * speed * dt * (turn ? 1 : 0);
+  hero.position.z -= Math.sin(hero.rotation.y) * speed * dt * (turn ? 1 : 0);
+  // run animation: legs swing while moving
+  const swing = turn ? Math.sin(t * 14) * .6 : 0;
+  legL.rotation.x = swing; legR.rotation.x = -swing;
+
+  vy -= 22 * dt; hero.position.y += vy * dt;
+  if (hero.position.y <= 0) { hero.position.y = 0; vy = 0; onGround = true; }
+
+  // standing on a zone platform?
+  let top = 0;
+  zones.forEach(z => {
+    const inside = Math.abs(hero.position.x - z.x) < 4 && Math.abs(hero.position.z - z.z) < 4;
+    if (inside && hero.position.y >= 1.2 - .1) top = Math.max(top, 1.4);
+  });
+  if (top && hero.position.y < top && vy <= 0) { hero.position.y = top; vy = 0; onGround = true; }
+
+  // walk into an unopened zone's tile: reward
+  zones.forEach(z => {
+    const near = Math.abs(hero.position.x - z.x) < 4.5 && Math.abs(hero.position.z - z.z) < 4.5;
+    if (near && !S.done[z.a.id]) unlock(z.a);
+  });
+
+  // keep Saleh inside the world
+  hero.position.x = Math.max(-60, Math.min(60, hero.position.x));
+  hero.position.z = Math.max(-60, Math.min(60, hero.position.z));
+
+  if (S.owned && S.owned.rainbow && turn && Math.random() < .5) {
+    const c = new THREE.Mesh(new THREE.BoxGeometry(.3, .3, .3), new THREE.MeshBasicMaterial({color: new THREE.Color().setHSL((t * .2) % 1, 1, .6)}));
+    c.position.copy(hero.position); c.position.y += .4; scene.add(c); trail.push({m: c, life: .8});
+  }
+  trail = trail.filter(p => { p.life -= dt; p.m.scale.multiplyScalar(.97); if (p.life <= 0) { scene.remove(p.m); return false; } return true; });
+  // camera follows from behind
+  const want = new THREE.Vector3(hero.position.x - 12, hero.position.y + 8, hero.position.z + 12);
+  cam.position.lerp(want, Math.min(1, dt * 5));
+  cam.lookAt(hero.position.x, hero.position.y + 2, hero.position.z);
+}
+
+function unlock(a) {
+  S.done[a.id] = 1; S.xp += 25; S.stars = (S.stars || 0) + 5;
+  bodyMat.color.setHex(a.color); S.color = a.color;
+  save(); sfx.win();
+  toast('🏆 ' + a.text);
+  refreshHud();
+}
+
+function refreshHud() {
+  const n = Object.keys(S.done).length;
+  document.getElementById('ach').textContent = n + ' / ' + ACH.length;
+  document.getElementById('xp').style.width = Math.min(100, S.xp % 100) + '%';
+  document.getElementById('lvl').textContent = 'المستوى ' + (1 + Math.floor(S.xp / 100)) + ' · ⭐ ' + (S.stars || 0);
+}
+
+function resize() { renderer.setSize(innerWidth, innerHeight); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); }
+addEventListener('resize', resize);
+
+// restore earned zones & color
+ACH.forEach(a => { if (S.done[a.id]) { zones[ACH.indexOf(a)].top.material.emissive = new THREE.Color(0x222222); } });
+bodyMat.color.setHex(S.color);
+applyLook();
+refreshHud();
+resize();
+hero.position.set(0, 0, 0);
+cam.position.set(-12, 8, 12);
+
+function loop() {
+  const dt = Math.min(.05, clock.getDelta());
+  update(dt);
+  renderer.render(scene, cam);
+  requestAnimationFrame(loop);
+}
+loop();
+// ---- testing hook (used by the automated check only) ----
+window.__world = {hero, S, zones, unlock, ACH};
+</script>
+</body>
+</html>
