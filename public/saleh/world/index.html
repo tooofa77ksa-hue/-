@@ -39,6 +39,7 @@
 <div id="pad">
   <button id="left" aria-label="يسار">◀</button>
   <button id="jump" class="j" aria-label="قفز">⤴</button>
+  <div style="position:fixed;bottom:112px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;pointer-events:none"><button id="fwd" style="pointer-events:auto;width:72px;height:60px;border-radius:16px;border:0;background:rgba(255,255,255,.9);font-size:26px;box-shadow:0 4px 0 rgba(0,0,0,.2)">▲</button><button id="back" style="pointer-events:auto;width:72px;height:60px;border-radius:16px;border:0;background:rgba(255,255,255,.9);font-size:26px;box-shadow:0 4px 0 rgba(0,0,0,.2)">▼</button></div>
   <button id="right" aria-label="يمين">▶</button>
 </div>
 
@@ -135,8 +136,8 @@ hero.position.set(0, 0, 0);
 const keys = {};
 addEventListener('keydown', e => { keys[e.code] = true; if (e.code === 'Space') jump(); });
 addEventListener('keyup', e => { keys[e.code] = false; });
-const press = {left: false, right: false};
-['left', 'right'].forEach(k => {
+const press = {left: false, right: false, fwd: false, back: false};
+['left', 'right', 'fwd', 'back'].forEach(k => {
   const b = document.getElementById(k);
   b.addEventListener('pointerdown', () => press[k] = true);
   b.addEventListener('pointerup', () => press[k] = false);
@@ -219,12 +220,20 @@ function update(dt) {
   t += dt;
   const left = keys.ArrowLeft || keys.KeyA || press.left;
   const right = keys.ArrowRight || keys.KeyD || press.right;
-  const dir = (right ? 1 : 0) - (left ? 1 : 0);
-  const turn = dir !== 0;
-  if (turn) hero.rotation.y = dir > 0 ? Math.PI / 2 : -Math.PI / 2;
+  const fwd = keys.ArrowUp || keys.KeyW || press.fwd;
+  const back = keys.ArrowDown || keys.KeyS || press.back;
+  const dx = (right ? 1 : 0) - (left ? 1 : 0);
+  const dz = (back ? 1 : 0) - (fwd ? 1 : 0);
+  const moving = dx !== 0 || dz !== 0;
+  if (moving) {
+    // face the way Saleh walks, then walk there
+    hero.rotation.y = Math.atan2(dx, dz);
+    const len = Math.hypot(dx, dz) || 1;
+    hero.position.x += (dx / len) * 7 * dt;
+    hero.position.z += (dz / len) * 7 * dt;
+  }
+  const turn = moving;
   speed = turn ? 7 : 0;
-  hero.position.x += Math.cos(hero.rotation.y) * speed * dt * (turn ? 1 : 0);
-  hero.position.z -= Math.sin(hero.rotation.y) * speed * dt * (turn ? 1 : 0);
   // run animation: legs swing while moving
   const swing = turn ? Math.sin(t * 14) * .6 : 0;
   legL.rotation.x = swing; legR.rotation.x = -swing;
