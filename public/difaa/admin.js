@@ -13,6 +13,24 @@
     try { PW = localStorage.getItem(SKEY) || ""; } catch (e) {}
   }
 
+  // زر الشاشة الكاملة (يظهر فقط في الأجهزة التي تدعمه)
+  const fsEl = document.documentElement;
+  const fsReq = fsEl.requestFullscreen || fsEl.webkitRequestFullscreen;
+  const fsOn = () => document.fullscreenElement || document.webkitFullscreenElement;
+  const fsBtn = $("#fsBtn");
+  if (fsReq && (document.fullscreenEnabled || document.webkitFullscreenEnabled)) {
+    fsBtn.hidden = false;
+    fsBtn.addEventListener("click", () => {
+      try {
+        if (fsOn()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+        else { const r = fsReq.call(fsEl); if (r && r.catch) r.catch(() => {}); }
+      } catch (e) {}
+    });
+    const upd = () => ($("span", fsBtn).textContent = fsOn() ? "خروج من الشاشة الكاملة" : "شاشة كاملة");
+    document.addEventListener("fullscreenchange", upd);
+    document.addEventListener("webkitfullscreenchange", upd);
+  }
+
   let all = [];
   let tab = "pending";
   const selected = new Set();
