@@ -41,6 +41,7 @@ button { font: inherit; color: inherit; }
 .login small { opacity: .8; }
 .login .lf span { color: rgba(255, 255, 255, .85); }
 .login .lf input { background: rgba(255, 255, 255, .95); }
+.link-note { font-size: 14.5px; line-height: 1.8; margin: 0 0 18px !important; padding: 12px 14px; border-radius: 14px; background: rgba(201, 164, 76, .14); border: 1px solid rgba(201, 164, 76, .35); color: var(--gold-3); }
 .demo-hint { font-size: 13.5px; margin: 14px 0 0 !important; color: var(--gold-3); }
 .err { color: #ffb4ab; font-weight: 700; font-size: 14.5px; margin: 0 0 10px; }
 .err:empty { display: none; }

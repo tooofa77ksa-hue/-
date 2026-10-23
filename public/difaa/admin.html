@@ -21,13 +21,14 @@
     <img src="assets/moe-white.png" alt="وزارة التعليم" class="login-logo">
     <h1>لوحة المديرة</h1>
     <p>منصة «بفكرٍ واعٍ… لوطنٍ آمن»<br><small>المدرسة الابتدائية الخامسة والستون بعد المائة</small></p>
+    <p class="link-note">افتحي اللوحة من <b>الرابط الخاص</b> الذي وصلك، وستفتح مباشرة دون أي رمز، ويتذكّرها جهازك.</p>
     <form id="loginForm">
-      <label class="lf"><span>كلمة السر</span>
+      <label class="lf"><span>أو أدخلي الرمز</span>
         <input type="password" id="pw" autocomplete="current-password" required>
       </label>
       <div class="err" id="loginErr"></div>
       <button class="btn gold block" type="submit" id="loginBtn">دخول</button>
-      <p class="demo-hint" id="demoHint" hidden>نسخة معاينة: كلمة السر التجريبية <b>1234</b></p>
+      <p class="demo-hint" id="demoHint" hidden>نسخة معاينة: الرمز التجريبي <b>1234</b></p>
     </form>
   </div>
 </section>
@@ -43,7 +44,6 @@
       <a class="btn ghost-w sm" href="#guide"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"/></svg><span>طريقة الاستخدام</span></a>
       <a class="btn ghost-w sm" href="./" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24"><path d="M14 3h7v7M21 3l-9 9M19 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"/></svg><span>الموقع</span></a>
-      <button class="btn ghost-w sm" id="logout"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg><span>خروج</span></button>
     </div>
   </header>
 
@@ -118,9 +118,10 @@
         <summary><i>٢</i>الدخول والخروج</summary>
         <div class="g-body">
           <ul>
-            <li>افتحي رابط اللوحة واكتبي كلمة السر ثم «دخول».</li>
-            <li>تبقين داخل اللوحة حتى تغلقي المتصفح، أو تضغطي <b>«خروج»</b> أعلى الصفحة (يُنصح به على الأجهزة المشتركة).</li>
-            <li>إذا أخطأتِ كلمة السر ثماني مرات تُقفل اللوحة عشر دقائق للحماية.</li>
+            <li>افتحي <b>الرابط الخاص</b> الذي وصلك مرة واحدة، فتفتح اللوحة مباشرة دون أي رمز.</li>
+            <li>يتذكّر جهازك اللوحة بعد ذلك؛ احفظيها في الشاشة الرئيسية: في الآيفون زر المشاركة ⬆️ ثم «إضافة إلى الشاشة الرئيسية».</li>
+            <li>إذا فتحتِها من جهاز آخر، افتحي الرابط الخاص نفسه.</li>
+            <li>لا ترسلي الرابط الخاص لأحد؛ فهو مفتاح اللوحة.</li>
           </ul>
         </div>
       </details>
@@ -232,9 +233,9 @@
         <div class="g-body">
           <ul>
             <li>راجعي «بانتظار المراجعة» يوميًا حتى لا تتأخر مشاركات الأهالي.</li>
-            <li>لا تشاركي كلمة السر، ولا رابط اللوحة مع غير المختصين.</li>
+            <li>لا تشاركي الرابط الخاص مع أحد.</li>
             <li>الرسائل محفوظة أيضًا في جدول Google التابع للمدرسة، فلا تضيع حتى لو أُغلقت اللوحة.</li>
-            <li>لتغيير كلمة السر: تُعدَّل من ورقة «الإعدادات» في جدول Google.</li>
+            <li>إذا ضاع الرابط أو أردتِ تغييره، يُرسَل لك رابط جديد من ورقة «الإعدادات» في جدول Google.</li>
           </ul>
         </div>
       </details>

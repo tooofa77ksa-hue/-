@@ -4,7 +4,14 @@
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const SKEY = "difaa_pw";
   let PW = "";
-  try { PW = sessionStorage.getItem(SKEY) || ""; } catch (e) {}
+  // الدخول برابط خاص (admin.html#key=…) بدون كتابة أي رمز، ويتذكّره الجهاز
+  const fromLink = (location.hash.match(/key=([^&]+)/) || [])[1];
+  if (fromLink) {
+    PW = decodeURIComponent(fromLink);
+    try { history.replaceState(null, "", location.pathname); } catch (e) {}
+  } else {
+    try { PW = localStorage.getItem(SKEY) || ""; } catch (e) {}
+  }
 
   let all = [];
   let tab = "pending";
@@ -33,7 +40,7 @@
   async function tryLogin(pw) {
     PW = pw;
     await api("admin_login");
-    try { sessionStorage.setItem(SKEY, pw); } catch (e) {}
+    try { localStorage.setItem(SKEY, pw); } catch (e) {}
     $("#login").hidden = true; $("#app").hidden = false;
     await load();
   }
@@ -44,11 +51,7 @@
     catch (ex) { $("#loginErr").textContent = ex.message; }
     finally { b.disabled = false; }
   });
-  if (PW) tryLogin(PW).catch(() => { PW = ""; try { sessionStorage.removeItem(SKEY); } catch (e) {} });
-  $("#logout").addEventListener("click", () => {
-    try { sessionStorage.removeItem(SKEY); } catch (e) {}
-    location.reload();
-  });
+  if (PW) tryLogin(PW).catch(() => { PW = ""; try { localStorage.removeItem(SKEY); } catch (e) {} });
 
   // ---------- التحميل والعرض ----------
   const roleSel = $("#fRole");
