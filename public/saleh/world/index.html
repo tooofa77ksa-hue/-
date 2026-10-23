@@ -33,6 +33,7 @@
   <div class="box"><b>🏆 الإنجازات</b><span id="ach">٠ / ٤</span></div>
 </div>
 <div id="toast"></div>
+<button id="mapBtn" style="position:fixed;top:170px;inset-inline:10px;z-index:2;pointer-events:auto;width:max-content;margin-inline-start:auto;background:#7fd1ae;border:0;border-radius:14px;padding:10px 14px;font-weight:700;box-shadow:0 4px 0 rgba(0,0,0,.2);font-size:15px">🗺️ الماب: <span id="mapName">الأول</span></button>
 <button id="shopBtn">🛍️ المتجر (⭐ <span id="stars">0</span>)</button>
 <div id="shop"><div class="panel"><b style="font-size:18px">🛍️ متجر صالح</b><p style="margin:6px 0 2px;font-size:14px">تشتري بالنجوم اللي تكسبها من الإنجازات.</p><div id="items"></div><button id="shopClose" style="margin-top:8px;width:100%;padding:10px;border:0;border-radius:10px;background:#1d2733;color:#fff;font-weight:700">إغلاق</button></div></div>
 <div id="pad">
@@ -187,6 +188,29 @@ function applyLook() {
 const shop = document.getElementById('shop');
 document.getElementById('shopBtn').onclick = () => { buildItems(); shop.classList.add('on'); };
 document.getElementById('shopClose').onclick = () => shop.classList.remove('on');
+
+
+// ---------- maps: original layouts (island and canyon), not copied from any game ----------
+const MAPS = {
+  1: {name: 'الأول', sky: 0x8fd3ff, ground: 0x5cb85c, blocks: []},
+  2: {name: 'الجزيرة', sky: 0xffc78a, ground: 0x2ba5a0, blocks: [
+    [-12, 0, -10, 6, 2, 6, 0xf2b13b], [8, 0, -14, 4, 4, 4, 0x7b4bd1], [-6, 0, 12, 8, 1, 8, 0xffd166],
+    [14, 0, 10, 5, 3, 5, 0xe0603a], [0, 0, -22, 10, 1, 4, 0x1d6f8c]]},
+  3: {name: 'الوادي', sky: 0xe6b0ff, ground: 0x8b5e3c, blocks: [
+    [-16, 0, 0, 4, 6, 4, 0x6d4c41], [16, 0, 0, 4, 6, 4, 0x6d4c41], [0, 0, -16, 6, 3, 6, 0xc2185b], [0, 0, 16, 6, 2, 6, 0x00838f]]},
+};
+let mapIdx = 1, mapObjs = [];
+function loadMap(i) {
+  mapObjs.forEach(o => scene.remove(o)); mapObjs = [];
+  const M = MAPS[i];
+  scene.background = new THREE.Color(M.sky); scene.fog.color = new THREE.Color(M.sky);
+  ground.material.color.setHex(M.ground);
+  M.blocks.forEach(([x, y, z, w, h, d, c]) => { mapObjs.push(block(x, y, z, w, h, d, c)); });
+  mapIdx = i; document.getElementById('mapName').textContent = M.name;
+  try { localStorage.setItem(KEY + '-map', String(i)); } catch (e) {}
+}
+document.getElementById('mapBtn').onclick = () => { const next = mapIdx % 3 + 1; loadMap(next); toast('🗺️ ماب ' + MAPS[next].name); };
+try { const k = parseInt(localStorage.getItem(KEY + '-map') || '1', 10); if (MAPS[k]) loadMap(k); } catch (e) {}
 
 // ---------- game loop ----------
 const clock = new THREE.Clock();
