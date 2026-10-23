@@ -84,7 +84,7 @@ const toast = (t) => { const e = document.getElementById('toast'); e.textContent
 
 // ---------- three.js world ----------
 const renderer = new THREE.WebGLRenderer({antialias: true});
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
 renderer.setSize(innerWidth, innerHeight);
 renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
@@ -96,7 +96,7 @@ const cam = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, .1, 400);
 
 scene.add(new THREE.HemisphereLight(0xffffff, 0x4a7a3a, 1.1));
 const sun = new THREE.DirectionalLight(0xffffff, 1.2);
-sun.position.set(30, 50, 20); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024);
+sun.position.set(30, 50, 20); sun.castShadow = true; sun.shadow.mapSize.set(512, 512);
 Object.assign(sun.shadow.camera, {left: -40, right: 40, top: 40, bottom: -40});
 scene.add(sun);
 
@@ -157,6 +157,12 @@ const STORE = [
   {id: 'star', name: '⭐ قبعة نجمة', price: 25, color: 0xffd166},
 ];
 let crownMesh = null, trail = [];
+// rainbow trail: a fixed pool of reused cubes (no new geometry or material every frame)
+const TRAIL_MAX = 40, trailGeo = new THREE.BoxGeometry(.3, .3, .3), trailPool = [];
+for (let i = 0; i < TRAIL_MAX; i++) {
+  const m = new THREE.Mesh(trailGeo, new THREE.MeshBasicMaterial({color: 0xffffff}));
+  m.visible = false; scene.add(m); trailPool.push(m);
+}
 function buildItems() {
   const box = document.getElementById('items'); box.innerHTML = '';
   STORE.forEach(it => {
@@ -268,10 +274,13 @@ function update(dt) {
   hero.position.z = Math.max(-60, Math.min(60, hero.position.z));
 
   if (S.owned && S.owned.rainbow && turn && Math.random() < .5) {
-    const c = new THREE.Mesh(new THREE.BoxGeometry(.3, .3, .3), new THREE.MeshBasicMaterial({color: new THREE.Color().setHSL((t * .2) % 1, 1, .6)}));
-    c.position.copy(hero.position); c.position.y += .4; scene.add(c); trail.push({m: c, life: .8});
+    const c = trailPool.find(m => !m.visible);
+    if (c) {
+      c.material.color.setHSL((t * .2) % 1, 1, .6); c.scale.set(1, 1, 1);
+      c.position.copy(hero.position); c.position.y += .4; c.visible = true; trail.push({m: c, life: .8});
+    }
   }
-  trail = trail.filter(p => { p.life -= dt; p.m.scale.multiplyScalar(.97); if (p.life <= 0) { scene.remove(p.m); return false; } return true; });
+  trail = trail.filter(p => { p.life -= dt; p.m.scale.multiplyScalar(.97); if (p.life <= 0) { p.m.visible = false; return false; } return true; });
   // camera follows from behind
   const want = new THREE.Vector3(hero.position.x - 12, hero.position.y + 8, hero.position.z + 12);
   cam.position.lerp(want, 1 - Math.exp(-6 * dt));
