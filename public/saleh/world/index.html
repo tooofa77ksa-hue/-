@@ -224,18 +224,26 @@ function update(dt) {
   const back = keys.ArrowDown || keys.KeyS || press.back;
   const dx = (right ? 1 : 0) - (left ? 1 : 0);
   const dz = (back ? 1 : 0) - (fwd ? 1 : 0);
-  const moving = dx !== 0 || dz !== 0;
-  if (moving) {
-    // face the way Saleh walks, then walk there
-    hero.rotation.y = Math.atan2(dx, dz);
-    const len = Math.hypot(dx, dz) || 1;
-    hero.position.x += (dx / len) * 7 * dt;
-    hero.position.z += (dz / len) * 7 * dt;
+  const len = Math.hypot(dx, dz) || 1;
+  // smooth velocity: ease toward the wanted speed, and ease to a stop too
+  const TOP = 8;
+  const tvx = (dx / len) * TOP * (dx || dz ? 1 : 0), tvz = (dz / len) * TOP * (dx || dz ? 1 : 0);
+  const k = 1 - Math.exp(-12 * dt);
+  hero.userData.vx = (hero.userData.vx || 0) + (tvx - (hero.userData.vx || 0)) * k;
+  hero.userData.vz = (hero.userData.vz || 0) + (tvz - (hero.userData.vz || 0)) * k;
+  hero.position.x += hero.userData.vx * dt;
+  hero.position.z += hero.userData.vz * dt;
+  const sp = Math.hypot(hero.userData.vx, hero.userData.vz);
+  // turn smoothly toward the walking direction (shortest way round)
+  if (sp > .3) {
+    const want = Math.atan2(hero.userData.vx, hero.userData.vz);
+    let diff = ((want - hero.rotation.y + Math.PI) % (Math.PI * 2)) - Math.PI;
+    hero.rotation.y += diff * (1 - Math.exp(-14 * dt));
   }
-  const turn = moving;
-  speed = turn ? 7 : 0;
+  const turn = sp > .3;
+  speed = turn ? sp : 0;
   // run animation: legs swing while moving
-  const swing = turn ? Math.sin(t * 14) * .6 : 0;
+  const swing = turn ? Math.sin(t * 12) * Math.min(.7, speed / 8) : 0;
   legL.rotation.x = swing; legR.rotation.x = -swing;
 
   vy -= 22 * dt; hero.position.y += vy * dt;
@@ -266,7 +274,7 @@ function update(dt) {
   trail = trail.filter(p => { p.life -= dt; p.m.scale.multiplyScalar(.97); if (p.life <= 0) { scene.remove(p.m); return false; } return true; });
   // camera follows from behind
   const want = new THREE.Vector3(hero.position.x - 12, hero.position.y + 8, hero.position.z + 12);
-  cam.position.lerp(want, Math.min(1, dt * 5));
+  cam.position.lerp(want, 1 - Math.exp(-6 * dt));
   cam.lookAt(hero.position.x, hero.position.y + 2, hero.position.z);
 }
 
