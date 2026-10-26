@@ -264,3 +264,6 @@ html { scroll-behavior: smooth; scroll-padding-top: 80px; }
 .flow li::before { content: counter(f) " · "; color: var(--gold-d); }
 .pgi { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; }
 @media print { .guide { display: none !important; } }
+
+.rp-table tr.rp-sec td { background: #073826 !important; color: #fff; font-family: var(--head); font-weight: 700; font-size: 13px; padding: 8px 12px; border-color: #073826; border-right: 5px solid #c9a44c; }
+.rp-table tr.rp-sec td span { color: #e3c67d; font-weight: 500; }

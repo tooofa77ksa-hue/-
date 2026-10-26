@@ -75,9 +75,9 @@
 
   // ---------- التحميل والعرض ----------
   const roleSel = $("#fRole");
-  D.ROLES.forEach((r) => roleSel.insertAdjacentHTML("beforeend", `<option>${r}</option>`));
+  D.ROLES.forEach((r) => roleSel.insertAdjacentHTML("beforeend", `<option value="${r}">${D.roleLabel(r)}</option>`));
   const ef = $("#editForm");
-  D.ROLES.forEach((r) => ef.role.insertAdjacentHTML("beforeend", `<option>${r}</option>`));
+  D.ROLES.forEach((r) => ef.role.insertAdjacentHTML("beforeend", `<option value="${r}">${D.roleLabel(r)}</option>`));
   D.GRADES.forEach((g) => ef.grade.insertAdjacentHTML("beforeend", `<option>${g}</option>`));
 
   async function load(quiet) {
@@ -119,7 +119,7 @@
   function rowHTML(m) {
     const st = m.status;
     const flags = (m._flags || []).map((f) => `<span class="pill flag">⚑ ${f}</span>`).join("");
-    const who = [m.role, m.grade ? "الصف " + m.grade : ""].filter(Boolean).join(" · ");
+    const who = [D.roleLabel(m.role), m.grade ? "الصف " + m.grade : ""].filter(Boolean).join(" · ");
     return `<article class="row ${selected.has(m.id) ? "sel" : ""} ${isFlagged(m) ? "flagged" : ""}" data-id="${D.esc(m.id)}">
       <label class="chk"><input type="checkbox" class="pick" ${selected.has(m.id) ? "checked" : ""} aria-label="تحديد"><span></span></label>
       <div class="row-main">
@@ -290,12 +290,13 @@
   let exportKind = "pdf";
   function openExport(kind) {
     exportKind = kind;
-    $("#exportTitle").textContent = kind === "pdf" ? "تصدير PDF" : "تصدير Excel";
+    $("#exportTitle").textContent = kind === "pdf" ? "تصدير PDF" : kind === "doc" ? "تصدير Word" : "تصدير Excel";
     $("#pdfTip").hidden = kind !== "pdf";
     $("#exportDlg").showModal();
   }
   $("#pdfBtn").addEventListener("click", () => openExport("pdf"));
   $("#xlsBtn").addEventListener("click", () => openExport("xlsx"));
+  $("#docBtn").addEventListener("click", () => openExport("doc"));
   $("#exportDlg").addEventListener("close", () => {
     if ($("#exportDlg").returnValue !== "go") return;
     const f = $("#exportForm");
@@ -304,6 +305,7 @@
     const scopeLabel = scope === "view" ? ({ pending: "بانتظار المراجعة", approved: "المعتمدة", rejected: "المرفوضة", flagged: "التنبيهات", all: "كل المشاركات" }[tab]) : scope === "approved" ? "المعتمدة" : "كل المشاركات";
     if (!rows.length) return toast("لا توجد مشاركات للتصدير في هذا الاختيار", true);
     if (exportKind === "pdf") exportPDF(rows, orient, scopeLabel).catch(() => printPDF(rows, orient, scopeLabel));
+    else if (exportKind === "doc") exportDOC(rows, orient, scopeLabel);
     else exportXLSX(rows, orient, scopeLabel).catch((ex) => toast("تعذّر إنشاء ملف Excel: " + ex.message, true));
   });
 
@@ -320,7 +322,9 @@
     rows.forEach((m) => (c[m.status] = (c[m.status] || 0) + 1));
     const vids = rows.filter((m) => m.video_url).length;
     const head = `<thead><tr><th style="width:4%">م</th><th style="width:${land ? 12 : 14}%">التاريخ</th><th style="width:${land ? 12 : 14}%">الاسم</th><th style="width:${land ? 10 : 12}%">الصفة</th>${land ? '<th style="width:7%">الصف</th>' : ""}<th>الرسالة</th><th style="width:${land ? 6 : 8}%">مقطع</th><th style="width:${land ? 9 : 11}%">الحالة</th></tr></thead>`;
-    const rowHTML = (m, i) => `<tr><td>${i + 1}</td><td>${D.fmtDate(m.created)}</td><td>${D.esc(m.name || "—")}</td><td>${D.esc(m.role || "—")}${!land && m.grade ? "<br>الصف " + D.esc(m.grade) : ""}</td>${land ? `<td>${D.esc(m.grade || "—")}</td>` : ""}<td class="msg">${D.esc(m.text || "(مشاركة مرئية)")}</td><td>${m.video_url ? "يوجد" : "—"}</td><td class="st-${m.status}">${D.STATUS[m.status] || ""}</td></tr>`;
+    const ncol = land ? 8 : 7;
+    const secHTML = (g) => `<tr class="rp-sec"><td colspan="${ncol}">${g.title} <span>(${g.rows.length})</span></td></tr>`;
+    const rowHTML = (m, i) => `<tr><td>${i + 1}</td><td>${D.fmtDate(m.created)}</td><td>${D.esc(m.name || "—")}</td><td>${D.esc(D.roleLabel(m.role) || "—")}${!land && m.grade ? "<br>الصف " + D.esc(m.grade) : ""}</td>${land ? `<td>${D.esc(m.grade || "—")}</td>` : ""}<td class="msg">${D.esc(m.text || "(مشاركة مرئية)")}</td><td>${m.video_url ? "يوجد" : "—"}</td><td class="st-${m.status}">${D.STATUS[m.status] || ""}</td></tr>`;
     const host = document.createElement("div");
     host.className = "pdf-host";
     host.style.width = W + "px";
@@ -344,16 +348,25 @@
     try {
       if (document.fonts && document.fonts.ready) await document.fonts.ready;
       let pg = newPage();
-      for (let i = 0; i < rows.length; i++) {
+      // عنوان القسم لا يبقى وحده أسفل الصفحة: ينتقل مع أول صف بعده
+      const add = (html, isSec) => {
         const body = pg.querySelector(".pdf-body");
         const tb = pg.querySelector("tbody");
-        tb.insertAdjacentHTML("beforeend", rowHTML(rows[i], i));
+        tb.insertAdjacentHTML("beforeend", html);
         if (body.scrollHeight > body.clientHeight && tb.children.length > 1) {
           tb.lastElementChild.remove();
+          const carry = !isSec && tb.lastElementChild && tb.lastElementChild.classList.contains("rp-sec") ? tb.lastElementChild : null;
+          if (carry) carry.remove();
           pg = newPage();
-          pg.querySelector("tbody").insertAdjacentHTML("beforeend", rowHTML(rows[i], i));
+          const nb = pg.querySelector("tbody");
+          if (carry) nb.appendChild(carry);
+          nb.insertAdjacentHTML("beforeend", html);
         }
-      }
+      };
+      D.groupRows(rows).forEach((g) => {
+        add(secHTML(g), true);
+        g.rows.forEach((m, i) => add(rowHTML(m, i), false));
+      });
       pages.forEach((p, i) => (p.querySelector(".pno").textContent = `صفحة ${i + 1} من ${pages.length} · منصة الدفاع عن الوطن`));
       await Promise.all([...host.querySelectorAll("img")].map((im) => (im.complete ? 0 : new Promise((r) => (im.onload = im.onerror = r)))));
       const pdf = new window.jspdf.jsPDF({ orientation: orient, unit: "mm", format: "a4", compress: true });
@@ -386,15 +399,56 @@
       <div class="rp-sum"><span>المحتوى: ${scopeLabel}</span><span>العدد: ${rows.length}</span><span>معتمدة: ${c.approved}</span><span>بانتظار المراجعة: ${c.pending}</span><span>مرفوضة: ${c.rejected}</span><span>مقاطع مرئية: ${vids}</span></div>
       <table class="rp-table">
         <thead><tr><th style="width:4%">م</th><th style="width:${land ? 11 : 13}%">التاريخ</th><th style="width:${land ? 12 : 14}%">الاسم</th><th style="width:${land ? 10 : 11}%">الصفة</th>${land ? '<th style="width:7%">الصف</th>' : ""}<th>الرسالة</th><th style="width:${land ? 7 : 8}%">مقطع</th><th style="width:${land ? 9 : 10}%">الحالة</th></tr></thead>
-        <tbody>${rows.map((m, i) => `<tr>
-          <td>${i + 1}</td><td>${D.fmtDate(m.created)}</td><td>${D.esc(m.name || "—")}</td><td>${D.esc(m.role || "—")}${!land && m.grade ? "<br>الصف " + D.esc(m.grade) : ""}</td>
+        <tbody>${D.groupRows(rows).map((g) => `<tr class="rp-sec"><td colspan="${land ? 8 : 7}">${g.title} <span>(${g.rows.length})</span></td></tr>` + g.rows.map((m, i) => `<tr>
+          <td>${i + 1}</td><td>${D.fmtDate(m.created)}</td><td>${D.esc(m.name || "—")}</td><td>${D.esc(D.roleLabel(m.role) || "—")}${!land && m.grade ? "<br>الصف " + D.esc(m.grade) : ""}</td>
           ${land ? `<td>${D.esc(m.grade || "—")}</td>` : ""}
-          <td class="msg">${D.esc(m.text || "(مشاركة مرئية)")}</td><td>${m.video_url ? "يوجد" : "—"}</td><td class="st-${m.status}">${D.STATUS[m.status] || ""}</td></tr>`).join("")}</tbody>
+          <td class="msg">${D.esc(m.text || "(مشاركة مرئية)")}</td><td>${m.video_url ? "يوجد" : "—"}</td><td class="st-${m.status}">${D.STATUS[m.status] || ""}</td></tr>`).join("")).join("")}</tbody>
       </table>
       <div class="rp-foot"><div><b>مديرة المدرسة: أ. جازية السميري</b><small>المساعد الإداري: عواطف الجهني</small></div><div>منصة الدفاع عن الوطن · ${rows.length} مشاركة</div></div>`;
     const img = $("#report img");
     const go = () => setTimeout(() => window.print(), 150);
     img.complete ? go() : (img.onload = img.onerror = go);
+  }
+
+  // ملف Word (يفتح في Word وPages وGoogle Docs) بالاتجاه المختار، مقسّم بعناوين الفئات
+  async function exportDOC(rows, orient, scopeLabel) {
+    const land = orient === "landscape";
+    const logo = await getLogo().catch(() => "");
+    const c = { approved: 0, pending: 0, rejected: 0 };
+    rows.forEach((m) => (c[m.status] = (c[m.status] || 0) + 1));
+    const size = land ? "841.9pt 595.3pt" : "595.3pt 841.9pt";
+    const th = (t, w) => `<th style="background:#006c35;color:#fff;border:1px solid #0b4d33;padding:5pt;font-size:11pt${w ? ";width:" + w : ""}">${t}</th>`;
+    const td = (t, x) => `<td style="border:1px solid #e3d9c2;padding:5pt;font-size:10.5pt;vertical-align:top${x || ""}">${t}</td>`;
+    const fr = [0.045, 0.13, 0.15, 0.09, 0.07, 0, 0.07, 0.1];
+    fr[5] = 1 - fr.reduce((x, y) => x + y, 0);
+    const wpt = fr.map((x) => (x * 100).toFixed(1) + "%");
+    const cols = `<colgroup>${wpt.map((w) => `<col style="width:${w}" width="${w}">`).join("")}</colgroup>`;
+    const head = `<tr>${["م", "التاريخ", "الاسم", "الصفة", "الصف", "الرسالة", "مقطع", "الحالة"].map((t, i) => th(t, wpt[i])).join("")}</tr>`;
+    const stc = { approved: "#006c35", pending: "#a86a00", rejected: "#b3261e" };
+    const sections = D.groupRows(rows).map((g) => `
+      <h2 style="font-size:15pt;color:#ffffff;background:#073826;padding:6pt 10pt;margin:16pt 0 6pt;border-right:6pt solid #c9a44c">${g.title} (${g.rows.length})</h2>
+      <table dir="rtl" style="width:100%;border-collapse:collapse;table-layout:fixed" width="100%">${cols}<thead>${head}</thead><tbody>${g.rows.map((m, i) => `<tr>
+        ${td(i + 1, ";text-align:center")}${td(D.fmtDate(m.created))}${td(D.esc(m.name || "—"), ";font-weight:bold")}${td(D.esc(D.roleLabel(m.role) || "—"))}${td(D.esc(m.grade || "—"))}
+        ${td(D.esc(m.text || "(مشاركة مرئية)"))}${td(m.video_url ? `<a href="${D.esc(m.video_url.replace("/preview", "/view"))}">مشاهدة</a>` : "—")}${td(D.STATUS[m.status] || "", ";font-weight:bold;color:" + (stc[m.status] || "#073826"))}</tr>`).join("")}</tbody></table>`).join("");
+    const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40" dir="rtl"><head><meta charset="utf-8"><title>سجل رسائل المنصة</title>
+      <!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->
+      <style>@page WordSection1{size:${size};mso-page-orientation:${orient};margin:1.5cm 1.3cm}div.WordSection1{page:WordSection1}body{font-family:Arial,"Traditional Arabic",sans-serif;direction:rtl}thead{display:table-header-group}</style></head>
+      <body dir="rtl"><div class="WordSection1" dir="rtl">
+        <table dir="rtl" style="width:100%;border-collapse:collapse;background:#073826" width="100%"><tr>
+          <td style="padding:8pt;width:70pt">${logo ? `<img src="${logo}" width="64" height="48">` : ""}</td>
+          <td style="padding:8pt;color:#e3c67d;font-size:17pt;font-weight:bold">سجل رسائل منصة «بفكرٍ واعٍ… لوطنٍ آمن»<br><span style="color:#ffffff;font-size:11pt;font-weight:normal">المدرسة الابتدائية الخامسة والستون بعد المائة</span></td>
+          <td style="padding:8pt;color:#ffffff;font-size:10pt;text-align:left">${today()}<br>${todayG()}</td></tr></table>
+        <p style="font-size:10.5pt;color:#073826;background:#f3ebda;padding:5pt 8pt">المحتوى: ${scopeLabel} · العدد: ${rows.length} · معتمدة: ${c.approved} · بانتظار المراجعة: ${c.pending} · مرفوضة: ${c.rejected}</p>
+        ${sections}
+        <p style="margin-top:22pt;border-top:2pt solid #c9a44c;padding-top:6pt;font-size:12pt;color:#073826"><b>مديرة المدرسة: أ. جازية السميري</b></p>
+      </div></body></html>`;
+    const blob = new Blob(["\ufeff", html], { type: "application/msword" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `Watan-Messages-${land ? "landscape" : "portrait"}-${new Date().toISOString().slice(0, 10)}.doc`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    toast(`تم تجهيز ملف Word ${land ? "بالعرض" : "بالطول"} ✓`);
   }
 
   let logoB64 = null;
@@ -460,8 +514,17 @@
     });
 
     const stColor = { approved: GREEN, pending: "FFA86A00", rejected: "FFB3261E" };
-    rows.forEach((m, i) => {
-      const r = ws.addRow([i + 1, D.fmtDate(m.created, true), m.name || "—", m.role || "—", m.grade || "—", m.text || "(مشاركة مرئية)", m.video_url ? "مشاهدة المقطع" : "—", D.STATUS[m.status] || "", (m._flags || []).join("، ")]);
+    D.groupRows(rows).forEach((g) => {
+      const sr = ws.addRow([`${g.title}  (${g.rows.length})`]);
+      ws.mergeCells(`A${sr.number}:${last}${sr.number}`);
+      sr.height = 26;
+      sr.getCell(1).font = font({ size: 13, bold: true, color: { argb: "FFFFFFFF" } });
+      sr.getCell(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: GREEN } };
+      sr.getCell(1).alignment = { horizontal: "right", vertical: "middle", indent: 1, readingOrder: "rtl" };
+      g.rows.forEach((m, i) => addMsgRow(m, i));
+    });
+    function addMsgRow(m, i) {
+      const r = ws.addRow([i + 1, D.fmtDate(m.created, true), m.name || "—", D.roleLabel(m.role) || "—", m.grade || "—", m.text || "(مشاركة مرئية)", m.video_url ? "مشاهدة المقطع" : "—", D.STATUS[m.status] || "", (m._flags || []).join("، ")]);
       const lines = Math.max(1, Math.ceil(String(m.text || "").length / (land ? 75 : 50)));
       r.height = Math.max(36, lines * 17 + 8);
       r.eachCell({ includeEmpty: true }, (cell, col) => {
@@ -473,7 +536,7 @@
       r.getCell(8).font = font({ bold: true, color: { argb: stColor[m.status] || DARK } });
       if (m._flags && m._flags.length) r.getCell(9).font = font({ bold: true, color: { argb: "FFB3261E" } });
       if (m.video_url) { r.getCell(7).value = { text: "مشاهدة المقطع", hyperlink: m.video_url.replace("/preview", "/view") }; r.getCell(7).font = font({ color: { argb: "FF0563C1" }, underline: true }); }
-    });
+    }
     ws.autoFilter = { from: { row: 5, column: 1 }, to: { row: 5, column: cols.length } };
     ws.pageSetup.printTitlesRow = "5:5";
 
@@ -503,7 +566,7 @@
     s.addRow([]);
     block("الحالة", [["معتمدة", c.approved], ["بانتظار المراجعة", c.pending], ["مرفوضة", c.rejected], ["الإجمالي", rows.length]]);
     const byRole = {};
-    rows.forEach((m) => (byRole[m.role || "غير محدد"] = (byRole[m.role || "غير محدد"] || 0) + 1));
+    rows.forEach((m) => { const k = D.roleLabel(m.role) || "غير محدد"; byRole[k] = (byRole[k] || 0) + 1; });
     block("الصفة", Object.entries(byRole));
     block("نوع المشاركة", [["رسالة نصية", rows.filter((m) => !m.video_url).length], ["مقطع مرئي", rows.filter((m) => m.video_url).length]]);
 

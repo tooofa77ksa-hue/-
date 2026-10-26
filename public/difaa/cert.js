@@ -21,7 +21,7 @@
   function salutation(o) {
     const isParent = PARENT_ROLES.includes(o.role);
     const female = ["ولية أمر", "طالبة", "معلمة", "منسوبة المدرسة"].includes(o.role);
-    const title = o.role === "ولي أمر" ? "الأستاذ" : o.role === "ولية أمر" ? "الأستاذة" : o.role === "طالبة" ? "الطالبة" : o.role === "معلمة" ? "المعلمة" : "";
+    const title = o.role === "ولي أمر" ? "الأستاذ" : o.role === "ولية أمر" ? "الأستاذة" : o.role === "طالبة" ? "الطالبة" : o.role === "معلمة" ? "المعلمة" : o.role === "منسوبة المدرسة" ? "الأستاذة" : "";
     let sub = "";
     if (o.student) sub = `${isParent ? (female ? "ولية أمر" : "ولي أمر") + " " : ""}الطالبة: <b>${esc(o.student)}</b>${o.grade ? ` · الصف ${esc(o.grade)}` : ""}`;
     else if (o.role === "طالبة" && o.grade) sub = `الصف ${esc(o.grade)}`;
@@ -196,7 +196,7 @@
   </div>`;
   document.body.appendChild(dlg);
   const $ = (s) => dlg.querySelector(s);
-  D.ROLES.forEach((r) => $("#cRole").insertAdjacentHTML("beforeend", `<option>${r}</option>`));
+  D.ROLES.forEach((r) => $("#cRole").insertAdjacentHTML("beforeend", `<option value="${r}">${D.roleLabel(r)}</option>`));
   D.GRADES.forEach((g) => $("#cGrade").insertAdjacentHTML("beforeend", `<option>${g}</option>`));
   const printBox = document.createElement("div");
   printBox.id = "certPrint";

@@ -9,6 +9,24 @@
   const ROLES = ["ولي أمر", "ولية أمر", "طالبة", "معلمة", "منسوبة المدرسة", "زائر"];
   const GRADES = ["الأول", "الثاني", "الثالث", "الرابع", "الخامس", "السادس"];
   const STATUS = { pending: "بانتظار المراجعة", approved: "معتمدة", rejected: "مرفوضة" };
+  // القيمة المحفوظة تبقى كما هي (يتحقق منها الخادم)، والعرض بالاسم الأوضح
+  const ROLE_LABEL = { "منسوبة المدرسة": "إدارية" };
+  const roleLabel = (r) => ROLE_LABEL[r] || r || "";
+  // أقسام التقارير بالترتيب
+  const GROUPS = [
+    { title: "المعلمات", roles: ["معلمة"] },
+    { title: "الإداريات", roles: ["منسوبة المدرسة"] },
+    { title: "أولياء الأمور والطالبات", roles: ["ولي أمر", "ولية أمر", "طالبة"] },
+    { title: "مشاركات أخرى", roles: null },
+  ];
+  function groupRows(rows) {
+    const used = new Set();
+    return GROUPS.map((g) => {
+      const list = rows.filter((m) => (g.roles ? g.roles.includes(m.role) : !used.has(m)));
+      list.forEach((m) => used.add(m));
+      return { title: g.title, rows: list };
+    }).filter((g) => g.rows.length);
+  }
 
   // ---------- وضع المعاينة ----------
   function seed() {
@@ -186,5 +204,5 @@
     try { return d.toLocaleDateString("ar-SA-u-nu-latn", opt); } catch (e) { return d.toLocaleDateString(); }
   }
 
-  window.DIFAA = { DEMO, ROLES, GRADES, STATUS, CFG, post, fileToBase64, flags, flagCats, highlight, esc, fmtDate };
+  window.DIFAA = { DEMO, ROLES, GRADES, STATUS, roleLabel, groupRows, CFG, post, fileToBase64, flags, flagCats, highlight, esc, fmtDate };
 })();

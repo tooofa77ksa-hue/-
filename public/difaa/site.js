@@ -215,7 +215,7 @@
 
   // ---------- النموذج ----------
   const form = $("#msgForm");
-  const sel = (n, arr) => arr.forEach((v) => form[n].insertAdjacentHTML("beforeend", `<option>${v}</option>`));
+  const sel = (n, arr) => arr.forEach((v) => form[n].insertAdjacentHTML("beforeend", `<option value="${v}">${D.roleLabel(v)}</option>`));
   sel("role", D.ROLES); sel("grade", D.GRADES);
   const MAX = D.CFG.MAX_TEXT || 600, MAXMB = D.CFG.MAX_VIDEO_MB || 35;
   form.text.maxLength = MAX; $("#cntMax").textContent = MAX; $("#upHint").textContent = `مقطع قصير حتى ${MAXMB} ميجابايت`;
@@ -279,7 +279,7 @@
   let items = [], shown = 0;
   const playSvg = '<svg viewBox="0 0 24 24"><path d="M7 4v16l13-8Z"/></svg>';
   function cardHTML(m, idx) {
-    const who = [m.role, m.grade ? "الصف " + m.grade : ""].filter(Boolean).join(" · ");
+    const who = [D.roleLabel(m.role), m.grade ? "الصف " + m.grade : ""].filter(Boolean).join(" · ");
     return `<article class="card">
       ${m.video_url ? `<button class="card-video" data-v="${idx}" aria-label="تشغيل المقطع"><span>${playSvg}</span></button>` : ""}
       ${m.text ? `<p>${D.esc(m.text)}</p>` : ""}
