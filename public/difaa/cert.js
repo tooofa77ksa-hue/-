@@ -41,7 +41,7 @@
           <div class="c-in">
             <div class="c-top">
               <div class="c-logo"><img src="assets/moe-white.png" alt=""></div>
-              <div class="c-org">المملكة العربية السعودية<br><b>وزارة التعليم</b></div>
+              
               <div class="c-tag"><img src="assets/flag.png" alt=""><span>الدفاع عن الوطن<br><b>بفكرٍ واعٍ… لوطنٍ آمن</b></span></div>
             </div>
             <h1 class="c-title">شهادة شكر وتقدير</h1>
@@ -79,8 +79,8 @@
   .c-top{width:100%;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px}
   .c-org{grid-column:1;grid-row:1;justify-self:start;text-align:right;font-size:15px;line-height:1.8;color:#3d4b44}
   .c-org b{color:#0b4d33;font-weight:800}
-  .c-logo{grid-column:2;grid-row:1;width:86px;height:86px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#1f8a55,#073826 70%);display:grid;place-items:center;box-shadow:0 0 0 4px #fbf7ee,0 0 0 6px #c9a44c}
-  .c-logo img{width:66px;height:auto}
+  .c-logo{grid-column:2;grid-row:1;width:118px;height:118px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#1f8a55,#073826 70%);display:grid;place-items:center;box-shadow:0 0 0 5px #fbf7ee,0 0 0 7px #c9a44c,0 0 0 11px #fbf7ee,0 0 0 12px rgba(201,164,76,.5),0 10px 24px -8px rgba(4,36,26,.5)}
+  .c-logo img{width:92px;height:auto}
   .c-tag{grid-column:3;grid-row:1;justify-self:end;display:flex;align-items:center;gap:10px;font-size:12.5px;line-height:1.6;color:#3d4b44;text-align:right}
   .c-tag img{width:54px;height:36px;object-fit:cover;border-radius:4px;box-shadow:0 2px 6px rgba(0,0,0,.2)}
   .c-tag b{font-family:"Noto Kufi Arabic",sans-serif;color:#9c7a2c;font-size:12.5px}
@@ -114,12 +114,13 @@
   /* الطولي */
   .cert-portrait .c-in{padding:34px 44px 30px}
   .cert-portrait .c-top{grid-template-columns:1fr;justify-items:center;gap:8px}
-  .cert-portrait .c-logo{grid-column:1;grid-row:1;width:98px;height:98px}
+  .cert-portrait .c-logo{grid-column:1;grid-row:1;width:128px;height:128px}
+  .cert-portrait .c-logo img{width:100px}
   .cert-portrait .c-name span{line-height:1.6}
   .cert-portrait .c-seal-in{width:96px;height:96px}
   .cert-portrait .c-logo img{width:72px}
   .cert-portrait .c-org{grid-column:1;grid-row:2;justify-self:center;text-align:center;line-height:1.6}
-  .cert-portrait .c-tag{grid-column:1;grid-row:3;justify-self:center}
+  .cert-portrait .c-tag{grid-column:1;grid-row:2;justify-self:center;margin-top:10px}
   .cert-portrait .c-title{margin-top:auto;font-size:62px}
   .cert-portrait .c-orn{margin:30px 0 12px}
   .cert-portrait .c-lead{font-size:19px}
