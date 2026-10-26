@@ -341,7 +341,8 @@ h1, h2, h3 { font-family: var(--head); line-height: 1.45; margin: 0; }
 .form-done { position: absolute; inset: 0; z-index: 4; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px; }
 .form-done[hidden] { display: none; }
 .form-done b { font-family: var(--head); font-size: 22px; color: var(--g800); margin-top: 16px; }
-.form-done p { color: var(--muted); margin: 8px 0 22px; max-width: 320px; }
+.form-done p { color: var(--muted); margin: 8px 0 18px; max-width: 320px; }
+.form-done .btn { width: min(320px, 100%); margin-top: 8px; }
 .check { width: 92px; height: 92px; }
 .check circle { stroke: var(--green); stroke-width: 2.5; stroke-dasharray: 160; stroke-dashoffset: 160; animation: drawc .9s var(--ease) forwards; fill: #e9f5ee; }
 .check path { stroke: var(--green); stroke-width: 3.5; stroke-dasharray: 40; stroke-dashoffset: 40; animation: drawc .5s .7s var(--ease) forwards; }

@@ -52,6 +52,7 @@
     del: '<svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6"/></svg>',
     play: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m10 8 6 4-6 4Z"/></svg>',
     back: '<svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></svg>',
+    cert: '<svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="6"/><path d="m8.5 14-1.5 8 5-3 5 3-1.5-8"/></svg>',
   };
 
   // ---------- الدخول ----------
@@ -136,6 +137,7 @@
         <button class="act ok ${st === "approved" ? "cur" : ""}" data-act="approved" title="اعتماد" aria-label="اعتماد">${ICON.ok}</button>
         <button class="act no ${st === "rejected" ? "cur" : ""}" data-act="rejected" title="رفض" aria-label="رفض">${ICON.no}</button>
         ${st !== "pending" ? `<button class="act" data-act="pending" title="إرجاع للمراجعة" aria-label="إرجاع للمراجعة">${ICON.back}</button>` : ""}
+        <button class="act ct" data-act="cert" title="شهادة شكر" aria-label="شهادة شكر">${ICON.cert}</button>
         <button class="act ed" data-act="edit" title="تعديل" aria-label="تعديل">${ICON.ed}</button>
         <button class="act del" data-act="delete" title="حذف" aria-label="حذف">${ICON.del}</button>
       </div>
@@ -194,6 +196,7 @@
     const act = b.dataset.act;
     if (act === "video") return playVideo(m);
     if (act === "edit") return openEdit(m);
+    if (act === "cert") return window.DIFAA_CERT && window.DIFAA_CERT.open({ name: m.name, role: m.role, grade: m.grade });
     if (act === "delete") return del([id]);
     await setStatus([id], act);
   });

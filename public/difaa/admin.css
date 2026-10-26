@@ -133,6 +133,8 @@ mark.flag { background: #fde2df; color: #9b1c14; border-radius: 4px; padding: 0 
 .act svg { width: 19px; height: 19px; }
 .act.ok:hover, .act.ok.cur { background: var(--ok-bg); border-color: #a7d4b8; color: var(--green); }
 .act.no:hover, .act.no.cur { background: var(--red-bg); border-color: #efb7b2; color: var(--red); }
+.act.ct { color: var(--gold-d); }
+.act.ct:hover { background: rgba(201, 164, 76, .18); border-color: var(--gold); }
 .act.ed:hover { background: rgba(201, 164, 76, .14); border-color: var(--gold); color: var(--gold-d); }
 .act.del:hover { background: var(--red); border-color: var(--red); color: #fff; }
 .act.cur { cursor: default; }

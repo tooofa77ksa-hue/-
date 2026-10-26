@@ -260,6 +260,7 @@
       bar.style.width = "100%";
       done.hidden = false;
       if (anim) gsap.from(done.children, { y: 14, opacity: 0, stagger: 0.1, duration: 0.6, delay: 0.2 });
+      lastSent = { name: payload.name, role: payload.role, grade: payload.grade };
       form.reset(); resetUp(); $("#cnt").textContent = 0;
     } catch (ex) {
       err.textContent = ex.message || "تعذّر الإرسال، حاولوا مرة أخرى.";
@@ -268,7 +269,9 @@
       setTimeout(() => { prog.hidden = true; bar.style.width = "0"; }, 600);
     }
   });
+  let lastSent = {};
   $("#again").addEventListener("click", () => { done.hidden = true; form.text.focus(); });
+  $("#getCert").addEventListener("click", () => window.DIFAA_CERT && window.DIFAA_CERT.open(lastSent));
 
   // ---------- جدار الوطن ----------
   const wall = $("#wall"), more = $("#more");
