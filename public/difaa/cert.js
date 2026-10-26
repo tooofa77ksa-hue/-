@@ -41,7 +41,7 @@
           <div class="c-in">
             <div class="c-top">
               <div class="c-logo"><img src="assets/moe-white.png" alt=""></div>
-              <div class="c-org">المملكة العربية السعودية<br>وزارة التعليم<br><b>المدرسة الابتدائية الخامسة والستون بعد المائة</b></div>
+              <div class="c-org">المملكة العربية السعودية<br><b>وزارة التعليم</b></div>
               <div class="c-tag"><img src="assets/flag.png" alt=""><span>الدفاع عن الوطن<br><b>بفكرٍ واعٍ… لوطنٍ آمن</b></span></div>
             </div>
             <h1 class="c-title">شهادة شكر وتقدير</h1>
@@ -77,7 +77,7 @@
   .c-corner.br{bottom:-3px;right:-3px;transform:scale(-1,-1)} .c-corner.bl{bottom:-3px;left:-3px;transform:scaleY(-1)}
   .c-in{position:relative;z-index:1;height:100%;display:flex;flex-direction:column;align-items:center;text-align:center;padding:14px 58px 16px}
   .c-top{width:100%;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px}
-  .c-org{grid-column:1;grid-row:1;justify-self:start;text-align:right;font-size:13px;line-height:1.7;color:#3d4b44}
+  .c-org{grid-column:1;grid-row:1;justify-self:start;text-align:right;font-size:15px;line-height:1.8;color:#3d4b44}
   .c-org b{color:#0b4d33;font-weight:800}
   .c-logo{grid-column:2;grid-row:1;width:86px;height:86px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#1f8a55,#073826 70%);display:grid;place-items:center;box-shadow:0 0 0 4px #fbf7ee,0 0 0 6px #c9a44c}
   .c-logo img{width:66px;height:auto}
