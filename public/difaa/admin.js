@@ -5,10 +5,11 @@
   const SKEY = "difaa_pw";
   let PW = "";
   // الدخول برابط خاص (admin.html#key=…) بدون كتابة أي رمز، ويتذكّره الجهاز
-  const fromLink = (location.hash.match(/key=([^&]+)/) || [])[1];
+  const fromLink = (location.hash.match(/key=([^&]+)/) || location.search.match(/[?&]k(?:ey)?=([^&#]+)/) || [])[1];
   if (fromLink) {
     PW = decodeURIComponent(fromLink);
     try { history.replaceState(null, "", location.pathname); } catch (e) {}
+    PW = PW.trim();
   } else {
     try { PW = localStorage.getItem(SKEY) || ""; } catch (e) {}
   }
