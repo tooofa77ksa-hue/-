@@ -6,16 +6,25 @@
   const SIZE = { landscape: [1123, 794], portrait: [794, 1123] };
   const PARENT_ROLES = ["ولي أمر", "ولية أمر"];
 
-  // ---------- خريطة المملكة (علامة مائية) ----------
-  let mapPath = "";
-  fetch("assets/sau.json").then((r) => r.json()).then((ring) => {
-    const lo = [34.4, 55.8], la = [16.2, 32.3];
-    const W = 100, H = 100 * ((la[1] - la[0]) / (lo[1] - lo[0]));
-    mapPath = { d: ring.map(([x, y], i) => (i ? "L" : "M") + (((x - lo[0]) / (lo[1] - lo[0])) * W).toFixed(2) + " " + (((la[1] - y) / (la[1] - la[0])) * H).toFixed(2)).join("") + "Z", vb: `0 0 ${W} ${H.toFixed(2)}` };
-  }).catch(() => {});
 
   const corner = `<svg viewBox="0 0 100 100" class="c-corner-svg"><path d="M4 96V4h92" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M14 96V14h82" fill="none" stroke="currentColor" stroke-width="1"/><path d="M14 14 30 30" stroke="currentColor" stroke-width="1"/><path d="M30 22 38 30 30 38 22 30Z" fill="currentColor"/><path d="M4 4 9 9" stroke="currentColor" stroke-width="2.4"/><circle cx="56" cy="14" r="2.4" fill="currentColor"/><circle cx="14" cy="56" r="2.4" fill="currentColor"/></svg>`;
   const star = `<svg viewBox="0 0 40 40"><path d="M20 2 25 15 38 20 25 25 20 38 15 25 2 20 15 15Z" fill="currentColor"/></svg>`;
+
+  // ---------- تحميل أدوات التصدير عند الحاجة فقط (لتسريع فتح الموقع) ----------
+  const LIBS = [
+    ["html2canvas", "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"],
+    ["jspdf", "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"],
+  ];
+  let libsP = null;
+  function ensureLibs() {
+    if (libsP) return libsP;
+    libsP = Promise.all(LIBS.map(([g, src]) => window[g] ? 0 : new Promise((res, rej) => {
+      const sc = document.createElement("script");
+      sc.src = src; sc.onload = res; sc.onerror = () => { libsP = null; rej(new Error("تعذّر تحميل أداة الشهادة، تأكّدوا من الإنترنت")); };
+      document.head.appendChild(sc);
+    })));
+    return libsP;
+  }
 
   // ---------- نص الشهادة ----------
   function salutation(o) {
@@ -225,7 +234,7 @@
   addEventListener("keydown", (e) => { if (e.key === "Escape" && !dlg.hidden) close(); });
 
   async function render() {
-    if (!window.html2canvas) throw new Error("لم تُحمَّل أداة الشهادة، تأكّدوا من الإنترنت");
+    await ensureLibs();
     const o = orient();
     const host = document.createElement("div");
     host.className = "c-host";
@@ -294,6 +303,7 @@
       dlg.hidden = false; document.body.style.overflow = "hidden";
       dlg.scrollTop = 0;
       requestAnimationFrame(preview);
+      ensureLibs().catch(() => {});
       if (!o.name) setTimeout(() => $("#cName").focus(), 100);
     },
     html: certHTML,

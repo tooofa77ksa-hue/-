@@ -43,7 +43,8 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 h1, h2, h3 { font-family: var(--head); line-height: 1.45; margin: 0; }
 
 /* ---------- الستارة الافتتاحية ---------- */
-.intro-veil { position: fixed; inset: 0; background: var(--g950); z-index: 100; pointer-events: none; }
+.intro-veil { position: fixed; inset: 0; background: var(--g950); z-index: 100; pointer-events: none; animation: veilout .6s 3.5s forwards; }
+@keyframes veilout { to { opacity: 0; visibility: hidden; } }
 
 /* ---------- الترويسة ---------- */
 .topbar {

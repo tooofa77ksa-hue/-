@@ -45,31 +45,19 @@
   const veil = $("#introVeil");
   function intro() {
     if (!anim) { veil.remove(); return; }
-    const tl = gsap.timeline({ delay: 0.15 });
-    tl.to(veil, { opacity: 0, duration: 1.2, ease: "power2.out", onComplete: () => veil.remove() })
-      .from(topbar, { y: -30, opacity: 0, duration: 0.9, ease: "power3.out" }, 1.6)
-      .from("[data-hero].hero-kicker", { y: 20, opacity: 0, duration: 0.8, ease: "power3.out" }, 1.9)
-      .from(".hero-title .w > span", { yPercent: 110, opacity: 0, rotate: 4, duration: 1.1, stagger: 0.12, ease: "expo.out" }, 2.05)
-      .from(".hero-sub > *", { y: 16, opacity: 0, duration: 0.7, stagger: 0.08, ease: "power3.out" }, 2.6)
-      .from(".hero-actions .btn", { y: 18, opacity: 0, duration: 0.8, stagger: 0.1, ease: "power3.out" }, 2.9)
-      .from("#anthem", { y: 14, opacity: 0, duration: 0.8, ease: "power3.out" }, 3.15)
-      .from(".scroll-cue", { opacity: 0, duration: 0.8 }, 3.3);
+    const tl = gsap.timeline({ delay: 0.05 });
+    tl.to(veil, { opacity: 0, duration: 0.7, ease: "power2.out", onComplete: () => veil.remove() })
+      .from(topbar, { y: -30, opacity: 0, duration: 0.7, ease: "power3.out" }, 0.3)
+      .from("[data-hero].hero-kicker", { y: 20, opacity: 0, duration: 0.6, ease: "power3.out" }, 0.45)
+      .from(".hero-title .w > span", { yPercent: 110, opacity: 0, rotate: 4, duration: 0.9, stagger: 0.08, ease: "expo.out" }, 0.55)
+      .from(".hero-sub > *", { y: 16, opacity: 0, duration: 0.6, stagger: 0.06, ease: "power3.out" }, 1.0)
+      .from(".hero-actions .btn", { y: 18, opacity: 0, duration: 0.6, stagger: 0.08, ease: "power3.out" }, 1.2)
+      .from("#anthem", { y: 14, opacity: 0, duration: 0.6, ease: "power3.out" }, 1.35)
+      .from(".scroll-cue", { opacity: 0, duration: 0.6 }, 1.6);
   }
-  // ---------- شاشة الدخول ----------
-  const gate = $("#gate");
-  function enter(withSound) {
-    if (withSound) {
-      const el = document.documentElement;
-      try { const f = el.requestFullscreen || el.webkitRequestFullscreen; if (f) { const r = f.call(el); if (r && r.catch) r.catch(() => {}); } } catch (e) {}
-      playAnthem();
-    }
-    const done = () => { gate.remove(); if (window.__startIntro) window.__startIntro(); intro(); };
-    if (anim) gsap.to(gate, { opacity: 0, scale: 1.04, duration: 0.7, ease: "power2.inOut", onComplete: done });
-    else done();
-  }
-  $("#gateGo").addEventListener("click", () => enter(true));
-  $("#gateQuiet").addEventListener("click", () => enter(false));
-  if (anim) gsap.from(".gate-in > *", { y: 24, opacity: 0, duration: 0.9, stagger: 0.09, ease: "power3.out", delay: 0.1 });
+  // الافتتاحية تبدأ فور فتح الصفحة: الكرة الأرضية ثم العنوان
+  if (window.__startIntro) window.__startIntro();
+  intro();
 
   // ---------- الظهور عند التمرير ----------
   if (anim) {

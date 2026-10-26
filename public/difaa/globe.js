@@ -17,7 +17,9 @@ if (canvas && hasWebGL()) init().catch((e) => console.warn("globe:", e));
 
 async function init() {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+  // أخف على الجوال: دقة رسم أقل قليلًا وصورة أرض أصغر
+  const small = Math.min(innerWidth, innerHeight) < 820 || innerWidth < 1100;
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, small ? 1.5 : 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
 
   const scene = new THREE.Scene();
@@ -37,18 +39,19 @@ async function init() {
   holder.add(tilt); tilt.add(spin); scene.add(holder);
 
   // الأرض
-  const tex = await new THREE.TextureLoader().loadAsync("assets/earth.jpg");
+  const ringP = fetch("assets/sau.json").then((r) => r.json());
+  const tex = await new THREE.TextureLoader().loadAsync(small ? "assets/earth-2k.jpg" : "assets/earth.jpg");
   tex.colorSpace = THREE.SRGBColorSpace;
-  tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
   const earth = new THREE.Mesh(
-    new THREE.SphereGeometry(1, 96, 96),
+    new THREE.SphereGeometry(1, small ? 64 : 96, small ? 64 : 96),
     new THREE.MeshPhongMaterial({ map: tex, shininess: 6, specular: new THREE.Color(0x223322) })
   );
   spin.add(earth);
 
   // الغلاف الجوي
   const atmo = new THREE.Mesh(
-    new THREE.SphereGeometry(1.1, 64, 64),
+    new THREE.SphereGeometry(1.1, 40, 40),
     new THREE.ShaderMaterial({
       vertexShader: "varying vec3 vN; void main(){ vN = normalize(normalMatrix * normal); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }",
       fragmentShader: "varying vec3 vN; void main(){ float i = pow(0.68 - dot(vN, vec3(0.0,0.0,1.0)), 3.2); gl_FragColor = vec4(0.55,0.85,0.75,1.0) * i * 1.4; }",
@@ -65,7 +68,7 @@ async function init() {
 
   // النجوم
   {
-    const n = 1400, pos = new Float32Array(n * 3);
+    const n = small ? 600 : 1200, pos = new Float32Array(n * 3);
     for (let i = 0; i < n; i++) {
       const v = new THREE.Vector3().randomDirection().multiplyScalar(40 + Math.random() * 40);
       pos.set([v.x, v.y, v.z], i * 3);
@@ -76,10 +79,10 @@ async function init() {
   }
 
   // حدود المملكة
-  const ring = await (await fetch("assets/sau.json")).json();
+  const ring = await ringP;
   const pts = ring.map(([lo, la]) => v3(lo, la, 1.004));
   const curve = new THREE.CatmullRomCurve3(pts, true, "catmullrom", 0.1);
-  const SEG = 900, RAD = 6;
+  const SEG = small ? 600 : 900, RAD = small ? 5 : 6;
   const tubeGeo = new THREE.TubeGeometry(curve, SEG, 0.0042, RAD, true);
   const tubeMat = new THREE.MeshBasicMaterial({ color: 0xf2d27e, transparent: true, opacity: 1 });
   const tube = new THREE.Mesh(tubeGeo, tubeMat);
@@ -180,11 +183,16 @@ async function init() {
   new IntersectionObserver((e) => { visible = e[0].isIntersecting; if (visible) loop(); }, { threshold: 0 }).observe(canvas);
 
   const clock = new THREE.Clock();
-  let raf = 0;
+  let raf = 0, lastFrame = 0;
   function loop() {
     cancelAnimationFrame(raf);
     if (!visible) return;
     raf = requestAnimationFrame(loop);
+    if (small && !introRunning) {
+      const now = performance.now();
+      if (now - lastFrame < 33) return; // ~30 إطارًا في الثانية بعد الافتتاحية
+      lastFrame = now;
+    }
     const t = clock.getElapsedTime();
     tubeGeo.setDrawRange(0, Math.floor((fullCount / (RAD * 6)) * state.draw) * RAD * 6);
     look.x += (lookT.x - look.x) * 0.05; look.y += (lookT.y - look.y) * 0.05;
