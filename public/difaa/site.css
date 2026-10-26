@@ -476,3 +476,27 @@ h1, h2, h3 { font-family: var(--head); line-height: 1.45; margin: 0; }
 .gate-go small { display: block; font-size: 13px; font-weight: 600; opacity: .75; }
 .gate-quiet { margin-top: 4px; background: none; border: 0; color: rgba(255, 255, 255, .7); text-decoration: underline; text-underline-offset: 4px; cursor: pointer; font-size: 15px; padding: 8px; }
 .gate-quiet:hover { color: #fff; }
+
+/* ---------- الشاشات القصيرة (لابتوب صغير، جوال بالعرض) ---------- */
+.gate { overflow-y: auto; align-items: safe center; }
+@media (max-height: 820px) {
+  .gate-in { gap: 8px; }
+  .gate-logo { height: clamp(44px, 9vh, 84px); }
+  .gate-flag { width: clamp(84px, 13vh, 150px); }
+  .gate h1 { font-size: clamp(28px, 8.5vh, 66px); padding: .05em 0 .2em; }
+  .gate-go { margin-top: 10px; }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .gate-flag { display: none; }
+  .gate h1 { font-size: clamp(24px, 11vh, 44px); }
+  .hero { align-items: center; }
+  .hero-content { padding: 72px var(--gut) 20px; width: min(560px, 62%); }
+  .hero-kicker { font-size: 12.5px; padding: 4px 12px 4px 6px; }
+  .hero-title { font-size: clamp(26px, 11vh, 46px); margin: 10px 0 6px; }
+  .hero-sub { font-size: 14.5px; margin-bottom: 12px; }
+  .hero-actions { gap: 8px; }
+  .hero-actions .btn { min-height: 40px; padding: 8px 16px; font-size: 14px; }
+  .anthem { margin-top: 8px; padding: 5px 14px 5px 6px; }
+  .anthem-ico { width: 32px; height: 32px; }
+  .scroll-cue { display: none; }
+}
