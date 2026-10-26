@@ -53,8 +53,9 @@
             <div class="c-foot">
               <div class="c-date"><span>حُرّرت في</span><b>${date}</b></div>
               <div class="c-seal"><div class="c-seal-in"><img src="assets/flag.png" alt=""><span>الدفاع عن الوطن</span><small>ابتدائية ١٦٥</small></div></div>
-              <div class="c-sign"><span>مديرة المدرسة</span><i></i><b>أ. جازية السميري</b></div>
+              <div class="c-sign"><span>مديرة المدرسة</span><b>أ. جازية السميري</b><i></i><em>التوقيع</em></div>
             </div>
+            <div class="c-base"><span>الإدارة العامة للتعليم بمحافظة جدة</span><span>المدرسة الابتدائية الخامسة والستون بعد المائة</span></div>
           </div>
         </div>
       </div>
@@ -74,44 +75,48 @@
   .c-corner-svg{width:100%;height:100%;display:block}
   .c-corner.tr{top:-3px;right:-3px;transform:scaleX(-1)} .c-corner.tl{top:-3px;left:-3px}
   .c-corner.br{bottom:-3px;right:-3px;transform:scale(-1,-1)} .c-corner.bl{bottom:-3px;left:-3px;transform:scaleY(-1)}
-  .c-in{position:relative;z-index:1;height:100%;display:flex;flex-direction:column;align-items:center;text-align:center;padding:18px 58px 20px}
+  .c-in{position:relative;z-index:1;height:100%;display:flex;flex-direction:column;align-items:center;text-align:center;padding:14px 58px 16px}
   .c-top{width:100%;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px}
   .c-org{grid-column:1;grid-row:1;justify-self:start;text-align:right;font-size:13px;line-height:1.7;color:#3d4b44}
   .c-org b{color:#0b4d33;font-weight:800}
-  .c-logo{grid-column:2;grid-row:1;width:96px;height:96px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#1f8a55,#073826 70%);display:grid;place-items:center;box-shadow:0 0 0 4px #fbf7ee,0 0 0 6px #c9a44c}
-  .c-logo img{width:76px;height:auto}
+  .c-logo{grid-column:2;grid-row:1;width:86px;height:86px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#1f8a55,#073826 70%);display:grid;place-items:center;box-shadow:0 0 0 4px #fbf7ee,0 0 0 6px #c9a44c}
+  .c-logo img{width:66px;height:auto}
   .c-tag{grid-column:3;grid-row:1;justify-self:end;display:flex;align-items:center;gap:10px;font-size:12.5px;line-height:1.6;color:#3d4b44;text-align:right}
   .c-tag img{width:54px;height:36px;object-fit:cover;border-radius:4px;box-shadow:0 2px 6px rgba(0,0,0,.2)}
   .c-tag b{font-family:"Noto Kufi Arabic",sans-serif;color:#9c7a2c;font-size:12.5px}
-  .c-title{margin:14px 0 0;font-family:"Aref Ruqaa","Noto Kufi Arabic",serif;font-weight:700;font-size:60px;line-height:1.3;color:#0b4d33}
-  .c-orn{display:flex;align-items:center;gap:12px;color:#c9a44c;margin:26px 0 10px}
+  .c-title{margin:6px 0 0;font-family:"Aref Ruqaa","Noto Kufi Arabic",serif;font-weight:700;font-size:54px;line-height:1.25;color:#0b4d33}
+  .c-orn{display:flex;align-items:center;gap:12px;color:#c9a44c;margin:22px 0 6px}
   .c-orn i{display:block;width:150px;height:1.5px;background:linear-gradient(90deg,transparent,#c9a44c)}
   .c-orn i:last-child{background:linear-gradient(90deg,#c9a44c,transparent)}
   .c-orn svg{width:20px;height:20px}
   .c-lead{margin:0;font-size:20px;color:#3d4b44}
-  .c-name{margin:14px 0 4px;display:flex;flex-direction:column;align-items:center}
+  .c-name{margin:8px 0 2px;display:flex;flex-direction:column;align-items:center}
   .c-name small{font-size:16px;color:#9c7a2c;font-weight:700}
-  .c-name span{font-family:"Noto Kufi Arabic",sans-serif;font-weight:800;font-size:44px;line-height:1.6;color:#006c35;padding:0 30px}
-  .c-nline{display:block;width:540px;max-width:90%;height:2px;margin-top:22px;background:linear-gradient(90deg,transparent,#c9a44c 15%,#c9a44c 85%,transparent)}
+  .c-name span{font-family:"Noto Kufi Arabic",sans-serif;font-weight:800;font-size:40px;line-height:1.5;color:#006c35;padding:0 30px}
+  .c-nline{display:block;width:540px;max-width:90%;height:2px;margin-top:18px;background:linear-gradient(90deg,transparent,#c9a44c 15%,#c9a44c 85%,transparent)}
   .c-sub{margin:8px 0 0;font-size:17px;color:#3d4b44}
   .c-sub b{color:#0b4d33}
-  .c-body{margin:10px 0 14px;font-size:18px;line-height:1.85;color:#2c3a33;max-width:860px}
+  .c-body{margin:8px 0 8px;font-size:17.5px;line-height:1.8;color:#2c3a33;max-width:860px}
   .c-foot{margin-top:auto;width:100%;display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:20px}
   .c-date{justify-self:start;display:flex;flex-direction:column;align-items:flex-start;font-size:13px;color:#5d6b63}
   .c-date b{font-family:"Noto Kufi Arabic",sans-serif;font-size:15px;color:#0b4d33}
-  .c-seal{width:120px;height:120px;border-radius:50%;border:3px double #c9a44c;display:grid;place-items:center;background:radial-gradient(circle,#fffaf0,#f3e7c6)}
-  .c-seal-in{width:96px;height:96px;border-radius:50%;border:1.5px solid #0b4d33;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+  .c-seal{width:108px;height:108px;border-radius:50%;border:3px double #c9a44c;display:grid;place-items:center;background:radial-gradient(circle,#fffaf0,#f3e7c6)}
+  .c-seal-in{width:88px;height:88px;border-radius:50%;border:1.5px solid #0b4d33;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
   .c-seal-in img{width:44px;height:29px;border-radius:3px}
   .c-seal-in span{font-family:"Noto Kufi Arabic",sans-serif;font-weight:800;font-size:9.5px;color:#0b4d33;line-height:1.4}
   .c-seal-in small{font-size:9.5px;color:#9c7a2c;font-weight:700}
   .c-sign{justify-self:end;display:flex;flex-direction:column;align-items:center;min-width:220px}
   .c-sign span{font-size:15px;color:#5d6b63}
-  .c-sign i{display:block;width:200px;height:34px;border-bottom:1.5px dashed #9c7a2c;margin-bottom:6px}
-  .c-sign b{font-family:"Noto Kufi Arabic",sans-serif;font-size:21px;font-weight:800;color:#0b4d33}
+  .c-sign b{font-family:"Noto Kufi Arabic",sans-serif;font-size:21px;font-weight:800;color:#0b4d33;margin-top:2px}
+  .c-sign i{display:block;width:200px;height:24px;border-bottom:1.5px dashed #9c7a2c}
+  .c-sign em{font-style:normal;font-size:11.5px;color:#9c7a2c;margin-top:3px}
+  .c-base{width:100%;display:flex;justify-content:space-between;gap:20px;margin-top:10px;padding-top:8px;border-top:1px solid rgba(201,164,76,.55);font-family:"Noto Kufi Arabic",sans-serif;font-weight:700;font-size:13px;color:#0b4d33}
   /* الطولي */
   .cert-portrait .c-in{padding:34px 44px 30px}
   .cert-portrait .c-top{grid-template-columns:1fr;justify-items:center;gap:8px}
   .cert-portrait .c-logo{grid-column:1;grid-row:1;width:98px;height:98px}
+  .cert-portrait .c-name span{line-height:1.6}
+  .cert-portrait .c-seal-in{width:96px;height:96px}
   .cert-portrait .c-logo img{width:72px}
   .cert-portrait .c-org{grid-column:1;grid-row:2;justify-self:center;text-align:center;line-height:1.6}
   .cert-portrait .c-tag{grid-column:1;grid-row:3;justify-self:center}
@@ -128,6 +133,7 @@
   .cert-portrait .c-seal{width:120px;height:120px}
   .cert-portrait .c-sign{min-width:0}
   .cert-portrait .c-sign i{width:170px}
+  .cert-portrait .c-base{font-size:12px}
   /* نافذة الشهادة */
   .cdlg{position:fixed;inset:0;z-index:200;background:rgba(2,18,12,.82);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:max(16px,env(safe-area-inset-top)) 12px 24px;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
   .cdlg[hidden]{display:none}
