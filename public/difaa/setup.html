@@ -68,6 +68,15 @@ const STATUSES = [&#x27;pending&#x27;, &#x27;approved&#x27;, &#x27;rejected&#x27
 const MAX_TEXT = 1500;
 const MAX_VIDEO_MB = 36;
 const ADMIN_URL = &#x27;https://tooofa77ksa-hue.github.io/-/difaa/admin.html&#x27;;
+const REPORT = &#x27;التقرير&#x27;;
+const STATUS_AR = { pending: &#x27;بانتظار المراجعة&#x27;, approved: &#x27;معتمدة&#x27;, rejected: &#x27;مرفوضة&#x27; };
+const ROLE_AR = { &#x27;منسوبة المدرسة&#x27;: &#x27;إدارية&#x27; };
+const GROUPS = [
+  [&#x27;المعلمات&#x27;, [&#x27;معلمة&#x27;]],
+  [&#x27;الإداريات&#x27;, [&#x27;منسوبة المدرسة&#x27;]],
+  [&#x27;أولياء الأمور والطالبات&#x27;, [&#x27;ولي أمر&#x27;, &#x27;ولية أمر&#x27;, &#x27;طالبة&#x27;]],
+  [&#x27;مشاركات أخرى&#x27;, null],
+];
 
 // الجدول: إن كان المشروع داخل جدول يستخدمه، وإلا يُنشئ جدولًا جديدًا مرة واحدة ويتذكّره
 function book() {
@@ -116,6 +125,7 @@ function setup() {
   }
   const first = ss.getSheets()[0];
   if (first.getName() !== SHEET &amp;&amp; first.getName() !== SETTINGS &amp;&amp; first.getLastRow() === 0) ss.deleteSheet(first);
+  refreshReport();
   Logger.log(&#x27;جدول الرسائل: &#x27; + ss.getUrl());
   Logger.log(&#x27;رابط المديرة الخاص: &#x27; + st.getRange(&#x27;B4&#x27;).getValue());
 }
@@ -133,7 +143,7 @@ function doPost(e) {
       case &#x27;public&#x27;: return json(publicList());
       case &#x27;submit&#x27;: return json(withLock(() =&gt; submit(body)));
       case &#x27;admin_login&#x27;: auth(body.pw); return json({ ok: true });
-      case &#x27;admin_list&#x27;: auth(body.pw); return json({ ok: true, items: readAll() });
+      case &#x27;admin_list&#x27;: auth(body.pw); refreshReport(); return json({ ok: true, items: readAll() });
       case &#x27;admin_update&#x27;: auth(body.pw); return json(withLock(() =&gt; update(body.ids, body.patch)));
       case &#x27;admin_delete&#x27;: auth(body.pw); return json(withLock(() =&gt; remove(body.ids)));
       case &#x27;admin_add&#x27;: auth(body.pw); return json(withLock(() =&gt; add(body.item)));
@@ -275,6 +285,7 @@ function update(ids, patch) {
     sh.getRange(r, 11).setValue(new Date());
   });
   clearPublicCache();
+  refreshReport();
   return { ok: true };
 }
 
@@ -289,6 +300,7 @@ function remove(ids) {
     sh.deleteRow(r);
   });
   clearPublicCache();
+  refreshReport();
   return { ok: true };
 }
 
@@ -303,7 +315,81 @@ function add(item) {
   const now = new Date();
   sheet().appendRow([id, now, safe(item.name, 60), role, grade, text, &#x27;&#x27;, &#x27;&#x27;, status, &#x27;المديرة&#x27;, &#x27;&#x27;]);
   clearPublicCache();
+  refreshReport();
   return { ok: true, item: { id: id, created: now.toISOString(), name: unsafe(safe(item.name, 60)), role: role, grade: grade, text: unsafe(text), video_id: &#x27;&#x27;, video_url: &#x27;&#x27;, status: status, source: &#x27;المديرة&#x27;, updated: &#x27;&#x27; } };
+}
+
+// ---------------- ورقة «التقرير» المنسّقة ----------------
+// تُبنى تلقائيًا عند فتح المديرة للوحتها وبعد كل اعتماد أو تعديل أو حذف أو إضافة.
+function refreshReport() {
+  try { buildReport(); } catch (e) { console.warn(&#x27;report: &#x27; + e); }
+}
+
+function buildReport() {
+  const ss = book();
+  let rp = ss.getSheetByName(REPORT);
+  if (!rp) rp = ss.insertSheet(REPORT, 0);
+  const NC = 8;
+  const items = readAll().sort((a, b) =&gt; String(a.created).localeCompare(String(b.created)));
+  const cnt = { pending: 0, approved: 0, rejected: 0 };
+  items.forEach((m) =&gt; (cnt[m.status] = (cnt[m.status] || 0) + 1));
+  const vids = items.filter((m) =&gt; m.video_url).length;
+  const fmt = (iso) =&gt; { const d = new Date(iso); return isNaN(d) ? &#x27;&#x27; : Utilities.formatDate(d, &#x27;Asia/Riyadh&#x27;, &#x27;yyyy/MM/dd  HH:mm&#x27;); };
+
+  // تجهيز الصفوف وأنواعها
+  const rows = [], kinds = [];
+  const push = (r, k) =&gt; { while (r.length &lt; NC) r.push(&#x27;&#x27;); rows.push(r); kinds.push(k); };
+  push([&#x27;سجل رسائل منصة «بفكرٍ واعٍ… لوطنٍ آمن» — الدفاع عن الوطن&#x27;], &#x27;title&#x27;);
+  push([&#x27;المدرسة الابتدائية الخامسة والستون بعد المائة · مديرة المدرسة: أ. جازية السميري&#x27;], &#x27;sub&#x27;);
+  push([&#x27;آخر تحديث: &#x27; + Utilities.formatDate(new Date(), &#x27;Asia/Riyadh&#x27;, &#x27;yyyy/MM/dd  HH:mm&#x27;) + &#x27;   ·   الإجمالي: &#x27; + items.length + &#x27;   ·   معتمدة: &#x27; + cnt.approved + &#x27;   ·   بانتظار المراجعة: &#x27; + cnt.pending + &#x27;   ·   مرفوضة: &#x27; + cnt.rejected + &#x27;   ·   مقاطع: &#x27; + vids], &#x27;sum&#x27;);
+  push([], &#x27;gap&#x27;);
+  if (!items.length) push([&#x27;لا توجد مشاركات بعد&#x27;], &#x27;empty&#x27;);
+  const used = {};
+  GROUPS.forEach(([title, roles]) =&gt; {
+    const list = items.filter((m) =&gt; (roles ? roles.indexOf(m.role) &gt;= 0 : !used[m.id]));
+    list.forEach((m) =&gt; (used[m.id] = 1));
+    if (!list.length) return;
+    push([title + &#x27;  (&#x27; + list.length + &#x27;)&#x27;], &#x27;sec&#x27;);
+    push([&#x27;م&#x27;, &#x27;التاريخ&#x27;, &#x27;الاسم&#x27;, &#x27;الصفة&#x27;, &#x27;الصف&#x27;, &#x27;الرسالة&#x27;, &#x27;المقطع&#x27;, &#x27;الحالة&#x27;], &#x27;head&#x27;);
+    list.forEach((m, i) =&gt; push([
+      i + 1, fmt(m.created), safe(m.name || &#x27;—&#x27;), ROLE_AR[m.role] || m.role || &#x27;—&#x27;, m.grade || &#x27;—&#x27;,
+      safe(m.text || &#x27;(مشاركة مرئية)&#x27;),
+      m.video_url ? &#x27;=HYPERLINK(&quot;&#x27; + m.video_url.replace(&#x27;/preview&#x27;, &#x27;/view&#x27;) + &#x27;&quot;,&quot;▶ مشاهدة&quot;)&#x27; : &#x27;—&#x27;,
+      STATUS_AR[m.status] || m.status,
+    ], i % 2 ? &#x27;odd&#x27; : &#x27;even&#x27;));
+    push([], &#x27;gap&#x27;);
+  });
+
+  // كتابة وتنسيق دفعة واحدة
+  rp.clear();
+  rp.getRange(1, 1, rp.getMaxRows(), rp.getMaxColumns()).breakApart();
+  rp.setRightToLeft(true);
+  try { rp.setHiddenGridlines(true); } catch (e) {}
+  if (rp.getMaxColumns() &lt; NC) rp.insertColumnsAfter(rp.getMaxColumns(), NC - rp.getMaxColumns());
+  if (rp.getMaxRows() &lt; rows.length + 2) rp.insertRowsAfter(rp.getMaxRows(), rows.length + 2 - rp.getMaxRows());
+  const all = rp.getRange(1, 1, rows.length, NC);
+  all.setValues(rows);
+  const BG = { title: &#x27;#073826&#x27;, sub: &#x27;#006c35&#x27;, sum: &#x27;#f3ebda&#x27;, sec: &#x27;#0b4d33&#x27;, head: &#x27;#c9a44c&#x27;, even: &#x27;#ffffff&#x27;, odd: &#x27;#fbf7ee&#x27;, gap: &#x27;#ffffff&#x27;, empty: &#x27;#ffffff&#x27; };
+  const FG = { title: &#x27;#e3c67d&#x27;, sub: &#x27;#ffffff&#x27;, sum: &#x27;#073826&#x27;, sec: &#x27;#ffffff&#x27;, head: &#x27;#073826&#x27;, even: &#x27;#1b2a23&#x27;, odd: &#x27;#1b2a23&#x27;, gap: &#x27;#1b2a23&#x27;, empty: &#x27;#5d6b63&#x27; };
+  const ST = { &#x27;معتمدة&#x27;: &#x27;#006c35&#x27;, &#x27;بانتظار المراجعة&#x27;: &#x27;#a86a00&#x27;, &#x27;مرفوضة&#x27;: &#x27;#b3261e&#x27; };
+  all.setBackgrounds(kinds.map((k) =&gt; Array(NC).fill(BG[k])));
+  all.setFontColors(kinds.map((k, r) =&gt; rows[r].map((v, c) =&gt; (c === 7 &amp;&amp; ST[v] &amp;&amp; (k === &#x27;odd&#x27; || k === &#x27;even&#x27;) ? ST[v] : c === 6 &amp;&amp; String(v).indexOf(&#x27;HYPERLINK&#x27;) &gt;= 0 ? &#x27;#0563c1&#x27; : FG[k]))));
+  all.setFontWeights(kinds.map((k) =&gt; Array(NC).fill(k === &#x27;odd&#x27; || k === &#x27;even&#x27; ? &#x27;normal&#x27; : &#x27;bold&#x27;)).map((r, i) =&gt; (kinds[i] === &#x27;odd&#x27; || kinds[i] === &#x27;even&#x27;) ? r.map((w, c) =&gt; (c === 2 || c === 7 ? &#x27;bold&#x27; : w)) : r));
+  all.setFontSizes(kinds.map((k) =&gt; Array(NC).fill(k === &#x27;title&#x27; ? 16 : k === &#x27;sec&#x27; ? 13 : k === &#x27;sub&#x27; ? 11.5 : k === &#x27;sum&#x27; ? 10 : 10.5)));
+  all.setFontFamily(&#x27;Arial&#x27;);
+  all.setVerticalAlignment(&#x27;middle&#x27;);
+  all.setHorizontalAlignments(kinds.map((k) =&gt; Array(NC).fill(k === &#x27;odd&#x27; || k === &#x27;even&#x27; ? &#x27;center&#x27; : k === &#x27;sec&#x27; ? &#x27;right&#x27; : &#x27;center&#x27;).map((a, c) =&gt; ((k === &#x27;odd&#x27; || k === &#x27;even&#x27;) &amp;&amp; c === 5 ? &#x27;right&#x27; : a))));
+  all.setWrap(true);
+  kinds.forEach((k, i) =&gt; {
+    const r = i + 1;
+    if (k === &#x27;title&#x27; || k === &#x27;sub&#x27; || k === &#x27;sum&#x27; || k === &#x27;sec&#x27; || k === &#x27;empty&#x27;) rp.getRange(r, 1, 1, NC).merge();
+    rp.setRowHeight(r, k === &#x27;title&#x27; ? 46 : k === &#x27;sub&#x27; ? 28 : k === &#x27;sec&#x27; ? 30 : k === &#x27;head&#x27; ? 28 : k === &#x27;gap&#x27; ? 10 : k === &#x27;sum&#x27; ? 24 : 34);
+    if (k === &#x27;head&#x27; || k === &#x27;odd&#x27; || k === &#x27;even&#x27;) rp.getRange(r, 1, 1, NC).setBorder(true, true, true, true, true, false, k === &#x27;head&#x27; ? &#x27;#9c7a2c&#x27; : &#x27;#e3d9c2&#x27;, SpreadsheetApp.BorderStyle.SOLID);
+  });
+  [44, 140, 170, 90, 70, 430, 100, 130].forEach((w, c) =&gt; rp.setColumnWidth(c + 1, w));
+  rp.setFrozenRows(3);
+  ss.setActiveSheet(rp);
+  ss.moveActiveSheet(1);
 }
 </textarea></li>
     <li><b class="t">شغّل الإعداد</b>
