@@ -407,7 +407,7 @@
            <div class="rp-sum"><span>المحتوى: ${scopeLabel}</span><span>العدد: ${rows.length}</span><span>معتمدة: ${c.approved}</span><span>بانتظار المراجعة: ${c.pending}</span><span>مرفوضة: ${c.rejected}</span><span>مقاطع مرئية: ${vids}</span></div>`
         : `<div class="rp-mini"><b>سجل رسائل منصة «بفكرٍ واعٍ… لوطنٍ آمن»</b><span>المدرسة الابتدائية الخامسة والستون بعد المائة</span></div>`) +
         `<div class="pdf-body"><table class="rp-table">${head}<tbody></tbody></table></div>
-         <div class="rp-foot"><div><b>مديرة المدرسة: أ. جازية السميري</b><small>المساعد الإداري: عواطف الجهني</small></div><div class="pno"></div></div>`;
+         <div class="rp-foot"><div><b>مديرة المدرسة: أ. جازية السميري</b></div><div class="pno"></div></div>`;
       host.appendChild(pg);
       pages.push(pg);
       return pg;
@@ -477,7 +477,7 @@
           ${land ? `<td>${D.esc(m.grade || "—")}</td>` : ""}
           <td class="msg">${D.esc(m.text || "(مشاركة مرئية)")}</td><td class="vq">${m.video_url ? qrCell(m) : "—"}</td><td class="st-${m.status}">${D.STATUS[m.status] || ""}</td></tr>`).join("")).join("")}</tbody>
       </table>
-      <div class="rp-foot"><div><b>مديرة المدرسة: أ. جازية السميري</b><small>المساعد الإداري: عواطف الجهني</small></div><div>منصة الدفاع عن الوطن · ${rows.length} مشاركة</div></div>`;
+      <div class="rp-foot"><div><b>مديرة المدرسة: أ. جازية السميري</b></div><div>منصة الدفاع عن الوطن · ${rows.length} مشاركة</div></div>`;
     const img = $("#report img");
     const go = () => setTimeout(() => window.print(), 150);
     img.complete ? go() : (img.onload = img.onerror = go);
