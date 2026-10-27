@@ -32,6 +32,36 @@
     document.addEventListener("webkitfullscreenchange", upd);
   }
 
+  // دعم النوافذ المنبثقة في المتصفحات القديمة (آيفون قبل iOS 15.4، وأجهزة أندرويد/هواوي القديمة)
+  if (!window.HTMLDialogElement || typeof HTMLDialogElement.prototype.showModal !== "function") {
+    document.documentElement.classList.add("no-dialog");
+    const shade = document.createElement("div");
+    shade.className = "dlg-shade"; shade.hidden = true;
+    document.body.appendChild(shade);
+    $$("dialog").forEach((d) => {
+      d.returnValue = "";
+      d.showModal = () => { d.setAttribute("open", ""); shade.hidden = false; };
+      d.close = (v) => {
+        if (!d.hasAttribute("open")) return;
+        if (v !== undefined) d.returnValue = v;
+        d.removeAttribute("open");
+        if (!$("dialog[open]")) shade.hidden = true;
+        d.dispatchEvent(new Event("close"));
+      };
+      const f = $("form", d);
+      if (f) f.addEventListener("submit", (e) => {
+        if (e.defaultPrevented) return;
+        e.preventDefault();
+        d.close(f._lastBtn || "");
+      });
+    });
+  }
+  // تذكّر الزر المضغوط داخل النوافذ (بديل e.submitter غير المدعوم في المتصفحات القديمة)
+  $$("dialog form").forEach((f) => f.addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (b) f._lastBtn = b.value;
+  }, true));
+
   let all = [];
   let tab = "pending";
   const selected = new Set();
@@ -258,12 +288,15 @@
     ef.status.value = m ? m.status : "approved";
     ef.text.value = m ? m.text || "" : "";
     $("#editErr").textContent = "";
+    ef._lastBtn = "";
     liveFlags();
     $("#editDlg").showModal();
   }
   $("#addBtn").addEventListener("click", () => openEdit(null));
   ef.addEventListener("submit", async (e) => {
-    if (e.submitter && e.submitter.value === "cancel") return;
+    const sv = (e.submitter && e.submitter.value) || ef._lastBtn || "save";
+    ef._lastBtn = "";
+    if (sv === "cancel") return;
     e.preventDefault();
     const patch = { name: ef.name.value.trim(), role: ef.role.value, grade: ef.grade.value, status: ef.status.value, text: ef.text.value.trim() };
     if (!patch.text && !(editing && editing.video_url)) { $("#editErr").textContent = "اكتبي نص الرسالة."; return; }
