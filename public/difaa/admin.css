@@ -227,6 +227,10 @@ mark.flag { background: #fde2df; color: #9b1c14; border-radius: 4px; padding: 0 
 .rp-table tr { break-inside: avoid; page-break-inside: avoid; }
 .rp-table tbody tr:nth-child(even) td { background: #fbf7ee; }
 .rp-table td.msg { white-space: pre-wrap; word-break: break-word; }
+.rp-table td.vq { text-align: center; vertical-align: middle; padding: 4px; }
+.rp-qr { display: inline-flex; flex-direction: column; align-items: center; gap: 2px; text-decoration: none; color: #073826; }
+.rp-qr img { width: 78px; height: 78px; display: block; border: 2px solid #c9a44c; border-radius: 8px; }
+.rp-qr small { font-size: 9.5px; font-weight: 700; color: #0b4d33; white-space: nowrap; }
 .rp-table .st-approved { color: #006c35; font-weight: 700; }
 .rp-table .st-pending { color: #a86a00; font-weight: 700; }
 .rp-table .st-rejected { color: #b3261e; font-weight: 700; }

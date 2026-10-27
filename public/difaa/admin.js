@@ -345,6 +345,40 @@
   const today = () => D.fmtDate(new Date().toISOString());
   const todayG = () => new Date().toLocaleDateString("ar-EG-u-nu-latn", { year: "numeric", month: "long", day: "numeric" });
 
+  // باركود المقطع بألوان هوية المنصة (أخضر داكن، وزر تشغيل ذهبي في الوسط)
+  const watchUrl = (m) => m.video_url.replace("/preview", "/view");
+  function qrData(url) {
+    if (!window.qrcode) return "";
+    try {
+      const q = window.qrcode(0, "H");
+      q.addData(url); q.make();
+      const n = q.getModuleCount(), cell = 8, pad = 4 * cell, size = n * cell + pad * 2;
+      const cv = document.createElement("canvas");
+      cv.width = cv.height = size;
+      const x = cv.getContext("2d");
+      x.fillStyle = "#ffffff"; x.fillRect(0, 0, size, size);
+      x.fillStyle = "#073826";
+      for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) x.fillRect(pad + c * cell, pad + r * cell, cell, cell);
+      // عيون الباركود: إطار أخضر رسمي ومركز أخضر داكن (الألوان الفاتحة تمنع القراءة)
+      [[0, 0], [0, n - 7], [n - 7, 0]].forEach(([r, c]) => {
+        x.fillStyle = "#ffffff"; x.fillRect(pad + c * cell, pad + r * cell, 7 * cell, 7 * cell);
+        x.fillStyle = "#006c35"; x.fillRect(pad + c * cell, pad + r * cell, 7 * cell, 7 * cell);
+        x.fillStyle = "#ffffff"; x.fillRect(pad + (c + 1) * cell, pad + (r + 1) * cell, 5 * cell, 5 * cell);
+        x.fillStyle = "#073826"; x.fillRect(pad + (c + 2) * cell, pad + (r + 2) * cell, 3 * cell, 3 * cell);
+      });
+      // زر تشغيل ذهبي في الوسط
+      const cx = size / 2, rad = size * 0.09;
+      x.fillStyle = "#ffffff"; x.beginPath(); x.arc(cx, cx, rad + cell, 0, 7); x.fill();
+      x.fillStyle = "#c9a44c"; x.beginPath(); x.arc(cx, cx, rad, 0, 7); x.fill();
+      x.fillStyle = "#073826"; x.beginPath(); x.moveTo(cx - rad * 0.35, cx - rad * 0.5); x.lineTo(cx + rad * 0.55, cx); x.lineTo(cx - rad * 0.35, cx + rad * 0.5); x.closePath(); x.fill();
+      return cv.toDataURL("image/png");
+    } catch (e) { return ""; }
+  }
+  const qrCell = (m) => {
+    const src = qrData(watchUrl(m));
+    return src ? `<a class="rp-qr" href="${D.esc(watchUrl(m))}" target="_blank"><img src="${src}" alt="باركود المقطع"><small>امسحي للمشاهدة</small></a>` : `<a href="${D.esc(watchUrl(m))}">مشاهدة</a>`;
+  };
+
   // ملف PDF جاهز بالاتجاه المختار (يعمل في الآيفون أيضًا)، صفحة صفحة مع تكرار رأس الجدول وترقيم الصفحات
   async function exportPDF(rows, orient, scopeLabel) {
     if (!window.html2canvas || !window.jspdf) return printPDF(rows, orient, scopeLabel);
@@ -354,10 +388,10 @@
     const c = { approved: 0, pending: 0, rejected: 0 };
     rows.forEach((m) => (c[m.status] = (c[m.status] || 0) + 1));
     const vids = rows.filter((m) => m.video_url).length;
-    const head = `<thead><tr><th style="width:4%">م</th><th style="width:${land ? 12 : 14}%">التاريخ</th><th style="width:${land ? 12 : 14}%">الاسم</th><th style="width:${land ? 10 : 12}%">الصفة</th>${land ? '<th style="width:7%">الصف</th>' : ""}<th>الرسالة</th><th style="width:${land ? 6 : 8}%">مقطع</th><th style="width:${land ? 9 : 11}%">الحالة</th></tr></thead>`;
+    const head = `<thead><tr><th style="width:4%">م</th><th style="width:${land ? 12 : 14}%">التاريخ</th><th style="width:${land ? 12 : 14}%">الاسم</th><th style="width:${land ? 10 : 12}%">الصفة</th>${land ? '<th style="width:7%">الصف</th>' : ""}<th>الرسالة</th><th style="width:${land ? 10 : 13}%">مقطع</th><th style="width:${land ? 9 : 11}%">الحالة</th></tr></thead>`;
     const ncol = land ? 8 : 7;
     const secHTML = (g) => `<tr class="rp-sec"><td colspan="${ncol}">${g.title} <span>(${g.rows.length})</span></td></tr>`;
-    const rowHTML = (m, i) => `<tr><td>${i + 1}</td><td>${D.fmtDate(m.created)}</td><td>${D.esc(m.name || "—")}</td><td>${D.esc(D.roleLabel(m.role) || "—")}${!land && m.grade ? "<br>الصف " + D.esc(m.grade) : ""}</td>${land ? `<td>${D.esc(m.grade || "—")}</td>` : ""}<td class="msg">${D.esc(m.text || "(مشاركة مرئية)")}</td><td>${m.video_url ? "يوجد" : "—"}</td><td class="st-${m.status}">${D.STATUS[m.status] || ""}</td></tr>`;
+    const rowHTML = (m, i) => `<tr><td>${i + 1}</td><td>${D.fmtDate(m.created)}</td><td>${D.esc(m.name || "—")}</td><td>${D.esc(D.roleLabel(m.role) || "—")}${!land && m.grade ? "<br>الصف " + D.esc(m.grade) : ""}</td>${land ? `<td>${D.esc(m.grade || "—")}</td>` : ""}<td class="msg">${D.esc(m.text || "(مشاركة مرئية)")}</td><td class="vq">${m.video_url ? qrCell(m) : "—"}</td><td class="st-${m.status}">${D.STATUS[m.status] || ""}</td></tr>`;
     const host = document.createElement("div");
     host.className = "pdf-host";
     host.style.width = W + "px";
@@ -408,6 +442,12 @@
         const cv = await window.html2canvas(pages[i], { scale: 2, backgroundColor: "#ffffff", useCORS: true, logging: false });
         if (i) pdf.addPage("a4", orient);
         pdf.addImage(cv.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, pw, ph);
+        // الباركود قابل للضغط داخل ملف PDF أيضًا
+        const pr = pages[i].getBoundingClientRect();
+        pages[i].querySelectorAll("a.rp-qr").forEach((a) => {
+          const r = a.getBoundingClientRect();
+          pdf.link(((r.left - pr.left) / pr.width) * pw, ((r.top - pr.top) / pr.height) * ph, (r.width / pr.width) * pw, (r.height / pr.height) * ph, { url: a.href });
+        });
       }
       pdf.setProperties({ title: "سجل رسائل منصة بفكر واع لوطن آمن" });
       pdf.save(`Watan-Messages-${land ? "landscape" : "portrait"}-${new Date().toISOString().slice(0, 10)}.pdf`);
@@ -431,11 +471,11 @@
       </div>
       <div class="rp-sum"><span>المحتوى: ${scopeLabel}</span><span>العدد: ${rows.length}</span><span>معتمدة: ${c.approved}</span><span>بانتظار المراجعة: ${c.pending}</span><span>مرفوضة: ${c.rejected}</span><span>مقاطع مرئية: ${vids}</span></div>
       <table class="rp-table">
-        <thead><tr><th style="width:4%">م</th><th style="width:${land ? 11 : 13}%">التاريخ</th><th style="width:${land ? 12 : 14}%">الاسم</th><th style="width:${land ? 10 : 11}%">الصفة</th>${land ? '<th style="width:7%">الصف</th>' : ""}<th>الرسالة</th><th style="width:${land ? 7 : 8}%">مقطع</th><th style="width:${land ? 9 : 10}%">الحالة</th></tr></thead>
+        <thead><tr><th style="width:4%">م</th><th style="width:${land ? 11 : 13}%">التاريخ</th><th style="width:${land ? 12 : 14}%">الاسم</th><th style="width:${land ? 10 : 11}%">الصفة</th>${land ? '<th style="width:7%">الصف</th>' : ""}<th>الرسالة</th><th style="width:${land ? 10 : 13}%">مقطع</th><th style="width:${land ? 9 : 10}%">الحالة</th></tr></thead>
         <tbody>${D.groupRows(rows).map((g) => `<tr class="rp-sec"><td colspan="${land ? 8 : 7}">${g.title} <span>(${g.rows.length})</span></td></tr>` + g.rows.map((m, i) => `<tr>
           <td>${i + 1}</td><td>${D.fmtDate(m.created)}</td><td>${D.esc(m.name || "—")}</td><td>${D.esc(D.roleLabel(m.role) || "—")}${!land && m.grade ? "<br>الصف " + D.esc(m.grade) : ""}</td>
           ${land ? `<td>${D.esc(m.grade || "—")}</td>` : ""}
-          <td class="msg">${D.esc(m.text || "(مشاركة مرئية)")}</td><td>${m.video_url ? "يوجد" : "—"}</td><td class="st-${m.status}">${D.STATUS[m.status] || ""}</td></tr>`).join("")).join("")}</tbody>
+          <td class="msg">${D.esc(m.text || "(مشاركة مرئية)")}</td><td class="vq">${m.video_url ? qrCell(m) : "—"}</td><td class="st-${m.status}">${D.STATUS[m.status] || ""}</td></tr>`).join("")).join("")}</tbody>
       </table>
       <div class="rp-foot"><div><b>مديرة المدرسة: أ. جازية السميري</b><small>المساعد الإداري: عواطف الجهني</small></div><div>منصة الدفاع عن الوطن · ${rows.length} مشاركة</div></div>`;
     const img = $("#report img");
