@@ -29,8 +29,8 @@
   // ---------- نص الشهادة ----------
   function salutation(o) {
     const isParent = PARENT_ROLES.includes(o.role);
-    const female = ["ولية أمر", "طالبة", "معلمة", "منسوبة المدرسة"].includes(o.role);
-    const title = o.role === "ولي أمر" ? "الأستاذ" : o.role === "ولية أمر" ? "الأستاذة" : o.role === "طالبة" ? "الطالبة" : o.role === "معلمة" ? "المعلمة" : o.role === "منسوبة المدرسة" ? "الأستاذة" : "";
+    const female = ["ولية أمر", "طالبة", "معلمة", "منسوبة المدرسة", "مشرفة"].includes(o.role);
+    const title = o.role === "ولي أمر" ? "الأستاذ" : o.role === "ولية أمر" ? "الأستاذة" : o.role === "طالبة" ? "الطالبة" : o.role === "معلمة" ? "المعلمة" : o.role === "منسوبة المدرسة" ? "الأستاذة" : o.role === "مشرفة" ? "المشرفة" : "";
     let sub = "";
     if (o.student) sub = `${isParent ? (female ? "ولية أمر" : "ولي أمر") + " " : ""}الطالبة: <b>${esc(o.student)}</b>${o.grade ? ` · الصف ${esc(o.grade)}` : ""}`;
     else if (o.role === "طالبة" && o.grade) sub = `الصف ${esc(o.grade)}`;
