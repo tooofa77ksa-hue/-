@@ -24,6 +24,7 @@ main{max-width:720px;margin:0 auto;padding:12px 16px 120px}
 .hero{text-align:center;margin:6px 0 10px}
 .hero h2{margin:0;font-size:1.6rem}.hero p{margin:0;color:var(--muted)}
 .tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.extra{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:12px}.extra button{border:2px solid var(--line);border-radius:12px;background:#fff;padding:8px 12px;font-weight:700;font-size:.95rem}
 .tile{border:0;border-radius:22px;padding:14px 10px;min-height:120px;color:#fff;font-size:1.1rem;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:0 5px 0 rgba(0,0,0,.15)}
 .tile b{font-size:2.2rem;line-height:1.2}.tile small{font-weight:400;font-size:.8rem;opacity:.95}
 .card{background:var(--card);border-radius:22px;padding:16px;box-shadow:0 3px 14px rgba(20,38,63,.08);min-height:52vh}
@@ -141,26 +142,29 @@ let view = {};
 /* ---------- home ---------- */
 const SECS = [
   ['daily', '📅', 'مهمة اليوم', '', '#7b4bd1'],
-  ...(D.speak && D.speak.length ? [['speak', '🗣️', 'الكلام', 'حوار المقابلة من الكتاب (ص١٥)', '#c0392b']] : []),
-  ['words', '🔤', 'الكلمات', AR(D.words.length) + ' كلمة بحيلة للحفظ', '#1f6fd1'],
-  ['grammar', '🧩', 'القواعد', D.unit.gsub, '#e0603a'],
-  ['reading', '📖', 'القطعة والقصة', D.unit.rsub, '#1e8a4f'],
+  ['grammar', '🧩', 'الجرامر', D.unit.gsub, '#e0603a'],
   ['writing', '✍️', 'التعبير', D.unit.wsub, '#f08a24'],
+  ['words', '🔤', 'الكلمات المهمة', AR(D.words.length) + ' كلمة بحيلة للحفظ', '#1f6fd1'],
+  ['reading', '💬', 'الجمل المهمة', D.unit.rsub, '#1e8a4f'],
+  ...(D.speak && D.speak.length ? [['speak', '🗣️', 'حوار المقابلة', 'من الكتاب (ص١٥)', '#c0392b']] : []),
   ['test', '🏁', 'اختبار الوحدة', 'بنفس شكل اختبار المعلمة', '#14263f'],
   ...(D.period && D.period.length ? [['period', '📝', 'اختبار الفترة الأولى', 'اختبار المعلمة · الوحدة ١ و٢', '#c0392b']] : [])];
+// home shows only the four boxes the parent asked for; the rest sit in a small row below
+const MAIN = ['grammar', 'writing', 'words', 'reading'];
 function home() {
   stop(); view = {}; $('#bar').hidden = true; $('#ttl').textContent = 'Unit ' + D.unit.n + ' · ' + D.unit.title;
   $('#m').innerHTML = `<div class="units">${[1, 2, 3, 4].map(n => `<a class="un${n === D.unit.n ? ' on' : ''}" href="../u${n}/">Unit ${n}</a>`).join('')}</div><div class="hero"><div style="font-size:2.6rem">${D.unit.hero}</div><h2 class="en">Unit ${D.unit.n} · ${esc(D.unit.title)}</h2><p>يلا يا بطل! ابدأ من الكلمات ثم امشِ بالترتيب 💪</p></div>
-  <details class="guide" ${S.guided ? '' : 'open'}><summary>📋 ابدأ هنا: كيف أذاكر؟</summary><ol>
+  <details class="guide"><summary>📋 ابدأ هنا: كيف أذاكر؟</summary><ol>
     <li><b>📅 مهمة اليوم (كل يوم):</b> حضّر كلمات جديدة وراجع كلمات دروسك السابقة، من خمس إلى عشر دقائق.</li>
-    <li><b>🔤 الكلمات:</b> اسمع كل كلمة ومعناها، ثم حلّ: اختر المعنى ← اختر الكلمة ← أكمل الجملة ← الإملاء.</li>
-    <li><b>🧩 القواعد:</b> احفظ القاعدة في المربع الأسود، ثم حلّ التدريب.</li>
-    <li><b>📖 القطعة والقصة:</b> اقرأ كل جملة ومعناها، ثم أجب صح أو خطأ.</li>
+    <li><b>🔤 الكلمات المهمة:</b> اسمع كل كلمة ومعناها، ثم حلّ: اختر المعنى ← اختر الكلمة ← أكمل الجملة ← الإملاء.</li>
+    <li><b>🧩 الجرامر:</b> احفظ القاعدة في المربع الأسود، ثم حلّ التدريب.</li>
+    <li><b>💬 الجمل المهمة:</b> اقرأ كل جملة ومعناها، ثم أجب صح أو خطأ.</li>
     <li><b>✍️ التعبير:</b> افهم كل جملة بالمعنى والنطق، ثم ابنِها بنفسك، ثم اكتبها في دفترك.</li>
     <li><b>🏁 اختبار الوحدة</b>${D.period && D.period.length ? ' ثم <b>📝 اختبار الفترة</b>' : ''}: حلّ وحدك، وإذا أخطأت جرّب مرة ثانية.</li></ol>
     <p>🔊 كل شيء يُقرأ بالصوت، وزر 🔊 فوق يكتم الصوت. «التالي» تحت للبطاقة التالية، و🏠 يرجعك هنا.</p>
     <p>🌱 ركّز وخذ وقتك، وجهدك يوصلك بإذن الله.</p></details>
-  <div class="tiles">${SECS.map(s => `<button class="tile" style="background:${s[4]}" data-s="${s[0]}"><b>${s[1]}</b>${s[2]}<small>${s[0] === 'daily' ? '' : esc(s[3])}${s[0] === 'daily' ? dailySub() : S.done[s[0]] ? ' · ✅' : ''}</small></button>`).join('')}</div>
+  <div class="tiles">${SECS.filter(s => MAIN.includes(s[0])).map(s => `<button class="tile" style="background:${s[4]}" data-s="${s[0]}"><b>${s[1]}</b>${s[2]}<small>${esc(s[3])}${S.done[s[0]] ? ' · ✅' : ''}</small></button>`).join('')}</div>
+  <div class="extra">${SECS.filter(s => !MAIN.includes(s[0])).map(s => `<button data-s="${s[0]}">${s[1]} ${s[2]}${S.done[s[0]] ? ' ✅' : ''}</button>`).join('')}</div>
   <p class="cnt" style="text-align:center;margin-top:14px">🔊 الصوت: تسجيلات حقيقية، وما لم يُسجَّل بعد يقرؤه صوت الجهاز.</p>`;
   $$('.tile').forEach(b => b.onclick = () => open(b.dataset.s));
 }
