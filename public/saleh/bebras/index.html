@@ -1,0 +1,721 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f6f78">
+<title>نهر القندس · ألغاز التفكير</title>
+<meta name="description" content="ألغاز تفاعلية للتدرّب على أنواع أسئلة مسابقة بيبراس للتفكير الحاسوبي">
+<style>
+@font-face{font-family:"Baloo Bhaijaan 2";src:url("../../fonts/nahrawan-baloo-regular.ttf") format("truetype");font-weight:400;font-display:swap}
+@font-face{font-family:"Baloo Bhaijaan 2";src:url("../../fonts/nahrawan-baloo-semibold.ttf") format("truetype");font-weight:600;font-display:swap}
+@font-face{font-family:"Baloo Bhaijaan 2";src:url("../../fonts/nahrawan-baloo-extrabold.ttf") format("truetype");font-weight:800;font-display:swap}
+:root{
+  --water:#1f6f78; --deep:#134a52; --foam:#dff3f1; --sky:#eef9fb;
+  --bark:#7a4b22; --wood:#c58b4c; --leaf:#4f9a5c; --sun:#f4c04e;
+  --ink:#1d2b30; --muted:#56717a; --bad:#c2453b; --good:#2f8a4a;
+  --r-big:28px; --r-mid:18px; --r-small:12px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{min-height:100vh;background:var(--sky);color:var(--ink);font-family:"Baloo Bhaijaan 2","Geeza Pro",Tahoma,sans-serif;font-size:18px;line-height:1.6;
+  background-image:radial-gradient(120% 60% at 50% 110%,#cdebe6 0,transparent 60%)}
+button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
+button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:4px solid var(--sun);outline-offset:3px}
+.screen{display:none;max-width:860px;margin:0 auto;padding:max(16px,env(safe-area-inset-top)) 16px 120px}
+.screen.on{display:block}
+h1,h2,h3{line-height:1.25;margin:0}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.back{background:#fff;border:2px solid #cfe3e6;border-radius:999px;padding:6px 16px;font-weight:600}
+.pill{background:#fff;border-radius:999px;padding:4px 14px;font-weight:600;border:2px solid #cfe3e6;white-space:nowrap}
+.muted{color:var(--muted)}
+
+/* ---------- Home ---------- */
+.hero{position:relative;text-align:center;padding:26px 0 8px}
+.hero h1{font-size:clamp(38px,9vw,64px);font-weight:800;color:var(--deep);letter-spacing:0}
+.hero p{margin:4px 0 0;color:var(--muted);font-size:1.05em}
+.dam{display:block;margin:10px auto 0;width:min(420px,90%)}
+.players{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:22px}
+.player{background:#fff;border:3px solid #cfe3e6;border-radius:var(--r-mid);padding:14px 10px;text-align:center}
+.player .av{font-size:44px;display:block;line-height:1.1}
+.player b{display:block;font-size:1.2em}
+.player small{color:var(--muted)}
+.player.add{border-style:dashed;background:transparent}
+.foot{margin-top:28px;text-align:center;color:var(--muted);font-size:.85em}
+.foot button{background:none;border:none;color:var(--water);text-decoration:underline;font-weight:600}
+
+/* ---------- Map ---------- */
+.mapwrap{position:relative;margin-top:6px}
+.river{width:100%;height:auto;display:block}
+.station{position:absolute;transform:translate(50%,-50%);display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;padding:0}
+.station .lodge{width:78px;height:78px;border-radius:50%;background:#fff;border:5px solid var(--wood);display:grid;place-items:center;font-size:38px;box-shadow:0 5px 0 var(--bark)}
+.station span{background:#fff;border-radius:10px;padding:0 10px;font-weight:800;font-size:.9em;white-space:nowrap}
+.station .stars{font-size:.75em;letter-spacing:1px;background:none;padding:0}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
+.big{border:none;border-radius:var(--r-mid);padding:16px 14px;font-weight:800;font-size:1.1em;text-align:right;display:flex;align-items:center;gap:12px;box-shadow:0 5px 0 rgba(0,0,0,.18)}
+.big .e{font-size:1.8em}
+.big small{display:block;font-weight:600;font-size:.75em;opacity:.85}
+.big.daily{background:var(--sun);color:#3c2a00}
+.big.chal{background:var(--water);color:#fff}
+.big.dash{background:#fff;color:var(--ink);grid-column:1/-1;border:2px solid #cfe3e6;box-shadow:none}
+.big:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
+
+/* ---------- World ---------- */
+.wtitle{display:flex;align-items:center;gap:14px;margin:6px 0 4px}
+.wtitle .e{font-size:54px}
+.wtitle h2{font-size:1.7em;color:var(--deep)}
+.learn{background:#fff;border-radius:var(--r-mid);padding:14px 18px;border-inline-start:8px solid var(--leaf);margin:12px 0}
+.learn b{color:var(--leaf)}
+.typelist{display:grid;gap:12px}
+.tcard{background:#fff;border:3px solid #cfe3e6;border-radius:var(--r-mid);padding:14px 16px;text-align:right;display:flex;align-items:center;gap:14px}
+.tcard .e{font-size:36px}
+.tcard b{font-size:1.15em}
+.lv{display:inline-flex;gap:4px;margin-top:2px}
+.lv i{width:22px;height:8px;border-radius:4px;background:#dce9eb;display:block}
+.lv i.on{background:var(--leaf)}
+
+/* ---------- Puzzle ---------- */
+.qhead{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.level{font-weight:800;border-radius:999px;padding:2px 14px;color:#fff}
+.level.l1{background:var(--leaf)}.level.l2{background:#d98a2b}.level.l3{background:var(--bad)}
+.story{background:#fff;border-radius:var(--r-big);padding:16px 20px;margin:12px 0;position:relative}
+.story .who{float:left;font-size:46px;line-height:1;margin:-4px 8px 0 0}
+.story p{margin:0 0 6px}
+.story .ask{font-weight:800;color:var(--deep);margin-top:8px}
+.board{background:var(--foam);border-radius:var(--r-big);padding:16px;min-height:120px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.ltr{direction:ltr}
+.checkbar{position:fixed;inset:auto 0 0 0;background:rgba(238,249,251,.96);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-top:2px solid #cfe3e6;padding:10px 16px max(10px,env(safe-area-inset-bottom));display:flex;gap:10px;justify-content:center;z-index:5}
+.checkbar[hidden]{display:none}
+.btn{border:none;border-radius:var(--r-mid);padding:12px 26px;font-weight:800;font-size:1.1em;background:var(--water);color:#fff;box-shadow:0 4px 0 var(--deep)}
+.btn.alt{background:#fff;color:var(--ink);box-shadow:0 4px 0 #b9d2d6}
+.btn:disabled{opacity:.45}
+.btn:active:not(:disabled){transform:translateY(3px);box-shadow:none}
+.fb{border-radius:var(--r-mid);padding:14px 18px;margin-top:14px;font-weight:600}
+.fb.ok{background:#e1f4e5;border:3px solid var(--good)}
+.fb.no{background:#fbe7e4;border:3px solid var(--bad)}
+.fb h3{font-size:1.25em;margin-bottom:4px}
+
+/* grid boards */
+.grid{display:grid;gap:4px;direction:ltr;touch-action:manipulation}
+.cell{width:var(--c,52px);height:var(--c,52px);border-radius:10px;background:#fff;display:grid;place-items:center;font-size:calc(var(--c,52px)*.62);border:none;padding:0}
+.cell.rock{background:#9aa7a3}
+.cell.on{background:var(--water)}
+.cell.path{background:#ffe9a8}
+.cell.pick{outline:4px solid var(--sun)}
+.cell.target{background:#ffe2a0}
+.minigrid{--c:30px}.minigrid .cell{border-radius:6px}
+.minigrid .cell.on{background:var(--bark)}
+.cmds{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;direction:ltr}
+.cmd{min-width:58px;height:58px;border-radius:14px;border:none;background:#fff;font-size:30px;font-weight:800;box-shadow:0 4px 0 #b9d2d6}
+.prog{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;min-height:48px;direction:rtl;background:#fff;border-radius:14px;padding:8px;width:100%}
+.prog span{width:40px;height:40px;border-radius:10px;background:var(--foam);display:grid;place-items:center;font-size:24px;font-weight:800}
+.prog span.run{background:var(--sun)}
+.code{background:#fff;border-radius:14px;padding:10px 16px;font-size:1.15em;line-height:2;direction:rtl}
+.code .loop{border-inline-start:6px solid var(--sun);padding-inline-start:12px;margin:4px 0}
+.code .ar{direction:rtl;display:inline-block;font-size:1.2em;letter-spacing:4px;unicode-bidi:isolate}
+
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+.opt{background:#fff;border:3px solid #cfe3e6;border-radius:var(--r-mid);padding:12px;font-size:1.2em;font-weight:800;min-height:64px}
+.opt.sel{border-color:var(--water);background:#d7eef0}
+.opt.right{border-color:var(--good);background:#e1f4e5}
+.opt.wrong{border-color:var(--bad);background:#fbe7e4}
+
+svg.g{width:100%;max-width:520px;height:auto;touch-action:manipulation}
+svg.g .node{cursor:pointer}
+.total{font-weight:800;font-size:1.2em}
+
+.lamps{display:flex;gap:10px;justify-content:center;direction:ltr;flex-wrap:wrap}
+.lamp{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none}
+.lamp .bulb{width:60px;height:60px;border-radius:50%;background:#55666a;border:4px solid #3c494c;transition:background .15s}
+.lamp.on .bulb{background:var(--sun);border-color:#d19a1c;box-shadow:0 0 22px #f7d77a}
+.lamp b{background:#fff;border-radius:8px;padding:0 10px}
+.keytab{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.keytab span{background:#fff;border-radius:10px;padding:2px 10px;font-size:1.15em}
+.msg{font-size:2em;letter-spacing:6px;background:#fff;border-radius:14px;padding:4px 16px;direction:rtl}
+.alpha{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;font-size:1.05em}
+.alpha span{background:#fff;border-radius:6px;padding:0 7px}
+
+.stack{display:flex;flex-direction:column;align-items:center;gap:4px;min-height:230px;justify-content:flex-end}
+.cake{height:30px;border-radius:15px;background:linear-gradient(#e7b56b,#c98a3c);border:3px solid #9a6420;display:grid;place-items:center;font-weight:800;color:#5a3608;padding:0}
+.cake.hint{outline:3px dashed var(--water);outline-offset:2px}
+.plate{width:240px;height:14px;border-radius:8px;background:#9fb6ba}
+.seq{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;direction:rtl}
+.seq span{background:#fff;border-radius:12px;min-width:52px;min-height:52px;padding:4px 8px;display:grid;place-items:center;font-size:1.5em}
+.seq span.q{background:var(--sun);font-weight:800}
+.houses{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.house{width:84px;min-height:110px;background:#fff;border:3px solid var(--wood);border-radius:16px 16px 10px 10px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:6px 2px;font-weight:800}
+.house .who{font-size:34px;min-height:40px}
+.house.sel{border-color:var(--water);background:#d7eef0}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.chip{background:#fff;border:3px solid #cfe3e6;border-radius:999px;padding:4px 14px;font-weight:800;font-size:1.05em}
+.chip.sel{border-color:var(--water);background:#d7eef0}
+.chip.used{opacity:.35}
+.clues{background:#fff;border-radius:14px;padding:8px 18px;margin:0;width:100%}
+.clues li{margin:2px 0}
+.scales{display:grid;gap:8px;width:100%}
+.scale{background:#fff;border-radius:14px;padding:6px 12px;display:flex;align-items:center;justify-content:center;gap:12px;font-size:1.6em}
+.scale small{font-size:.55em;color:var(--muted)}
+.truck{display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap}
+.box{width:44px;height:44px;border-radius:8px;background:var(--wood);color:#fff;font-weight:800;display:grid;place-items:center;font-size:1.2em;border:3px solid var(--bark)}
+
+/* ---------- Challenge ---------- */
+.qnav{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:8px 0}
+.qnav button{width:40px;height:40px;border-radius:10px;border:2px solid #cfe3e6;background:#fff;font-weight:800}
+.qnav button.done{background:#d7eef0;border-color:var(--water)}
+.qnav button.cur{outline:3px solid var(--sun)}
+.timer{font-weight:800;font-size:1.1em}
+.score{font-size:clamp(56px,16vw,96px);font-weight:800;color:var(--deep);text-align:center;line-height:1}
+.rev{background:#fff;border-radius:var(--r-mid);padding:10px 14px;margin:8px 0;display:flex;gap:10px;align-items:flex-start}
+.rev .m{font-size:1.4em}
+
+/* ---------- Dashboard ---------- */
+.dcard{background:#fff;border-radius:var(--r-mid);padding:14px 18px;margin:12px 0}
+.bar{height:14px;border-radius:7px;background:#e3eef0;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--leaf)}
+.drow{display:grid;grid-template-columns:120px 1fr 64px;gap:10px;align-items:center;margin:6px 0}
+table.hist{width:100%;border-collapse:collapse}
+table.hist td,table.hist th{padding:4px 6px;border-bottom:1px solid #e3eef0;text-align:right}
+
+dialog{border:none;border-radius:var(--r-big);padding:20px;max-width:420px;width:92%}
+dialog::backdrop{background:rgba(19,74,82,.45)}
+dialog input{font:inherit;width:100%;padding:10px 12px;border-radius:12px;border:2px solid #cfe3e6;margin:6px 0 12px}
+.seg{display:flex;gap:8px;margin-bottom:12px}
+.seg button{flex:1;border:3px solid #cfe3e6;border-radius:14px;background:#fff;padding:8px;font-weight:800}
+.seg button.sel{border-color:var(--water);background:#d7eef0}
+.avs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.avs button{font-size:30px;border:3px solid transparent;background:#f2f7f8;border-radius:12px;width:52px;height:52px;padding:0}
+.avs button.sel{border-color:var(--water)}
+
+@keyframes pop{0%{transform:scale(.6)}70%{transform:scale(1.1)}100%{transform:scale(1)}}
+.pop{animation:pop .35s ease-out}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.shake{animation:shake .3s}
+@media (prefers-reduced-motion:reduce){.pop,.shake{animation:none}*{transition:none!important}}
+@media (max-width:520px){
+  body{font-size:17px}
+  .station .lodge{width:62px;height:62px;font-size:30px}
+  .actions{grid-template-columns:1fr}
+  .opts{grid-template-columns:1fr}
+  .drow{grid-template-columns:96px 1fr 52px}
+}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<section class="screen on" id="s-home" aria-labelledby="h-home">
+  <div class="hero">
+    <svg class="dam" viewBox="0 0 420 120" aria-hidden="true">
+      <path d="M0 92 C60 70 120 110 210 88 S350 70 420 92 V120 H0Z" fill="#1f6f78"/>
+      <path d="M0 100 C70 84 140 116 210 98 S350 84 420 100" stroke="#dff3f1" stroke-width="3" fill="none" opacity=".6"/>
+      <g fill="#7a4b22"><rect x="150" y="56" width="120" height="14" rx="7"/><rect x="140" y="68" width="140" height="14" rx="7" fill="#c58b4c"/><rect x="132" y="80" width="156" height="14" rx="7"/></g>
+      <text x="210" y="48" font-size="52" text-anchor="middle">🦫</text>
+    </svg>
+    <h1 id="h-home">نهر القندس</h1>
+    <p>ألغاز تفكير بنفس أنواع أسئلة بيبراس</p>
+  </div>
+  <h2 style="font-size:1.2em;margin-top:18px">مين بيلعب؟</h2>
+  <div class="players" id="players"></div>
+  <p class="foot">أنواع الألغاز مستوحاة من أرشيف مسابقة بيبراس الدولية (France-ioi، رخصة CC BY-SA)، والألغاز نفسها من تأليفنا.<br>
+  صفحة تدريب غير رسمية، ليست تابعة لموهبة.<br>
+  <button id="toParent">لوحة ولي الأمر</button></p>
+</section>
+
+<!-- MAP -->
+<section class="screen" id="s-map" aria-labelledby="h-map">
+  <div class="topbar">
+    <button class="back" data-go="home">⇦ تغيير اللاعب</button>
+    <span class="pill" id="mapWho"></span>
+  </div>
+  <h2 id="h-map" style="font-size:1.5em;color:var(--deep)">خريطة النهر</h2>
+  <div class="mapwrap" id="mapwrap">
+    <svg class="river" viewBox="0 0 600 520" aria-hidden="true">
+      <path d="M520 0 C560 90 420 110 360 150 S120 190 110 270 S330 330 440 380 S470 470 300 520" stroke="#1f6f78" stroke-width="54" fill="none" stroke-linecap="round"/>
+      <path d="M520 0 C560 90 420 110 360 150 S120 190 110 270 S330 330 440 380 S470 470 300 520" stroke="#dff3f1" stroke-width="4" fill="none" stroke-dasharray="14 18" opacity=".7"/>
+      <g font-size="26"><text x="40" y="60">🌲</text><text x="560" y="250">🌲</text><text x="40" y="430">🌳</text><text x="250" y="300">🌿</text><text x="520" y="500">🌲</text><text x="200" y="90">🌿</text></g>
+    </svg>
+  </div>
+  <div class="actions">
+    <button class="big daily" id="goDaily"><span class="e">☀️</span><span>مهمة اليوم<small id="dailyInfo">٥ ألغاز مختارة لك</small></span></button>
+    <button class="big chal" id="goChal"><span class="e">🏆</span><span>تحدي بيبراس<small>١٢ سؤالاً في ٣٠ دقيقة، مثل المسابقة</small></span></button>
+    <button class="big dash" id="goStats"><span class="e">📈</span><span>تقدّمي<small></small></span></button>
+  </div>
+</section>
+
+<!-- WORLD -->
+<section class="screen" id="s-world">
+  <div class="topbar"><button class="back" data-go="map">⇦ الخريطة</button><span class="pill" id="worldWho"></span></div>
+  <div class="wtitle"><span class="e" id="wEmoji"></span><h2 id="wName"></h2></div>
+  <div class="learn" id="wLearn"></div>
+  <div class="typelist" id="wTypes"></div>
+</section>
+
+<!-- PLAY -->
+<section class="screen" id="s-play">
+  <div class="topbar"><button class="back" id="playBack">⇦ رجوع</button><span class="pill" id="playProg"></span></div>
+  <div class="qhead"><h2 id="pTitle" style="font-size:1.3em"></h2><span class="level" id="pLevel"></span></div>
+  <div class="story" id="pStory"></div>
+  <div class="board" id="pBoard"></div>
+  <div id="pFb"></div>
+</section>
+
+<!-- CHALLENGE -->
+<section class="screen" id="s-chal">
+  <div class="topbar"><button class="back" id="chalQuit">⇦ إنهاء</button><span class="pill timer" id="chalTimer">30:00</span></div>
+  <div class="qnav" id="chalNav"></div>
+  <div class="qhead"><h2 id="cTitle" style="font-size:1.3em"></h2><span class="level" id="cLevel"></span></div>
+  <div class="story" id="cStory"></div>
+  <div class="board" id="cBoard"></div>
+  <p class="muted" id="cNote" style="text-align:center"></p>
+</section>
+
+<!-- RESULT -->
+<section class="screen" id="s-result">
+  <div class="topbar"><button class="back" data-go="map">⇦ الخريطة</button></div>
+  <div id="resBody"></div>
+</section>
+
+<!-- STATS -->
+<section class="screen" id="s-stats">
+  <div class="topbar"><button class="back" id="statsBack">⇦ رجوع</button></div>
+  <div id="statsBody"></div>
+</section>
+
+<div class="checkbar" id="checkbar" hidden>
+  <button class="btn alt" id="btnSkip">لغز ثاني</button>
+  <button class="btn" id="btnCheck" disabled>تحقّق</button>
+</div>
+
+<dialog id="dlgAdd">
+  <form method="dialog" id="addForm">
+    <h3 style="margin-bottom:10px">لاعب جديد</h3>
+    <label>الاسم<input id="addName" maxlength="16" required autocomplete="off"></label>
+    <div class="seg" id="addG"><button type="button" data-g="m" class="sel">ولد</button><button type="button" data-g="f">بنت</button></div>
+    <div class="avs" id="addAv"></div>
+    <div style="display:flex;gap:10px"><button class="btn" value="ok" style="flex:1">أضف</button><button class="btn alt" value="cancel" formnovalidate>إلغاء</button></div>
+  </form>
+</dialog>
+
+<script>
+(()=>{"use strict";
+/* ================= utilities ================= */
+const $=s=>document.querySelector(s);
+const el=(tag,attrs={},...kids)=>{const e=document.createElement(tag);for(const k in attrs){const v=attrs[k];if(k==="class")e.className=v;else if(k==="html")e.innerHTML=v;else if(k.startsWith("on"))e.addEventListener(k.slice(2),v);else if(v!==false&&v!=null)e.setAttribute(k,v)}for(const c of kids.flat()){if(c==null||c===false)continue;e.append(c.nodeType?c:document.createTextNode(c))}return e};
+const SVGNS="http://www.w3.org/2000/svg";
+const sv=(tag,attrs={})=>{const e=document.createElementNS(SVGNS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);return e};
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const AR="٠١٢٣٤٥٦٧٨٩";const n2a=n=>String(n).replace(/\d/g,d=>AR[d]);
+const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const addDays=(s,k)=>{const d=new Date(s+"T12:00:00");d.setDate(d.getDate()+k);return d.toISOString().slice(0,10)};
+
+/* ================= storage ================= */
+const KEY="qndas_v1";
+let DB={players:[]};
+try{const raw=localStorage.getItem(KEY);if(raw)DB=JSON.parse(raw)||DB}catch(e){}
+if(!Array.isArray(DB.players))DB.players=[];
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){}};
+let P=null; // current player
+const T=(m,f)=>P&&P.g==="f"?f:m;
+const FEM={"رتّب":"رتّبي","رتّبها":"رتّبيها","اكتب":"اكتبي","اضغط":"اضغطي","واضغط":"واضغطي","نفّذ":"نفّذي","فكّر":"فكّري","لاحظ":"لاحظي","وطبّقها":"وطبّقيها","وشيل":"وشيلي","واكتب":"واكتبي","شغّل":"شغّلي","انتبه":"انتبهي","لوّن":"لوّني","اقرأ":"اقرئي","اختر":"اختاري","حطّهم":"حطّيهم","تتبّع":"تتبّعي","اجمع":"اجمعي","ابدأ":"ابدئي","فك":"فكّي","ارجع":"ارجعي","ودّ":"ودّي","جرّب":"جرّبي","اشتغل":"اشتغلي","قارن":"قارني","وقارن":"وقارني","ابحث":"ابحثي","تكتب":"تكتبين","كمّل":"كمّلي","وتجنّب":"وتجنّبي","شوف":"شوفي","ثم":"ثم"};
+const FEMRE=new RegExp("(^|[\\s،.«(:])("+Object.keys(FEM).sort((a,b)=>b.length-a.length).join("|")+")(?=[\\s،.!؟:»)]|$)","g");
+const fem=t=>P&&P.g==="f"&&t?t.replace(FEMRE,(m,a,w)=>a+FEM[w]):t;
+
+/* ================= sound ================= */
+let AC=null;
+function tone(freqs,dur=.12){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();let t=AC.currentTime;for(const f of freqs){const o=AC.createOscillator(),g=AC.createGain();o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.18,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+dur+.02);t+=dur*.8}}catch(e){}}
+const sndOk=()=>tone([523,659,784,1047],.13), sndNo=()=>tone([330,262],.18), sndTap=()=>tone([700],.05);
+
+/* ================= praise (effort-based) ================= */
+const PRAISE_M=["ركّزت فوصلت، بتوفيق الله 🌟","خطوة خطوة وصلت للحل، الحمد لله 👏","صبرت على اللغز فانحلّ، ما شاء الله","تفكيرك المرتّب نفعك، وبكرة تعلّمه لغيرك 🤝","جهدك اليوم يبني عقلك، الله يوفقك"];
+const PRAISE_F=["ركّزتِ فوصلتِ، بتوفيق الله 🌟","خطوة خطوة وصلتِ للحل، الحمد لله 👏","صبرتِ على اللغز فانحلّ، ما شاء الله","تفكيرك المرتّب نفعك، وبكرة تعلّمينه لغيرك 🤝","جهدك اليوم يبني عقلك، الله يوفقك"];
+const TRY_M=["قرّبت! ارجع للسؤال واقرأه مرة ثانية بهدوء.","ولا يهمك، الغلط جزء من التعلّم. شوف الشرح وجرّب.","جرّب تحلّها خطوة خطوة، وتوصل بإذن الله."];
+const TRY_F=["قرّبتِ! ارجعي للسؤال واقرئيه مرة ثانية بهدوء.","ولا يهمك، الغلط جزء من التعلّم. شوفي الشرح وجرّبي.","جرّبي تحلّينها خطوة خطوة، وتوصلين بإذن الله."];
+
+/* ================= shared graph helpers ================= */
+function segCross(a,b,c,d){const o=(p,q,r)=>Math.sign((q.x-p.x)*(r.y-p.y)-(q.y-p.y)*(r.x-p.x));if(a===c||a===d||b===c||b===d)return false;return o(a,b,c)!==o(a,b,d)&&o(c,d,a)!==o(c,d,b)}
+function makeGraph(n,extra){
+  // place nodes on a jittered lattice, MST + non-crossing extra edges
+  const cols=n<=6?3:4, rows=Math.ceil(n/cols)+1;
+  const slots=shuffle([...Array(cols*rows).keys()]).slice(0,n);
+  const pts=slots.map(s=>({x:70+(s%cols)*(380/(cols-1))+ri(-22,22),y:60+Math.floor(s/cols)*(300/(rows-1))+ri(-18,18)}));
+  const d=(i,j)=>Math.hypot(pts[i].x-pts[j].x,pts[i].y-pts[j].y);
+  const edges=[];const inT=new Set([0]);
+  while(inT.size<n){let best=null;for(const i of inT)for(let j=0;j<n;j++)if(!inT.has(j)){const v=d(i,j);if(!best||v<best[2])best=[i,j,v]}edges.push([best[0],best[1]]);inT.add(best[1])}
+  const cand=[];for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)if(!edges.some(e=>(e[0]===i&&e[1]===j)||(e[0]===j&&e[1]===i)))cand.push([i,j,d(i,j)]);
+  cand.sort((a,b)=>a[2]-b[2]);let added=0;
+  for(const [i,j] of cand){if(added>=extra)break;if(d(i,j)>230)continue;if(edges.some(e=>segCross(pts[i],pts[j],pts[e[0]],pts[e[1]])))continue;edges.push([i,j]);added++}
+  const adj=[...Array(n)].map(()=>[]);edges.forEach(([a,b],k)=>{adj[a].push([b,k]);adj[b].push([a,k])});
+  return {n,pts,edges,adj};
+}
+function bfs(G,s){const dist=Array(G.n).fill(-1);dist[s]=0;const q=[s];while(q.length){const u=q.shift();for(const[v]of G.adj[u])if(dist[v]<0){dist[v]=dist[u]+1;q.push(v)}}return dist}
+function drawGraph(G,{labels,weights,onNode,fill}={}){
+  const svg=sv("svg",{class:"g",viewBox:"0 0 520 400",role:"img"});
+  G.edges.forEach(([a,b],k)=>{const A=G.pts[a],B=G.pts[b];const ln=sv("line",{x1:A.x,y1:A.y,x2:B.x,y2:B.y,stroke:"#7a4b22","stroke-width":6,"stroke-linecap":"round","data-e":k});svg.append(ln);
+    if(weights){const mx=(A.x+B.x)/2,my=(A.y+B.y)/2;svg.append(sv("circle",{cx:mx,cy:my,r:15,fill:"#fff",stroke:"#7a4b22","stroke-width":2}));const t=sv("text",{x:mx,y:my+7,"text-anchor":"middle","font-size":20,"font-weight":800,fill:"#1d2b30"});t.textContent=n2a(weights[k]);svg.append(t)}});
+  G.pts.forEach((p,i)=>{const g=sv("g",{class:"node","data-n":i,tabindex:onNode?0:-1});g.append(sv("circle",{cx:p.x,cy:p.y,r:27,fill:fill?fill(i):"#fff",stroke:"#1f6f78","stroke-width":4}));const t=sv("text",{x:p.x,y:p.y+9,"text-anchor":"middle","font-size":24});t.textContent=labels?labels[i]:"";g.append(t);
+    if(onNode){g.addEventListener("click",()=>onNode(i));g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();onNode(i)}})}svg.append(g)});
+  return svg;
+}
+function mcq(board,options,api,render=o=>o){
+  const box=el("div",{class:"opts"});let chosen=null;
+  options.forEach((o,i)=>{const b=el("button",{class:"opt",type:"button"});const r=render(o);b.append(r.nodeType?r:document.createTextNode(r));b.addEventListener("click",()=>{sndTap();chosen=i;[...box.children].forEach((c,k)=>c.classList.toggle("sel",k===i));api.ready(true)});box.append(b)});
+  board.append(box);
+  return {get:()=>chosen,mark:(right)=>{[...box.children].forEach((c,k)=>{if(k===right)c.classList.add("right");else if(k===chosen)c.classList.add("wrong")})}};
+}
+
+/* ================= puzzle types ================= */
+const DIRS={"U":[0,-1,"↑"],"D":[0,1,"↓"],"L":[-1,0,"←"],"R":[1,0,"→"]};
+const TYPES={};
+
+/* ---- 1. robot path (algorithms) ---- */
+TYPES.robot={world:"algo",emoji:"🤖",name:"برمج القندس",
+gen(L){
+  const N=[5,6,7][L-1], R=[4,7,11][L-1];
+  for(;;){
+    const rocks=new Set();const s=[0,ri(0,N-1)],g=[N-1,ri(0,N-1)];
+    while(rocks.size<R){const c=[ri(0,N-1),ri(0,N-1)];const k=c+"";if(k!==s+""&&k!==g+"")rocks.add(k)}
+    const dist={};dist[s]=0;const q=[s];while(q.length){const u=q.shift();for(const d of "UDLR"){const v=[u[0]+DIRS[d][0],u[1]+DIRS[d][1]];if(v[0]<0||v[1]<0||v[0]>=N||v[1]>=N||rocks.has(v+"")||(v+"" in dist))continue;dist[v]=dist[u]+1;q.push(v)}}
+    const best=dist[g];if(best===undefined||best<N-1+(L>1?2:0))continue;
+    const limit=best+(L===1?2:0);
+    return {N,rocks,s,g,best,limit};
+  }
+},
+story(q){return {who:"🦫",p:[`القندس جوعان! يبي يوصل للجزرة 🥕 بدون ما يصطدم بالصخور 🪨.`,`اكتب له أوامر: كل سهم يحرّكه مربع واحد. الأوامر تُقرأ من اليمين.`],ask:`رتّب أوامر توصله للجزرة، بحد أقصى ${n2a(q.limit)} أوامر.`}},
+render(q,board,api){
+  const grid=el("div",{class:"grid",style:`grid-template-columns:repeat(${q.N},var(--c));--c:${q.N>6?44:52}px`});
+  const cells={};for(let y=0;y<q.N;y++)for(let x=0;x<q.N;x++){const c=el("div",{class:"cell"+(q.rocks.has([x,y]+"")?" rock":"")});if(q.rocks.has([x,y]+""))c.textContent="🪨";if(x===q.g[0]&&y===q.g[1])c.textContent="🥕";cells[[x,y]]=c;grid.append(c)}
+  const put=(p)=>{Object.values(cells).forEach(c=>c.classList.remove("path"));cells[q.s].classList.add("path");};
+  let pos=q.s.slice();const beaver=el("span",{},"🦫");cells[pos].append(beaver);
+  const prog=el("div",{class:"prog","aria-label":"الأوامر"});const list=[];
+  const cnt=el("div",{class:"muted"});
+  const redraw=()=>{prog.innerHTML="";list.forEach(d=>prog.append(el("span",{},DIRS[d][2])));cnt.textContent=`${n2a(list.length)} من ${n2a(q.limit)} أوامر`;api.ready(list.length>0)};
+  const cmds=el("div",{class:"cmds"});
+  for(const d of ["L","U","D","R"])cmds.append(el("button",{class:"cmd",type:"button","aria-label":d,onclick:()=>{if(list.length<q.limit){sndTap();list.push(d);redraw()}}},DIRS[d][2]));
+  cmds.append(el("button",{class:"cmd",type:"button","aria-label":"مسح آخر أمر",style:"font-size:20px",onclick:()=>{list.pop();redraw()}},"⌫"));
+  board.append(grid,prog,cnt,cmds);redraw();put();
+  q.answer=list;q._cells=cells;q._beaver=beaver;
+},
+check(q){let p=q.s.slice();for(const d of q.answer){p=[p[0]+DIRS[d][0],p[1]+DIRS[d][1]];if(p[0]<0||p[1]<0||p[0]>=q.N||p[1]>=q.N||q.rocks.has(p+""))return false;if(p+""===q.g+"")return true}return p+""===q.g+""},
+async animate(q){let p=q.s.slice();for(const d of q.answer){const np=[p[0]+DIRS[d][0],p[1]+DIRS[d][1]];if(np[0]<0||np[1]<0||np[0]>=q.N||np[1]>=q.N||q.rocks.has(np+""))break;p=np;q._cells[p].classList.add("path");q._cells[p].append(q._beaver);await new Promise(r=>setTimeout(r,220));if(p+""===q.g+"")break}},
+explain(q){return `أقصر طريق يحتاج ${n2a(q.best)} أوامر. الفكرة: تتبّع الطريق بإصبعك قبل ما تكتب الأوامر، وتجنّب الصخور.`}};
+
+/* ---- 2. loop prediction (algorithms) ---- */
+TYPES.loop={world:"algo",emoji:"🔁",name:"تتبّع البرنامج",
+gen(L){const N=6;for(;;){const body=[...Array(L===1?2:ri(2,3))].map(()=>pick("UDLR"));const times=L===1?ri(2,3):ri(3,4);const pre=L===3?[...Array(ri(1,2))].map(()=>pick("UDLR")):[];
+  const s=[ri(0,N-1),ri(0,N-1)];let p=s.slice(),ok=true;const seq=[...pre];for(let t=0;t<times;t++)seq.push(...body);
+  for(const d of seq){p=[p[0]+DIRS[d][0],p[1]+DIRS[d][1]];if(p[0]<0||p[1]<0||p[0]>=N||p[1]>=N){ok=false;break}}
+  if(!ok||(p+"")===(s+""))continue;if(Math.abs(p[0]-s[0])+Math.abs(p[1]-s[1])<2)continue;return {N,body,times,pre,s,end:p}}},
+story(q){return {who:"🦫",p:["هذا برنامج القندس. «كرّر» يعني نفّذ الأوامر اللي داخلها أكثر من مرة."],ask:"وين بيوقف القندس في الآخر؟ اضغط على المربع."}},
+render(q,board,api){
+  const code=el("div",{class:"code"});
+  if(q.pre.length)code.append(el("div",{},"ابدأ بـ: ",el("span",{class:"ar"},q.pre.map(d=>DIRS[d][2]).join(" "))));
+  code.append(el("div",{class:"loop"},`كرّر ${n2a(q.times)} مرات: `,el("span",{class:"ar"},q.body.map(d=>DIRS[d][2]).join(" "))));
+  const grid=el("div",{class:"grid",style:`grid-template-columns:repeat(${q.N},var(--c));--c:48px`});let sel=null;
+  for(let y=0;y<q.N;y++)for(let x=0;x<q.N;x++){const c=el("button",{class:"cell",type:"button","aria-label":`مربع ${x+1}،${y+1}`});if(x===q.s[0]&&y===q.s[1])c.textContent="🦫";
+    c.addEventListener("click",()=>{sndTap();if(sel)sel.classList.remove("pick");sel=c;c.classList.add("pick");q.answer=[x,y];api.ready(true)});grid.append(c)}
+  q._grid=grid;board.append(code,grid);
+},
+check(q){return q.answer&&q.answer+""===q.end+""},
+reveal(q){const i=q.end[1]*q.N+q.end[0];q._grid.children[i].classList.add("path");q._grid.children[i].textContent="⭐"},
+explain(q){const all=[...q.pre];for(let t=0;t<q.times;t++)all.push(...q.body);const c={U:0,D:0,L:0,R:0};all.forEach(d=>c[d]++);
+  return `اجمع الحركات: ${["R","L","U","D"].filter(d=>c[d]).map(d=>DIRS[d][2]+" × "+n2a(c[d])).join("، ")}. الحركات المتعاكسة تلغي بعضها، والنجمة ⭐ هي المكان الصحيح.`}};
+
+/* ---- 3. shortest path (graphs) ---- */
+TYPES.path={world:"graph",emoji:"🛶",name:"أقصر طريق",
+gen(L){const n=[6,7,9][L-1];for(;;){const G=makeGraph(n,[2,4,6][L-1]);const w=G.edges.map(()=>ri(1,9));
+  let s=0,t=0,far=-1;for(let i=0;i<n;i++){const d=bfs(G,i);d.forEach((v,j)=>{if(v>far){far=v;s=i;t=j}})}if(far<2)continue;
+  const dist=Array(n).fill(1e9);dist[s]=0;const done=Array(n).fill(false);for(let k=0;k<n;k++){let u=-1;for(let i=0;i<n;i++)if(!done[i]&&(u<0||dist[i]<dist[u]))u=i;done[u]=true;for(const[v,e]of G.adj[u])if(dist[u]+w[e]<dist[v])dist[v]=dist[u]+w[e]}
+  // need at least two different routes to be interesting
+  if(G.edges.length<n)continue;return {G,w,s,t,best:dist[t]}}},
+story(q){return {who:"🛶",p:["القندس يبي يروح من بيته 🏠 إلى الشجرة 🌳 عبر القنوات.","الرقم على كل قناة هو عدد الدقائق."],ask:"اضغط على المحطات بالترتيب لتكوين أسرع طريق."}},
+render(q,board,api){
+  const labels=q.G.pts.map((_,i)=>i===q.s?"🏠":i===q.t?"🌳":"");
+  let route=[q.s];const total=el("div",{class:"total"});
+  const wrap=el("div",{style:"width:100%;display:flex;justify-content:center"});
+  const edgeOf=(a,b)=>{const f=q.G.adj[a].find(([v])=>v===b);return f?f[1]:-1};
+  const paint=()=>{const svg=drawGraph(q.G,{labels,weights:q.w,onNode:tap,fill:i=>route.includes(i)?"#ffe9a8":i===q.t?"#c9ecc0":"#fff"});
+    for(let k=1;k<route.length;k++){const e=edgeOf(route[k-1],route[k]);const ln=svg.querySelector(`[data-e="${e}"]`);ln.setAttribute("stroke","#f4c04e");ln.setAttribute("stroke-width",12)}
+    wrap.innerHTML="";wrap.append(svg);let sum=0;for(let k=1;k<route.length;k++)sum+=q.w[edgeOf(route[k-1],route[k])];total.textContent=`المجموع: ${n2a(sum)} دقيقة`;q.answer={route:route.slice(),sum};api.ready(route[route.length-1]===q.t)};
+  function tap(i){const last=route[route.length-1];if(i===last&&route.length>1){route.pop();paint();return}
+    const at=route.indexOf(i);if(at>=0){route=route.slice(0,at+1);paint();return}
+    if(edgeOf(last,i)<0){wrap.classList.remove("shake");void wrap.offsetWidth;wrap.classList.add("shake");return}sndTap();route.push(i);paint()}
+  board.append(wrap,total,el("div",{class:"muted"},T("اضغط على محطة مرة ثانية عشان ترجع خطوة.","اضغطي على محطة مرة ثانية عشان ترجعين خطوة.")));paint();
+},
+check(q){return q.answer&&q.answer.route.at(-1)===q.t&&q.answer.sum===q.best},
+explain(q){return `أسرع طريق يأخذ ${n2a(q.best)} دقيقة. الطريق القصير بالعدد مو دايماً الأسرع؛ اجمع الأرقام لكل طريق وقارن.`}};
+
+/* ---- 4. spreading secret (graphs) ---- */
+const NAMES=["🦫","🦊","🐰","🦉","🐢","🐸","🦔","🐿️","🐻","🦆"];
+TYPES.secret={world:"graph",emoji:"📣",name:"انتشار الخبر",
+gen(L){const n=[6,8,10][L-1];for(;;){const G=makeGraph(n,[1,3,4][L-1]);const s=ri(0,n-1);const d=bfs(G,s);const ans=Math.max(...d);if(ans<2)continue;return {G,s,ans,labels:shuffle(NAMES).slice(0,n)}}},
+story(q){return {who:"📣",p:[`${q.labels[q.s]} عرف خبراً اليوم. كل يوم، كل حيوان يعرف الخبر يخبر كل أصحابه (المتصلين بخط).`],ask:"بعد كم يوم يعرف الجميع الخبر؟"}},
+render(q,board,api){board.append(drawGraph(q.G,{labels:q.labels,fill:i=>i===q.s?"#ffe9a8":"#fff"}));
+  const opts=shuffle([...new Set([q.ans,q.ans+1,Math.max(1,q.ans-1),q.ans+2])]).slice(0,4);if(!opts.includes(q.ans))opts[0]=q.ans;
+  q._opts=opts;q._m=mcq(board,opts,api,o=>n2a(o)+" أيام");},
+check(q){return q._opts[q._m.get()]===q.ans},reveal(q){q._m.mark(q._opts.indexOf(q.ans))},
+explain(q){return `لوّن أصحاب ${q.labels[q.s]} (اليوم ١)، ثم أصحابهم (اليوم ٢)… أبعد حيوان يحتاج ${n2a(q.ans)} أيام.`}};
+
+/* ---- 5. binary lamps (coding) ---- */
+TYPES.binary={world:"code",emoji:"💡",name:"لمبات السدّ",
+gen(L){const k=[3,4,5][L-1];const vals=[...Array(k)].map((_,i)=>2**(k-1-i));const target=ri(L===1?2:5,2**k-1);return {vals,target,hide:L===3}},
+story(q){return {who:"💡",p:["على السدّ لمبات، كل لمبة لها رقم. إذا اشتعلت نضيف رقمها.",q.hide?"الأرقام مخفية، لكن انتبه للنمط: كل لمبة ضعف اللي على يمينها.":""],ask:`شغّل اللمبات اللي مجموعها ${n2a(q.target)}.`}},
+render(q,board,api){const on=q.vals.map(()=>false);const sum=el("div",{class:"total"});const box=el("div",{class:"lamps"});
+  const upd=()=>{let s=0;q.vals.forEach((v,i)=>{if(on[i])s+=v});sum.textContent=`المجموع الآن: ${n2a(s)}`;q.answer=s;api.ready(true)};
+  q.vals.forEach((v,i)=>{const show=!q.hide||i>=q.vals.length-2;const b=el("button",{class:"lamp",type:"button","aria-pressed":"false"},el("span",{class:"bulb"}),el("b",{},show?n2a(v):"؟"));
+    b.addEventListener("click",()=>{sndTap();on[i]=!on[i];b.classList.toggle("on",on[i]);b.setAttribute("aria-pressed",on[i]);upd()});box.append(b)});
+  board.append(box,sum);upd();api.ready(false)},
+check(q){return q.answer===q.target},
+explain(q){const parts=[];let r=q.target;for(const v of q.vals)if(r>=v){parts.push(v);r-=v}return `${n2a(q.target)} = ${parts.map(n2a).join(" + ")}. ابدأ بأكبر لمبة ما تزيد عن الرقم، ثم كمّل بالباقي.`}};
+
+/* ---- 6. cipher (coding) ---- */
+const ALPHA="ابتثجحخدذرزسشصضطظعغفقكلمنهوي".split("");
+const WORDS3=["سدّ","نهر","باب","قلم","شمس","جسر","بحر","ورق","عسل","نخل","ثلج","قمر","حبل","سمك","زهر"].map(w=>w.replace("ّ",""));
+const WORDS4=["قندس","كتاب","قارب","ضفدع","مسجد","سنجاب","بستان","عصفور","فستان","ملعب","مفتاح","دلفين","نخيل","مطبخ","سحاب"].filter(w=>[...w].every(c=>ALPHA.includes(c)));
+const SYMS=["🔺","🟦","⭐","🌙","🔶","❤️","🍀","⚡","🔵","🟩","☁️","🎈","🐚","🌸","🍂","🔔"];
+TYPES.cipher={world:"code",emoji:"🔐",name:"رسالة سرّية",
+gen(L){const pool=L===1?WORDS3:WORDS4.filter(w=>L===2?w.length<=4:w.length>=4);const word=pick(pool);const letters=[...word];
+  const others=(L===1?WORDS3:WORDS4).filter(w=>w.length===word.length&&w!==word);
+  const opts=new Set([word]);
+  // near-miss distractors: swap two letters, replace one letter
+  const sw=letters.slice();const a=ri(0,sw.length-2);[sw[a],sw[a+1]]=[sw[a+1],sw[a]];if(sw.join("")!==word)opts.add(sw.join(""));
+  for(let tries=0;opts.size<4&&tries<40;tries++){if(others.length&&Math.random()<.5)opts.add(pick(others));else{const c=letters.slice();c[ri(0,c.length-1)]=pick(ALPHA);opts.add(c.join(""))}}
+  if(L===3){const shift=1;const enc=letters.map(c=>ALPHA[(ALPHA.indexOf(c)+shift)%ALPHA.length]);return {word,mode:"shift",enc,opts:shuffle([...opts])}}
+  const uniq=[...new Set(letters)];const extra=shuffle(ALPHA.filter(c=>!uniq.includes(c))).slice(0,L===1?2:4);const keyL=shuffle([...uniq,...extra]);const syms=shuffle(SYMS);const map={};keyL.forEach((c,i)=>map[c]=syms[i]);
+  return {word,mode:"key",map,keyL,enc:letters.map(c=>map[c]),opts:shuffle([...opts])}},
+story(q){return q.mode==="key"?{who:"🔐",p:["القندس كتب رسالة بالرموز. كل رمز يقابله حرف في المفتاح."],ask:"وش الكلمة؟"}:{who:"🔐",p:["القندس شفّر كلمة: غيّر كل حرف إلى الحرف اللي بعده في الأبجدية (ب بدل ا، ت بدل ب…)."],ask:"وش الكلمة الأصلية؟"}},
+render(q,board,api){if(q.mode==="key"){const kt=el("div",{class:"keytab"});q.keyL.forEach(c=>kt.append(el("span",{},q.map[c]+" = "+c)));board.append(el("b",{},"المفتاح:"),kt)}
+  else{const al=el("div",{class:"alpha"});ALPHA.forEach(c=>al.append(el("span",{},c)));board.append(el("b",{},"الأبجدية بالترتيب:"),al)}
+  board.append(el("div",{class:"msg"},q.enc.join(q.mode==="key"?" ":" ")));q._m=mcq(board,q.opts,api)},
+check(q){return q.opts[q._m.get()]===q.word},reveal(q){q._m.mark(q.opts.indexOf(q.word))},
+explain(q){return q.mode==="key"?`فك الرموز واحد واحد من المفتاح: ${q.enc.map((s,i)=>s+"="+q.word[i]).join("، ")} ← «${q.word}».`:`ارجع كل حرف خطوة للوراء في الأبجدية: ${q.enc.map((c,i)=>c+"←"+q.word[i]).join("، ")} ← «${q.word}».`}};
+
+/* ---- 7. pancakes (sorting) ---- */
+function flipBFS(start){const goal=start.slice().sort((a,b)=>a-b).join();const seen=new Map([[start.join(),0]]);const q=[start];while(q.length){const s=q.shift();const d=seen.get(s.join());if(s.join()===goal)return d;for(let k=2;k<=s.length;k++){const t=s.slice(0,k).reverse().concat(s.slice(k));const key=t.join();if(!seen.has(key)){seen.set(key,d+1);q.push(t)}}}return 99}
+TYPES.pancake={world:"sort",emoji:"🥞",name:"قلب الفطائر",
+gen(L){const n=[4,5,6][L-1];for(;;){const st=shuffle([...Array(n)].map((_,i)=>i+1));const best=flipBFS(st);if(best<2||best>[3,5,6][L-1])continue;return {st,best,limit:best+(L===1?2:L===2?1:0)}}},
+story(q){return {who:"🥞",p:["القندس عنده كومة فطائر بأحجام مختلفة. بالملعقة يقدر يقلب الفطائر من أي مكان إلى الأعلى مرة وحدة.","اضغط على فطيرة: تنقلب هي وكل اللي فوقها."],ask:`رتّبها: الكبيرة تحت والصغيرة فوق، في ${n2a(q.limit)} قلبات أو أقل.`}},
+render(q,board,api){let st=q.st.slice(),moves=0;const box=el("div",{class:"stack"});const info=el("div",{class:"total"});
+  const paint=()=>{box.innerHTML="";st.forEach((v,i)=>{const b=el("button",{class:"cake",type:"button",style:`width:${70+v*26}px`,"aria-label":`فطيرة حجم ${v}`},n2a(v));b.addEventListener("click",()=>{if(i===0)return;sndTap();st=st.slice(0,i+1).reverse().concat(st.slice(i+1));moves++;paint()});
+    b.addEventListener("pointerenter",()=>[...box.children].forEach((c,k)=>c.classList&&c.classList.toggle("hint",k<=i&&c.classList.contains("cake"))));b.addEventListener("pointerleave",()=>[...box.children].forEach(c=>c.classList.remove("hint")));box.append(b)});
+    box.append(el("div",{class:"plate"}));info.textContent=`القلبات: ${n2a(moves)} من ${n2a(q.limit)}`;q.answer={st,moves};api.ready(moves>0)};
+  board.append(box,info,el("button",{class:"btn alt",type:"button",onclick:()=>{st=q.st.slice();moves=0;paint()}},"ابدأ من جديد"));paint()},
+check(q){return q.answer&&q.answer.st.every((v,i,a)=>i===0||a[i-1]<v)&&q.answer.moves<=q.limit},
+explain(q){return `أقل عدد قلبات هنا ${n2a(q.best)}. الطريقة: ودّ أكبر فطيرة للأعلى بقلبة، ثم اقلبها لمكانها تحت، وكرّر مع اللي بعدها.`}};
+
+/* ---- 8. stack crane (sorting) ---- */
+function stackPossible(out){const n=out.length;const st=[];let next=1;for(const x of out){while(next<=x)st.push(next++);if(st.pop()!==x)return false}return true}
+TYPES.crane={world:"sort",emoji:"🏗️",name:"رافعة الصناديق",
+gen(L){const n=[3,4,5][L-1];const all=[];const perm=(a,b=[])=>{if(!a.length){all.push(b);return}a.forEach((x,i)=>perm(a.filter((_,j)=>j!==i),b.concat(x)))};perm([...Array(n)].map((_,i)=>i+1));
+  const ok=shuffle(all.filter(stackPossible)),bad=shuffle(all.filter(p=>!stackPossible(p)));const opts=shuffle([bad[0],...ok.slice(0,3)]);return {n,opts,bad:bad[0]}},
+story(q){return {who:"🏗️",p:[`الصناديق تجي بالترتيب ${[...Array(q.n)].map((_,i)=>n2a(i+1)).join("، ")}. الرافعة تحط الصندوق فوق الكومة، وتقدر بأي وقت تاخذ الصندوق اللي فوق الكومة وتحطه في الشاحنة.`,"ما تقدر تاخذ صندوق من تحت الكومة!"],ask:"أي ترتيب في الشاحنة مستحيل؟"}},
+render(q,board,api){board.append(el("div",{class:"truck"},el("span",{},"تجي الصناديق:"),...[...Array(q.n)].map((_,i)=>el("span",{class:"box"},n2a(i+1)))));
+  q._m=mcq(board,q.opts,api,o=>el("span",{class:"truck"},...o.map(x=>el("span",{class:"box"},n2a(x)))))},
+check(q){return q.opts[q._m.get()]===q.bad},reveal(q){q._m.mark(q.opts.indexOf(q.bad))},
+explain(q){return `جرّب كل ترتيب: ترتيب ${q.bad.map(n2a).join("، ")} يحتاج تاخذ صندوقاً من تحت الكومة، وهذا ممنوع. الكومة: آخر واحد يدخل هو أول واحد يطلع.`}};
+
+/* ---- 9. pattern transform (patterns) ---- */
+TYPES.mirror={world:"pattern",emoji:"🪞",name:"المرآة والدوران",
+gen(L){const N=L===1?4:5;const rnd=()=>[...Array(N)].map(()=>[...Array(N)].map(()=>Math.random()<.4));let a=rnd();let rule,res,b=null;
+  if(L===1){rule="mirror";res=a.map(r=>r.slice().reverse())}
+  else if(L===2){rule=pick(["rot","flipv"]);res=rule==="rot"?a.map((r,y)=>r.map((_,x)=>a[N-1-x][y])):a.slice().reverse().map(r=>r.slice())}
+  else{rule="xor";b=rnd();res=a.map((r,y)=>r.map((v,x)=>v!==b[y][x]))}
+  return {N,a,b,rule,res}},
+story(q){const t={mirror:"القندس يشوف الرسمة في المرآة: اليمين يصير يسار.",rot:"القندس لفّ البطاقة ربع لفّة باتجاه عقارب الساعة ↻.",flipv:"القندس قلب البطاقة من فوق لتحت (الأعلى يصير أسفل).",xor:"عند القندس بطاقتين شفافتين. حطّهم فوق بعض: المربع اللي ملوّن في بطاقة وحدة بس يبقى ملوّن، واللي ملوّن في الاثنتين يختفي."}[q.rule];
+  return {who:"🪞",p:[t],ask:"لوّن المربعات في شبكتك عشان تطلع النتيجة."}},
+render(q,board,api){const mini=(m)=>{const g=el("div",{class:"grid minigrid",style:`grid-template-columns:repeat(${q.N},var(--c))`});m.flat().forEach(v=>g.append(el("div",{class:"cell"+(v?" on":"")})));return g};
+  const row=el("div",{style:"display:flex;gap:18px;align-items:center;justify-content:center;flex-wrap:wrap;direction:ltr"},mini(q.a));
+  if(q.b)row.append(el("span",{style:"font-size:28px"},"+"),mini(q.b));board.append(row,el("div",{style:"font-size:26px"},"⬇"));
+  const mine=[...Array(q.N)].map(()=>Array(q.N).fill(false));const g=el("div",{class:"grid",style:`grid-template-columns:repeat(${q.N},var(--c));--c:48px`});
+  for(let y=0;y<q.N;y++)for(let x=0;x<q.N;x++){const c=el("button",{class:"cell",type:"button","aria-pressed":"false"});c.addEventListener("click",()=>{sndTap();mine[y][x]=!mine[y][x];c.classList.toggle("on",mine[y][x]);c.setAttribute("aria-pressed",mine[y][x]);api.ready(true)});g.append(c)}
+  q.answer=mine;q._g=g;board.append(g)},
+check(q){return q.answer.every((r,y)=>r.every((v,x)=>v===q.res[y][x]))},
+reveal(q){q.res.flat().forEach((v,i)=>{const c=q._g.children[i];if(v!==q.answer.flat()[i])c.classList.add("pick")})},
+explain(q){return {mirror:"اشتغل عمود عمود: العمود الأول من اليمين ينسخ في أول عمود من اليسار.",rot:"الصف الأول من فوق يصير العمود الأخير على اليمين. تتبّع كل صف لوحده.",flipv:"الصف الأخير تحت يصير أول صف فوق.",xor:"قارن كل مربع في البطاقتين: ملوّن مرة وحدة = يبقى، مرتين = يختفي."}[q.rule]+" المربعات اللي عليها إطار أصفر هي اللي تحتاج تعديل."}};
+
+/* ---- 10. sequences (patterns) ---- */
+const SH=["🔺","🟦","⚪","⭐","🌙","🍀"];
+TYPES.seq={world:"pattern",emoji:"🔮",name:"وش اللي بعده؟",
+gen(L){if(L===1){const k=ri(3,4);const cyc=shuffle(SH).slice(0,k);const len=k===3?7:8;const items=[...Array(len)].map((_,i)=>cyc[i%k]);const ans=cyc[len%k];return {items,ans,opts:shuffle([...new Set([ans,...cyc,pick(SH)])]).slice(0,4).concat([]),why:`النمط يتكرر كل ${n2a(k)}: ${cyc.join(" ")}.`}}
+  if(L===2){const a=ri(1,3),d=ri(2,3);const nums=[...Array(5)].map((_,i)=>a+i*d);const ans=a+5*d;const s=pick(["●","🐟","🌰"]);return {items:nums.map(n=>s.repeat(n)),ans:s.repeat(ans),opts:shuffle([ans,ans+1,ans-1,ans+d]).map(n=>s.repeat(n)),count:true,why:`كل مرة نزيد ${n2a(d)}. آخر واحد ${n2a(a+4*d)}، فاللي بعده ${n2a(ans)}.`}}
+  const A=pick(["🐟","🍃","🌰"]),B=pick(["⭐","🌙","🔶"]);const items=[...Array(5)].map((_,i)=>(i%2?B:A).repeat(i+1));const ans=A.repeat(6);
+  return {items,ans,opts:shuffle([ans,B.repeat(6),A.repeat(5),B.repeat(7)]),count:true,why:`نمطين مع بعض: الرمز يتبادل ${A} ثم ${B}، والعدد يزيد واحد كل مرة. السادس: ${A} × ${n2a(6)}.`}},
+story(q){return {who:"🔮",p:["القندس صفّ أشياء بنمط معيّن."],ask:"وش اللي يجي مكان علامة الاستفهام؟"}},
+render(q,board,api){while(q.opts.length<4)q.opts.push(pick(SH));if(!q.opts.includes(q.ans))q.opts[0]=q.ans;q.opts=[...new Set(q.opts)];while(q.opts.length<4){const x=pick(SH);if(!q.opts.includes(x))q.opts.push(x)}
+  const s=el("div",{class:"seq"});q.items.forEach(x=>s.append(el("span",{style:q.count?"font-size:1em;max-width:160px;word-break:break-all":""},x)));s.append(el("span",{class:"q"},"؟"));board.append(s);
+  q._m=mcq(board,q.opts,api,o=>el("span",{style:"word-break:break-all;font-size:"+(q.count?".85em":"1.3em")},o))},
+check(q){return q.opts[q._m.get()]===q.ans},reveal(q){q._m.mark(q.opts.indexOf(q.ans))},explain(q){return q.why}};
+
+/* ---- 11. houses logic (logic) ---- */
+const PALS=[["🦫","قندس"],["🦊","ثعلب"],["🐰","أرنب"],["🦉","بومة"],["🐢","سلحفاة"]];
+function allPerms(n){const r=[];const go=(a,b)=>{if(!a.length){r.push(b);return}a.forEach((x,i)=>go(a.filter((_,j)=>j!==i),b.concat(x)))};go([...Array(n).keys()],[]);return r}
+TYPES.houses={world:"logic",emoji:"🏡",name:"مين ساكن وين؟",
+gen(L){const n=[3,4,5][L-1];const pals=shuffle(PALS).slice(0,n);const perms=allPerms(n); // perm[p]=house of pal p
+  for(;;){const sol=pick(perms);const N=i=>pals[i][1];const H=h=>n2a(h+1);
+    const mk=()=>{const t=ri(0,L===1?2:5);const a=ri(0,n-1);let b=ri(0,n-1);while(b===a)b=ri(0,n-1);
+      switch(t){case 0:return [p=>p[a]===sol[a],`${N(a)} ساكن في البيت رقم ${H(sol[a])}.`];
+        case 1:return Math.abs(sol[a]-sol[b])===1?[p=>Math.abs(p[a]-p[b])===1,`${N(a)} جار ${N(b)} (بيتهم جنب بعض).`]:[p=>Math.abs(p[a]-p[b])!==1,`${N(a)} مو جار ${N(b)}.`];
+        case 2:return sol[a]<sol[b]?[p=>p[a]<p[b],`رقم بيت ${N(a)} أصغر من رقم بيت ${N(b)}.`]:[p=>p[a]>p[b],`رقم بيت ${N(a)} أكبر من رقم بيت ${N(b)}.`];
+        case 3:return (sol[a]===0||sol[a]===n-1)?[p=>p[a]===0||p[a]===n-1,`${N(a)} ساكن في أحد الطرفين.`]:[p=>p[a]!==0&&p[a]!==n-1,`${N(a)} مو ساكن في الطرف.`];
+        case 4:return null;
+        default:{let c=ri(0,n-1);while(c===a||c===b)c=ri(0,n-1);const lo=Math.min(sol[b],sol[c]),hi=Math.max(sol[b],sol[c]);
+          return (sol[a]>lo&&sol[a]<hi)?[p=>p[a]>Math.min(p[b],p[c])&&p[a]<Math.max(p[b],p[c]),`${N(a)} ساكن بين ${N(b)} و${N(c)}.`]:[p=>p[a]===sol[a],`${N(a)} ساكن في البيت رقم ${H(sol[a])}.`]}}};
+    let clues=[];for(let k=0;k<30;k++){const c=mk();if(!c)continue;if(clues.some(x=>x[1]===c[1]))continue;clues.push(c);const left=perms.filter(p=>clues.every(([f])=>f(p)));if(left.length===1)break}
+    if(perms.filter(p=>clues.every(([f])=>f(p))).length!==1)continue;
+    for(let i=clues.length-1;i>=0;i--){const rest=clues.filter((_,j)=>j!==i);if(perms.filter(p=>rest.every(([f])=>f(p))).length===1)clues=rest}
+    if(L>1&&clues.filter(c=>c[1].includes("رقم "+"")&&c[1].includes("ساكن في البيت")).length>1)continue;
+    if(clues.length<2)continue;return {n,pals,sol,clues:shuffle(clues).map(c=>c[1]),fns:clues.map(c=>c[0])}}},
+story(q){return {who:"🏡",p:[`في الحي ${n2a(q.n)} بيوت مرقّمة من اليمين. كل حيوان ساكن في بيت واحد.`],ask:"اقرأ الأدلة، ثم اختر حيواناً واضغط على بيته."}},
+render(q,board,api){const ol=el("ol",{class:"clues"});q.clues.forEach(c=>ol.append(el("li",{},c)));board.append(ol);
+  const place=Array(q.n).fill(null); // house -> pal
+  let sel=null;const chips=el("div",{class:"chips"});const hs=el("div",{class:"houses"});
+  const paint=()=>{chips.innerHTML="";q.pals.forEach((p,i)=>{const b=el("button",{class:"chip"+(sel===i?" sel":"")+(place.includes(i)?" used":""),type:"button"},p[0]+" "+p[1]);b.addEventListener("click",()=>{sndTap();sel=sel===i?null:i;paint()});chips.append(b)});
+    hs.innerHTML="";for(let h=0;h<q.n;h++){const b=el("button",{class:"house",type:"button","aria-label":"بيت "+(h+1)},el("span",{class:"who"},place[h]!==null?q.pals[place[h]][0]:""),el("span",{},"🏠 "+n2a(h+1)));
+      b.addEventListener("click",()=>{if(sel===null){place[h]=null}else{const old=place.indexOf(sel);if(old>=0)place[old]=null;place[h]=sel;sel=null;sndTap()}paint()});hs.append(b)}
+    const p=[];place.forEach((pal,h)=>{if(pal!==null)p[pal]=h});q.answer=p;api.ready(place.every(x=>x!==null))};
+  board.append(chips,hs);paint()},
+check(q){return q.answer.length===q.n&&q.answer.every((h,i)=>h===q.sol[i])},
+explain(q){return `الترتيب الصحيح: ${q.sol.map((h,i)=>[h,i]).sort((a,b)=>a[0]-b[0]).map(([h,i])=>`بيت ${n2a(h+1)}: ${q.pals[i][1]}`).join("، ")}. ابدأ بالدليل الأكيد (رقم البيت أو الطرف)، ثم اللي يعتمد عليه.`}};
+
+/* ---- 12. balance (logic) ---- */
+const FRUIT=["🍎","🍐","🍊","🍇","🥥","🍉"];
+TYPES.balance={world:"logic",emoji:"⚖️",name:"الميزان",
+gen(L){const n=[3,4,5][L-1];const items=shuffle(FRUIT).slice(0,n);// items in order heavy->light
+  const comps=shuffle(items.slice(0,-1).map((x,i)=>[x,items[i+1]]));const askSecond=L===3;const ans=askSecond?items[1]:items[0];
+  return {items,comps,ans,askSecond,opts:shuffle(items).slice(0,4).concat(items.length<4?[]:[]).filter((v,i,a)=>a.indexOf(v)===i)}},
+story(q){return {who:"⚖️",p:["القندس وزن الفواكه على الميزان مرتين مرتين. الكفّة النازلة فيها الأثقل."],ask:q.askSecond?"أي فاكهة هي الثانية في الثقل؟":"أي فاكهة هي الأثقل؟"}},
+render(q,board,api){const sc=el("div",{class:"scales"});q.comps.forEach(([h,l])=>sc.append(el("div",{class:"scale"},el("span",{},h),el("small",{},"أثقل من"),el("span",{},l))));board.append(sc);
+  if(!q.opts.includes(q.ans))q.opts[0]=q.ans;q._m=mcq(board,q.opts,api,o=>el("span",{style:"font-size:1.5em"},o))},
+check(q){return q.opts[q._m.get()]===q.ans},reveal(q){q._m.mark(q.opts.indexOf(q.ans))},
+explain(q){return `رتّبها من الأثقل: ${q.items.join(" > ")}. ابحث عن الفاكهة اللي ما فيه شي أثقل منها.`}};
+
+/* ================= worlds ================= */
+const WORLDS=[
+ {id:"algo",emoji:"🤖",name:"عالم الخوارزميات",x:78,y:9,learn:"<b>الخوارزمية</b> = خطوات مرتّبة توصلك للهدف. في بيبراس تجيك متاهات وروبوتات وبرامج فيها «كرّر». السرّ: نفّذ الخطوات بنفسك واحدة واحدة."},
+ {id:"graph",emoji:"🕸️",name:"عالم الشبكات",x:30,y:34,learn:"<b>الشبكة</b> = نقاط وخطوط تربطها، مثل الطرق أو الأصحاب. الأسئلة عن أقصر طريق، أو كم خطوة يوصل الخبر. السرّ: لوّن النقاط مرحلة مرحلة."},
+ {id:"code",emoji:"🔢",name:"عالم الترميز",x:22,y:55,learn:"<b>الترميز</b> = نكتب المعلومة بشكل ثاني: رموز، أضواء، أرقام ثنائية. السرّ: لاحظ القاعدة في المفتاح وطبّقها بدقة."},
+ {id:"sort",emoji:"📚",name:"عالم الترتيب",x:56,y:64,learn:"<b>الترتيب</b> = نرتّب الأشياء بأقل حركات. وفيه <b>الكومة</b>: آخر واحد يدخل أول واحد يطلع. السرّ: فكّر بالأكبر أولاً."},
+ {id:"pattern",emoji:"🎨",name:"عالم الأنماط",x:80,y:80,learn:"<b>النمط</b> = شي يتكرر بقاعدة. فيه مرايا ودوران وبطاقات فوق بعض وتسلسلات. السرّ: اشتغل صف صف أو عنصر عنصر."},
+ {id:"logic",emoji:"🧩",name:"عالم المنطق",x:50,y:99,learn:"<b>المنطق</b> = نستنتج الجواب من الأدلة. السرّ: ابدأ بالدليل الأكيد، واكتب اللي عرفته، وشيل الاحتمالات الغلط."}];
+const W=Object.fromEntries(WORLDS.map(w=>[w.id,w]));
+const typesOf=wid=>Object.keys(TYPES).filter(k=>TYPES[k].world===wid);
+
+/* ================= player progress ================= */
+function stat(t){P.st=P.st||{};return P.st[t]=P.st[t]||{lv:1,a:0,c:0,streak:0,due:null,iv:1}}
+function record(t,lv,ok){const s=stat(t);s.a++;if(ok){s.c++;s.streak++;if(s.streak>=2&&s.lv<3){s.lv++;s.streak=0}s.iv=Math.min(s.iv*2,14);s.due=addDays(today(),s.iv)}else{s.streak=0;if(s.lv>1&&lv===s.lv&&Math.random()<.5)s.lv--;s.iv=1;s.due=addDays(today(),1)}
+  P.days=P.days||{};P.days[today()]=(P.days[today()]||0)+1;save()}
+function worldStars(wid){const ts=typesOf(wid);const lv=ts.reduce((s,t)=>s+(P.st&&P.st[t]?P.st[t].lv:1),0)/ts.length;const any=ts.some(t=>P.st&&P.st[t]&&P.st[t].c>0);return any?Math.round(lv):0}
+
+/* ================= navigation ================= */
+function go(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));$("#s-"+id).classList.add("on");$("#checkbar").hidden=id!=="play";window.scrollTo(0,0);if(id==="home")renderHome();if(id==="map")renderMap()}
+document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));
+
+/* ---- home ---- */
+const AVM=["🦫","🦊","🐯","🦁","🐼","🐨","🦅","🐬"],AVF=["🦫","🐰","🦄","🐱","🦋","🐼","🐨","🦩"];
+function renderHome(){const box=$("#players");box.innerHTML="";
+  DB.players.forEach((p,i)=>{const b=el("button",{class:"player",type:"button"},el("span",{class:"av"},p.av),el("b",{},p.name),el("small",{},`${n2a(Object.values(p.st||{}).reduce((s,x)=>s+x.c,0))} لغز محلول`));b.addEventListener("click",()=>{P=p;go("map")});box.append(b)});
+  const add=el("button",{class:"player add",type:"button"},el("span",{class:"av"},"➕"),el("b",{},"لاعب جديد"));add.addEventListener("click",openAdd);box.append(add)}
+let addG="m",addAv="🦫";
+function openAdd(){addG="m";addAv="🦫";$("#addName").value="";paintAdd();$("#dlgAdd").showModal()}
+function paintAdd(){[...$("#addG").children].forEach(b=>b.classList.toggle("sel",b.dataset.g===addG));const av=$("#addAv");av.innerHTML="";(addG==="f"?AVF:AVM).forEach(a=>{const b=el("button",{type:"button",class:a===addAv?"sel":""},a);b.addEventListener("click",()=>{addAv=a;paintAdd()});av.append(b)})}
+$("#addG").addEventListener("click",e=>{if(e.target.dataset.g){addG=e.target.dataset.g;paintAdd()}});
+$("#dlgAdd").addEventListener("close",()=>{if($("#dlgAdd").returnValue!=="ok")return;const name=$("#addName").value.trim();if(!name)return;const p={id:Date.now(),name,g:addG,av:addAv,st:{},chal:[],days:{}};DB.players.push(p);save();P=p;go("map")});
+
+/* ---- map ---- */
+function renderMap(){$("#goStats small").textContent=T("وين أنا قوي ووين أحتاج تدريب","وين أنا قوية ووين أحتاج تدريب");$("#mapWho").textContent=P.av+" "+P.name;$("#worldWho").textContent=P.av+" "+P.name;const wrap=$("#mapwrap");wrap.querySelectorAll(".station").forEach(s=>s.remove());
+  WORLDS.forEach(w=>{const st=worldStars(w.id);const b=el("button",{class:"station",type:"button",style:`right:${100-w.x}%;top:${w.y*0.9+4}%`},el("span",{class:"lodge"},w.emoji),el("span",{},w.name.replace("عالم ","")),el("span",{class:"stars","aria-label":`${st} نجوم`},"⭐".repeat(st)+"☆".repeat(3-st)));b.addEventListener("click",()=>openWorld(w.id));wrap.append(b)});
+  const due=Object.values(P.st||{}).filter(s=>s.due&&s.due<=today()).length;$("#dailyInfo").textContent=due?`٥ ألغاز، منها ${n2a(Math.min(due,5))} للمراجعة`:"٥ ألغاز مختارة لك"}
+$("#toParent").addEventListener("click",()=>{P=null;renderStats(true)});
+$("#goStats").addEventListener("click",()=>renderStats(false));
+
+/* ---- world ---- */
+function openWorld(wid){const w=W[wid];$("#wEmoji").textContent=w.emoji;$("#wName").textContent=w.name;$("#wLearn").innerHTML=fem(w.learn);const box=$("#wTypes");box.innerHTML="";
+  typesOf(wid).forEach(t=>{const s=stat(t);const b=el("button",{class:"tcard",type:"button"},el("span",{class:"e"},TYPES[t].emoji),el("span",{},el("b",{},TYPES[t].name),el("br"),el("span",{class:"lv","aria-label":"المستوى "+s.lv},...[1,2,3].map(k=>el("i",{class:k<=s.lv?"on":""}))),el("br"),el("small",{class:"muted"},s.a?`${n2a(s.c)} صح من ${n2a(s.a)}`:T("ما جرّبته بعد","ما جرّبتيه بعد"))));
+    b.addEventListener("click",()=>startPractice([t],"world",wid));box.append(b)});
+  const mix=el("button",{class:"tcard",type:"button",style:"border-color:var(--leaf)"},el("span",{class:"e"},"🎲"),el("span",{},el("b",{},"ألغاز متنوّعة من هذا العالم"),el("br"),el("small",{class:"muted"},"٦ ألغاز")));mix.addEventListener("click",()=>startPractice(typesOf(wid),"world",wid,6));box.append(mix);go("world")}
+
+/* ================= practice engine ================= */
+let RUN=null;
+const api={ready:v=>{$("#btnCheck").disabled=!v}};
+function startPractice(types,mode,wid,count){RUN={types,mode,wid,count:count||0,done:0,right:0,queue:null};nextPuzzle()}
+function startDaily(){const keys=Object.keys(TYPES);const due=shuffle(keys.filter(t=>{const s=stat(t);return s.due&&s.due<=today()}));
+  const weak=keys.slice().sort((a,b)=>{const A=stat(a),B=stat(b);return (A.a?A.c/A.a:.5)-(B.a?B.c/B.a:.5)});const q=[];for(const t of [...due,...weak,...shuffle(keys)])if(!q.includes(t)&&q.length<5)q.push(t);
+  RUN={types:keys,mode:"daily",count:5,done:0,right:0,queue:q};nextPuzzle()}
+$("#goDaily").addEventListener("click",startDaily);
+function nextPuzzle(){
+  if(RUN.count&&RUN.done>=RUN.count){finishPractice();return}
+  const t=RUN.queue?RUN.queue[RUN.done]:pick(RUN.types);const lv=stat(t).lv;const def=TYPES[t];const q=def.gen(lv);q.t=t;q.lv=lv;RUN.cur=q;RUN.checked=false;
+  $("#pTitle").textContent=def.emoji+" "+def.name;const L=$("#pLevel");L.className="level l"+lv;L.textContent=["سهل","متوسط","صعب"][lv-1];
+  $("#playProg").textContent=RUN.count?`${n2a(RUN.done+1)} / ${n2a(RUN.count)}`:`✔ ${n2a(RUN.right)}`;
+  renderStory($("#pStory"),def.story(q));const board=$("#pBoard");board.innerHTML="";$("#pFb").innerHTML="";api.ready(false);def.render(q,board,api);
+  $("#btnCheck").textContent="تحقّق";$("#btnSkip").textContent="لغز ثاني";$("#btnSkip").hidden=!!RUN.count;
+  $("#playBack").onclick=()=>RUN.mode==="world"?openWorld(RUN.wid):go("map");go("play")}
+function renderStory(box,s){box.innerHTML="";box.append(el("span",{class:"who","aria-hidden":"true"},s.who));s.p.filter(Boolean).forEach(x=>box.append(el("p",{},fem(x))));box.append(el("p",{class:"ask"},fem(s.ask)))}
+$("#btnSkip").addEventListener("click",()=>{if(!RUN)return;nextPuzzle()});
+$("#btnCheck").addEventListener("click",async()=>{const q=RUN.cur,def=TYPES[q.t];
+  if(RUN.checked){RUN.done++;nextPuzzle();return}
+  const ok=!!def.check(q);RUN.checked=true;$("#btnCheck").disabled=true;
+  if(def.animate&&ok)await def.animate(q);
+  if(def.reveal)def.reveal(q);record(q.t,q.lv,ok);if(ok)RUN.right++;
+  (ok?sndOk:sndNo)();const fb=el("div",{class:"fb "+(ok?"ok pop":"no shake")},el("h3",{},ok?(T("أحسنت!","أحسنتِ!")):T("مو هذا الحل","مو هذا الحل")),el("p",{style:"margin:0 0 6px"},ok?pick(P.g==="f"?PRAISE_F:PRAISE_M):pick(P.g==="f"?TRY_F:TRY_M)),el("p",{style:"margin:0;font-weight:400"},"💡 "+fem(def.explain(q))));
+  $("#pFb").innerHTML="";$("#pFb").append(fb);fb.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"nearest"});
+  $("#btnCheck").textContent=RUN.count&&RUN.done+1>=RUN.count?"النتيجة":"التالي";$("#btnCheck").disabled=false;$("#btnSkip").hidden=true;
+  // block further edits on the board
+  $("#pBoard").style.pointerEvents="none";setTimeout(()=>{},0)});
+const _np=nextPuzzle;nextPuzzle=function(){$("#pBoard").style.pointerEvents="";_np()};
+function finishPractice(){const r=RUN.right,c=RUN.count;$("#resBody").innerHTML="";
+  $("#resBody").append(el("div",{class:"score"},n2a(r)+" / "+n2a(c)),el("p",{style:"text-align:center;font-size:1.2em;font-weight:600"},r===c?T("يومك مبارك! حلّيت كل الألغاز بتوفيق الله 🌟","يومك مبارك! حلّيتِ كل الألغاز بتوفيق الله 🌟"):r>=c/2?T("شغل جميل! الأسئلة اللي غلطت فيها بترجع لك للمراجعة.","شغل جميل! الأسئلة اللي غلطتِ فيها بترجع لك للمراجعة."):T("كل محاولة تقوّي مخك. بكرة نراجعها مع بعض.","كل محاولة تقوّي مخك. بكرة نراجعها مع بعض.")),
+    el("div",{style:"text-align:center"},el("button",{class:"btn",type:"button",onclick:()=>go("map")},"رجوع للخريطة")));if(RUN.mode==="daily"){P.dailyDone=P.dailyDone||{};P.dailyDone[today()]=r;save()}go("result")}
+
+/* ================= challenge (contest simulation) ================= */
+const PTS={1:[6,2],2:[9,3],3:[12,4]};let CH=null;
+function startChallenge(){const ws=shuffle(WORLDS.map(w=>w.id));const qs=[];const lvls=shuffle([1,1,1,1,2,2,2,2,3,3,3,3]);
+  ws.forEach(w=>{const ts=shuffle(typesOf(w));qs.push(ts[0],ts[1])});const list=shuffle(qs).map((t,i)=>{const lv=lvls[i];const q=TYPES[t].gen(lv);q.t=t;q.lv=lv;return q});
+  list.sort((a,b)=>a.lv-b.lv);CH={list,idx:0,ans:Array(12).fill(null),start:Date.now(),secs:30*60,boards:[]};
+  CH.boards=list.map(q=>{const b=el("div",{class:"board"});const s=el("div",{class:"story"});renderStory(s,TYPES[q.t].story(q));const capi={ready:v=>{CH.ans[list.indexOf(q)]=v?"set":null;paintNav()}};TYPES[q.t].render(q,b,capi);return {b,s}});
+  $("#chalTimer").textContent="⏱ ٣٠:٠٠";CH.tick=setInterval(()=>{const left=CH.secs-Math.floor((Date.now()-CH.start)/1000);if(left<=0){endChallenge();return}$("#chalTimer").textContent=`⏱ ${n2a(String(Math.floor(left/60)).padStart(2,"0"))}:${n2a(String(left%60).padStart(2,"0"))}`},500);
+  showChal(0);go("chal")}
+function paintNav(){const nav=$("#chalNav");nav.innerHTML="";CH.list.forEach((q,i)=>{const b=el("button",{type:"button",class:(CH.ans[i]?"done ":"")+(i===CH.idx?"cur":"")},n2a(i+1));b.addEventListener("click",()=>showChal(i));nav.append(b)});
+  nav.append(el("button",{type:"button",style:"width:auto;padding:0 14px;background:var(--water);color:#fff;border-color:var(--water)",onclick:()=>{const empty=CH.ans.filter(a=>!a).length;if(!empty||confirm(T(`باقي ${empty} أسئلة ما جاوبتها. تبي تسلّم؟`,`باقي ${empty} أسئلة ما جاوبتيها. تبين تسلّمين؟`)))endChallenge()}},"سلّم"))}
+function showChal(i){CH.idx=i;const q=CH.list[i];$("#cTitle").textContent=`سؤال ${n2a(i+1)}`;const L=$("#cLevel");L.className="level l"+q.lv;L.textContent=["أ · سهل","ب · متوسط","ج · صعب"][q.lv-1];
+  const st=$("#cStory"),bd=$("#cBoard");st.replaceWith(CH.boards[i].s);CH.boards[i].s.id="cStory";bd.replaceWith(CH.boards[i].b);CH.boards[i].b.id="cBoard";
+  $("#cNote").textContent=`صح: +${n2a(PTS[q.lv][0])} · غلط: −${n2a(PTS[q.lv][1])} · بدون جواب: ٠`;paintNav();window.scrollTo(0,0)}
+$("#goChal").addEventListener("click",()=>{if(confirm(T("التحدي ١٢ سؤال في ٣٠ دقيقة، مثل المسابقة: الصح يزيد والغلط ينقص. جاهز؟","التحدي ١٢ سؤال في ٣٠ دقيقة، مثل المسابقة: الصح يزيد والغلط ينقص. جاهزة؟")))startChallenge()});
+$("#chalQuit").addEventListener("click",()=>{if(confirm(T("تبي تنهي التحدي الحين وتشوف النتيجة؟","تبين تنهين التحدي الحين وتشوفين النتيجة؟")))endChallenge()});
+function endChallenge(){if(!CH)return;clearInterval(CH.tick);const used=Math.min(CH.secs,Math.round((Date.now()-CH.start)/1000));
+  let score=36,right=0,wrong=0;const max=36+4*6+4*9+4*12;const rows=[];
+  CH.list.forEach((q,i)=>{const def=TYPES[q.t];let res="skip";if(CH.ans[i]){let ok=false;try{ok=!!def.check(q)}catch(e){}res=ok?"ok":"no";if(ok){score+=PTS[q.lv][0];right++}else{score-=PTS[q.lv][1];wrong++}record(q.t,q.lv,ok)}
+    rows.push(el("div",{class:"rev"},el("span",{class:"m"},res==="ok"?"✅":res==="no"?"❌":"⬜"),el("div",{},el("b",{},`${n2a(i+1)}. ${def.emoji} ${def.name} (${["أ","ب","ج"][q.lv-1]})`),el("br"),el("small",{},"💡 "+fem(def.explain(q))))))});
+  P.chal=P.chal||[];P.chal.push({d:today(),score,max,right,wrong,secs:used});save();
+  const pct=score/max;const box=$("#resBody");box.innerHTML="";
+  box.append(el("h2",{style:"text-align:center;color:var(--deep)"},"نتيجة تحدي بيبراس"),el("div",{class:"score"},n2a(score)),el("p",{style:"text-align:center;margin:0"},`من ${n2a(max)} نقطة · ${n2a(right)} صح · ${n2a(wrong)} غلط · ${n2a(12-right-wrong)} بدون جواب · ${n2a(Math.floor(used/60))} دقيقة`),
+    el("p",{style:"text-align:center;font-size:1.15em;font-weight:600"},pct>=.75?T("نتيجة رائعة بتوفيق الله! تعبك في التدريب بان 🌟","نتيجة رائعة بتوفيق الله! تعبك في التدريب بان 🌟"):pct>=.5?T("شغل قوي! راجع الشرح تحت وبتكون أقوى المرة الجاية.","شغل قوي! راجعي الشرح تحت وبتكونين أقوى المرة الجاية."):T("بداية طيبة. كل تحدي يعلّمك شي جديد، شوف الشرح تحت.","بداية طيبة. كل تحدي يعلّمك شي جديد، شوفي الشرح تحت.")),
+    el("p",{class:"muted",style:"text-align:center"},T("نصيحة المسابقة: إذا ما كنت متأكداً، الأفضل تترك السؤال بدل التخمين، لأن الغلط ينقص.","نصيحة المسابقة: إذا ما كنتِ متأكدة، الأفضل تتركين السؤال بدل التخمين، لأن الغلط ينقص.")),...rows,
+    el("div",{style:"text-align:center;margin-top:14px"},el("button",{class:"btn",type:"button",onclick:()=>go("map")},"رجوع للخريطة")));CH=null;go("result")}
+
+/* ================= stats / parent dashboard ================= */
+function playerBlock(p){const prev=P;P=p;const wrap=el("div",{class:"dcard"});
+  const solved=Object.values(p.st||{}).reduce((s,x)=>s+x.c,0),tried=Object.values(p.st||{}).reduce((s,x)=>s+x.a,0);const days=Object.keys(p.days||{}).length;
+  wrap.append(el("h3",{},`${p.av} ${p.name}`),el("p",{class:"muted",style:"margin:2px 0 8px"},`${n2a(solved)} صح من ${n2a(tried)} محاولة · لعب ${n2a(days)} يوم`));
+  WORLDS.forEach(w=>{const ts=typesOf(w.id);let a=0,c=0;ts.forEach(t=>{const s=(p.st||{})[t];if(s){a+=s.a;c+=s.c}});const pct=a?Math.round(100*c/a):0;
+    wrap.append(el("div",{class:"drow"},el("span",{},w.emoji+" "+w.name.replace("عالم ","")),el("div",{class:"bar"},el("i",{style:`width:${pct}%;background:${!a?"#e3eef0":pct<50?"#d98a2b":"var(--leaf)"}`})),el("small",{},a?n2a(pct)+"٪":"—")))});
+  const weak=WORLDS.map(w=>{let a=0,c=0;typesOf(w.id).forEach(t=>{const s=(p.st||{})[t];if(s){a+=s.a;c+=s.c}});return [w,a,a?c/a:1]}).filter(x=>x[1]>=3).sort((x,y)=>x[2]-y[2])[0];
+  if(weak&&weak[2]<.7)wrap.append(el("p",{style:"margin:8px 0 0"},`💡 يحتاج تدريب أكثر في: ${weak[0].emoji} ${weak[0].name}`));
+  if((p.chal||[]).length){const tb=el("table",{class:"hist"},el("tr",{},el("th",{},"التحدي"),el("th",{},"النقاط"),el("th",{},"صح"),el("th",{},"الوقت")));
+    p.chal.slice(-8).reverse().forEach(c=>tb.append(el("tr",{},el("td",{},c.d),el("td",{},n2a(c.score)+" / "+n2a(c.max)),el("td",{},n2a(c.right)),el("td",{},n2a(Math.floor(c.secs/60))+" د"))));wrap.append(el("h3",{style:"margin-top:12px;font-size:1em"},"آخر التحديات"),tb)}
+  P=prev;return wrap}
+function renderStats(parent){const box=$("#statsBody");box.innerHTML="";
+  if(parent){box.append(el("h2",{style:"color:var(--deep)"},"لوحة ولي الأمر"),el("p",{class:"muted"},"التقدّم محفوظ في هذا الجهاز فقط."));
+    if(!DB.players.length)box.append(el("p",{},"ما فيه لاعبين بعد. أضف لاعب من الصفحة الرئيسية."));DB.players.forEach(p=>{const b=playerBlock(p);
+      b.append(el("button",{class:"btn alt",type:"button",style:"margin-top:10px;font-size:.9em;padding:6px 14px",onclick:()=>{if(confirm(`حذف ${p.name} وكل تقدّمه من هذا الجهاز؟`)){DB.players=DB.players.filter(x=>x!==p);save();renderStats(true)}}},"حذف اللاعب"));box.append(b)});
+    $("#statsBack").onclick=()=>go("home")}
+  else{box.append(el("h2",{style:"color:var(--deep)"},"تقدّمي"),playerBlock(P));$("#statsBack").onclick=()=>go("map")}
+  go("stats")}
+
+window.__bebras={TYPES};
+go("home");
+})();
+</script>
+</body>
+</html>
