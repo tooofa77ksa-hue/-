@@ -6,9 +6,36 @@
   function plain(s) { return String(s).replace(/[\u{1F300}-\u{1FAFF}☀-➿⭐️]/gu, '').replace(/\//g, ' أو '); }
 
   // ---------- saved player (each device keeps its own) ----------
-  var KEY = 'zoo_player_v1', P = null;
+  var PLAYERS = [['nadeen', 'نادين', 'f'], ['saleh', 'صالح', 'm'], ['malak', 'ملك يوسف', 'f'], ['rawaf', 'رواف', 'm']];
+  var ACTIVE = ''; try { ACTIVE = localStorage.getItem('zoo_active') || ''; } catch (e) {}
+  var ME = PLAYERS.filter(function (p) { return p[0] === ACTIVE; })[0] || null, MALE = !!(ME && ME[2] === 'm');
+  var KEY = 'zoo_player_v2_' + ACTIVE, P = null;
   try { P = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
+  if (!P && ACTIVE === 'nadeen') { try { P = JSON.parse(localStorage.getItem('zoo_player_v1') || 'null'); } catch (e) {} }   // Nadeen's old save
+  if (P && ME) { P.name = ME[1]; P.srs = P.srs || {}; }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(P)); } catch (e) {} }
+
+
+  // ---------- who is playing (4 players, each has her/his own saved game) ----------
+  function who() {
+    app.innerHTML = '<div class="wrap"><h1 class="t">🐾 مغامرة في عالم الحيوانات</h1><div class="sub">من سيلعب الآن؟ اضغط على اسمك</div><div class="worlds">' +
+      PLAYERS.map(function (p, i) { return '<button class="tile blk" data-p="' + p[0] + '" style="--c:' + ['#FF5FA2', '#22A6E8', '#7B5CFF', '#22C55E'][i] + '"><span class="ic">' + (p[2] === 'f' ? '👧' : '👦') + '</span><span class="tt"><b>' + p[1] + '</b></span></button>'; }).join('') + '</div></div>';
+    [].forEach.call(app.querySelectorAll('[data-p]'), function (b) { b.onclick = function () { try { localStorage.setItem('zoo_active', b.dataset.p); } catch (e) {} location.reload(); }; });
+  }
+  // boys get masculine wording (the text was written for girls)
+  var MREP = [['رائعةٌ', 'رائعٌ'], ['البطلاتُ', 'الأبطالُ'], ['يتدرَّبن', 'يتدرَّبون'], ['البطلةُ', 'البطلُ'], ['بطلةُ', 'بطلُ'], ['بطلة', 'بطل'], ['المستكشفةُ', 'المستكشفُ'], ['مستكشفة', 'مستكشف'], ['قريبة', 'قريب'],
+    ['أعيدي', 'أعِد'], ['أنتِ', 'أنتَ'], ['ابدئي', 'ابدأ'], ['فقِّسي', 'فقِّسْ'], ['أحسنتِ', 'أحسنتَ'], ['ركِّزي', 'ركِّزْ'], ['تنتظرُكِ', 'تنتظرُكَ'], ['صمِّمي', 'صمِّمْ'], ['شخصيّتَكِ', 'شخصيّتَكَ'], ['اكتبي', 'اكتبْ'], ['أوصلي', 'أوصِلْ'],
+    ['اهربي', 'اهرُبْ'], ['أخطأتِ', 'أخطأتَ'], ['أضفتِ', 'أضفتَ'], ['مجموعتِكِ', 'مجموعتِكَ'], ['نجوتِ', 'نجوتَ'], ['عقلُكِ', 'عقلُكَ'], ['وفكِّري', 'وفكِّرْ'], ['فكِّري', 'فكِّرْ'], ['جرِّبي', 'جرِّبْ'], ['حاولي', 'حاوِلْ'],
+    ['تعرفين', 'تعرفُ'], ['تقرِّبُكِ', 'تقرِّبُكَ'], ['اسمُكِ', 'اسمُكَ'], ['تحتاجين', 'تحتاجُ'], ['اسمَكِ', 'اسمَكَ'], ['واعرفي', 'واعرِفْ'], ['اسمعي', 'اسمَعْ'], ['تريدين', 'تريدُ'], ['تتقدَّمين', 'تتقدَّمُ'], ['أصبتِ', 'أصبتَ'],
+    ['صوِّري', 'صوِّرْ'], ['اقلبي', 'اقلِبْ'], ['بينكِ', 'بينَكَ'], ['لتجمعي', 'لتجمعَ'], ['تمنحُكِ', 'تمنحُكَ'], ['أرسليها', 'أرسِلْها'], ['صديقتك', 'صديقك'], ['تفتحينه', 'تفتحُه'], ['اختاري', 'اختَرْ'], ['شاهدي', 'شاهِدْ'],
+    ['احفظي', 'احفظْ'], ['انظري', 'انظُرْ'], ['تذكّري', 'تذكّرْ'], ['استمعي', 'استمعْ'], ['أكملي', 'أكمِلْ'], ['حدّدي', 'حدِّدْ'], ['اضغطي', 'اضغطْ'], ['لاحظي', 'لاحِظْ'], ['كرّري', 'كرِّرْ'], ['أجيبي', 'أجِبْ'], ['ساعدي', 'ساعِدْ'], ['اعرفي', 'اعرِفْ'], ['جمعتِ', 'جمعتَ'], ['ربحتِ', 'ربحتَ'], ['عرفتِ', 'عرفتَ'], ['نجحتِ', 'نجحتَ'], ['أنهيتِ', 'أنهيتَ'], ['اقرئي', 'اقرأْ'], ['رتّبي', 'رتِّبْ'], ['صلي', 'صِلْ'], ['وصّلي', 'وصِّلْ']];
+  var D = '[\\u064B-\\u0652\\u0640]*';
+  var MR = MREP.map(function (p) { return [new RegExp(p[0].split('').join(D)), p[1]]; });
+  function masc(t) { if (!MALE) return t; for (var i = 0; i < MR.length; i++) t = t.replace(new RegExp(MR[i][0].source, 'g'), MR[i][1]); return t; }
+  if (MALE) {
+    var walk = function (n) { if (n.nodeType === 3) { var v = masc(n.nodeValue); if (v !== n.nodeValue) n.nodeValue = v; } else if (n.nodeType === 1) { if (n.placeholder) n.placeholder = masc(n.placeholder); if (n.title) n.title = masc(n.title); for (var c = n.firstChild; c; c = c.nextSibling) walk(c); } };
+    new MutationObserver(function (ms) { ms.forEach(function (m) { if (m.type === 'characterData') walk(m.target); else [].forEach.call(m.addedNodes, walk); }); }).observe(document.body, { childList: true, subtree: true, characterData: true });
+  }
 
   // ---------- blocky avatar ----------
   var HAIR = ['#3B2314', '#7A4A24', '#E8B04B', '#1B1B1B', '#C2410C'], SHIRT = ['#FF5FA2', '#7B5CFF', '#22C3EE', '#FFC93C', '#22C55E'];
@@ -28,9 +55,9 @@
       '<rect x="12" y="50" width="12" height="32" rx="4" fill="#F2C29B" stroke="#1E2340" stroke-width="2.5"/><rect x="56" y="50" width="12" height="32" rx="4" fill="#F2C29B" stroke="#1E2340" stroke-width="2.5"/>' +
       '<rect x="22" y="48" width="36" height="42" rx="6" fill="' + s + '" stroke="#1E2340" stroke-width="2.5"/>' +
       '<rect x="20" y="12" width="40" height="38" rx="8" fill="#F7D3B1" stroke="#1E2340" stroke-width="2.5"/>' +
-      '<path d="M18 30 q0 -22 22 -22 q22 0 22 22 v18 h-6 v-24 q-16 4 -32 0 v24 h-6z" fill="' + h + '" stroke="#1E2340" stroke-width="2.5"/>' +
+      (MALE ? '<path d="M18 26 q0 -20 22 -20 q22 0 22 20 q-22 -8 -44 0z" fill="' + h + '" stroke="#1E2340" stroke-width="2.5"/>' : '<path d="M18 30 q0 -22 22 -22 q22 0 22 22 v18 h-6 v-24 q-16 4 -32 0 v24 h-6z" fill="' + h + '" stroke="#1E2340" stroke-width="2.5"/>') +
       '<circle cx="32" cy="33" r="3.2" fill="#1E2340"/><circle cx="48" cy="33" r="3.2" fill="#1E2340"/><path d="M33 41 q7 6 14 0" fill="none" stroke="#1E2340" stroke-width="2.5" stroke-linecap="round"/>' +
-      '<circle cx="27" cy="39" r="3" fill="#FF9EB5" opacity=".7"/><circle cx="53" cy="39" r="3" fill="#FF9EB5" opacity=".7"/>' + acc + '</svg>';
+      (MALE ? '' : '<circle cx="27" cy="39" r="3" fill="#FF9EB5" opacity=".7"/><circle cx="53" cy="39" r="3" fill="#FF9EB5" opacity=".7"/>') + acc + '</svg>';
   }
 
   // ---------- voice and sounds ----------
@@ -42,7 +69,8 @@
   // recorded voice (voice/<clip>.mp3) when the sentence was recorded, otherwise the device voice
   function vkey(w) { return String(w).replace(/[\u064B-\u0652\u0670\u0640]/g, '').replace(/[إأآا]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').replace(/ؤ/g, 'و').replace(/ئ/g, 'ي').replace(/[^\u0621-\u064A]/g, ''); }
   function speak(t, then) {
-    var f = (window.VMAP || {})[vkey(plain(t))];
+    t = masc(t);
+    var f = MALE ? null : (window.VMAP || {})[vkey(plain(t))];
     if (f) { stop(); var a = new Audio('voice/' + f + '.mp3'); cur = a; a.onended = function () { cur = null; if (then) then(); }; a.play().catch(function () { tts(t); }); return; }
     tts(t); if (then) setTimeout(then, 1800);
   }
@@ -65,7 +93,7 @@
   var GOOD = ['أحسنتِ يا {n}! 🌟', 'رائعةٌ يا بطلة {n}! 👏', 'إجابةٌ ذكيّة يا {n}! 💡', 'المستكشفةُ {n} لا يفوتُها شيء! 🔍', '{n} بطلةُ عالمِ الحيوانات! 🏆',
     'ممتازة يا {n}! الحيواناتُ فخورةٌ بكِ 🦁', 'هكذا تفعلُ البطلات يا {n}! ⭐', 'عقلُكِ لامعٌ يا {n}! ✨'];
   var AGAIN = ['ليست هذه يا {n}، فكِّري مرّةً أخرى 💪', 'قريبة يا {n}! جرِّبي إجابةً ثانية 🔍', 'البطلةُ {n} لا تستسلم، حاولي من جديد 🌱', 'ركِّزي يا {n}، أنتِ تعرفين الجواب ⭐'];
-  var HELLO = ['أهلًا يا بطلة {n}! 🦸‍♀️ أيُّ عالمٍ نستكشفُ اليوم؟', 'مرحبًا يا مستكشفة {n}! 🧭 الحيواناتُ تنتظرُكِ', 'هيّا يا {n}! 🌟 كلُّ إجابةٍ تقرِّبُكِ من التاج 👑', 'يا {n}، أنتِ بطلةُ الغابة اليوم! 🌳'];
+  var HELLO = ['أهلًا يا بطلة {n}! 🦸‍♂️ أيُّ عالمٍ نستكشفُ اليوم؟', 'مرحبًا يا مستكشفة {n}! 🧭 الحيواناتُ تنتظرُكِ', 'هيّا يا {n}! 🌟 كلُّ إجابةٍ تقرِّبُكِ من التاج 👑', 'يا {n}، أنتِ بطلةُ الغابة اليوم! 🌳'];
   function nm(s) { return s.replace('{n}', P.name); }
 
   // ---------- top bar ----------
@@ -78,12 +106,12 @@
 
   // ---------- profile / avatar maker ----------
   function maker(edit) {
-    var c = P ? { name: P.name, hair: P.hair, shirt: P.shirt, acc: P.acc } : { name: '', hair: 0, shirt: 0, acc: 'bow' };
+    var c = P ? { name: P.name, hair: P.hair, shirt: P.shirt, acc: P.acc } : { name: ME ? ME[1] : '', hair: 0, shirt: 0, acc: MALE ? 'none' : 'bow' };
     var stars = P ? P.stars : 0;
     function draw() {
       app.innerHTML = '<div class="wrap"><h1 class="t">🐾 مغامرة في عالم الحيوانات</h1><div class="sub">صمِّمي شخصيّتَكِ، ثمَّ ابدئي المغامرة!</div>' +
         '<div class="maker"><div class="stage blk">' + avatar(c) + '</div><div class="blk" style="padding:14px">' +
-        '<div class="row"><label>اسمُكِ</label><input class="name" id="nm" maxlength="14" placeholder="اكتبي اسمك" value="' + c.name + '"></div>' +
+        '<div class="row"><label>اسمُكِ</label><input class="name" id="nm" maxlength="14" readonly placeholder="اكتبي اسمك" value="' + c.name + '"></div>' +
         '<div class="row"><label>لونُ الشَّعر</label><div class="sw">' + HAIR.map(function (x, i) { return '<button data-h="' + i + '" class="' + (c.hair === i ? 'on' : '') + '" style="background:' + x + '"></button>'; }).join('') + '</div></div>' +
         '<div class="row"><label>لونُ القميص</label><div class="sw">' + SHIRT.map(function (x, i) { return '<button data-s="' + i + '" class="' + (c.shirt === i ? 'on' : '') + '" style="background:' + x + '"></button>'; }).join('') + '</div></div>' +
         '<div class="row"><label>الإكسسوار <small style="font:600 13px R;color:#5B6280">(تفتحينه بالنجوم ⭐)</small></label><div class="sw">' + ACC.map(function (a) { var lk = stars < a[2]; return '<button data-a="' + a[0] + '" class="' + (c.acc === a[0] ? 'on ' : '') + (lk ? 'lock' : '') + '" title="' + (lk ? AR(a[2]) + ' نجمة' : '') + '">' + (lk ? '🔒' : a[1]) + '</button>'; }).join('') + '</div></div>' +
@@ -95,7 +123,7 @@
       [].forEach.call(app.querySelectorAll('[data-a]'), function (b) { b.onclick = function () { if (b.classList.contains('lock')) { speak('تحتاجين ' + b.title + ' لفتحه'); return; } c.acc = b.dataset.a; draw(); }; });
       document.getElementById('go').onclick = function () {
         var n = (document.getElementById('nm').value || '').trim(); if (!n) { document.getElementById('nm').focus(); speak('اكتبي اسمَكِ أوّلًا'); return; }
-        P = P || { stars: 0, best: {}, coll: [] }; P.name = n; P.hair = c.hair; P.shirt = c.shirt; P.acc = c.acc; save(); map();
+        P = P || { stars: 0, best: {}, coll: [], srs: {} }; P.name = ME ? ME[1] : n; P.hair = c.hair; P.shirt = MALE && !P.sd ? 1 : c.shirt; P.sd = 1; P.acc = c.acc; save(); map();
       };
     }
     draw();
@@ -103,6 +131,7 @@
 
   // ---------- world map ----------
   var W = [
+    ['wr', '🔁', 'مراجعةُ اليوم', 'ما يحتاجُ أن تراجعَه', '#F59E0B', function () { reviewWorld(); }],
     ['w1', '🦁', 'أصواتُ الحيوانات', 'اسمعي الصوت واعرفي اسمه', '#FF8A3D', function () { soundsWorld(); }],
     ['w2', '🌬️', 'أصواتٌ من حولنا', 'الريح والمطر والبحر والنار', '#22A6E8', function () { thingsWorld(); }],
     ['w3', '🥚', 'فقِّسي البيضة', 'أسماءُ صغارِ الحيوانات', '#FF5FA2', function () { eggWorld(); }],
@@ -111,18 +140,18 @@
     ['w6', '🏃‍♀️', 'اهربي من الذئب!', 'تحدٍّ سريعٌ من كلِّ العوالم', '#E11D48', function () { runWorld(); }],
   ];
   function map() {
-    stop();
+    stop(); var dn = dueKeys().length; W[0][3] = dn ? ('عندك ' + AR(dn) + ' للمراجعة اليوم 🔔') : 'لا مراجعة اليوم 🌟';
     app.innerHTML = '<div class="wrap">' + bar(false) + '<h1 class="t">🗺️ عوالمُ المغامرة</h1><div class="hello blk">' + nm(pick(HELLO)) + '</div><div class="sub">كلُّ إجابةٍ صحيحة = نجمة ⭐</div>' +
       '<div class="worlds">' + W.map(function (w, i) { var b = P.best[w[0]] || 0; return '<button class="tile blk" data-w="' + i + '" style="--c:' + w[4] + '"><span class="ic">' + w[1] + '</span><span><b>' + w[2] + '</b><small>' + w[3] + '</small></span><span class="st">' + '⭐'.repeat(b) + '☆'.repeat(3 - b) + '</span></button>'; }).join('') + '</div>' +
-      '<div class="nav" style="margin-top:16px"><button class="btn w" id="col">🐾 حيواناتي</button><button class="btn w" id="ed">👗 شخصيّتي</button></div>' +
+      '<div class="nav" style="margin-top:16px"><button class="btn w" id="col">🐾 حيواناتي</button><button class="btn w" id="ed">👗 شخصيّتي</button><button class="btn w" id="sw">🔀 لاعبٌ آخر</button></div>' +
       '<button class="btn p" id="reset" style="width:100%;margin-top:14px">🔄 ابدئي كلَّ شيءٍ من جديد</button></div>';
     [].forEach.call(app.querySelectorAll('[data-w]'), function (b) { b.onclick = function () { W[+b.dataset.w][5](); }; });
     document.getElementById('reset').onclick = function () {
       if (!confirm('هل تريدين مسحَ كلِّ النجوم والعوالم والحيوانات، والبدءَ من جديد؟')) return;
-      P.stars = 0; P.best = {}; P.coll = []; if (P.acc !== 'none') P.acc = 'bow'; save(); map();
+      P.stars = 0; P.best = {}; P.coll = []; P.srs = {}; if (P.acc !== 'none') P.acc = 'bow'; save(); map();
       play(function () { speak('بدأنا من جديد! هيّا يا ' + P.name + '، المغامرةُ تنتظرُكِ.'); });
     };
-    document.getElementById('col').onclick = collection; document.getElementById('ed').onclick = function () { maker(true); };
+    document.getElementById('sw').onclick = function () { try { localStorage.removeItem('zoo_active'); } catch (e) {} location.reload(); }; document.getElementById('col').onclick = collection; document.getElementById('ed').onclick = function () { maker(true); };
     window.scrollTo(0, 0);
   }
 
@@ -149,10 +178,10 @@
       [].forEach.call(app.querySelectorAll('[data-k]'), function (b) {
         b.onclick = function () {
           var v = o[+b.dataset.k], ok = v === it.ans;
-          if (!ok && !tried && o.length > 2) { tried = true; b.disabled = true; b.classList.add('wrong'); var m = nm(pick(AGAIN)); document.getElementById('fb').innerHTML = '<div class="again">' + m + '</div>'; play(function () { speak(m, function () { askIt(); }); }); return; }
+          if (!ok && !tried && o.length > 2) { tried = true; if (it.srs) srsRec(it.srs, false); b.disabled = true; b.classList.add('wrong'); var m = nm(pick(AGAIN)); document.getElementById('fb').innerHTML = '<div class="again">' + m + '</div>'; play(function () { speak(m, function () { askIt(); }); }); return; }
           [].forEach.call(app.querySelectorAll('[data-k]'), function (x) { x.disabled = true; if (o[+x.dataset.k] === it.ans) x.classList.add('right'); });
           if (!ok) b.classList.add('wrong');
-          var first = !tried && ok; if (first) { score++; P.stars++; save(); confetti(8); }
+          var first = !tried && ok; if (it.srs && !tried) srsRec(it.srs, ok); if (first) { score++; P.stars++; save(); confetti(8); }
           if (!first) wrongs.push(it);
           var head = ok ? nm(pick(GOOD)) : 'الإجابةُ الصحيحة: ' + it.ans;
           document.getElementById('fb').innerHTML = '<div class="why"><b>' + (ok ? '✅ ' : '💡 ') + head + '</b>' + (it.why ? 'لماذا؟ ' + it.why : '') + (it.img ? '<img src="img/' + it.img + '.jpg" alt="">' : '') + (it.extra || '') + '</div>';
@@ -160,7 +189,7 @@
           play(function () { speak(head, function () { speak(it.whyLine || it.why || '', onR2); }); });
           if (ok && it.onRight) it.onRight();
           document.getElementById('nx').classList.remove('hidden');
-          document.getElementById('nx').scrollIntoView({ behavior: 'smooth', block: 'end' });
+          document.getElementById('nx').scrollIntoView({ behavior: 'smooth', block: 'center' });
         };
       });
       document.getElementById('nx').onclick = function () { qi++; qi < list.length ? show() : done(); };
@@ -186,12 +215,40 @@
   }
   function others(all, ans, n) { return shuffle(all.filter(function (x) { return x !== ans; })).slice(0, n); }
 
+
+  // ---------- spaced repetition (Leitner boxes: back after 1, 3, 7, 14, 30 days) ----------
+  var GAPS = [1, 3, 7, 14, 30];
+  function today() { return Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 864e5); }
+  function srsRec(key, ok) {
+    if (!key) return; P.srs = P.srs || {}; var e = P.srs[key] || { b: 0 };
+    e.b = ok ? Math.min(4, e.b + 1) : 0; e.d = today() + GAPS[e.b]; e.n = (e.n || 0) + 1; P.srs[key] = e; save();
+  }
+  function dueKeys() { var t = today(), a = []; for (var k in (P.srs || {})) if (P.srs[k].d <= t) a.push(k); return a.sort(function (x, y) { return P.srs[x].b - P.srs[y].b; }); }
+  function findRow(list, id) { for (var i = 0; i < list.length; i++) if (list[i][0] === id) return list[i]; return null; }
+  function reviewItem(key) {   // rebuild one question from its key
+    var t = key.split(':')[0], id = key.split(':')[1], s, uniq = function (a) { return a.filter(function (v, i, x) { return x.indexOf(v) === i; }); };
+    if (t === 's' && (s = findRow(Z.sounds, id))) return { srs: key, head: '<img class="pic" src="img/s_' + s[0] + '.jpg" alt="">', say: { id: s[0], text: 'صوتُ ' + s[1] }, ask: 'ماذا نسمّي صوتَ ' + s[1] + '؟', opts: [s[2]].concat(others(Z.sounds.map(function (x) { return x[2]; }), s[2], 2)), ans: s[2], why: s[3] };
+    if (t === 't' && (s = findRow(Z.things, id))) return { srs: key, head: '<div class="anim a-' + s[4] + '"><img class="pic" src="img/s_' + s[0] + '.jpg" alt=""></div>', say: { id: s[0], text: 'صوتُ ' + s[1] }, ask: 'ماذا نسمّي صوتَ ' + s[1] + '؟', opts: [s[2]].concat(others(Z.things.map(function (x) { return x[2]; }), s[2], 2)), ans: s[2], why: s[3] };
+    if (t === 'y' && (s = findRow(Z.young, id))) return { srs: key, head: s[4] ? '<img class="pic" style="width:140px" src="img/' + s[4] + '.jpg" alt="">' : '<div style="font-size:60px">🥚</div>', ask: 'ما اسمُ صغيرِ ' + s[1] + '؟', opts: [s[2]].concat(others(Z.young.map(function (x) { return x[2]; }), s[2], 2)), ans: s[2], why: s[3] };
+    if (t === 'h' && (s = findRow(Z.homes, id))) return { srs: key, head: s[4] ? '<img class="pic" src="img/' + s[4] + '.jpg" alt="">' : '<div style="font:800 40px B;margin:20px 0">' + s[1] + '</div>', ask: 'أين يسكنُ ' + s[1] + '؟', houses: true, opts: [s[2]].concat(others(uniq(Z.homes.map(function (x) { return x[2]; })), s[2], 2)), ans: s[2], why: s[3] };
+    if (t === 'p' && (s = findRow(Z.pairs, id))) return { srs: key, head: '<div style="font-size:60px">💞</div>', ask: 'ما اسمُ أنثى ال' + s[1] + '؟', opts: [s[2]].concat(others(Z.pairs.map(function (x) { return x[2]; }), s[2], 2)), ans: s[2], why: s[1] + ' ← وأنثاه: ' + s[2] + '.', img: 'm_' + s[0] };
+    return null;
+  }
+  function reviewWorld() {
+    stop(); var items = dueKeys().slice(0, 10).map(reviewItem).filter(Boolean);
+    if (!items.length) {
+      app.innerHTML = '<div class="wrap">' + bar(true) + '<div class="ach blk">' + avatar(P) + '<h2>لا مراجعةَ اليوم! 🌟</h2><div class="sub">كلُّ ما تعلّمتَه محفوظٌ. العبْ في عالمٍ آخر، وما تُخطئُ فيه سيعودُ إليكَ في وقتِه.</div></div><div class="nav"><button class="btn g" id="mp">🗺️ العوالم</button></div></div>';
+      wireBack(); document.getElementById('mp').onclick = map; play(function () { speak('لا مراجعةَ اليوم يا ' + P.name + '! كلُّ ما تعلّمتِه محفوظ.'); }); return;
+    }
+    quiz('wr', '🔁 مراجعةُ اليوم', items, { again: reviewWorld });
+  }
+
   // ---------- world 1: animal sounds ----------
   function soundsWorld() {
     var S = Z.sounds, names = S.map(function (s) { return s[2]; }), animals = S.map(function (s) { return s[1]; });
     var items = shuffle(S).slice(0, 10).map(function (s, k) {
-      if (k % 3 === 2) return { head: '<div style="font-size:64px">🔊</div>', say: { id: s[0], text: s[2] }, ask: 'مَن صاحبُ صوتِ «' + s[2] + '»؟', opts: [s[1]].concat(others(animals, s[1], 2)), ans: s[1], why: s[3], whyLine: 'صوتُ ' + s[1] + ' اسمُه: ' + s[2] + '. ' + s[3], img: 's_' + s[0] };
-      return { head: '<img class="pic" src="img/s_' + s[0] + '.jpg" alt="">', say: { id: s[0], text: 'صوتُ ' + s[1] }, ask: 'ماذا نسمّي صوتَ ' + s[1] + '؟', opts: [s[2]].concat(others(names, s[2], 2)), ans: s[2], why: s[3], whyLine: 'صوتُ ' + s[1] + ' اسمُه: ' + s[2] + '. ' + s[3] };
+      if (k % 3 === 2) return { srs: 's:' + s[0], head: '<div style="font-size:64px">🔊</div>', say: { id: s[0], text: s[2] }, ask: 'مَن صاحبُ صوتِ «' + s[2] + '»؟', opts: [s[1]].concat(others(animals, s[1], 2)), ans: s[1], why: s[3], whyLine: 'صوتُ ' + s[1] + ' اسمُه: ' + s[2] + '. ' + s[3], img: 's_' + s[0] };
+      return { srs: 's:' + s[0], head: '<img class="pic" src="img/s_' + s[0] + '.jpg" alt="">', say: { id: s[0], text: 'صوتُ ' + s[1] }, ask: 'ماذا نسمّي صوتَ ' + s[1] + '؟', opts: [s[2]].concat(others(names, s[2], 2)), ans: s[2], why: s[3], whyLine: 'صوتُ ' + s[1] + ' اسمُه: ' + s[2] + '. ' + s[3] };
     });
     quiz('w1', '🦁 أصواتُ الحيوانات', items, { again: soundsWorld });
   }
@@ -199,7 +256,7 @@
   function thingsWorld() {
     var T = Z.things, names = T.map(function (s) { return s[2]; });
     var items = shuffle(T).slice(0, 10).map(function (s) {
-      return { head: '<div class="anim a-' + s[4] + '"><img class="pic" src="img/s_' + s[0] + '.jpg" alt=""></div>', say: { id: s[0], text: 'صوتُ ' + s[1] }, ask: 'ماذا نسمّي صوتَ ' + s[1] + '؟', opts: [s[2]].concat(others(names, s[2], 2)), ans: s[2], why: s[3], whyLine: 'صوتُ ' + s[1] + ' اسمُه: ' + s[2] + '. ' + s[3] };
+      return { srs: 't:' + s[0], head: '<div class="anim a-' + s[4] + '"><img class="pic" src="img/s_' + s[0] + '.jpg" alt=""></div>', say: { id: s[0], text: 'صوتُ ' + s[1] }, ask: 'ماذا نسمّي صوتَ ' + s[1] + '؟', opts: [s[2]].concat(others(names, s[2], 2)), ans: s[2], why: s[3], whyLine: 'صوتُ ' + s[1] + ' اسمُه: ' + s[2] + '. ' + s[3] };
     });
     quiz('w2', '🌬️ أصواتٌ من حولنا', items, { again: thingsWorld });
   }
@@ -207,7 +264,7 @@
   function eggWorld() {
     var Y = Z.young, names = Y.map(function (s) { return s[2]; });
     var items = shuffle(Y).slice(0, 8).map(function (s) {
-      return { head: '<div><span class="egg" id="egg">🥚</span></div>' + (s[4] ? '<img class="pic" style="width:140px" src="img/' + s[4] + '.jpg" alt="">' : ''), ask: 'بيضةٌ مفاجأة! ما اسمُ صغيرِ ' + s[1] + '؟', askSay: 'ما اسمُ صغيرِ ' + s[1] + '؟', opts: [s[2]].concat(others(names, s[2], 2)), ans: s[2], why: s[3], whyLine: 'صغيرُ ' + s[1] + ' اسمُه: ' + s[2] + '. ' + s[3], img: 'y_' + s[0],
+      return { srs: 'y:' + s[0], head: '<div><span class="egg" id="egg">🥚</span></div>' + (s[4] ? '<img class="pic" style="width:140px" src="img/' + s[4] + '.jpg" alt="">' : ''), ask: 'بيضةٌ مفاجأة! ما اسمُ صغيرِ ' + s[1] + '؟', askSay: 'ما اسمُ صغيرِ ' + s[1] + '؟', opts: [s[2]].concat(others(names, s[2], 2)), ans: s[2], why: s[3], whyLine: 'صغيرُ ' + s[1] + ' اسمُه: ' + s[2] + '. ' + s[3], img: 'y_' + s[0],
         onRight2: function () { speak('أضفتِ صغيرًا جديدًا إلى مجموعتِكِ يا ' + P.name + '!'); },
         extra: '<div style="font:800 19px B;margin-top:8px;color:#BE185D">🐾 أضفتِ «' + s[2] + '» إلى مجموعتِكِ!</div>',
         onRight: function () { var e = document.getElementById('egg'); if (e) { e.classList.add('crack'); setTimeout(function () { e.textContent = '🐣'; e.classList.remove('crack'); }, 600); } if (P.coll.indexOf(s[0]) < 0) { P.coll.push(s[0]); save(); } } };
@@ -218,7 +275,7 @@
   function homesWorld() {
     var H = Z.homes, names = H.map(function (s) { return s[2]; }).filter(function (v, i, a) { return a.indexOf(v) === i; });
     var items = shuffle(H).slice(0, 8).map(function (s) {
-      return { head: s[4] ? '<img class="pic" src="img/' + s[4] + '.jpg" alt="">' : '<div style="font:800 40px B;margin:20px 0">' + s[1] + '</div>', ask: 'أين يسكنُ ' + s[1] + '؟', houses: true, opts: [s[2]].concat(others(names, s[2], 2)), ans: s[2], why: s[3], whyLine: 'يسكنُ ' + s[1] + ' في: ' + s[2] + '. ' + s[3], img: 'h_' + s[0] };
+      return { srs: 'h:' + s[0], head: s[4] ? '<img class="pic" src="img/' + s[4] + '.jpg" alt="">' : '<div style="font:800 40px B;margin:20px 0">' + s[1] + '</div>', ask: 'أين يسكنُ ' + s[1] + '؟', houses: true, opts: [s[2]].concat(others(names, s[2], 2)), ans: s[2], why: s[3], whyLine: 'يسكنُ ' + s[1] + ' في: ' + s[2] + '. ' + s[3], img: 'h_' + s[0] };
     });
     quiz('w4', '🏠 أوصلي الحيوانَ لبيته', items, { again: homesWorld });
   }
@@ -236,7 +293,7 @@
         if (open.length < 2) return; moves++; lock = true;
         var a = cards[+open[0].dataset.i], c = cards[+open[1].dataset.i];
         if (a.id === c.id) {
-          open.forEach(function (x) { x.classList.add('m'); }); found++; P.stars++; save(); confetti(8);
+          open.forEach(function (x) { x.classList.add('m'); }); found++; srsRec('p:' + a.id, true); P.stars++; save(); confetti(8);
           var p = Z.pairs.filter(function (q) { return q[0] === a.id; })[0];
           document.getElementById('fb').innerHTML = '<div class="why"><b>✅ ' + p[1] + ' ← وأنثاه: ' + p[2] + '</b><img src="img/m_' + p[0] + '.jpg" alt=""></div>';
           play(function () { speak(p[1] + '، وأنثاه: ' + p[2] + '.'); }); open = []; lock = false;
@@ -249,10 +306,10 @@
   function runWorld() {
     stop();
     var pool = [];
-    Z.sounds.forEach(function (s) { pool.push({ ask: 'صوتُ ' + s[1] + '؟', ans: s[2], all: Z.sounds.map(function (x) { return x[2]; }), why: s[3] }); });
-    Z.young.forEach(function (s) { pool.push({ ask: 'صغيرُ ' + s[1] + '؟', ans: s[2], all: Z.young.map(function (x) { return x[2]; }), why: s[3] }); });
-    Z.homes.forEach(function (s) { pool.push({ ask: 'بيتُ ' + s[1] + '؟', ans: s[2], all: Z.homes.map(function (x) { return x[2]; }), why: s[3] }); });
-    Z.pairs.forEach(function (s) { pool.push({ ask: 'أنثى ال' + s[1] + '؟', ans: s[2], all: Z.pairs.map(function (x) { return x[2]; }), why: '' }); });
+    Z.sounds.forEach(function (s) { pool.push({ srs: 's:' + s[0], ask: 'صوتُ ' + s[1] + '؟', ans: s[2], all: Z.sounds.map(function (x) { return x[2]; }), why: s[3] }); });
+    Z.young.forEach(function (s) { pool.push({ srs: 'y:' + s[0], ask: 'صغيرُ ' + s[1] + '؟', ans: s[2], all: Z.young.map(function (x) { return x[2]; }), why: s[3] }); });
+    Z.homes.forEach(function (s) { pool.push({ srs: 'h:' + s[0], ask: 'بيتُ ' + s[1] + '؟', ans: s[2], all: Z.homes.map(function (x) { return x[2]; }), why: s[3] }); });
+    Z.pairs.forEach(function (s) { pool.push({ srs: 'p:' + s[0], ask: 'أنثى ال' + s[1] + '؟', ans: s[2], all: Z.pairs.map(function (x) { return x[2]; }), why: '' }); });
     var qs = shuffle(pool).slice(0, 10), qi = 0, gap = 3, score = 0, wrongs = [];
     function scene(jump) {
       return '<div class="run"><div class="ground"></div><div class="flag" style="left:' + (8 + (10 - qi) * 0) + 'px">' + (qi >= 9 ? '🏁' : '') + '</div>' +
@@ -267,7 +324,7 @@
       wireBack(); positionWolf(); play(function () { speak(q.ask); });
       [].forEach.call(app.querySelectorAll('[data-k]'), function (b) {
         b.onclick = function () {
-          var ok = o[+b.dataset.k] === q.ans;
+          var ok = o[+b.dataset.k] === q.ans; if (q.srs && !tried) srsRec(q.srs, ok);
           if (!ok) { b.disabled = true; b.classList.add('wrong'); gap = Math.max(1, gap - 1); positionWolf(); if (!tried) wrongs.push(q); tried = true; var m = 'الذئبُ يقترب يا ' + P.name + '! ركِّزي وفكِّري جيّدًا.'; document.getElementById('fb').innerHTML = '<div class="again">' + m + '</div>'; play(function () { speak(m, function () { speak(q.ask); }); }); return; }
           if (!tried) { score++; P.stars++; save(); gap = Math.min(5, gap + 1); }
           [].forEach.call(app.querySelectorAll('[data-k]'), function (x) { x.disabled = true; });
@@ -289,5 +346,8 @@
     wireBack();
   }
 
+  window.ZOO = { quiz: quiz, shuffle: shuffle, pick: pick, others: others, AR: AR, speak: speak, stop: stop, play: play, confetti: confetti, bar: bar, wireBack: wireBack, map: map, app: app, save: save, achievement: achievement, avatar: avatar, srsRec: srsRec, masc: masc, MALE: MALE, getP: function () { return P; }, addWorld: function (w) { W.push(w); } };
+  if (window.ZOO_READY) window.ZOO_READY();
+  if (!ME) { who(); return; }
   if (P) { map(); setTimeout(function () { var h = document.querySelector('.hello'); if (h) { var t = h.textContent; play(function () { speak(t, function () { speak('كلُّ إجابةٍ صحيحةٍ تمنحُكِ نجمة.'); }); }); } }, 500); } else maker(false);
 })();

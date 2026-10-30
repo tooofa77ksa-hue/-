@@ -149,3 +149,15 @@ input.name{width:100%;font:800 24px B;padding:10px 14px;border:4px solid var(--l
 #rep{position:fixed;left:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:40;width:74px;height:74px;border-radius:50%;border:4px solid var(--line);box-shadow:0 5px 0 var(--line);background:var(--gold);font-size:28px;line-height:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
 #rep small{font:800 13px B;margin-top:2px}
 #rep:active{transform:translateY(4px);box-shadow:0 1px 0 var(--line)}
+
+/* ===== عالم التفكير ===== */
+.think{text-align:center;padding:6px 0}
+.think .seq{font:800 34px/1.7 B;direction:rtl;letter-spacing:.04em}
+.think .big2{font-size:44px}
+.think .ana{font:800 26px/2.2 B}.think .ana span{display:inline-block;background:#F3E8FF;border:3px solid #8B5CF6;border-radius:14px;padding:2px 14px;margin:2px}
+.think .bal{font:800 30px/2 B;background:#FEF9C3;border:3px dashed #EAB308;border-radius:18px;padding:6px 10px}
+.tile .tt{display:flex;flex-direction:column;gap:2px}.tile .tt small{font:600 13px R;opacity:.85}.tile .st{margin-top:4px;font-size:15px}
+.simon{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:340px;margin:18px auto}
+.pad{height:120px;border-radius:26px;border:5px solid var(--line);box-shadow:0 6px 0 var(--line);opacity:.55;transition:.12s;cursor:pointer}
+.pad.lit{opacity:1;transform:scale(1.06);filter:brightness(1.25)}
+.pad:active{transform:translateY(4px);box-shadow:0 2px 0 var(--line)}
