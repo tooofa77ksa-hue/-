@@ -77,7 +77,7 @@ h1,h2,h3{line-height:1.25;margin:0}
 /* ---------- Puzzle ---------- */
 .qhead{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .level{font-weight:800;border-radius:999px;padding:2px 14px;color:#fff}
-.level.l1{background:var(--leaf)}.level.l2{background:#d98a2b}.level.l3{background:var(--bad)}
+.level.l1{background:var(--leaf)}.level.l2{background:#d98a2b}.level.l3{background:var(--bad)}.level.l4{background:#7b55a0}
 .story{background:#fff;border-radius:var(--r-big);padding:16px 20px;margin:12px 0;position:relative}
 .story .who{float:left;font-size:46px;line-height:1;margin:-4px 8px 0 0}
 .story p{margin:0 0 6px}
@@ -186,12 +186,40 @@ dialog input{font:inherit;width:100%;padding:10px 12px;border-radius:12px;border
 .avs button{font-size:30px;border:3px solid transparent;background:#f2f7f8;border-radius:12px;width:52px;height:52px;padding:0}
 .avs button.sel{border-color:var(--water)}
 
+ .vers{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 0}
+.ver{border:3px solid #cfe3e6;background:#fff;border-radius:14px;padding:4px 14px;font-weight:800;color:#b07a10;min-height:44px}
+.ver.cur{border-color:var(--water);background:#d7eef0}
+.ver.done{background:#e1f4e5;border-color:var(--good);color:var(--good)}
+.cmsg{text-align:center;font-weight:600;color:var(--muted);margin:12px 0 4px}
+.cmsg.ok{color:var(--good)}.cmsg.no{color:var(--bad)}
+#s-chal .cmds{direction:rtl;margin-bottom:20px}
+.qnav .pill{align-self:center}
+.qnav .submit{width:auto;padding:0 14px;background:var(--water);color:#fff;border-color:var(--water)}
+.medal{text-align:center;font-weight:800;font-size:1.1em;background:#fff6dc;border-radius:14px;padding:8px 12px}
+.timebox{display:flex;align-items:center;gap:10px;margin:6px 0 2px;font-weight:600;color:var(--deep)}
+.timebox:empty{display:none}
+.tbar{flex:0 0 120px;height:12px;border-radius:6px;background:#d6e7ea;overflow:hidden}
+.tbar i{display:block;height:100%;background:var(--sun)}
+.tl{width:100%;display:grid;gap:6px}
+.tlrow{display:grid;grid-template-columns:130px 1fr;gap:8px;align-items:center;background:#fff;border:3px solid transparent;border-radius:12px;padding:4px 8px;text-align:right;font-weight:600}
+.tlrow.tlhead{background:none;padding-top:0;padding-bottom:0}
+.tlrow.sel{border-color:var(--water);background:#d7eef0}
+.tlrow.clash{border-color:var(--bad);background:#fbe7e4}
+.track{position:relative;height:30px;direction:ltr}
+.track b{position:absolute;top:2px;bottom:2px;border-radius:8px;background:var(--wood);color:#fff;font-size:.8em;display:grid;place-items:center;white-space:nowrap;overflow:hidden}
+.tlhead .track i{position:absolute;transform:translateX(-50%);font-style:normal;font-size:.85em;color:var(--muted)}
+.res{background:#fff;border-radius:var(--r-mid);padding:12px 16px;margin-top:22px;border-inline-start:8px solid var(--sun)}
+.res p{margin:2px 0 0;color:var(--muted)}
+.credit{text-align:center;font-weight:800;color:var(--deep);margin:18px 0 0;font-size:1.05em}
+.conf{position:fixed;left:50%;top:45%;font-size:26px;pointer-events:none;z-index:20}
+dialog select{font:inherit;width:100%;padding:8px 10px;border-radius:12px;border:2px solid #cfe3e6;margin:6px 0 12px;background:#fff}
 @keyframes pop{0%{transform:scale(.6)}70%{transform:scale(1.1)}100%{transform:scale(1)}}
 .pop{animation:pop .35s ease-out}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 .shake{animation:shake .3s}
 @media (prefers-reduced-motion:reduce){.pop,.shake{animation:none}*{transition:none!important}}
 @media (max-width:520px){
+  .tlrow{grid-template-columns:96px 1fr}
   body{font-size:17px}
   .station .lodge{width:62px;height:62px;font-size:30px}
   .actions{grid-template-columns:1fr}
@@ -216,18 +244,24 @@ dialog input{font:inherit;width:100%;padding:10px 12px;border-radius:12px;border
   </div>
   <h2 style="font-size:1.2em;margin-top:18px">مين بيلعب؟</h2>
   <div class="players" id="players"></div>
-  <p class="foot">أنواع الألغاز مستوحاة من أرشيف مسابقة بيبراس الدولية (France-ioi، رخصة CC BY-SA)، والألغاز نفسها من تأليفنا.<br>
+  <div class="res">
+    <b>تدرّب على أسئلة بيبراس السعودية الحقيقية</b>
+    <p>أسئلة السنوات الماضية وكتاب النشاط في موقع بيبراس السعودية الرسمي: <span dir="ltr">bebrasksa.org</span></p>
+  </div>
+  <p class="foot">أنواع الألغاز مستوحاة من أسئلة بيبراس الدولية ٢٠١٤–٢٠٢٤ (أرشيف France-ioi برخصة CC BY-SA، وأدلة الحلول الأسترالية)، والألغاز نفسها من تأليفنا.<br>
   صفحة تدريب غير رسمية، ليست تابعة لموهبة.<br>
   <button id="toParent">لوحة ولي الأمر</button></p>
+  <p class="credit">تصميم عواطف الجهني</p>
 </section>
 
 <!-- MAP -->
 <section class="screen" id="s-map" aria-labelledby="h-map">
   <div class="topbar">
     <button class="back" data-go="home">⇦ تغيير اللاعب</button>
-    <span class="pill" id="mapWho"></span>
+    <span style="display:flex;gap:8px"><button class="back" id="muteBtn" type="button" aria-label="الصوت">🔊</button><span class="pill" id="mapWho"></span></span>
   </div>
   <h2 id="h-map" style="font-size:1.5em;color:var(--deep)">خريطة النهر</h2>
+  <div class="timebox" id="timeBox"></div>
   <div class="mapwrap" id="mapwrap">
     <svg class="river" viewBox="0 0 600 520" aria-hidden="true">
       <path d="M520 0 C560 90 420 110 360 150 S120 190 110 270 S330 330 440 380 S470 470 300 520" stroke="#1f6f78" stroke-width="54" fill="none" stroke-linecap="round"/>
@@ -237,7 +271,7 @@ dialog input{font:inherit;width:100%;padding:10px 12px;border-radius:12px;border
   </div>
   <div class="actions">
     <button class="big daily" id="goDaily"><span class="e">☀️</span><span>مهمة اليوم<small id="dailyInfo">٥ ألغاز مختارة لك</small></span></button>
-    <button class="big chal" id="goChal"><span class="e">🏆</span><span>تحدي بيبراس<small>١٢ سؤالاً في ٣٠ دقيقة، مثل المسابقة</small></span></button>
+    <button class="big chal" id="goChal"><span class="e">🏆</span><span>تحدي بيبراس<small>١٠ مهام في ٦٠ دقيقة، مثل بيبراس موهبة</small></span></button>
     <button class="big dash" id="goStats"><span class="e">📈</span><span>تقدّمي<small></small></span></button>
   </div>
 </section>
@@ -263,10 +297,12 @@ dialog input{font:inherit;width:100%;padding:10px 12px;border-radius:12px;border
 <section class="screen" id="s-chal">
   <div class="topbar"><button class="back" id="chalQuit">⇦ إنهاء</button><span class="pill timer" id="chalTimer">30:00</span></div>
   <div class="qnav" id="chalNav"></div>
-  <div class="qhead"><h2 id="cTitle" style="font-size:1.3em"></h2><span class="level" id="cLevel"></span></div>
+  <h2 id="cTitle" style="font-size:1.2em"></h2>
+  <div class="vers" id="cVers" role="group" aria-label="مستويات المهمة"></div>
   <div class="story" id="cStory"></div>
   <div class="board" id="cBoard"></div>
-  <p class="muted" id="cNote" style="text-align:center"></p>
+  <p class="cmsg" id="cMsg"></p>
+  <div class="cmds"><button class="btn alt" id="cRedo" type="button">لغز جديد</button><button class="btn" id="cCheck" type="button" disabled>تحقّق</button></div>
 </section>
 
 <!-- RESULT -->
@@ -290,6 +326,7 @@ dialog input{font:inherit;width:100%;padding:10px 12px;border-radius:12px;border
   <form method="dialog" id="addForm">
     <h3 style="margin-bottom:10px">لاعب جديد</h3>
     <label>الاسم<input id="addName" maxlength="16" required autocomplete="off"></label>
+    <label>الصف<select id="addGrade"><option value="3">الثالث الابتدائي</option><option value="4">الرابع الابتدائي</option><option value="5">الخامس الابتدائي</option><option value="6" selected>السادس الابتدائي</option><option value="7">الأول المتوسط</option><option value="8">الثاني المتوسط</option><option value="9">الثالث المتوسط</option><option value="10">الأول الثانوي</option><option value="11">الثاني الثانوي</option><option value="12">الثالث الثانوي</option></select></label>
     <div class="seg" id="addG"><button type="button" data-g="m" class="sel">ولد</button><button type="button" data-g="f">بنت</button></div>
     <div class="avs" id="addAv"></div>
     <div style="display:flex;gap:10px"><button class="btn" value="ok" style="flex:1">أضف</button><button class="btn alt" value="cancel" formnovalidate>إلغاء</button></div>
@@ -324,7 +361,7 @@ const fem=t=>P&&P.g==="f"&&t?t.replace(FEMRE,(m,a,w)=>a+FEM[w]):t;
 
 /* ================= sound ================= */
 let AC=null;
-function tone(freqs,dur=.12){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();let t=AC.currentTime;for(const f of freqs){const o=AC.createOscillator(),g=AC.createGain();o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.18,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+dur+.02);t+=dur*.8}}catch(e){}}
+function tone(freqs,dur=.12){if(DB.mute)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();let t=AC.currentTime;for(const f of freqs){const o=AC.createOscillator(),g=AC.createGain();o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.18,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+dur+.02);t+=dur*.8}}catch(e){}}
 const sndOk=()=>tone([523,659,784,1047],.13), sndNo=()=>tone([330,262],.18), sndTap=()=>tone([700],.05);
 
 /* ================= praise (effort-based) ================= */
@@ -372,7 +409,7 @@ const TYPES={};
 /* ---- 1. robot path (algorithms) ---- */
 TYPES.robot={world:"algo",emoji:"🤖",name:"برمج القندس",
 gen(L){
-  const N=[5,6,7][L-1], R=[4,7,11][L-1];
+  const N=[5,6,7,8][L-1], R=[4,7,11,15][L-1];
   for(;;){
     const rocks=new Set();const s=[0,ri(0,N-1)],g=[N-1,ri(0,N-1)];
     while(rocks.size<R){const c=[ri(0,N-1),ri(0,N-1)];const k=c+"";if(k!==s+""&&k!==g+"")rocks.add(k)}
@@ -384,7 +421,7 @@ gen(L){
 },
 story(q){return {who:"🦫",p:[`القندس جوعان! يبي يوصل للجزرة 🥕 بدون ما يصطدم بالصخور 🪨.`,`اكتب له أوامر: كل سهم يحرّكه مربع واحد. الأوامر تُقرأ من اليمين.`],ask:`رتّب أوامر توصله للجزرة، بحد أقصى ${n2a(q.limit)} أوامر.`}},
 render(q,board,api){
-  const grid=el("div",{class:"grid",style:`grid-template-columns:repeat(${q.N},var(--c));--c:${q.N>6?44:52}px`});
+  const grid=el("div",{class:"grid",style:`grid-template-columns:repeat(${q.N},var(--c));--c:${q.N>7?40:q.N>6?44:52}px`});
   const cells={};for(let y=0;y<q.N;y++)for(let x=0;x<q.N;x++){const c=el("div",{class:"cell"+(q.rocks.has([x,y]+"")?" rock":"")});if(q.rocks.has([x,y]+""))c.textContent="🪨";if(x===q.g[0]&&y===q.g[1])c.textContent="🥕";cells[[x,y]]=c;grid.append(c)}
   const put=(p)=>{Object.values(cells).forEach(c=>c.classList.remove("path"));cells[q.s].classList.add("path");};
   let pos=q.s.slice();const beaver=el("span",{},"🦫");cells[pos].append(beaver);
@@ -403,15 +440,16 @@ explain(q){return `أقصر طريق يحتاج ${n2a(q.best)} أوامر. ال�
 
 /* ---- 2. loop prediction (algorithms) ---- */
 TYPES.loop={world:"algo",emoji:"🔁",name:"تتبّع البرنامج",
-gen(L){const N=6;for(;;){const body=[...Array(L===1?2:ri(2,3))].map(()=>pick("UDLR"));const times=L===1?ri(2,3):ri(3,4);const pre=L===3?[...Array(ri(1,2))].map(()=>pick("UDLR")):[];
-  const s=[ri(0,N-1),ri(0,N-1)];let p=s.slice(),ok=true;const seq=[...pre];for(let t=0;t<times;t++)seq.push(...body);
+gen(L){const N=6;for(;;){const body=[...Array(L===1?2:L===4?ri(3,4):ri(2,3))].map(()=>pick("UDLR"));const times=L===1?ri(2,3):ri(3,4);const pre=L>=3?[...Array(ri(1,2))].map(()=>pick("UDLR")):[];const post=L===4?[...Array(ri(1,2))].map(()=>pick("UDLR")):[];
+  const s=[ri(0,N-1),ri(0,N-1)];let p=s.slice(),ok=true;const seq=[...pre];for(let t=0;t<times;t++)seq.push(...body);seq.push(...post);
   for(const d of seq){p=[p[0]+DIRS[d][0],p[1]+DIRS[d][1]];if(p[0]<0||p[1]<0||p[0]>=N||p[1]>=N){ok=false;break}}
-  if(!ok||(p+"")===(s+""))continue;if(Math.abs(p[0]-s[0])+Math.abs(p[1]-s[1])<2)continue;return {N,body,times,pre,s,end:p}}},
+  if(!ok||(p+"")===(s+""))continue;if(Math.abs(p[0]-s[0])+Math.abs(p[1]-s[1])<2)continue;return {N,body,times,pre,post,s,end:p}}},
 story(q){return {who:"🦫",p:["هذا برنامج القندس. «كرّر» يعني نفّذ الأوامر اللي داخلها أكثر من مرة."],ask:"وين بيوقف القندس في الآخر؟ اضغط على المربع."}},
 render(q,board,api){
   const code=el("div",{class:"code"});
   if(q.pre.length)code.append(el("div",{},"ابدأ بـ: ",el("span",{class:"ar"},q.pre.map(d=>DIRS[d][2]).join(" "))));
   code.append(el("div",{class:"loop"},`كرّر ${n2a(q.times)} مرات: `,el("span",{class:"ar"},q.body.map(d=>DIRS[d][2]).join(" "))));
+  if(q.post.length)code.append(el("div",{},"بعدها: ",el("span",{class:"ar"},q.post.map(d=>DIRS[d][2]).join(" "))));
   const grid=el("div",{class:"grid",style:`grid-template-columns:repeat(${q.N},var(--c));--c:48px`});let sel=null;
   for(let y=0;y<q.N;y++)for(let x=0;x<q.N;x++){const c=el("button",{class:"cell",type:"button","aria-label":`مربع ${x+1}،${y+1}`});if(x===q.s[0]&&y===q.s[1])c.textContent="🦫";
     c.addEventListener("click",()=>{sndTap();if(sel)sel.classList.remove("pick");sel=c;c.classList.add("pick");q.answer=[x,y];api.ready(true)});grid.append(c)}
@@ -419,12 +457,12 @@ render(q,board,api){
 },
 check(q){return q.answer&&q.answer+""===q.end+""},
 reveal(q){const i=q.end[1]*q.N+q.end[0];q._grid.children[i].classList.add("path");q._grid.children[i].textContent="⭐"},
-explain(q){const all=[...q.pre];for(let t=0;t<q.times;t++)all.push(...q.body);const c={U:0,D:0,L:0,R:0};all.forEach(d=>c[d]++);
+explain(q){const all=[...q.pre];for(let t=0;t<q.times;t++)all.push(...q.body);all.push(...q.post);const c={U:0,D:0,L:0,R:0};all.forEach(d=>c[d]++);
   return `اجمع الحركات: ${["R","L","U","D"].filter(d=>c[d]).map(d=>DIRS[d][2]+" × "+n2a(c[d])).join("، ")}. الحركات المتعاكسة تلغي بعضها، والنجمة ⭐ هي المكان الصحيح.`}};
 
 /* ---- 3. shortest path (graphs) ---- */
 TYPES.path={world:"graph",emoji:"🛶",name:"أقصر طريق",
-gen(L){const n=[6,7,9][L-1];for(;;){const G=makeGraph(n,[2,4,6][L-1]);const w=G.edges.map(()=>ri(1,9));
+gen(L){const n=[6,7,9,10][L-1];for(;;){const G=makeGraph(n,[2,4,6,8][L-1]);const w=G.edges.map(()=>ri(1,9));
   let s=0,t=0,far=-1;for(let i=0;i<n;i++){const d=bfs(G,i);d.forEach((v,j)=>{if(v>far){far=v;s=i;t=j}})}if(far<2)continue;
   const dist=Array(n).fill(1e9);dist[s]=0;const done=Array(n).fill(false);for(let k=0;k<n;k++){let u=-1;for(let i=0;i<n;i++)if(!done[i]&&(u<0||dist[i]<dist[u]))u=i;done[u]=true;for(const[v,e]of G.adj[u])if(dist[u]+w[e]<dist[v])dist[v]=dist[u]+w[e]}
   // need at least two different routes to be interesting
@@ -449,7 +487,7 @@ explain(q){return `أسرع طريق يأخذ ${n2a(q.best)} دقيقة. الط�
 /* ---- 4. spreading secret (graphs) ---- */
 const NAMES=["🦫","🦊","🐰","🦉","🐢","🐸","🦔","🐿️","🐻","🦆"];
 TYPES.secret={world:"graph",emoji:"📣",name:"انتشار الخبر",
-gen(L){const n=[6,8,10][L-1];for(;;){const G=makeGraph(n,[1,3,4][L-1]);const s=ri(0,n-1);const d=bfs(G,s);const ans=Math.max(...d);if(ans<2)continue;return {G,s,ans,labels:shuffle(NAMES).slice(0,n)}}},
+gen(L){const n=[6,8,10,10][L-1];for(;;){const G=makeGraph(n,[1,3,4,6][L-1]);const s=ri(0,n-1);const d=bfs(G,s);const ans=Math.max(...d);if(ans<2)continue;return {G,s,ans,labels:shuffle(NAMES).slice(0,n)}}},
 story(q){return {who:"📣",p:[`${q.labels[q.s]} عرف خبراً اليوم. كل يوم، كل حيوان يعرف الخبر يخبر كل أصحابه (المتصلين بخط).`],ask:"بعد كم يوم يعرف الجميع الخبر؟"}},
 render(q,board,api){board.append(drawGraph(q.G,{labels:q.labels,fill:i=>i===q.s?"#ffe9a8":"#fff"}));
   const opts=shuffle([...new Set([q.ans,q.ans+1,Math.max(1,q.ans-1),q.ans+2])]).slice(0,4);if(!opts.includes(q.ans))opts[0]=q.ans;
@@ -459,7 +497,7 @@ explain(q){return `لوّن أصحاب ${q.labels[q.s]} (اليوم ١)، ثم �
 
 /* ---- 5. binary lamps (coding) ---- */
 TYPES.binary={world:"code",emoji:"💡",name:"لمبات السدّ",
-gen(L){const k=[3,4,5][L-1];const vals=[...Array(k)].map((_,i)=>2**(k-1-i));const target=ri(L===1?2:5,2**k-1);return {vals,target,hide:L===3}},
+gen(L){const k=[3,4,5,6][L-1];const vals=[...Array(k)].map((_,i)=>2**(k-1-i));const target=ri(L===1?2:5,2**k-1);return {vals,target,hide:L>=3}},
 story(q){return {who:"💡",p:["على السدّ لمبات، كل لمبة لها رقم. إذا اشتعلت نضيف رقمها.",q.hide?"الأرقام مخفية، لكن انتبه للنمط: كل لمبة ضعف اللي على يمينها.":""],ask:`شغّل اللمبات اللي مجموعها ${n2a(q.target)}.`}},
 render(q,board,api){const on=q.vals.map(()=>false);const sum=el("div",{class:"total"});const box=el("div",{class:"lamps"});
   const upd=()=>{let s=0;q.vals.forEach((v,i)=>{if(on[i])s+=v});sum.textContent=`المجموع الآن: ${n2a(s)}`;q.answer=s;api.ready(true)};
@@ -475,26 +513,26 @@ const WORDS3=["سدّ","نهر","باب","قلم","شمس","جسر","بحر","و
 const WORDS4=["قندس","كتاب","قارب","ضفدع","مسجد","سنجاب","بستان","عصفور","فستان","ملعب","مفتاح","دلفين","نخيل","مطبخ","سحاب"].filter(w=>[...w].every(c=>ALPHA.includes(c)));
 const SYMS=["🔺","🟦","⭐","🌙","🔶","❤️","🍀","⚡","🔵","🟩","☁️","🎈","🐚","🌸","🍂","🔔"];
 TYPES.cipher={world:"code",emoji:"🔐",name:"رسالة سرّية",
-gen(L){const pool=L===1?WORDS3:WORDS4.filter(w=>L===2?w.length<=4:w.length>=4);const word=pick(pool);const letters=[...word];
+gen(L){const pool=L===1?WORDS3:WORDS4.filter(w=>L===2?w.length<=4:w.length>=5);const word=pick(pool);const letters=[...word];
   const others=(L===1?WORDS3:WORDS4).filter(w=>w.length===word.length&&w!==word);
   const opts=new Set([word]);
   // near-miss distractors: swap two letters, replace one letter
   const sw=letters.slice();const a=ri(0,sw.length-2);[sw[a],sw[a+1]]=[sw[a+1],sw[a]];if(sw.join("")!==word)opts.add(sw.join(""));
   for(let tries=0;opts.size<4&&tries<40;tries++){if(others.length&&Math.random()<.5)opts.add(pick(others));else{const c=letters.slice();c[ri(0,c.length-1)]=pick(ALPHA);opts.add(c.join(""))}}
-  if(L===3){const shift=1;const enc=letters.map(c=>ALPHA[(ALPHA.indexOf(c)+shift)%ALPHA.length]);return {word,mode:"shift",enc,opts:shuffle([...opts])}}
+  if(L>=3){const shift=L===4?2:1;const enc=letters.map(c=>ALPHA[(ALPHA.indexOf(c)+shift)%ALPHA.length]);return {word,mode:"shift",shift,enc,opts:shuffle([...opts])}}
   const uniq=[...new Set(letters)];const extra=shuffle(ALPHA.filter(c=>!uniq.includes(c))).slice(0,L===1?2:4);const keyL=shuffle([...uniq,...extra]);const syms=shuffle(SYMS);const map={};keyL.forEach((c,i)=>map[c]=syms[i]);
   return {word,mode:"key",map,keyL,enc:letters.map(c=>map[c]),opts:shuffle([...opts])}},
-story(q){return q.mode==="key"?{who:"🔐",p:["القندس كتب رسالة بالرموز. كل رمز يقابله حرف في المفتاح."],ask:"وش الكلمة؟"}:{who:"🔐",p:["القندس شفّر كلمة: غيّر كل حرف إلى الحرف اللي بعده في الأبجدية (ب بدل ا، ت بدل ب…)."],ask:"وش الكلمة الأصلية؟"}},
+story(q){return q.mode==="key"?{who:"🔐",p:["القندس كتب رسالة بالرموز. كل رمز يقابله حرف في المفتاح."],ask:"وش الكلمة؟"}:{who:"🔐",p:[q.shift===2?"القندس شفّر كلمة: غيّر كل حرف إلى الحرف اللي بعده بحرفين في الأبجدية (ت بدل ا، ث بدل ب…).":"القندس شفّر كلمة: غيّر كل حرف إلى الحرف اللي بعده في الأبجدية (ب بدل ا، ت بدل ب…)."],ask:"وش الكلمة الأصلية؟"}},
 render(q,board,api){if(q.mode==="key"){const kt=el("div",{class:"keytab"});q.keyL.forEach(c=>kt.append(el("span",{},q.map[c]+" = "+c)));board.append(el("b",{},"المفتاح:"),kt)}
   else{const al=el("div",{class:"alpha"});ALPHA.forEach(c=>al.append(el("span",{},c)));board.append(el("b",{},"الأبجدية بالترتيب:"),al)}
   board.append(el("div",{class:"msg"},q.enc.join(q.mode==="key"?" ":" ")));q._m=mcq(board,q.opts,api)},
 check(q){return q.opts[q._m.get()]===q.word},reveal(q){q._m.mark(q.opts.indexOf(q.word))},
-explain(q){return q.mode==="key"?`فك الرموز واحد واحد من المفتاح: ${q.enc.map((s,i)=>s+"="+q.word[i]).join("، ")} ← «${q.word}».`:`ارجع كل حرف خطوة للوراء في الأبجدية: ${q.enc.map((c,i)=>c+"←"+q.word[i]).join("، ")} ← «${q.word}».`}};
+explain(q){return q.mode==="key"?`فك الرموز واحد واحد من المفتاح: ${q.enc.map((s,i)=>s+"="+q.word[i]).join("، ")} ← «${q.word}».`:`ارجع كل حرف ${q.shift===2?"خطوتين":"خطوة"} للوراء في الأبجدية: ${q.enc.map((c,i)=>c+"←"+q.word[i]).join("، ")} ← «${q.word}».`}};
 
 /* ---- 7. pancakes (sorting) ---- */
 function flipBFS(start){const goal=start.slice().sort((a,b)=>a-b).join();const seen=new Map([[start.join(),0]]);const q=[start];while(q.length){const s=q.shift();const d=seen.get(s.join());if(s.join()===goal)return d;for(let k=2;k<=s.length;k++){const t=s.slice(0,k).reverse().concat(s.slice(k));const key=t.join();if(!seen.has(key)){seen.set(key,d+1);q.push(t)}}}return 99}
 TYPES.pancake={world:"sort",emoji:"🥞",name:"قلب الفطائر",
-gen(L){const n=[4,5,6][L-1];for(;;){const st=shuffle([...Array(n)].map((_,i)=>i+1));const best=flipBFS(st);if(best<2||best>[3,5,6][L-1])continue;return {st,best,limit:best+(L===1?2:L===2?1:0)}}},
+gen(L){const n=[4,5,6,7][L-1];for(;;){const st=shuffle([...Array(n)].map((_,i)=>i+1));const best=flipBFS(st);if(best<2||best>[3,5,6,8][L-1]||(L===4&&best<6))continue;return {st,best,limit:best+(L===1?2:L===2?1:0)}}},
 story(q){return {who:"🥞",p:["القندس عنده كومة فطائر بأحجام مختلفة. بالملعقة يقدر يقلب الفطائر من أي مكان إلى الأعلى مرة وحدة.","اضغط على فطيرة: تنقلب هي وكل اللي فوقها."],ask:`رتّبها: الكبيرة تحت والصغيرة فوق، في ${n2a(q.limit)} قلبات أو أقل.`}},
 render(q,board,api){let st=q.st.slice(),moves=0;const box=el("div",{class:"stack"});const info=el("div",{class:"total"});
   const paint=()=>{box.innerHTML="";st.forEach((v,i)=>{const b=el("button",{class:"cake",type:"button",style:`width:${70+v*26}px`,"aria-label":`فطيرة حجم ${v}`},n2a(v));b.addEventListener("click",()=>{if(i===0)return;sndTap();st=st.slice(0,i+1).reverse().concat(st.slice(i+1));moves++;paint()});
@@ -507,7 +545,7 @@ explain(q){return `أقل عدد قلبات هنا ${n2a(q.best)}. الطريق�
 /* ---- 8. stack crane (sorting) ---- */
 function stackPossible(out){const n=out.length;const st=[];let next=1;for(const x of out){while(next<=x)st.push(next++);if(st.pop()!==x)return false}return true}
 TYPES.crane={world:"sort",emoji:"🏗️",name:"رافعة الصناديق",
-gen(L){const n=[3,4,5][L-1];const all=[];const perm=(a,b=[])=>{if(!a.length){all.push(b);return}a.forEach((x,i)=>perm(a.filter((_,j)=>j!==i),b.concat(x)))};perm([...Array(n)].map((_,i)=>i+1));
+gen(L){const n=[3,4,5,6][L-1];const all=[];const perm=(a,b=[])=>{if(!a.length){all.push(b);return}a.forEach((x,i)=>perm(a.filter((_,j)=>j!==i),b.concat(x)))};perm([...Array(n)].map((_,i)=>i+1));
   const ok=shuffle(all.filter(stackPossible)),bad=shuffle(all.filter(p=>!stackPossible(p)));const opts=shuffle([bad[0],...ok.slice(0,3)]);return {n,opts,bad:bad[0]}},
 story(q){return {who:"🏗️",p:[`الصناديق تجي بالترتيب ${[...Array(q.n)].map((_,i)=>n2a(i+1)).join("، ")}. الرافعة تحط الصندوق فوق الكومة، وتقدر بأي وقت تاخذ الصندوق اللي فوق الكومة وتحطه في الشاحنة.`,"ما تقدر تاخذ صندوق من تحت الكومة!"],ask:"أي ترتيب في الشاحنة مستحيل؟"}},
 render(q,board,api){board.append(el("div",{class:"truck"},el("span",{},"تجي الصناديق:"),...[...Array(q.n)].map((_,i)=>el("span",{class:"box"},n2a(i+1)))));
@@ -517,7 +555,7 @@ explain(q){return `جرّب كل ترتيب: ترتيب ${q.bad.map(n2a).join("�
 
 /* ---- 9. pattern transform (patterns) ---- */
 TYPES.mirror={world:"pattern",emoji:"🪞",name:"المرآة والدوران",
-gen(L){const N=L===1?4:5;const rnd=()=>[...Array(N)].map(()=>[...Array(N)].map(()=>Math.random()<.4));let a=rnd();let rule,res,b=null;
+gen(L){const N=L===1?4:L===4?6:5;const rnd=()=>[...Array(N)].map(()=>[...Array(N)].map(()=>Math.random()<.4));let a=rnd();let rule,res,b=null;
   if(L===1){rule="mirror";res=a.map(r=>r.slice().reverse())}
   else if(L===2){rule=pick(["rot","flipv"]);res=rule==="rot"?a.map((r,y)=>r.map((_,x)=>a[N-1-x][y])):a.slice().reverse().map(r=>r.slice())}
   else{rule="xor";b=rnd();res=a.map((r,y)=>r.map((v,x)=>v!==b[y][x]))}
@@ -539,6 +577,7 @@ const SH=["🔺","🟦","⚪","⭐","🌙","🍀"];
 TYPES.seq={world:"pattern",emoji:"🔮",name:"وش اللي بعده؟",
 gen(L){if(L===1){const k=ri(3,4);const cyc=shuffle(SH).slice(0,k);const len=k===3?7:8;const items=[...Array(len)].map((_,i)=>cyc[i%k]);const ans=cyc[len%k];return {items,ans,opts:shuffle([...new Set([ans,...cyc,pick(SH)])]).slice(0,4).concat([]),why:`النمط يتكرر كل ${n2a(k)}: ${cyc.join(" ")}.`}}
   if(L===2){const a=ri(1,3),d=ri(2,3);const nums=[...Array(5)].map((_,i)=>a+i*d);const ans=a+5*d;const s=pick(["●","🐟","🌰"]);return {items:nums.map(n=>s.repeat(n)),ans:s.repeat(ans),opts:shuffle([ans,ans+1,ans-1,ans+d]).map(n=>s.repeat(n)),count:true,why:`كل مرة نزيد ${n2a(d)}. آخر واحد ${n2a(a+4*d)}، فاللي بعده ${n2a(ans)}.`}}
+  if(L===4){const f=[1,2,3,5,8];const s=pick(["●","🌰","⭐"]);const ans=13;return {items:f.map(n=>s.repeat(n)),ans:s.repeat(ans),opts:shuffle([13,11,12,16]).map(n=>s.repeat(n)),count:true,why:`كل عدد = مجموع العددين اللي قبله: ٥ + ٨ = ١٣.`}}
   const A=pick(["🐟","🍃","🌰"]),B=pick(["⭐","🌙","🔶"]);const items=[...Array(5)].map((_,i)=>(i%2?B:A).repeat(i+1));const ans=A.repeat(6);
   return {items,ans,opts:shuffle([ans,B.repeat(6),A.repeat(5),B.repeat(7)]),count:true,why:`نمطين مع بعض: الرمز يتبادل ${A} ثم ${B}، والعدد يزيد واحد كل مرة. السادس: ${A} × ${n2a(6)}.`}},
 story(q){return {who:"🔮",p:["القندس صفّ أشياء بنمط معيّن."],ask:"وش اللي يجي مكان علامة الاستفهام؟"}},
@@ -551,9 +590,9 @@ check(q){return q.opts[q._m.get()]===q.ans},reveal(q){q._m.mark(q.opts.indexOf(q
 const PALS=[["🦫","قندس"],["🦊","ثعلب"],["🐰","أرنب"],["🦉","بومة"],["🐢","سلحفاة"]];
 function allPerms(n){const r=[];const go=(a,b)=>{if(!a.length){r.push(b);return}a.forEach((x,i)=>go(a.filter((_,j)=>j!==i),b.concat(x)))};go([...Array(n).keys()],[]);return r}
 TYPES.houses={world:"logic",emoji:"🏡",name:"مين ساكن وين؟",
-gen(L){const n=[3,4,5][L-1];const pals=shuffle(PALS).slice(0,n);const perms=allPerms(n); // perm[p]=house of pal p
+gen(L){const n=[3,4,5,5][L-1];const pals=shuffle(PALS).slice(0,n);const perms=allPerms(n); // perm[p]=house of pal p
   for(;;){const sol=pick(perms);const N=i=>pals[i][1];const H=h=>n2a(h+1);
-    const mk=()=>{const t=ri(0,L===1?2:5);const a=ri(0,n-1);let b=ri(0,n-1);while(b===a)b=ri(0,n-1);
+    const mk=()=>{const t=L===1?ri(0,2):L===4?ri(1,5):ri(0,5);const a=ri(0,n-1);let b=ri(0,n-1);while(b===a)b=ri(0,n-1);
       switch(t){case 0:return [p=>p[a]===sol[a],`${N(a)} ساكن في البيت رقم ${H(sol[a])}.`];
         case 1:return Math.abs(sol[a]-sol[b])===1?[p=>Math.abs(p[a]-p[b])===1,`${N(a)} جار ${N(b)} (بيتهم جنب بعض).`]:[p=>Math.abs(p[a]-p[b])!==1,`${N(a)} مو جار ${N(b)}.`];
         case 2:return sol[a]<sol[b]?[p=>p[a]<p[b],`رقم بيت ${N(a)} أصغر من رقم بيت ${N(b)}.`]:[p=>p[a]>p[b],`رقم بيت ${N(a)} أكبر من رقم بيت ${N(b)}.`];
@@ -581,31 +620,152 @@ explain(q){return `الترتيب الصحيح: ${q.sol.map((h,i)=>[h,i]).sort((
 /* ---- 12. balance (logic) ---- */
 const FRUIT=["🍎","🍐","🍊","🍇","🥥","🍉"];
 TYPES.balance={world:"logic",emoji:"⚖️",name:"الميزان",
-gen(L){const n=[3,4,5][L-1];const items=shuffle(FRUIT).slice(0,n);// items in order heavy->light
-  const comps=shuffle(items.slice(0,-1).map((x,i)=>[x,items[i+1]]));const askSecond=L===3;const ans=askSecond?items[1]:items[0];
-  return {items,comps,ans,askSecond,opts:shuffle(items).slice(0,4).concat(items.length<4?[]:[]).filter((v,i,a)=>a.indexOf(v)===i)}},
-story(q){return {who:"⚖️",p:["القندس وزن الفواكه على الميزان مرتين مرتين. الكفّة النازلة فيها الأثقل."],ask:q.askSecond?"أي فاكهة هي الثانية في الثقل؟":"أي فاكهة هي الأثقل؟"}},
+gen(L){const n=[3,4,5,6][L-1];const items=shuffle(FRUIT).slice(0,n);// items in order heavy->light
+  const comps=shuffle(items.slice(0,-1).map((x,i)=>[x,items[i+1]]));const askSecond=L===3,askThird=L===4;const ans=askThird?items[2]:askSecond?items[1]:items[0];
+  return {items,comps,ans,askSecond,askThird,opts:shuffle(items).slice(0,4).concat(items.length<4?[]:[]).filter((v,i,a)=>a.indexOf(v)===i)}},
+story(q){return {who:"⚖️",p:["القندس وزن الفواكه على الميزان مرتين مرتين. الكفّة النازلة فيها الأثقل."],ask:q.askThird?"أي فاكهة هي الثالثة في الثقل؟":q.askSecond?"أي فاكهة هي الثانية في الثقل؟":"أي فاكهة هي الأثقل؟"}},
 render(q,board,api){const sc=el("div",{class:"scales"});q.comps.forEach(([h,l])=>sc.append(el("div",{class:"scale"},el("span",{},h),el("small",{},"أثقل من"),el("span",{},l))));board.append(sc);
   if(!q.opts.includes(q.ans))q.opts[0]=q.ans;q._m=mcq(board,q.opts,api,o=>el("span",{style:"font-size:1.5em"},o))},
 check(q){return q.opts[q._m.get()]===q.ans},reveal(q){q._m.mark(q.opts.indexOf(q.ans))},
 explain(q){return `رتّبها من الأثقل: ${q.items.join(" > ")}. ابحث عن الفاكهة اللي ما فيه شي أثقل منها.`}};
 
+/* ---- 13. pick-up sticks (sorting / layering) ---- */
+const STICKC=["#c2453b","#2f6fb3","#2f8a4a","#d98a2b","#7b55a0","#1f6f78","#a8672f"];
+TYPES.sticks={world:"sort",emoji:"🥢",name:"التقط العيدان",
+gen(L){const n=[4,5,6,7][L-1];for(let tries=0;tries<500;tries++){
+  const st=[];for(let i=0;i<n;i++){const a=Math.random()*Math.PI,cx=ri(110,210),cy=ri(110,210),len=ri(190,250);st.push({x1:cx-Math.cos(a)*len/2,y1:cy-Math.sin(a)*len/2,x2:cx+Math.cos(a)*len/2,y2:cy+Math.sin(a)*len/2,c:STICKC[i]})}
+  if(st.some(s=>[s.x1,s.x2,s.y1,s.y2].some(v=>v<14||v>306)))continue;
+  const P2=s=>[{x:s.x1,y:s.y1},{x:s.x2,y:s.y2}];const over=st.map(()=>[]);let ok=true;
+  for(let i=0;i<n;i++){let c=0;for(let j=0;j<n;j++){if(i===j)continue;const[a,b]=P2(st[i]),[d,e]=P2(st[j]);if(segCross(a,b,d,e)){c++;if(j>i)over[i].push(j)}}if(!c)ok=false}
+  if(!ok)continue;return {n,st,over}}},
+story(q){return {who:"🥢",p:["القندس رمى عيدان ملوّنة فوق بعض. يقدر يشيل العود بس إذا ما فوقه أي عود."],ask:"اضغط على العيدان بالترتيب اللي يقدر يشيلها فيه، واحد واحد."}},
+render(q,board,api){const svg=sv("svg",{class:"g",viewBox:"0 0 320 320",style:"max-width:360px;background:#f6efe3;border-radius:20px"});const lines=[];let order=[];
+  q.st.forEach((s,i)=>{const g=sv("g",{"data-i":i,class:"node",tabindex:0});g.append(sv("line",{x1:s.x1,y1:s.y1,x2:s.x2,y2:s.y2,stroke:"#3b2a17","stroke-width":20,"stroke-linecap":"round"}),sv("line",{x1:s.x1,y1:s.y1,x2:s.x2,y2:s.y2,stroke:s.c,"stroke-width":14,"stroke-linecap":"round"}));
+    const pick=()=>{if(order.includes(i))return;sndTap();order.push(i);paint()};g.addEventListener("click",pick);g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();pick()}});lines.push(g);svg.append(g)});
+  const row=el("div",{class:"prog"});const paint=()=>{lines.forEach((g,i)=>{const k=order.indexOf(i);g.style.opacity=k>=0?.12:1;g.style.pointerEvents=k>=0?"none":""});row.innerHTML="";order.forEach(i=>row.append(el("span",{style:`background:${q.st[i].c}`}," ")));q.answer=order.slice();api.ready(order.length===q.n)};
+  board.append(svg,row,el("div",{class:"cmds"},el("button",{class:"btn alt",type:"button",onclick:()=>{order.pop();paint()}},"تراجع"),el("button",{class:"btn alt",type:"button",onclick:()=>{order=[];paint()}},"ابدأ من جديد")));paint()},
+check(q){const gone=new Set();for(const i of q.answer){if(q.over[i].some(j=>!gone.has(j)))return false;gone.add(i)}return gone.size===q.n},
+explain(q){const ord=[];const gone=new Set();while(ord.length<q.n){for(let i=q.n-1;i>=0;i--)if(!gone.has(i)&&q.over[i].every(j=>gone.has(j))){ord.push(i);gone.add(i);break}}
+  return `دوّر دايماً على العود اللي ما فوقه شي. ترتيب صحيح: ${ord.map(i=>["الأحمر","الأزرق","الأخضر","البرتقالي","البنفسجي","الفيروزي","البني"][i]).join(" ← ")}.`}};
+
+/* ---- 14. scheduling (planning) ---- */
+const ACTS=[["🦁","الأسود"],["🐘","الفيلة"],["🦒","الزرافات"],["🐧","البطاريق"],["🐬","الدلافين"],["🦜","الببغاوات"],["🐼","الباندا"],["🐢","السلاحف"],["🦓","الحمار الوحشي"],["🐒","القرود"]];
+const H12=h=>n2a(h>12?h-12:h);
+TYPES.schedule={world:"plan",emoji:"🎪",name:"يوم في حديقة الحيوان",
+gen(L){const n=[5,6,8,10][L-1];for(;;){const acts=shuffle(ACTS).slice(0,n).map(a=>{const s=ri(8,15);return {e:a[0],name:a[1],s,f:Math.min(17,s+ri(1,L>2?3:2))}});
+  const srt=acts.slice().sort((a,b)=>a.f-b.f);let cnt=0,end=0;for(const a of srt)if(a.s>=end){cnt++;end=a.f}
+  if(cnt<2||cnt>=n-1)continue;return {acts,best:cnt}}},
+story(q){return {who:"🎪",p:["القندس في حديقة الحيوان. كل عرض له وقت بداية ووقت نهاية، وما يقدر يحضر عرضين بنفس الوقت.","يقدر يحضر عرض يبدأ بنفس اللحظة اللي يخلص فيها العرض اللي قبله."],ask:"اختر أكبر عدد من العروض يقدر يحضرها."}},
+render(q,board,api){const sel=new Set();const wrap=el("div",{class:"tl"});const head=el("div",{class:"tlrow tlhead"},el("span",{}),el("div",{class:"track"},...[8,10,12,14,16].map(h=>el("i",{style:`left:${(h-8)/9*100}%`},H12(h)))));wrap.append(head);
+  const rows=q.acts.map((a,i)=>{const bar=el("b",{style:`left:${(a.s-8)/9*100}%;width:${(a.f-a.s)/9*100}%`},`${H12(a.s)}–${H12(a.f)}`);const r=el("button",{class:"tlrow",type:"button","aria-pressed":"false"},el("span",{},a.e+" "+a.name),el("div",{class:"track"},bar));
+    r.addEventListener("click",()=>{sndTap();sel.has(i)?sel.delete(i):sel.add(i);paint()});wrap.append(r);return r});
+  const info=el("div",{class:"total"});
+  const paint=()=>{const bad=new Set();for(const i of sel)for(const j of sel)if(i<j){const A=q.acts[i],B=q.acts[j];if(!(A.f<=B.s||B.f<=A.s)){bad.add(i);bad.add(j)}}
+    rows.forEach((r,i)=>{r.classList.toggle("sel",sel.has(i));r.classList.toggle("clash",bad.has(i));r.setAttribute("aria-pressed",sel.has(i))});
+    info.textContent=bad.size?T("فيه عروض متداخلة باللون الأحمر","فيه عروض متداخلة باللون الأحمر"):`اخترت ${n2a(sel.size)} عروض`;q.answer=[...sel];api.ready(sel.size>0)};
+  board.append(wrap,info);paint()},
+check(q){const a=q.answer.map(i=>q.acts[i]);for(let i=0;i<a.length;i++)for(let j=i+1;j<a.length;j++)if(!(a[i].f<=a[j].s||a[j].f<=a[i].s))return false;return a.length===q.best},
+explain(q){return `الحيلة: اختر دايماً العرض اللي يخلص بدري، ثم أبدر عرض يبدأ بعده، وهكذا. أكثر شي ممكن هنا ${n2a(q.best)} عروض.`}};
+
+/* ---- 15. dependency order (planning) ---- */
+const JOBS=[["🪵","الخشب"],["🪨","الحجارة"],["🌿","الأعشاب"],["🧱","الطين"],["🪣","الماء"],["🔨","التثبيت"],["🚪","الباب"],["🏠","السقف"]];
+TYPES.topo={world:"plan",emoji:"🏗️",name:"بناء السدّ بالترتيب",
+gen(L){const n=[4,5,6,7][L-1];const jobs=shuffle(JOBS).slice(0,n);const ord=shuffle([...Array(n).keys()]);const edges=new Set();
+  for(let k=1;k<n;k++)edges.add(ord[ri(0,k-1)]+">"+ord[k]);for(let x=0;x<[0,1,2,4][L-1];x++){const a=ri(0,n-2),b=ri(a+1,n-1);edges.add(ord[a]+">"+ord[b])}
+  return {n,jobs,edges:[...edges].map(e=>e.split(">").map(Number))}},
+story(q){return {who:"🏗️",p:["القنادس يبنون سدّ، وفيه مهام لازم تصير قبل غيرها."],ask:"رتّب المهام: اضغط عليها بالترتيب الصحيح من الأول للأخير."}},
+render(q,board,api){const ul=el("ul",{class:"clues"});shuffle(q.edges).forEach(([a,b])=>ul.append(el("li",{},`${q.jobs[a][0]} ${q.jobs[a][1]} لازم قبل ${q.jobs[b][0]} ${q.jobs[b][1]}`)));
+  let order=[];const chips=el("div",{class:"chips"});const row=el("div",{class:"prog"});
+  const paint=()=>{chips.innerHTML="";q.jobs.forEach((j,i)=>{const b=el("button",{class:"chip"+(order.includes(i)?" used":""),type:"button"},j[0]+" "+j[1]);b.addEventListener("click",()=>{if(order.includes(i))return;sndTap();order.push(i);paint()});chips.append(b)});
+    row.innerHTML="";order.forEach(i=>row.append(el("span",{style:"width:auto;padding:0 8px"},q.jobs[i][0])));q.answer=order.slice();api.ready(order.length===q.n)};
+  board.append(ul,chips,el("b",{},"ترتيبك (من اليمين):"),row,el("div",{class:"cmds"},el("button",{class:"btn alt",type:"button",onclick:()=>{order.pop();paint()}},"تراجع")));paint()},
+check(q){const pos={};q.answer.forEach((i,k)=>pos[i]=k);return q.answer.length===q.n&&q.edges.every(([a,b])=>pos[a]<pos[b])},
+explain(q){const indeg=Array(q.n).fill(0);q.edges.forEach(([,b])=>indeg[b]++);const out=[],ready=[...Array(q.n).keys()].filter(i=>!indeg[i]);while(ready.length){const u=ready.shift();out.push(u);q.edges.forEach(([a,b])=>{if(a===u&&--indeg[b]===0)ready.push(b)})}
+  return `ابدأ بالمهمة اللي ما قبلها شي، ثم شيلها وشوف مين صار جاهز. ترتيب صحيح: ${out.map(i=>q.jobs[i][0]).join(" ← ")}.`}};
+
+/* ---- 16. logic gates (logic) ---- */
+function gEval(n,sw){if(n.leaf!==undefined)return sw[n.leaf];if(n.op==="not")return !gEval(n.a,sw);const a=gEval(n.a,sw),b=gEval(n.b,sw);return n.op==="and"?a&&b:a||b}
+TYPES.gates={world:"logic",emoji:"💡",name:"مصباح البوابات",
+gen(L){for(;;){const op=()=>pick(["and","or"]);let k,root;
+  if(L===1){k=2;root={op:op(),a:{leaf:0},b:{leaf:1}}}
+  else if(L===2){k=3;root={op:op(),a:{op:op(),a:{leaf:0},b:{leaf:1}},b:{leaf:2}}}
+  else{k=4;root={op:op(),a:{op:op(),a:{leaf:0},b:{leaf:1}},b:{op:op(),a:{leaf:2},b:{leaf:3}}};if(L===4){const t=pick(["a","b"]);root[t]={op:"not",a:root[t]}}}
+  let best=99;for(let m=0;m<2**k;m++){const sw=[...Array(k)].map((_,i)=>!!(m>>i&1));if(gEval(root,sw)){const c=sw.filter(Boolean).length;best=Math.min(best,c)}}
+  if(best===99||(L>1&&best<1))continue;if(L>=3&&best<2&&Math.random()<.6)continue;return {k,root,best}}},
+story(q){return {who:"💡",p:["المصباح فوق يشتغل حسب البوابات. «و» تحتاج الطرفين شغالين، «أو» يكفيها طرف واحد، «لا» تعكس."],ask:`شغّل المصباح بأقل عدد من المفاتيح.`}},
+render(q,board,api){const sw=Array(q.k).fill(false);const box=el("div",{style:"width:100%;display:flex;justify-content:center"});
+  const depth=n=>n.leaf!==undefined?0:1+Math.max(depth(n.a),n.b?depth(n.b):0);const D=depth(q.root);const W=480,H=110+D*80;
+  const draw=()=>{const svg=sv("svg",{class:"g",viewBox:`0 0 ${W} ${H}`,style:"max-width:480px"});let leafX=i=>40+i*(W-80)/(q.k-1);
+    const pos=(n,d)=>{if(n.leaf!==undefined)return {x:leafX(n.leaf),y:H-40};const A=pos(n.a,d+1),B=n.b?pos(n.b,d+1):null;const x=B?(A.x+B.x)/2:A.x;const y=Math.min(A.y,B?B.y:A.y)-80;
+      const on=gEval(n,sw);[A,B].filter(Boolean).forEach((c,ci)=>{const child=ci?n.b:n.a;svg.append(sv("line",{x1:x,y1:y,x2:c.x,y2:c.y,stroke:gEval(child,sw)?"#f4c04e":"#55666a","stroke-width":6}))});
+      const g=sv("g");g.append(sv("rect",{x:x-30,y:y-20,width:60,height:40,rx:n.op==="not"?20:10,fill:"#fff",stroke:on?"#d19a1c":"#1f6f78","stroke-width":4}));const t=sv("text",{x,y:y+8,"text-anchor":"middle","font-size":20,"font-weight":800});t.textContent={and:"و",or:"أو",not:"لا"}[n.op];g.append(t);svg.append(g);n._p={x,y};return {x,y}};
+    const R=pos(q.root,0);const lit=gEval(q.root,sw);svg.append(sv("line",{x1:R.x,y1:R.y-20,x2:R.x,y2:24,stroke:lit?"#f4c04e":"#55666a","stroke-width":6}));const lamp=sv("text",{x:R.x,y:34,"text-anchor":"middle","font-size":40});lamp.textContent=lit?"💡":"⚫";svg.append(lamp);
+    for(let i=0;i<q.k;i++){const g=sv("g",{class:"node",tabindex:0});g.append(sv("rect",{x:leafX(i)-26,y:H-62,width:52,height:44,rx:12,fill:sw[i]?"#f4c04e":"#dfe7e8",stroke:"#3c494c","stroke-width":3}));const t=sv("text",{x:leafX(i),y:H-32,"text-anchor":"middle","font-size":18,"font-weight":800});t.textContent=sw[i]?"شغّال":"طافي";g.append(t);
+      const tog=()=>{sndTap();sw[i]=!sw[i];paint()};g.addEventListener("click",tog);g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();tog()}});svg.append(g)}
+    return svg};
+  const info=el("div",{class:"total"});const paint=()=>{box.innerHTML="";box.append(draw());const c=sw.filter(Boolean).length;info.textContent=`المفاتيح الشغّالة: ${n2a(c)}`;q.answer={lit:gEval(q.root,sw),c};api.ready(c>0)};
+  board.append(box,info);paint()},
+check(q){return q.answer.lit&&q.answer.c===q.best},
+explain(q){return `أقل عدد يشغّل المصباح هنا ${n2a(q.best)}. ابدأ من المصباح ونزل: بوابة «أو» تكفيها طريق واحد، اختر الأرخص، وبوابة «و» تحتاج الطريقين.`}};
+
+/* ---- 17. decision tree (coding / data) ---- */
+const TATTR=[["red","أحمر؟"],["circle","دائرة؟"],["big","كبير؟"]];
+const glyph=it=>el("span",{style:`font-size:${it.big?"1.9em":"1em"};line-height:1`},it.circle?(it.red?"🔴":"🔵"):(it.red?"🟥":"🟦"));
+TYPES.tree={world:"code",emoji:"🌳",name:"شجرة القرار",
+gen(L){const attrs=shuffle(TATTR);let box=0;const leaf=()=>({box:++box});
+  let root;if(L===1)root={q:attrs[0],y:leaf(),n:{q:attrs[1],y:leaf(),n:leaf()}};
+  else if(L===2)root={q:attrs[0],y:{q:attrs[1],y:leaf(),n:leaf()},n:{q:attrs[2],y:leaf(),n:leaf()}};
+  else root={q:attrs[0],y:{q:attrs[1],y:leaf(),n:{q:attrs[2],y:leaf(),n:leaf()}},n:{q:attrs[2],y:leaf(),n:leaf()}};
+  const route=it=>{let n=root;while(n.q)n=it[n.q[0]]?n.y:n.n;return n.box};
+  const all=[];for(let m=0;m<8;m++)all.push({red:!!(m&1),circle:!!(m&2),big:!!(m&4)});
+  if(L<4){const it=pick(all);const ans=route(it);const opts=shuffle([...Array(box)].map((_,i)=>i+1)).slice(0,4);if(!opts.includes(ans))opts[0]=ans;return {root,box,mode:"where",it,ans,opts:shuffle(opts)}}
+  const target=ri(1,box);const good=shuffle(all.filter(it=>route(it)===target)),bad=shuffle(all.filter(it=>route(it)!==target));
+  return {root,box,mode:"which",target,ans:good[0],opts:shuffle([good[0],...bad.slice(0,3)])}},
+story(q){return q.mode==="where"?{who:"🌳",p:["القندس يفرز القطع بشجرة أسئلة: يبدأ من فوق، ويمشي على «نعم» أو «لا» لين يوصل صندوق."],ask:"في أي صندوق تنزل هذي القطعة؟"}:{who:"🌳",p:["القندس يفرز القطع بشجرة أسئلة: يبدأ من فوق، ويمشي على «نعم» أو «لا» لين يوصل صندوق."],ask:`أي قطعة تنزل في الصندوق ${n2a(q.target)}؟`}},
+render(q,board,api){const W=520;const leaves=n=>n.q?leaves(n.y)+leaves(n.n):1;const dep=n=>n.q?1+Math.max(dep(n.y),dep(n.n)):0;const H=70+dep(q.root)*90;
+  const svg=sv("svg",{class:"g",viewBox:`0 0 ${W} ${H}`});
+  const lay=(n,x0,x1,y)=>{const x=(x0+x1)/2;if(!n.q){svg.append(sv("rect",{x:x-26,y:y-20,width:52,height:40,rx:8,fill:"#c58b4c",stroke:"#7a4b22","stroke-width":3}));const t=sv("text",{x,y:y+8,"text-anchor":"middle","font-size":20,"font-weight":800,fill:"#fff"});t.textContent=n2a(n.box);svg.append(t);return}
+    const ly=leaves(n.y),tot=ly+leaves(n.n);const mid=x0+(x1-x0)*ly/tot;const cy=(x0m,x1m)=>(x0m+x1m)/2;
+    [[n.y,x0,mid,"نعم"],[n.n,mid,x1,"لا"]].forEach(([c,a,b,lab])=>{const cx=cy(a,b);svg.append(sv("line",{x1:x,y1:y,x2:cx,y2:y+90,stroke:"#7a4b22","stroke-width":4}));const t=sv("text",{x:(x+cx)/2+(lab==="نعم"?-14:14),y:y+45,"text-anchor":"middle","font-size":15,"font-weight":800,fill:lab==="نعم"?"#2f8a4a":"#c2453b"});t.textContent=lab;svg.append(t);lay(c,a,b,y+90)});
+    svg.append(sv("rect",{x:x-46,y:y-20,width:92,height:40,rx:20,fill:"#fff",stroke:"#1f6f78","stroke-width":3}));const t=sv("text",{x,y:y+7,"text-anchor":"middle","font-size":18,"font-weight":800});t.textContent=n.q[1];svg.append(t)};
+  lay(q.root,10,W-10,34);board.append(svg);
+  if(q.mode==="where"){board.append(el("div",{class:"seq"},el("span",{},glyph(q.it))));q._m=mcq(board,q.opts,api,o=>"📦 "+n2a(o))}
+  else q._m=mcq(board,q.opts,api,o=>glyph(o))},
+check(q){return q.opts[q._m.get()]===q.ans},reveal(q){q._m.mark(q.opts.indexOf(q.ans))},
+explain(){return "ابدأ من السؤال اللي فوق، وجاوب عن القطعة بصدق «نعم» أو «لا»، وانزل خطوة خطوة لين توصل صندوق."}};
+
+/* ---- 18. guessing / binary search (algorithms) ---- */
+TYPES.guess={world:"algo",emoji:"🔍",name:"خمّن الرقم",
+gen(L){const N=[15,31,63,100][L-1];return {N,limit:Math.ceil(Math.log2(N+1))}},
+story(q){return {who:"🔍",p:[`القندس اختار رقماً من ١ إلى ${n2a(q.N)}. بعد كل تخمين يقول لك: «أكبر» أو «أصغر».`,"انتبه: القندس ذكي ويحاول يطوّل اللعبة!"],ask:`لاقِ الرقم في ${n2a(q.limit)} تخمينات أو أقل.`}},
+render(q,board,api){let lo=1,hi=q.N,used=0,done=false;const cols=q.N>63?10:q.N>31?9:8;const grid=el("div",{class:"grid",style:`grid-template-columns:repeat(${cols},var(--c));--c:${q.N>63?32:36}px`});const msg=el("div",{class:"total"});const cells=[];
+  for(let i=1;i<=q.N;i++){const c=el("button",{class:"cell",type:"button",style:"font-size:14px;font-weight:800"},n2a(i));c.addEventListener("click",()=>guess(i));cells.push(c);grid.append(c)}
+  const paint=()=>{cells.forEach((c,k)=>{const v=k+1;c.classList.toggle("rock",v<lo||v>hi);c.disabled=done})};
+  function guess(g){if(done)return;sndTap();used++;if(lo===hi&&g===lo){done=true;q.answer=true;msg.textContent=T(`لقيته! الرقم ${n2a(g)} في ${n2a(used)} تخمينات`,`لقيتيه! الرقم ${n2a(g)} في ${n2a(used)} تخمينات`);cells[g-1].classList.add("path");paint();api.ready(true);return}
+    let say;if(g<lo)say="أكبر";else if(g>hi)say="أصغر";else if(g-lo>hi-g){say="أصغر";hi=g-1}else{say="أكبر";lo=g+1}
+    if(lo===hi&&used<q.limit){}msg.textContent=`${n2a(g)}؟ الرقم ${say} ${say==="أكبر"?"⬆":"⬇"} · باقي ${n2a(Math.max(0,q.limit-used))} تخمينات`;
+    if(used>=q.limit){done=true;q.answer=false;msg.textContent+=" · خلصت التخمينات";api.ready(true)}paint()}
+  board.append(msg,grid);msg.textContent=`باقي ${n2a(q.limit)} تخمينات`;paint()},
+check(q){return q.answer===true},
+explain(q){return `خمّن دايماً الرقم اللي في النص: كل تخمين يشيل نص الأرقام. مع ${n2a(q.N)} رقم تكفيك ${n2a(q.limit)} تخمينات. هذي اسمها «البحث الثنائي».`}};
+
 /* ================= worlds ================= */
 const WORLDS=[
- {id:"algo",emoji:"🤖",name:"عالم الخوارزميات",x:78,y:9,learn:"<b>الخوارزمية</b> = خطوات مرتّبة توصلك للهدف. في بيبراس تجيك متاهات وروبوتات وبرامج فيها «كرّر». السرّ: نفّذ الخطوات بنفسك واحدة واحدة."},
- {id:"graph",emoji:"🕸️",name:"عالم الشبكات",x:30,y:34,learn:"<b>الشبكة</b> = نقاط وخطوط تربطها، مثل الطرق أو الأصحاب. الأسئلة عن أقصر طريق، أو كم خطوة يوصل الخبر. السرّ: لوّن النقاط مرحلة مرحلة."},
- {id:"code",emoji:"🔢",name:"عالم الترميز",x:22,y:55,learn:"<b>الترميز</b> = نكتب المعلومة بشكل ثاني: رموز، أضواء، أرقام ثنائية. السرّ: لاحظ القاعدة في المفتاح وطبّقها بدقة."},
- {id:"sort",emoji:"📚",name:"عالم الترتيب",x:56,y:64,learn:"<b>الترتيب</b> = نرتّب الأشياء بأقل حركات. وفيه <b>الكومة</b>: آخر واحد يدخل أول واحد يطلع. السرّ: فكّر بالأكبر أولاً."},
+ {id:"algo",emoji:"🤖",name:"عالم الخوارزميات",x:78,y:9,learn:"<b>الخوارزمية</b> = خطوات مرتّبة توصلك للهدف. في بيبراس تجيك روبوتات وبرامج فيها «كرّر» وألعاب تخمين. السرّ: نفّذ الخطوات بنفسك واحدة واحدة."},
+ {id:"plan",emoji:"🗓️",name:"عالم التخطيط",x:58,y:24,learn:"<b>التخطيط</b> = نرتّب الوقت والمهام بذكاء: وش نسوي أول، وكيف نسوي أكثر شي بالوقت المتاح. السرّ: ابدأ باللي ما يعتمد على غيره، واختر اللي يخلص بدري."},
+ {id:"graph",emoji:"🕸️",name:"عالم الشبكات",x:30,y:36,learn:"<b>الشبكة</b> = نقاط وخطوط تربطها، مثل الطرق أو الأصحاب. الأسئلة عن أقصر طريق، أو كم خطوة يوصل الخبر. السرّ: لوّن النقاط مرحلة مرحلة."},
+ {id:"code",emoji:"🔢",name:"عالم الترميز",x:22,y:56,learn:"<b>الترميز</b> = نكتب المعلومة بشكل ثاني: رموز، أضواء، أرقام ثنائية، وشجرة أسئلة تفرز الأشياء. السرّ: لاحظ القاعدة وطبّقها بدقة."},
+ {id:"sort",emoji:"📚",name:"عالم الترتيب",x:56,y:64,learn:"<b>الترتيب</b> = نرتّب الأشياء بأقل حركات. وفيه <b>الكومة</b>: آخر واحد ينحط هو أول واحد ينشال، مثل العيدان فوق بعض. السرّ: ابدأ باللي فوق."},
  {id:"pattern",emoji:"🎨",name:"عالم الأنماط",x:80,y:80,learn:"<b>النمط</b> = شي يتكرر بقاعدة. فيه مرايا ودوران وبطاقات فوق بعض وتسلسلات. السرّ: اشتغل صف صف أو عنصر عنصر."},
- {id:"logic",emoji:"🧩",name:"عالم المنطق",x:50,y:99,learn:"<b>المنطق</b> = نستنتج الجواب من الأدلة. السرّ: ابدأ بالدليل الأكيد، واكتب اللي عرفته، وشيل الاحتمالات الغلط."}];
+ {id:"logic",emoji:"🧩",name:"عالم المنطق",x:50,y:99,learn:"<b>المنطق</b> = نستنتج الجواب من الأدلة، وفيه بوابات «و» و«أو». السرّ: ابدأ بالدليل الأكيد، واكتب اللي عرفته، وشيل الاحتمالات الغلط."}];
 const W=Object.fromEntries(WORLDS.map(w=>[w.id,w]));
 const typesOf=wid=>Object.keys(TYPES).filter(k=>TYPES[k].world===wid);
 
 /* ================= player progress ================= */
 function stat(t){P.st=P.st||{};return P.st[t]=P.st[t]||{lv:1,a:0,c:0,streak:0,due:null,iv:1}}
-function record(t,lv,ok){const s=stat(t);s.a++;if(ok){s.c++;s.streak++;if(s.streak>=2&&s.lv<3){s.lv++;s.streak=0}s.iv=Math.min(s.iv*2,14);s.due=addDays(today(),s.iv)}else{s.streak=0;if(s.lv>1&&lv===s.lv&&Math.random()<.5)s.lv--;s.iv=1;s.due=addDays(today(),1)}
+function record(t,lv,ok){const s=stat(t);s.a++;if(ok){s.c++;s.streak++;if(s.streak>=2&&s.lv<4){s.lv++;s.streak=0}s.iv=Math.min(s.iv*2,14);s.due=addDays(today(),s.iv)}else{s.streak=0;if(s.lv>1&&lv===s.lv&&Math.random()<.5)s.lv--;s.iv=1;s.due=addDays(today(),1)}
   P.days=P.days||{};P.days[today()]=(P.days[today()]||0)+1;save()}
-function worldStars(wid){const ts=typesOf(wid);const lv=ts.reduce((s,t)=>s+(P.st&&P.st[t]?P.st[t].lv:1),0)/ts.length;const any=ts.some(t=>P.st&&P.st[t]&&P.st[t].c>0);return any?Math.round(lv):0}
+function worldStars(wid){const ts=typesOf(wid);const lv=ts.reduce((s,t)=>s+(P.st&&P.st[t]?P.st[t].lv:1),0)/ts.length;const any=ts.some(t=>P.st&&P.st[t]&&P.st[t].c>0);return any?Math.min(3,Math.round(lv)):0}
 
 /* ================= navigation ================= */
 function go(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));$("#s-"+id).classList.add("on");$("#checkbar").hidden=id!=="play";window.scrollTo(0,0);if(id==="home")renderHome();if(id==="map")renderMap()}
@@ -614,16 +774,16 @@ document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=
 /* ---- home ---- */
 const AVM=["🦫","🦊","🐯","🦁","🐼","🐨","🦅","🐬"],AVF=["🦫","🐰","🦄","🐱","🦋","🐼","🐨","🦩"];
 function renderHome(){const box=$("#players");box.innerHTML="";
-  DB.players.forEach((p,i)=>{const b=el("button",{class:"player",type:"button"},el("span",{class:"av"},p.av),el("b",{},p.name),el("small",{},`${n2a(Object.values(p.st||{}).reduce((s,x)=>s+x.c,0))} لغز محلول`));b.addEventListener("click",()=>{P=p;go("map")});box.append(b)});
+  DB.players.forEach((p,i)=>{const b=el("button",{class:"player",type:"button"},el("span",{class:"av"},p.av),el("b",{},p.name),el("small",{},(p.grade?GRADES[p.grade]+" · ":"")+`${n2a(Object.values(p.st||{}).reduce((s,x)=>s+x.c,0))} لغز`));b.addEventListener("click",()=>{P=p;go("map")});box.append(b)});
   const add=el("button",{class:"player add",type:"button"},el("span",{class:"av"},"➕"),el("b",{},"لاعب جديد"));add.addEventListener("click",openAdd);box.append(add)}
 let addG="m",addAv="🦫";
 function openAdd(){addG="m";addAv="🦫";$("#addName").value="";paintAdd();$("#dlgAdd").showModal()}
 function paintAdd(){[...$("#addG").children].forEach(b=>b.classList.toggle("sel",b.dataset.g===addG));const av=$("#addAv");av.innerHTML="";(addG==="f"?AVF:AVM).forEach(a=>{const b=el("button",{type:"button",class:a===addAv?"sel":""},a);b.addEventListener("click",()=>{addAv=a;paintAdd()});av.append(b)})}
 $("#addG").addEventListener("click",e=>{if(e.target.dataset.g){addG=e.target.dataset.g;paintAdd()}});
-$("#dlgAdd").addEventListener("close",()=>{if($("#dlgAdd").returnValue!=="ok")return;const name=$("#addName").value.trim();if(!name)return;const p={id:Date.now(),name,g:addG,av:addAv,st:{},chal:[],days:{}};DB.players.push(p);save();P=p;go("map")});
+$("#dlgAdd").addEventListener("close",()=>{if($("#dlgAdd").returnValue!=="ok")return;const name=$("#addName").value.trim();if(!name)return;const p={id:Date.now(),name,g:addG,av:addAv,grade:+$("#addGrade").value,st:{},chal:[],days:{}};DB.players.push(p);save();P=p;go("map")});
 
 /* ---- map ---- */
-function renderMap(){$("#goStats small").textContent=T("وين أنا قوي ووين أحتاج تدريب","وين أنا قوية ووين أحتاج تدريب");$("#mapWho").textContent=P.av+" "+P.name;$("#worldWho").textContent=P.av+" "+P.name;const wrap=$("#mapwrap");wrap.querySelectorAll(".station").forEach(s=>s.remove());
+function renderMap(){paintTime();$("#muteBtn").textContent=DB.mute?"🔇":"🔊";$("#goStats small").textContent=T("وين أنا قوي ووين أحتاج تدريب","وين أنا قوية ووين أحتاج تدريب");$("#mapWho").textContent=P.av+" "+P.name;$("#worldWho").textContent=P.av+" "+P.name;const wrap=$("#mapwrap");wrap.querySelectorAll(".station").forEach(s=>s.remove());
   WORLDS.forEach(w=>{const st=worldStars(w.id);const b=el("button",{class:"station",type:"button",style:`right:${100-w.x}%;top:${w.y*0.9+4}%`},el("span",{class:"lodge"},w.emoji),el("span",{},w.name.replace("عالم ","")),el("span",{class:"stars","aria-label":`${st} نجوم`},"⭐".repeat(st)+"☆".repeat(3-st)));b.addEventListener("click",()=>openWorld(w.id));wrap.append(b)});
   const due=Object.values(P.st||{}).filter(s=>s.due&&s.due<=today()).length;$("#dailyInfo").textContent=due?`٥ ألغاز، منها ${n2a(Math.min(due,5))} للمراجعة`:"٥ ألغاز مختارة لك"}
 $("#toParent").addEventListener("click",()=>{P=null;renderStats(true)});
@@ -631,7 +791,7 @@ $("#goStats").addEventListener("click",()=>renderStats(false));
 
 /* ---- world ---- */
 function openWorld(wid){const w=W[wid];$("#wEmoji").textContent=w.emoji;$("#wName").textContent=w.name;$("#wLearn").innerHTML=fem(w.learn);const box=$("#wTypes");box.innerHTML="";
-  typesOf(wid).forEach(t=>{const s=stat(t);const b=el("button",{class:"tcard",type:"button"},el("span",{class:"e"},TYPES[t].emoji),el("span",{},el("b",{},TYPES[t].name),el("br"),el("span",{class:"lv","aria-label":"المستوى "+s.lv},...[1,2,3].map(k=>el("i",{class:k<=s.lv?"on":""}))),el("br"),el("small",{class:"muted"},s.a?`${n2a(s.c)} صح من ${n2a(s.a)}`:T("ما جرّبته بعد","ما جرّبتيه بعد"))));
+  typesOf(wid).forEach(t=>{const s=stat(t);const b=el("button",{class:"tcard",type:"button"},el("span",{class:"e"},TYPES[t].emoji),el("span",{},el("b",{},TYPES[t].name),el("br"),el("span",{class:"lv","aria-label":"المستوى "+s.lv},...[1,2,3,4].map(k=>el("i",{class:k<=s.lv?"on":""}))),el("br"),el("small",{class:"muted"},s.a?`${n2a(s.c)} صح من ${n2a(s.a)}`:T("ما جرّبته بعد","ما جرّبتيه بعد"))));
     b.addEventListener("click",()=>startPractice([t],"world",wid));box.append(b)});
   const mix=el("button",{class:"tcard",type:"button",style:"border-color:var(--leaf)"},el("span",{class:"e"},"🎲"),el("span",{},el("b",{},"ألغاز متنوّعة من هذا العالم"),el("br"),el("small",{class:"muted"},"٦ ألغاز")));mix.addEventListener("click",()=>startPractice(typesOf(wid),"world",wid,6));box.append(mix);go("world")}
 
@@ -640,13 +800,13 @@ let RUN=null;
 const api={ready:v=>{$("#btnCheck").disabled=!v}};
 function startPractice(types,mode,wid,count){RUN={types,mode,wid,count:count||0,done:0,right:0,queue:null};nextPuzzle()}
 function startDaily(){const keys=Object.keys(TYPES);const due=shuffle(keys.filter(t=>{const s=stat(t);return s.due&&s.due<=today()}));
-  const weak=keys.slice().sort((a,b)=>{const A=stat(a),B=stat(b);return (A.a?A.c/A.a:.5)-(B.a?B.c/B.a:.5)});const q=[];for(const t of [...due,...weak,...shuffle(keys)])if(!q.includes(t)&&q.length<5)q.push(t);
+  const weak=keys.slice().sort((a,b)=>{const A=stat(a),B=stat(b);return (A.a?A.c/A.a:.5)-(B.a?B.c/B.a:.5)});const q=[];for(const t of [...due,...weak.slice(0,2),...wpick(keys,keys.length)])if(!q.includes(t)&&q.length<5)q.push(t);
   RUN={types:keys,mode:"daily",count:5,done:0,right:0,queue:q};nextPuzzle()}
 $("#goDaily").addEventListener("click",startDaily);
 function nextPuzzle(){
   if(RUN.count&&RUN.done>=RUN.count){finishPractice();return}
   const t=RUN.queue?RUN.queue[RUN.done]:pick(RUN.types);const lv=stat(t).lv;const def=TYPES[t];const q=def.gen(lv);q.t=t;q.lv=lv;RUN.cur=q;RUN.checked=false;
-  $("#pTitle").textContent=def.emoji+" "+def.name;const L=$("#pLevel");L.className="level l"+lv;L.textContent=["سهل","متوسط","صعب"][lv-1];
+  $("#pTitle").textContent=def.emoji+" "+def.name;const L=$("#pLevel");L.className="level l"+lv;L.textContent=["سهل","متوسط","صعب","تحدّي"][lv-1];
   $("#playProg").textContent=RUN.count?`${n2a(RUN.done+1)} / ${n2a(RUN.count)}`:`✔ ${n2a(RUN.right)}`;
   renderStory($("#pStory"),def.story(q));const board=$("#pBoard");board.innerHTML="";$("#pFb").innerHTML="";api.ready(false);def.render(q,board,api);
   $("#btnCheck").textContent="تحقّق";$("#btnSkip").textContent="لغز ثاني";$("#btnSkip").hidden=!!RUN.count;
@@ -657,7 +817,7 @@ $("#btnCheck").addEventListener("click",async()=>{const q=RUN.cur,def=TYPES[q.t]
   if(RUN.checked){RUN.done++;nextPuzzle();return}
   const ok=!!def.check(q);RUN.checked=true;$("#btnCheck").disabled=true;
   if(def.animate&&ok)await def.animate(q);
-  if(def.reveal)def.reveal(q);record(q.t,q.lv,ok);if(ok)RUN.right++;
+  if(def.reveal)def.reveal(q);record(q.t,q.lv,ok);if(ok){RUN.right++;confetti()}
   (ok?sndOk:sndNo)();const fb=el("div",{class:"fb "+(ok?"ok pop":"no shake")},el("h3",{},ok?(T("أحسنت!","أحسنتِ!")):T("مو هذا الحل","مو هذا الحل")),el("p",{style:"margin:0 0 6px"},ok?pick(P.g==="f"?PRAISE_F:PRAISE_M):pick(P.g==="f"?TRY_F:TRY_M)),el("p",{style:"margin:0;font-weight:400"},"💡 "+fem(def.explain(q))));
   $("#pFb").innerHTML="";$("#pFb").append(fb);fb.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"nearest"});
   $("#btnCheck").textContent=RUN.count&&RUN.done+1>=RUN.count?"النتيجة":"التالي";$("#btnCheck").disabled=false;$("#btnSkip").hidden=true;
@@ -668,42 +828,79 @@ function finishPractice(){const r=RUN.right,c=RUN.count;$("#resBody").innerHTML=
   $("#resBody").append(el("div",{class:"score"},n2a(r)+" / "+n2a(c)),el("p",{style:"text-align:center;font-size:1.2em;font-weight:600"},r===c?T("يومك مبارك! حلّيت كل الألغاز بتوفيق الله 🌟","يومك مبارك! حلّيتِ كل الألغاز بتوفيق الله 🌟"):r>=c/2?T("شغل جميل! الأسئلة اللي غلطت فيها بترجع لك للمراجعة.","شغل جميل! الأسئلة اللي غلطتِ فيها بترجع لك للمراجعة."):T("كل محاولة تقوّي مخك. بكرة نراجعها مع بعض.","كل محاولة تقوّي مخك. بكرة نراجعها مع بعض.")),
     el("div",{style:"text-align:center"},el("button",{class:"btn",type:"button",onclick:()=>go("map")},"رجوع للخريطة")));if(RUN.mode==="daily"){P.dailyDone=P.dailyDone||{};P.dailyDone[today()]=r;save()}go("result")}
 
-/* ================= challenge (contest simulation) ================= */
-const PTS={1:[6,2],2:[9,3],3:[12,4]};let CH=null;
-function startChallenge(){const ws=shuffle(WORLDS.map(w=>w.id));const qs=[];const lvls=shuffle([1,1,1,1,2,2,2,2,3,3,3,3]);
-  ws.forEach(w=>{const ts=shuffle(typesOf(w));qs.push(ts[0],ts[1])});const list=shuffle(qs).map((t,i)=>{const lv=lvls[i];const q=TYPES[t].gen(lv);q.t=t;q.lv=lv;return q});
-  list.sort((a,b)=>a.lv-b.lv);CH={list,idx:0,ans:Array(12).fill(null),start:Date.now(),secs:30*60,boards:[]};
-  CH.boards=list.map(q=>{const b=el("div",{class:"board"});const s=el("div",{class:"story"});renderStory(s,TYPES[q.t].story(q));const capi={ready:v=>{CH.ans[list.indexOf(q)]=v?"set":null;paintNav()}};TYPES[q.t].render(q,b,capi);return {b,s}});
-  $("#chalTimer").textContent="⏱ ٣٠:٠٠";CH.tick=setInterval(()=>{const left=CH.secs-Math.floor((Date.now()-CH.start)/1000);if(left<=0){endChallenge();return}$("#chalTimer").textContent=`⏱ ${n2a(String(Math.floor(left/60)).padStart(2,"0"))}:${n2a(String(left%60).padStart(2,"0"))}`},500);
-  showChal(0);go("chal")}
-function paintNav(){const nav=$("#chalNav");nav.innerHTML="";CH.list.forEach((q,i)=>{const b=el("button",{type:"button",class:(CH.ans[i]?"done ":"")+(i===CH.idx?"cur":"")},n2a(i+1));b.addEventListener("click",()=>showChal(i));nav.append(b)});
-  nav.append(el("button",{type:"button",style:"width:auto;padding:0 14px;background:var(--water);color:#fff;border-color:var(--water)",onclick:()=>{const empty=CH.ans.filter(a=>!a).length;if(!empty||confirm(T(`باقي ${empty} أسئلة ما جاوبتها. تبي تسلّم؟`,`باقي ${empty} أسئلة ما جاوبتيها. تبين تسلّمين؟`)))endChallenge()}},"سلّم"))}
-function showChal(i){CH.idx=i;const q=CH.list[i];$("#cTitle").textContent=`سؤال ${n2a(i+1)}`;const L=$("#cLevel");L.className="level l"+q.lv;L.textContent=["أ · سهل","ب · متوسط","ج · صعب"][q.lv-1];
-  const st=$("#cStory"),bd=$("#cBoard");st.replaceWith(CH.boards[i].s);CH.boards[i].s.id="cStory";bd.replaceWith(CH.boards[i].b);CH.boards[i].b.id="cBoard";
-  $("#cNote").textContent=`صح: +${n2a(PTS[q.lv][0])} · غلط: −${n2a(PTS[q.lv][1])} · بدون جواب: ٠`;paintNav();window.scrollTo(0,0)}
-$("#goChal").addEventListener("click",()=>{if(confirm(T("التحدي ١٢ سؤال في ٣٠ دقيقة، مثل المسابقة: الصح يزيد والغلط ينقص. جاهز؟","التحدي ١٢ سؤال في ٣٠ دقيقة، مثل المسابقة: الصح يزيد والغلط ينقص. جاهزة؟")))startChallenge()});
+/* ================= challenge (Bebras Mawhiba format) =================
+   10 interactive tasks · 60 minutes · 4 versions per task · 10 points per version
+   (solving a harder version credits the easier ones) · no penalty for wrong answers. */
+const MEDALS={3:[310,280,260],6:[330,305,285]}; // bebrasksa.org cut-grades 2025
+const WEIGHT={binary:5,cipher:5,tree:3,path:5,secret:5,sticks:4,crane:2,pancake:2,robot:4,loop:4,guess:3,houses:3,balance:3,gates:4,schedule:4,topo:3,mirror:5,seq:2};
+function wpick(keys,k){const pool=keys.slice(),out=[];while(out.length<k&&pool.length){const tot=pool.reduce((s,t)=>s+(WEIGHT[t]||3),0);let r=Math.random()*tot,i=0;for(;i<pool.length-1;i++){r-=WEIGHT[pool[i]]||3;if(r<=0)break}out.push(pool.splice(i,1)[0])}return out}
+const GRADES={3:"الثالث الابتدائي",4:"الرابع الابتدائي",5:"الخامس الابتدائي",6:"السادس الابتدائي",7:"الأول المتوسط",8:"الثاني المتوسط",9:"الثالث المتوسط",10:"الأول الثانوي",11:"الثاني الثانوي",12:"الثالث الثانوي"};
+let CH=null;
+function startChallenge(){const types=wpick(Object.keys(TYPES),10);
+  CH={tasks:types.map(t=>({t,v:[null,null,null,null],solved:0,cur:1})),idx:0,start:Date.now(),secs:60*60};
+  $("#chalTimer").textContent="⏱ ٦٠:٠٠";
+  CH.tick=setInterval(()=>{const left=CH.secs-Math.floor((Date.now()-CH.start)/1000);if(left<=0){endChallenge();return}$("#chalTimer").textContent=`⏱ ${n2a(String(Math.floor(left/60)).padStart(2,"0"))}:${n2a(String(left%60).padStart(2,"0"))}`},500);
+  showTask(0);go("chal")}
+function verObj(task,v){if(!task.v[v-1]){const q=TYPES[task.t].gen(v);q.t=task.t;q.lv=v;const o={q,ok:null,ready:false};o.b=el("div",{class:"board"});o.s=el("div",{class:"story"});renderStory(o.s,TYPES[q.t].story(q));
+    TYPES[q.t].render(q,o.b,{ready:x=>{o.ready=!!x;if(CH&&CH.view===o)$("#cCheck").disabled=o.ok===true||!o.ready}});task.v[v-1]=o}return task.v[v-1]}
+function showTask(i,v){CH.idx=i;const task=CH.tasks[i];if(v)task.cur=v;const o=verObj(task,task.cur);CH.view=o;
+  $("#cTitle").textContent=`المهمة ${n2a(i+1)} · ${TYPES[task.t].emoji} ${TYPES[task.t].name}`;
+  const tabs=$("#cVers");tabs.innerHTML="";for(let k=1;k<=4;k++){const b=el("button",{type:"button",class:"ver"+(k===task.cur?" cur":"")+(task.solved>=k?" done":""),"aria-label":`المستوى ${k}`},"★".repeat(k)+(task.solved>=k?" ✓":""));b.addEventListener("click",()=>showTask(i,k));tabs.append(b)}
+  $("#cStory").replaceWith(o.s);o.s.id="cStory";$("#cBoard").replaceWith(o.b);o.b.id="cBoard";
+  $("#cCheck").disabled=o.ok===true||!o.ready;
+  $("#cMsg").textContent=o.ok===true?T("✓ حلّيت هذا المستوى، جرّب الأصعب","✓ حلّيتِ هذا المستوى، جرّبي الأصعب"):o.ok===false?T("مو صح، عدّل وجرّب مرة ثانية أو اضغط «لغز جديد»","مو صح، عدّلي وجرّبي مرة ثانية أو اضغطي «لغز جديد»"):`كل مستوى ١٠ نقاط · حل ${"★".repeat(4)} يعطيك نقاط المستويات اللي قبله`;
+  $("#cMsg").className=o.ok===true?"cmsg ok":o.ok===false?"cmsg no":"cmsg";paintNav();window.scrollTo(0,0)}
+function paintNav(){const nav=$("#chalNav");nav.innerHTML="";const score=CH.tasks.reduce((s,t)=>s+t.solved*10,0);
+  CH.tasks.forEach((t,i)=>{const b=el("button",{type:"button",class:(t.solved?"done ":"")+(i===CH.idx?"cur":""),"aria-label":`المهمة ${i+1}`},n2a(i+1));if(t.solved)b.title=`${t.solved}★`;b.addEventListener("click",()=>showTask(i));nav.append(b)});
+  nav.append(el("span",{class:"pill"},`${n2a(score)} / ٤٠٠`),el("button",{type:"button",class:"submit",onclick:()=>{if(confirm(T("تبي تسلّم الحين؟ ما فيه خصم على الغلط، فالأفضل تحاول كل المهام.","تبين تسلّمين الحين؟ ما فيه خصم على الغلط، فالأفضل تحاولين كل المهام.")))endChallenge()}},"سلّم"))}
+$("#cCheck").addEventListener("click",async()=>{const task=CH.tasks[CH.idx],o=task.v[task.cur-1];let ok=false;try{ok=!!TYPES[task.t].check(o.q)}catch(e){}
+  o.ok=ok;if(ok){task.solved=Math.max(task.solved,task.cur);sndOk();confetti()}else sndNo();showTask(CH.idx)});
+$("#cRedo").addEventListener("click",()=>{const task=CH.tasks[CH.idx];if(task.v[task.cur-1]&&task.v[task.cur-1].ok===true)return;task.v[task.cur-1]=null;showTask(CH.idx)});
+$("#goChal").addEventListener("click",()=>{if(!P.grade)askGrade();if(confirm(T("تحدي مثل بيبراس موهبة: ١٠ مهام في ٦٠ دقيقة، كل مهمة لها ٤ مستويات (١٠ نقاط لكل مستوى)، وما فيه خصم على الغلط. جاهز؟","تحدي مثل بيبراس موهبة: ١٠ مهام في ٦٠ دقيقة، كل مهمة لها ٤ مستويات (١٠ نقاط لكل مستوى)، وما فيه خصم على الغلط. جاهزة؟")))startChallenge()});
 $("#chalQuit").addEventListener("click",()=>{if(confirm(T("تبي تنهي التحدي الحين وتشوف النتيجة؟","تبين تنهين التحدي الحين وتشوفين النتيجة؟")))endChallenge()});
+function askGrade(){const v=prompt(T("في أي صف أنت؟ اكتب رقم الصف (مثلاً ٣ أو ٦)","في أي صف أنتِ؟ اكتبي رقم الصف (مثلاً ٣ أو ٦)"),"");if(v==null)return;const n=parseInt(String(v).replace(/[٠-٩]/g,d=>AR.indexOf(d)),10);if(n>=3&&n<=12){P.grade=n;save()}}
 function endChallenge(){if(!CH)return;clearInterval(CH.tick);const used=Math.min(CH.secs,Math.round((Date.now()-CH.start)/1000));
-  let score=36,right=0,wrong=0;const max=36+4*6+4*9+4*12;const rows=[];
-  CH.list.forEach((q,i)=>{const def=TYPES[q.t];let res="skip";if(CH.ans[i]){let ok=false;try{ok=!!def.check(q)}catch(e){}res=ok?"ok":"no";if(ok){score+=PTS[q.lv][0];right++}else{score-=PTS[q.lv][1];wrong++}record(q.t,q.lv,ok)}
-    rows.push(el("div",{class:"rev"},el("span",{class:"m"},res==="ok"?"✅":res==="no"?"❌":"⬜"),el("div",{},el("b",{},`${n2a(i+1)}. ${def.emoji} ${def.name} (${["أ","ب","ج"][q.lv-1]})`),el("br"),el("small",{},"💡 "+fem(def.explain(q))))))});
-  P.chal=P.chal||[];P.chal.push({d:today(),score,max,right,wrong,secs:used});save();
-  const pct=score/max;const box=$("#resBody");box.innerHTML="";
-  box.append(el("h2",{style:"text-align:center;color:var(--deep)"},"نتيجة تحدي بيبراس"),el("div",{class:"score"},n2a(score)),el("p",{style:"text-align:center;margin:0"},`من ${n2a(max)} نقطة · ${n2a(right)} صح · ${n2a(wrong)} غلط · ${n2a(12-right-wrong)} بدون جواب · ${n2a(Math.floor(used/60))} دقيقة`),
-    el("p",{style:"text-align:center;font-size:1.15em;font-weight:600"},pct>=.75?T("نتيجة رائعة بتوفيق الله! تعبك في التدريب بان 🌟","نتيجة رائعة بتوفيق الله! تعبك في التدريب بان 🌟"):pct>=.5?T("شغل قوي! راجع الشرح تحت وبتكون أقوى المرة الجاية.","شغل قوي! راجعي الشرح تحت وبتكونين أقوى المرة الجاية."):T("بداية طيبة. كل تحدي يعلّمك شي جديد، شوف الشرح تحت.","بداية طيبة. كل تحدي يعلّمك شي جديد، شوفي الشرح تحت.")),
-    el("p",{class:"muted",style:"text-align:center"},T("نصيحة المسابقة: إذا ما كنت متأكداً، الأفضل تترك السؤال بدل التخمين، لأن الغلط ينقص.","نصيحة المسابقة: إذا ما كنتِ متأكدة، الأفضل تتركين السؤال بدل التخمين، لأن الغلط ينقص.")),...rows,
+  const score=CH.tasks.reduce((s,t)=>s+t.solved*10,0);const rows=[];
+  CH.tasks.forEach((t,i)=>{const def=TYPES[t.t];const tried=t.v.some(o=>o&&o.ok!==null);if(tried)record(t.t,Math.max(1,t.solved||t.cur),t.solved>0);
+    const o=t.v[t.cur-1]||t.v.find(Boolean);rows.push(el("div",{class:"rev"},el("span",{class:"m"},t.solved===4?"🌟":t.solved?"✅":tried?"❌":"⬜"),el("div",{},el("b",{},`${n2a(i+1)}. ${def.emoji} ${def.name} · ${t.solved?"★".repeat(t.solved)+" = "+n2a(t.solved*10):"٠"} نقطة`),o?el("br"):"",o?el("small",{},"💡 "+fem(def.explain(o.q))):"")))});
+  const med=MEDALS[P.grade];let medTxt="";
+  if(med){const[gd,sl,br]=med;medTxt=score>=gd?"🥇 مستوى الميدالية الذهبية":score>=sl?"🥈 مستوى الميدالية الفضية":score>=br?"🥉 مستوى الميدالية البرونزية":`باقي ${n2a(br-score)} نقطة على البرونزية`;
+    medTxt+=` · حدود صف ${GRADES[P.grade]} في ٢٠٢٥: ذهبية ${n2a(gd)}، فضية ${n2a(sl)}، برونزية ${n2a(br)}`}
+  else medTxt=P.grade?`حدود الميداليات لصف ${GRADES[P.grade]} مو موجودة عندنا، شوفها في موقع بيبراس السعودية.`:"";
+  P.chal=P.chal||[];P.chal.push({d:today(),score,max:400,solved:CH.tasks.filter(t=>t.solved).length,secs:used,v:2});save();
+  const box=$("#resBody");box.innerHTML="";
+  box.append(el("h2",{style:"text-align:center;color:var(--deep)"},"نتيجة تحدي بيبراس"),el("div",{class:"score"},n2a(score)),el("p",{style:"text-align:center;margin:0"},`من ٤٠٠ نقطة · ${n2a(Math.floor(used/60))} دقيقة`),
+    medTxt?el("p",{class:"medal"},medTxt):"",
+    el("p",{style:"text-align:center;font-size:1.15em;font-weight:600"},score>=300?T("نتيجة رائعة بتوفيق الله! تعبك في التدريب بان 🌟","نتيجة رائعة بتوفيق الله! تعبك في التدريب بان 🌟"):score>=200?T("شغل قوي! راجع الشرح تحت وبتكون أقوى المرة الجاية.","شغل قوي! راجعي الشرح تحت وبتكونين أقوى المرة الجاية."):T("بداية طيبة. كل تحدي يعلّمك شي جديد، شوف الشرح تحت.","بداية طيبة. كل تحدي يعلّمك شي جديد، شوفي الشرح تحت.")),
+    el("p",{class:"muted",style:"text-align:center"},T("نصيحة المسابقة: ما فيه خصم على الغلط، فحاول كل مهمة، وابدأ بالنجمة الوحدة ثم اصعد.","نصيحة المسابقة: ما فيه خصم على الغلط، فحاولي كل مهمة، وابدئي بالنجمة الوحدة ثم اصعدي.")),...rows,
     el("div",{style:"text-align:center;margin-top:14px"},el("button",{class:"btn",type:"button",onclick:()=>go("map")},"رجوع للخريطة")));CH=null;go("result")}
+
+/* ================= daily play time ================= */
+const GOAL_MIN=20;let lastAct=Date.now();
+["pointerdown","keydown"].forEach(e=>addEventListener(e,()=>{lastAct=Date.now()},{passive:true}));
+const mins=s=>Math.round((s||0)/60);
+setInterval(()=>{if(!P||document.hidden)return;const on=document.querySelector(".screen.on");if(!on||on.id==="s-home"||on.id==="s-stats")return;if(Date.now()-lastAct>90000)return;
+  P.time=P.time||{};const d=today();P.time[d]=(P.time[d]||0)+5;save();if(on.id==="s-map")paintTime()},5000);
+function paintTime(){const s=(P.time||{})[today()]||0,m=mins(s);const box=$("#timeBox");if(!box)return;box.innerHTML="";
+  box.append(el("div",{class:"tbar"},el("i",{style:`width:${Math.min(100,m/GOAL_MIN*100)}%`})),el("span",{},m>=GOAL_MIN?T(`⏱ لعبت اليوم ${n2a(m)} دقيقة، وصلت هدف اليوم 🌟 ارتاح وكمّل بكرة`,`⏱ لعبتِ اليوم ${n2a(m)} دقيقة، وصلتِ هدف اليوم 🌟 ارتاحي وكمّلي بكرة`):T(`⏱ لعبت اليوم ${n2a(m)} من ${n2a(GOAL_MIN)} دقيقة`,`⏱ لعبتِ اليوم ${n2a(m)} من ${n2a(GOAL_MIN)} دقيقة`)))}
+
+/* ================= confetti (game feel) ================= */
+function confetti(){if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;for(let i=0;i<18;i++){const s=el("span",{class:"conf","aria-hidden":"true"},pick(["🎉","⭐","✨","🌟"]));document.body.append(s);
+  const a=Math.random()*Math.PI*2,r=120+Math.random()*160;try{s.animate([{transform:"translate(-50%,-50%) scale(.4)",opacity:1},{transform:`translate(calc(-50% + ${Math.cos(a)*r}px),calc(-50% + ${Math.sin(a)*r}px)) scale(1.2) rotate(${ri(-120,120)}deg)`,opacity:0}],{duration:900+ri(0,300),easing:"cubic-bezier(.2,.8,.3,1)"}).onfinish=()=>s.remove()}catch(e){s.remove()}}}
 
 /* ================= stats / parent dashboard ================= */
 function playerBlock(p){const prev=P;P=p;const wrap=el("div",{class:"dcard"});
   const solved=Object.values(p.st||{}).reduce((s,x)=>s+x.c,0),tried=Object.values(p.st||{}).reduce((s,x)=>s+x.a,0);const days=Object.keys(p.days||{}).length;
-  wrap.append(el("h3",{},`${p.av} ${p.name}`),el("p",{class:"muted",style:"margin:2px 0 8px"},`${n2a(solved)} صح من ${n2a(tried)} محاولة · لعب ${n2a(days)} يوم`));
+  wrap.append(el("h3",{},`${p.av} ${p.name}`+(p.grade?` · ${GRADES[p.grade]}`:"")),el("p",{class:"muted",style:"margin:2px 0 8px"},`${n2a(solved)} صح من ${n2a(tried)} محاولة · لعب ${n2a(days)} يوم`));
+  const tm=p.time||{};const last7=[...Array(7)].map((_,k)=>addDays(today(),-k));const wk=last7.reduce((s,d)=>s+(tm[d]||0),0);
+  const tt=el("table",{class:"hist"},el("tr",{},el("th",{},"اليوم"),el("th",{},"وقت اللعب")));last7.forEach(d=>tt.append(el("tr",{},el("td",{},d===today()?"اليوم":d),el("td",{},tm[d]?n2a(mins(tm[d]))+" دقيقة":"—"))));
+  wrap.append(el("p",{style:"margin:0 0 6px;font-weight:600"},`⏱ اليوم: ${n2a(mins(tm[today()]))} دقيقة · آخر ٧ أيام: ${n2a(mins(wk))} دقيقة (الهدف ${n2a(GOAL_MIN)} دقيقة يومياً)`),tt);
   WORLDS.forEach(w=>{const ts=typesOf(w.id);let a=0,c=0;ts.forEach(t=>{const s=(p.st||{})[t];if(s){a+=s.a;c+=s.c}});const pct=a?Math.round(100*c/a):0;
     wrap.append(el("div",{class:"drow"},el("span",{},w.emoji+" "+w.name.replace("عالم ","")),el("div",{class:"bar"},el("i",{style:`width:${pct}%;background:${!a?"#e3eef0":pct<50?"#d98a2b":"var(--leaf)"}`})),el("small",{},a?n2a(pct)+"٪":"—")))});
   const weak=WORLDS.map(w=>{let a=0,c=0;typesOf(w.id).forEach(t=>{const s=(p.st||{})[t];if(s){a+=s.a;c+=s.c}});return [w,a,a?c/a:1]}).filter(x=>x[1]>=3).sort((x,y)=>x[2]-y[2])[0];
   if(weak&&weak[2]<.7)wrap.append(el("p",{style:"margin:8px 0 0"},`💡 يحتاج تدريب أكثر في: ${weak[0].emoji} ${weak[0].name}`));
-  if((p.chal||[]).length){const tb=el("table",{class:"hist"},el("tr",{},el("th",{},"التحدي"),el("th",{},"النقاط"),el("th",{},"صح"),el("th",{},"الوقت")));
-    p.chal.slice(-8).reverse().forEach(c=>tb.append(el("tr",{},el("td",{},c.d),el("td",{},n2a(c.score)+" / "+n2a(c.max)),el("td",{},n2a(c.right)),el("td",{},n2a(Math.floor(c.secs/60))+" د"))));wrap.append(el("h3",{style:"margin-top:12px;font-size:1em"},"آخر التحديات"),tb)}
+  if((p.chal||[]).length){const tb=el("table",{class:"hist"},el("tr",{},el("th",{},"التحدي"),el("th",{},"النقاط"),el("th",{},"مهام محلولة"),el("th",{},"الوقت")));
+    p.chal.slice(-8).reverse().forEach(c=>tb.append(el("tr",{},el("td",{},c.d),el("td",{},n2a(c.score)+" / "+n2a(c.max)),el("td",{},n2a(c.solved!=null?c.solved:c.right)),el("td",{},n2a(Math.floor(c.secs/60))+" د"))));wrap.append(el("h3",{style:"margin-top:12px;font-size:1em"},"آخر التحديات"),tb)}
   P=prev;return wrap}
 function renderStats(parent){const box=$("#statsBody");box.innerHTML="";
   if(parent){box.append(el("h2",{style:"color:var(--deep)"},"لوحة ولي الأمر"),el("p",{class:"muted"},"التقدّم محفوظ في هذا الجهاز فقط."));
@@ -713,6 +910,7 @@ function renderStats(parent){const box=$("#statsBody");box.innerHTML="";
   else{box.append(el("h2",{style:"color:var(--deep)"},"تقدّمي"),playerBlock(P));$("#statsBack").onclick=()=>go("map")}
   go("stats")}
 
+$("#muteBtn").addEventListener("click",()=>{DB.mute=!DB.mute;save();$("#muteBtn").textContent=DB.mute?"🔇":"🔊"});
 window.__bebras={TYPES};
 go("home");
 })();
