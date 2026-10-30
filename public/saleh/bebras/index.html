@@ -213,11 +213,24 @@ dialog input{font:inherit;width:100%;padding:10px 12px;border-radius:12px;border
 .credit{text-align:center;font-weight:800;color:var(--deep);margin:18px 0 0;font-size:1.05em}
 .conf{position:fixed;left:50%;top:45%;font-size:26px;pointer-events:none;z-index:20}
 dialog select{font:inherit;width:100%;padding:8px 10px;border-radius:12px;border:2px solid #cfe3e6;margin:6px 0 12px;background:#fff}
+.toast{position:fixed;left:50%;top:max(16px,env(safe-area-inset-top));transform:translateX(-50%);background:var(--deep);color:#fff;font-weight:800;padding:10px 20px;border-radius:999px;z-index:30;box-shadow:0 6px 0 rgba(0,0,0,.18);animation:pop .35s ease-out;max-width:92vw;text-align:center}
+.toast.out{opacity:0;transition:opacity .4s}
+.gate{position:fixed;inset:0;z-index:40;background:radial-gradient(circle at 50% 40%,#1f6f78,#0d3a40);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.gbeaver{font-size:96px;animation:hop 1s ease-in-out infinite}
+.gtitle{font-size:2em;font-weight:800;color:var(--sun)}
+.gnum{font-size:clamp(70px,22vw,140px);font-weight:800;min-height:1.3em}
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin-bottom:8px}
+.badge{background:#fff;border-radius:14px;padding:8px 4px;text-align:center;opacity:.55}
+.badge.got{opacity:1;border:3px solid var(--sun)}
+.badge span{font-size:30px;display:block}
+.badge small{font-weight:600;font-size:.75em;line-height:1.3;display:block}
+.hop{animation:hop .6s ease-out}
+@keyframes hop{0%,100%{transform:translateY(0)}40%{transform:translateY(-14px) rotate(-6deg)}70%{transform:translateY(0) rotate(4deg)}}
 @keyframes pop{0%{transform:scale(.6)}70%{transform:scale(1.1)}100%{transform:scale(1)}}
 .pop{animation:pop .35s ease-out}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 .shake{animation:shake .3s}
-@media (prefers-reduced-motion:reduce){.pop,.shake{animation:none}*{transition:none!important}}
+@media (prefers-reduced-motion:reduce){.pop,.shake,.hop,.gbeaver,.toast{animation:none}*{transition:none!important}}
 @media (max-width:520px){
   .tlrow{grid-template-columns:96px 1fr}
   body{font-size:17px}
@@ -258,7 +271,7 @@ dialog select{font:inherit;width:100%;padding:8px 10px;border-radius:12px;border
 <section class="screen" id="s-map" aria-labelledby="h-map">
   <div class="topbar">
     <button class="back" data-go="home">⇦ تغيير اللاعب</button>
-    <span style="display:flex;gap:8px"><button class="back" id="muteBtn" type="button" aria-label="الصوت">🔊</button><span class="pill" id="mapWho"></span></span>
+    <span style="display:flex;gap:8px"><span class="pill" id="streak" hidden></span><button class="back" id="muteBtn" type="button" aria-label="الصوت">🔊</button><span class="pill" id="mapWho"></span></span>
   </div>
   <h2 id="h-map" style="font-size:1.5em;color:var(--deep)">خريطة النهر</h2>
   <div class="timebox" id="timeBox"></div>
@@ -354,6 +367,7 @@ try{const raw=localStorage.getItem(KEY);if(raw)DB=JSON.parse(raw)||DB}catch(e){}
 if(!Array.isArray(DB.players))DB.players=[];
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){}};
 let P=null; // current player
+let LEVELED=null;
 const T=(m,f)=>P&&P.g==="f"?f:m;
 const FEM={"رتّب":"رتّبي","رتّبها":"رتّبيها","اكتب":"اكتبي","اضغط":"اضغطي","واضغط":"واضغطي","نفّذ":"نفّذي","فكّر":"فكّري","لاحظ":"لاحظي","وطبّقها":"وطبّقيها","وشيل":"وشيلي","واكتب":"واكتبي","شغّل":"شغّلي","انتبه":"انتبهي","لوّن":"لوّني","اقرأ":"اقرئي","اختر":"اختاري","حطّهم":"حطّيهم","تتبّع":"تتبّعي","اجمع":"اجمعي","ابدأ":"ابدئي","فك":"فكّي","ارجع":"ارجعي","ودّ":"ودّي","جرّب":"جرّبي","اشتغل":"اشتغلي","قارن":"قارني","وقارن":"وقارني","ابحث":"ابحثي","تكتب":"تكتبين","كمّل":"كمّلي","وتجنّب":"وتجنّبي","شوف":"شوفي","ثم":"ثم"};
 const FEMRE=new RegExp("(^|[\\s،.«(:])("+Object.keys(FEM).sort((a,b)=>b.length-a.length).join("|")+")(?=[\\s،.!؟:»)]|$)","g");
@@ -362,7 +376,24 @@ const fem=t=>P&&P.g==="f"&&t?t.replace(FEMRE,(m,a,w)=>a+FEM[w]):t;
 /* ================= sound ================= */
 let AC=null;
 function tone(freqs,dur=.12){if(DB.mute)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();let t=AC.currentTime;for(const f of freqs){const o=AC.createOscillator(),g=AC.createGain();o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.18,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+dur+.02);t+=dur*.8}}catch(e){}}
-const sndOk=()=>tone([523,659,784,1047],.13), sndNo=()=>tone([330,262],.18), sndTap=()=>tone([700],.05);
+/* layered synth cues (no files): each cue is a short, distinct shape so the ear learns them */
+function cue(notes){if(DB.mute)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume();const t0=AC.currentTime;
+  for(const [f,at,dur,type,vol,slide] of notes){const o=AC.createOscillator(),g=AC.createGain();o.type=type||"triangle";o.frequency.setValueAtTime(f,t0+at);if(slide)o.frequency.exponentialRampToValueAtTime(slide,t0+at+dur);
+    g.gain.setValueAtTime(.0001,t0+at);g.gain.exponentialRampToValueAtTime(vol||.16,t0+at+.015);g.gain.exponentialRampToValueAtTime(.0001,t0+at+dur);o.connect(g).connect(AC.destination);o.start(t0+at);o.stop(t0+at+dur+.03)}}catch(e){}}
+const sndTap=()=>cue([[620,0,.06,"sine",.12,880]]);
+const sndOk=()=>cue([[523,0,.12],[659,.08,.12],[784,.16,.14],[1047,.24,.3,"sine",.14],[1568,.3,.25,"sine",.05]]);
+const sndNo=()=>cue([[300,0,.22,"sine",.13,220],[240,.16,.25,"sine",.1,190]]);
+const sndLevel=()=>cue([[392,0,.12],[523,.1,.12],[659,.2,.12],[784,.3,.12],[1047,.4,.45,"square",.07],[784,.4,.45,"triangle",.1]]);
+const sndTick=()=>cue([[880,0,.08,"square",.06]]);
+const sndGo=()=>cue([[523,0,.1,"square",.07],[1047,.1,.35,"square",.08]]);
+const sndBadge=()=>cue([[1319,0,.1,"sine",.12],[1568,.08,.1,"sine",.12],[2093,.16,.35,"sine",.1]]);
+const sndWhoosh=()=>cue([[200,0,.18,"sawtooth",.03,900]]);
+/* recorded Arabic voice lines (free Microsoft neural TTS, ar-SA Zariyah) */
+let VOICE=null;function voice(k){if(DB.mute)return;try{if(VOICE)VOICE.pause();VOICE=new Audio("audio/"+k+".mp3");VOICE.volume=.95;VOICE.play().catch(()=>{})}catch(e){}}
+const vg=(m,f)=>voice(P&&P.g==="f"?f:m);
+addEventListener("pointerdown",()=>{try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume()}catch(e){}},{once:true});
+/* toast */
+function toast(html,ms=2600){const t=el("div",{class:"toast",role:"status",html});document.body.append(t);setTimeout(()=>t.classList.add("out"),ms);setTimeout(()=>t.remove(),ms+500)}
 
 /* ================= praise (effort-based) ================= */
 const PRAISE_M=["ركّزت فوصلت، بتوفيق الله 🌟","خطوة خطوة وصلت للحل، الحمد لله 👏","صبرت على اللغز فانحلّ، ما شاء الله","تفكيرك المرتّب نفعك، وبكرة تعلّمه لغيرك 🤝","جهدك اليوم يبني عقلك، الله يوفقك"];
@@ -763,7 +794,7 @@ const typesOf=wid=>Object.keys(TYPES).filter(k=>TYPES[k].world===wid);
 
 /* ================= player progress ================= */
 function stat(t){P.st=P.st||{};return P.st[t]=P.st[t]||{lv:1,a:0,c:0,streak:0,due:null,iv:1}}
-function record(t,lv,ok){const s=stat(t);s.a++;if(ok){s.c++;s.streak++;if(s.streak>=2&&s.lv<4){s.lv++;s.streak=0}s.iv=Math.min(s.iv*2,14);s.due=addDays(today(),s.iv)}else{s.streak=0;if(s.lv>1&&lv===s.lv&&Math.random()<.5)s.lv--;s.iv=1;s.due=addDays(today(),1)}
+function record(t,lv,ok){const s=stat(t);s.a++;if(ok){s.c++;s.streak++;if(s.streak>=2&&s.lv<4){s.lv++;s.streak=0;LEVELED=t}s.iv=Math.min(s.iv*2,14);s.due=addDays(today(),s.iv)}else{s.streak=0;if(s.lv>1&&lv===s.lv&&Math.random()<.5)s.lv--;s.iv=1;s.due=addDays(today(),1)}
   P.days=P.days||{};P.days[today()]=(P.days[today()]||0)+1;save()}
 function worldStars(wid){const ts=typesOf(wid);const lv=ts.reduce((s,t)=>s+(P.st&&P.st[t]?P.st[t].lv:1),0)/ts.length;const any=ts.some(t=>P.st&&P.st[t]&&P.st[t].c>0);return any?Math.min(3,Math.round(lv)):0}
 
@@ -783,7 +814,9 @@ $("#addG").addEventListener("click",e=>{if(e.target.dataset.g){addG=e.target.dat
 $("#dlgAdd").addEventListener("close",()=>{if($("#dlgAdd").returnValue!=="ok")return;const name=$("#addName").value.trim();if(!name)return;const p={id:Date.now(),name,g:addG,av:addAv,grade:+$("#addGrade").value,st:{},chal:[],days:{}};DB.players.push(p);save();P=p;go("map")});
 
 /* ---- map ---- */
-function renderMap(){paintTime();$("#muteBtn").textContent=DB.mute?"🔇":"🔊";$("#goStats small").textContent=T("وين أنا قوي ووين أحتاج تدريب","وين أنا قوية ووين أحتاج تدريب");$("#mapWho").textContent=P.av+" "+P.name;$("#worldWho").textContent=P.av+" "+P.name;const wrap=$("#mapwrap");wrap.querySelectorAll(".station").forEach(s=>s.remove());
+let WELCOMED=false;
+function streak(p){const d=p.days||{};let n=0,day=today();if(!d[day])day=addDays(day,-1);while(d[day]){n++;day=addDays(day,-1)}return n}
+function renderMap(){paintTime();if(!WELCOMED){WELCOMED=true;voice("welcome")}const sk=streak(P);$("#streak").textContent=sk?`🔥 ${n2a(sk)} ${sk===1?"يوم":"أيام"}`:"";$("#streak").hidden=!sk;$("#muteBtn").textContent=DB.mute?"🔇":"🔊";$("#goStats small").textContent=T("وين أنا قوي ووين أحتاج تدريب","وين أنا قوية ووين أحتاج تدريب");$("#mapWho").textContent=P.av+" "+P.name;$("#worldWho").textContent=P.av+" "+P.name;const wrap=$("#mapwrap");wrap.querySelectorAll(".station").forEach(s=>s.remove());
   WORLDS.forEach(w=>{const st=worldStars(w.id);const b=el("button",{class:"station",type:"button",style:`right:${100-w.x}%;top:${w.y*0.9+4}%`},el("span",{class:"lodge"},w.emoji),el("span",{},w.name.replace("عالم ","")),el("span",{class:"stars","aria-label":`${st} نجوم`},"⭐".repeat(st)+"☆".repeat(3-st)));b.addEventListener("click",()=>openWorld(w.id));wrap.append(b)});
   const due=Object.values(P.st||{}).filter(s=>s.due&&s.due<=today()).length;$("#dailyInfo").textContent=due?`٥ ألغاز، منها ${n2a(Math.min(due,5))} للمراجعة`:"٥ ألغاز مختارة لك"}
 $("#toParent").addEventListener("click",()=>{P=null;renderStats(true)});
@@ -799,7 +832,7 @@ function openWorld(wid){const w=W[wid];$("#wEmoji").textContent=w.emoji;$("#wNam
 let RUN=null;
 const api={ready:v=>{$("#btnCheck").disabled=!v}};
 function startPractice(types,mode,wid,count){RUN={types,mode,wid,count:count||0,done:0,right:0,queue:null};nextPuzzle()}
-function startDaily(){const keys=Object.keys(TYPES);const due=shuffle(keys.filter(t=>{const s=stat(t);return s.due&&s.due<=today()}));
+function startDaily(){voice("daily");const keys=Object.keys(TYPES);const due=shuffle(keys.filter(t=>{const s=stat(t);return s.due&&s.due<=today()}));
   const weak=keys.slice().sort((a,b)=>{const A=stat(a),B=stat(b);return (A.a?A.c/A.a:.5)-(B.a?B.c/B.a:.5)});const q=[];for(const t of [...due,...weak.slice(0,2),...wpick(keys,keys.length)])if(!q.includes(t)&&q.length<5)q.push(t);
   RUN={types:keys,mode:"daily",count:5,done:0,right:0,queue:q};nextPuzzle()}
 $("#goDaily").addEventListener("click",startDaily);
@@ -817,8 +850,8 @@ $("#btnCheck").addEventListener("click",async()=>{const q=RUN.cur,def=TYPES[q.t]
   if(RUN.checked){RUN.done++;nextPuzzle();return}
   const ok=!!def.check(q);RUN.checked=true;$("#btnCheck").disabled=true;
   if(def.animate&&ok)await def.animate(q);
-  if(def.reveal)def.reveal(q);record(q.t,q.lv,ok);if(ok){RUN.right++;confetti()}
-  (ok?sndOk:sndNo)();const fb=el("div",{class:"fb "+(ok?"ok pop":"no shake")},el("h3",{},ok?(T("أحسنت!","أحسنتِ!")):T("مو هذا الحل","مو هذا الحل")),el("p",{style:"margin:0 0 6px"},ok?pick(P.g==="f"?PRAISE_F:PRAISE_M):pick(P.g==="f"?TRY_F:TRY_M)),el("p",{style:"margin:0;font-weight:400"},"💡 "+fem(def.explain(q))));
+  if(def.reveal)def.reveal(q);LEVELED=null;record(q.t,q.lv,ok);if(ok){RUN.right++;confetti();const w=$("#pStory .who");if(w){w.classList.remove("hop");void w.offsetWidth;w.classList.add("hop")}}
+  (ok?sndOk:sndNo)();setTimeout(()=>{if(LEVELED){sndLevel();vg("lvl_m","lvl_f");toast(`⬆️ ${T("طلعت","طلعتِ")} للمستوى ${n2a(stat(LEVELED).lv)} في «${TYPES[LEVELED].name}»`)}else if(ok)vg(pick(["ok_m1","ok_m2","ok_n3"]),pick(["ok_f1","ok_f2","ok_n3"]));else vg("no_m","no_f");checkBadges()},450);const fb=el("div",{class:"fb "+(ok?"ok pop":"no shake")},el("h3",{},ok?(T("أحسنت!","أحسنتِ!")):T("مو هذا الحل","مو هذا الحل")),el("p",{style:"margin:0 0 6px"},ok?pick(P.g==="f"?PRAISE_F:PRAISE_M):pick(P.g==="f"?TRY_F:TRY_M)),el("p",{style:"margin:0;font-weight:400"},"💡 "+fem(def.explain(q))));
   $("#pFb").innerHTML="";$("#pFb").append(fb);fb.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"nearest"});
   $("#btnCheck").textContent=RUN.count&&RUN.done+1>=RUN.count?"النتيجة":"التالي";$("#btnCheck").disabled=false;$("#btnSkip").hidden=true;
   // block further edits on the board
@@ -856,10 +889,12 @@ function paintNav(){const nav=$("#chalNav");nav.innerHTML="";const score=CH.task
 $("#cCheck").addEventListener("click",async()=>{const task=CH.tasks[CH.idx],o=task.v[task.cur-1];let ok=false;try{ok=!!TYPES[task.t].check(o.q)}catch(e){}
   o.ok=ok;if(ok){task.solved=Math.max(task.solved,task.cur);sndOk();confetti()}else sndNo();showTask(CH.idx)});
 $("#cRedo").addEventListener("click",()=>{const task=CH.tasks[CH.idx];if(task.v[task.cur-1]&&task.v[task.cur-1].ok===true)return;task.v[task.cur-1]=null;showTask(CH.idx)});
-$("#goChal").addEventListener("click",()=>{if(!P.grade)askGrade();if(confirm(T("تحدي مثل بيبراس موهبة: ١٠ مهام في ٦٠ دقيقة، كل مهمة لها ٤ مستويات (١٠ نقاط لكل مستوى)، وما فيه خصم على الغلط. جاهز؟","تحدي مثل بيبراس موهبة: ١٠ مهام في ٦٠ دقيقة، كل مهمة لها ٤ مستويات (١٠ نقاط لكل مستوى)، وما فيه خصم على الغلط. جاهزة؟")))startChallenge()});
+$("#goChal").addEventListener("click",()=>{if(!P.grade)askGrade();if(confirm(T("تحدي مثل بيبراس موهبة: ١٠ مهام في ٦٠ دقيقة، كل مهمة لها ٤ مستويات (١٠ نقاط لكل مستوى)، وما فيه خصم على الغلط. جاهز؟","تحدي مثل بيبراس موهبة: ١٠ مهام في ٦٠ دقيقة، كل مهمة لها ٤ مستويات (١٠ نقاط لكل مستوى)، وما فيه خصم على الغلط. جاهزة؟")))gate(startChallenge)});
+function gate(then){const g=el("div",{class:"gate",role:"dialog","aria-label":"بداية التحدي"},el("div",{class:"gbeaver"},"🦫"),el("div",{class:"gtitle"},"بوابة بيبراس"),el("div",{class:"gnum",id:"gnum"},""));document.body.append(g);voice("chal_start");
+  const seq=["٣","٢","١","انطلق!"];let k=0;const step=()=>{const n=$("#gnum");n.textContent=seq[k];n.classList.remove("pop");void n.offsetWidth;n.classList.add("pop");k<3?sndTick():sndGo();k++;if(k<seq.length)setTimeout(step,900);else setTimeout(()=>{g.remove();then()},800)};setTimeout(step,1100)}
 $("#chalQuit").addEventListener("click",()=>{if(confirm(T("تبي تنهي التحدي الحين وتشوف النتيجة؟","تبين تنهين التحدي الحين وتشوفين النتيجة؟")))endChallenge()});
 function askGrade(){const v=prompt(T("في أي صف أنت؟ اكتب رقم الصف (مثلاً ٣ أو ٦)","في أي صف أنتِ؟ اكتبي رقم الصف (مثلاً ٣ أو ٦)"),"");if(v==null)return;const n=parseInt(String(v).replace(/[٠-٩]/g,d=>AR.indexOf(d)),10);if(n>=3&&n<=12){P.grade=n;save()}}
-function endChallenge(){if(!CH)return;clearInterval(CH.tick);const used=Math.min(CH.secs,Math.round((Date.now()-CH.start)/1000));
+function endChallenge(){if(!CH)return;clearInterval(CH.tick);voice("chal_end");setTimeout(checkBadges,1200);const used=Math.min(CH.secs,Math.round((Date.now()-CH.start)/1000));
   const score=CH.tasks.reduce((s,t)=>s+t.solved*10,0);const rows=[];
   CH.tasks.forEach((t,i)=>{const def=TYPES[t.t];const tried=t.v.some(o=>o&&o.ok!==null);if(tried)record(t.t,Math.max(1,t.solved||t.cur),t.solved>0);
     const o=t.v[t.cur-1]||t.v.find(Boolean);rows.push(el("div",{class:"rev"},el("span",{class:"m"},t.solved===4?"🌟":t.solved?"✅":tried?"❌":"⬜"),el("div",{},el("b",{},`${n2a(i+1)}. ${def.emoji} ${def.name} · ${t.solved?"★".repeat(t.solved)+" = "+n2a(t.solved*10):"٠"} نقطة`),o?el("br"):"",o?el("small",{},"💡 "+fem(def.explain(o.q))):"")))});
@@ -881,12 +916,26 @@ const GOAL_MIN=20;let lastAct=Date.now();
 const mins=s=>Math.round((s||0)/60);
 setInterval(()=>{if(!P||document.hidden)return;const on=document.querySelector(".screen.on");if(!on||on.id==="s-home"||on.id==="s-stats")return;if(Date.now()-lastAct>90000)return;
   P.time=P.time||{};const d=today();P.time[d]=(P.time[d]||0)+5;save();if(on.id==="s-map")paintTime()},5000);
-function paintTime(){const s=(P.time||{})[today()]||0,m=mins(s);const box=$("#timeBox");if(!box)return;box.innerHTML="";
+function paintTime(){const s=(P.time||{})[today()]||0,m=mins(s);P.goal=P.goal||{};if(m>=GOAL_MIN&&!P.goal[today()]){P.goal[today()]=1;save();sndBadge();vg("goal_m","goal_f");toast(T("🌟 وصلت هدف اليوم: ٢٠ دقيقة!","🌟 وصلتِ هدف اليوم: ٢٠ دقيقة!"),3500);checkBadges()}const box=$("#timeBox");if(!box)return;box.innerHTML="";
   box.append(el("div",{class:"tbar"},el("i",{style:`width:${Math.min(100,m/GOAL_MIN*100)}%`})),el("span",{},m>=GOAL_MIN?T(`⏱ لعبت اليوم ${n2a(m)} دقيقة، وصلت هدف اليوم 🌟 ارتاح وكمّل بكرة`,`⏱ لعبتِ اليوم ${n2a(m)} دقيقة، وصلتِ هدف اليوم 🌟 ارتاحي وكمّلي بكرة`):T(`⏱ لعبت اليوم ${n2a(m)} من ${n2a(GOAL_MIN)} دقيقة`,`⏱ لعبتِ اليوم ${n2a(m)} من ${n2a(GOAL_MIN)} دقيقة`)))}
 
 /* ================= confetti (game feel) ================= */
 function confetti(){if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;for(let i=0;i<18;i++){const s=el("span",{class:"conf","aria-hidden":"true"},pick(["🎉","⭐","✨","🌟"]));document.body.append(s);
   const a=Math.random()*Math.PI*2,r=120+Math.random()*160;try{s.animate([{transform:"translate(-50%,-50%) scale(.4)",opacity:1},{transform:`translate(calc(-50% + ${Math.cos(a)*r}px),calc(-50% + ${Math.sin(a)*r}px)) scale(1.2) rotate(${ri(-120,120)}deg)`,opacity:0}],{duration:900+ri(0,300),easing:"cubic-bezier(.2,.8,.3,1)"}).onfinish=()=>s.remove()}catch(e){s.remove()}}}
+
+/* ================= badges ================= */
+const BADGES=[
+ ["first","🌱","أول لغز",p=>solvedN(p)>=1],["ten","🔟","١٠ ألغاز",p=>solvedN(p)>=10],["fifty","🎯","٥٠ لغز",p=>solvedN(p)>=50],["hundred","💯","١٠٠ لغز",p=>solvedN(p)>=100],
+ ["explorer","🗺️","مستكشف العوالم السبعة",p=>WORLDS.every(w=>typesOf(w.id).some(t=>p.st&&p.st[t]&&p.st[t].c>0))],
+ ["lv4","⭐","وصل مستوى التحدّي",p=>Object.values(p.st||{}).some(s=>s.lv>=4)],
+ ["s3","🔥","٣ أيام ورا بعض",p=>streak(p)>=3],["s7","🔥","٧ أيام ورا بعض",p=>streak(p)>=7],
+ ["goal","⏱","هدف ٢٠ دقيقة",p=>Object.keys(p.goal||{}).length>=1],
+ ["chal","🏆","أول تحدي",p=>(p.chal||[]).length>=1],
+ ["bronze","🥉","مستوى البرونزية",p=>medalHit(p,2)],["silver","🥈","مستوى الفضية",p=>medalHit(p,1)],["gold","🥇","مستوى الذهبية",p=>medalHit(p,0)]];
+function solvedN(p){return Object.values(p.st||{}).reduce((s,x)=>s+x.c,0)}
+function medalHit(p,k){const m=MEDALS[p.grade]||[310,280,260];return (p.chal||[]).some(c=>c.max===400&&c.score>=m[k])}
+function checkBadges(){if(!P)return;P.badges=P.badges||[];for(const[id,e,name,f]of BADGES){if(!P.badges.includes(id)&&f(P)){P.badges.push(id);save();setTimeout(()=>{sndBadge();toast(`${e} وسام جديد: ${name}`,3200)},800)}}}
+function badgeGrid(p){const g=el("div",{class:"badges"});BADGES.forEach(([id,e,name,f])=>{const got=(p.badges||[]).includes(id)||f(p);g.append(el("div",{class:"badge"+(got?" got":""),title:name},el("span",{},got?e:"🔒"),el("small",{},name)))});return g}
 
 /* ================= stats / parent dashboard ================= */
 function playerBlock(p){const prev=P;P=p;const wrap=el("div",{class:"dcard"});
@@ -907,7 +956,7 @@ function renderStats(parent){const box=$("#statsBody");box.innerHTML="";
     if(!DB.players.length)box.append(el("p",{},"ما فيه لاعبين بعد. أضف لاعب من الصفحة الرئيسية."));DB.players.forEach(p=>{const b=playerBlock(p);
       b.append(el("button",{class:"btn alt",type:"button",style:"margin-top:10px;font-size:.9em;padding:6px 14px",onclick:()=>{if(confirm(`حذف ${p.name} وكل تقدّمه من هذا الجهاز؟`)){DB.players=DB.players.filter(x=>x!==p);save();renderStats(true)}}},"حذف اللاعب"));box.append(b)});
     $("#statsBack").onclick=()=>go("home")}
-  else{box.append(el("h2",{style:"color:var(--deep)"},"تقدّمي"),playerBlock(P));$("#statsBack").onclick=()=>go("map")}
+  else{checkBadges();box.append(el("h2",{style:"color:var(--deep)"},"تقدّمي"),el("h3",{style:"margin:10px 0 4px"},"أوسمتي"),badgeGrid(P),playerBlock(P));$("#statsBack").onclick=()=>go("map")}
   go("stats")}
 
 $("#muteBtn").addEventListener("click",()=>{DB.mute=!DB.mute;save();$("#muteBtn").textContent=DB.mute?"🔇":"🔊"});
