@@ -227,6 +227,19 @@ dialog select{font:inherit;width:100%;padding:8px 10px;border-radius:12px;border
 .badge small{font-weight:600;font-size:.75em;line-height:1.3;display:block}
 .hop{animation:hop .6s ease-out}
 @keyframes hop{0%,100%{transform:translateY(0)}40%{transform:translateY(-14px) rotate(-6deg)}70%{transform:translateY(0) rotate(4deg)}}
+.big.online{background:#7b55a0;color:#fff}
+.inp{font:inherit;width:100%;padding:10px 12px;border-radius:12px;border:2px solid #cfe3e6;margin-top:6px;background:#fff}
+.inp.code{font-size:1.4em;font-weight:800;text-align:center;letter-spacing:6px;flex:1}
+.roomcode{text-align:center;font-size:clamp(60px,18vw,110px);font-weight:800;color:var(--deep);letter-spacing:10px;line-height:1.1}
+.lobby{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.lp{background:#fff;border-radius:16px;padding:12px;display:flex;align-items:center;gap:10px;border:3px solid var(--leaf)}
+.lp span{font-size:34px}.lp.wait{border:3px dashed #cfe3e6;opacity:.6}
+.scoreb{display:grid;gap:6px;margin-bottom:10px}
+.sb{display:grid;grid-template-columns:30px 1fr 90px 54px;align-items:center;gap:8px;background:#fff;border-radius:12px;padding:4px 10px;font-weight:600}
+.sb.me{outline:3px solid var(--sun)}
+.bar2{height:10px;border-radius:5px;background:#e3eef0;overflow:hidden}.bar2 i{display:block;height:100%;background:var(--water)}
+.pd{display:grid;grid-template-columns:44px 1fr auto auto;gap:10px;align-items:center;background:#fff;border-radius:16px;padding:10px 14px;margin:8px 0;font-size:1.1em}
+.pd .m{font-size:32px}.pd.me{outline:3px solid var(--sun)}.pd.win{background:#fff6dc}
 @keyframes pop{0%{transform:scale(.6)}70%{transform:scale(1.1)}100%{transform:scale(1)}}
 .pop{animation:pop .35s ease-out}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
@@ -256,17 +269,19 @@ dialog select{font:inherit;width:100%;padding:8px 10px;border-radius:12px;border
     <h1 id="h-home">نهر القندس</h1>
     <p>ألغاز تفكير بنفس أنواع أسئلة بيبراس</p>
   </div>
+  <button class="big online" id="goOnline" type="button" style="width:100%;margin-top:16px"><span class="e">🌐</span><span>العب مع أصحابك أونلاين<small>من ٢ إلى ٤ لاعبين، كل واحد بجهازه</small></span></button>
   <h2 style="font-size:1.2em;margin-top:18px">مين بيلعب؟</h2>
   <div class="players" id="players"></div>
   <div class="res how">
     <b>🎮 كيف تلعبون مع أصحابكم؟</b>
     <p><b>👤 لاعب واحد:</b> اضغط «لاعب جديد»، اكتب اسمك، والعب.</p>
-    <p><b>👥 من ٢ إلى ٤ لاعبين، كل واحد بجهازه:</b></p>
+    <p><b>🌐 من ٢ إلى ٤ لاعبين، كل واحد بجهازه (أونلاين):</b></p>
     <ol>
-      <li>أرسلوا رابط اللعبة لبعض في الواتساب.</li>
-      <li>كل واحد يفتح الرابط من جهازه، ويضغط «لاعب جديد»، ويكتب اسمه.</li>
-      <li>اتفقوا على وقت، وادخلوا كلكم «🏆 تحدي بيبراس» بنفس اللحظة.</li>
-      <li>بعد ما تخلصون، صوّروا شاشة النتيجة وأرسلوها في القروب. اللي نقاطه أعلى هو البطل 🥇</li>
+      <li>واحد منكم يضغط «🌐 العب مع أصحابك أونلاين»، يكتب اسمه، ويضغط «سوّ غرفة».</li>
+      <li>تطلع له رقم غرفة من ٤ أرقام، يرسله لأصحابه في الواتساب مع رابط اللعبة.</li>
+      <li>أصحابه يفتحون الرابط، يضغطون «العب مع أصحابك أونلاين»، يكتبون أسماءهم ورقم الغرفة ويضغطون «ادخل».</li>
+      <li>صاحب الغرفة 👑 يضغط «ابدأ»، والكل يحل نفس الألغاز الستة، والنقاط تتحدث مباشرة عند الجميع.</li>
+      <li>في الآخر تطلع منصة الفائزين 🥇🥈🥉، والغرفة تنمسح تلقائياً.</li>
     </ol>
     <p><b>📱 كلكم على جهاز واحد:</b> كل واحد يضيف اسمه، وتلعبون بالدور، وتقارنون النقاط في «تقدّمي».</p>
   </div>
@@ -298,6 +313,7 @@ dialog select{font:inherit;width:100%;padding:8px 10px;border-radius:12px;border
   <div class="actions">
     <button class="big daily" id="goDaily"><span class="e">☀️</span><span>مهمة اليوم<small id="dailyInfo">٥ ألغاز مختارة لك</small></span></button>
     <button class="big chal" id="goChal"><span class="e">🏆</span><span>تحدي بيبراس<small>١٠ مهام في ٦٠ دقيقة، مثل بيبراس موهبة</small></span></button>
+    <button class="big online" id="mapOnline" type="button" style="grid-column:1/-1"><span class="e">🌐</span><span>العب مع أصحابك أونلاين<small>غرفة برقم، من ٢ إلى ٤ لاعبين</small></span></button>
     <button class="big dash" id="goStats"><span class="e">📈</span><span>تقدّمي<small></small></span></button>
   </div>
 </section>
@@ -329,6 +345,52 @@ dialog select{font:inherit;width:100%;padding:8px 10px;border-radius:12px;border
   <div class="board" id="cBoard"></div>
   <p class="cmsg" id="cMsg"></p>
   <div class="cmds"><button class="btn alt" id="cRedo" type="button">لغز جديد</button><button class="btn" id="cCheck" type="button" disabled>تحقّق</button></div>
+</section>
+
+<!-- ONLINE: ROOM SETUP -->
+<section class="screen" id="s-room">
+  <div class="topbar"><button class="back" data-go="home">⇦ رجوع</button></div>
+  <h2 style="color:var(--deep);font-size:1.5em">🌐 العب مع أصحابك</h2>
+  <div class="dcard">
+    <label><b>اسمك</b><input id="mpName" class="inp" maxlength="16" autocomplete="off" placeholder="اكتب اسمك"></label>
+    <div class="seg" id="mpG" style="margin-top:8px"><button type="button" data-g="m" class="sel">ولد</button><button type="button" data-g="f">بنت</button></div>
+  </div>
+  <div class="dcard">
+    <b>سوّ غرفة جديدة</b><p class="muted" style="margin:2px 0 8px">تطلع لك رقم غرفة ترسله لأصحابك.</p>
+    <button class="btn" id="mpCreate" type="button" style="width:100%">➕ سوّ غرفة</button>
+  </div>
+  <div class="dcard">
+    <b>عندك رقم غرفة من صاحبك؟</b>
+    <div style="display:flex;gap:8px;margin-top:8px"><input id="mpCode" class="inp code" inputmode="numeric" maxlength="4" placeholder="١٢٣٤" autocomplete="off"><button class="btn" id="mpJoin" type="button">ادخل</button></div>
+  </div>
+  <p id="mpErr" class="cmsg no" role="status"></p>
+</section>
+
+<!-- ONLINE: LOBBY -->
+<section class="screen" id="s-lobby">
+  <div class="topbar"><button class="back" id="lobbyLeave">⇦ اطلع</button></div>
+  <p style="text-align:center;margin:0">رقم الغرفة</p>
+  <div class="roomcode" id="lobbyCode"></div>
+  <p class="muted" style="text-align:center">أرسل الرقم لأصحابك في الواتساب، ينتظرونك هنا 👇</p>
+  <div class="lobby" id="lobbyList"></div>
+  <div style="text-align:center;margin-top:14px"><button class="btn" id="lobbyStart" type="button">🚀 ابدأ اللعب</button><p id="lobbyWait" class="muted">⏳ ننتظر صاحب الغرفة 👑 يبدأ…</p></div>
+</section>
+
+<!-- ONLINE: PLAY -->
+<section class="screen" id="s-mp">
+  <div class="topbar"><span class="pill">🌐 أونلاين</span><span class="pill timer" id="mpTimer">⏱ ١٠:٠٠</span></div>
+  <div class="scoreb" id="mpBoard"></div>
+  <div class="qhead"><h2 id="mpTitle" style="font-size:1.15em"></h2><span class="level" id="mpLevel"></span></div>
+  <div class="story" id="mpStory"></div>
+  <div class="board" id="mpPuzzle"></div>
+  <div id="mpFb"></div>
+  <div class="cmds" style="margin:14px 0 30px"><button class="btn" id="mpCheck" type="button" disabled>تحقّق</button></div>
+</section>
+
+<!-- ONLINE: PODIUM -->
+<section class="screen" id="s-podium">
+  <div id="podium" style="padding-top:56px"></div>
+  <div style="text-align:center;margin-top:16px"><button class="btn" id="podiumHome" type="button">🏠 الرئيسية</button></div>
 </section>
 
 <!-- RESULT -->
@@ -935,6 +997,73 @@ function paintTime(){const s=(P.time||{})[today()]||0,m=mins(s);P.goal=P.goal||{
 /* ================= confetti (game feel) ================= */
 function confetti(){if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;for(let i=0;i<18;i++){const s=el("span",{class:"conf","aria-hidden":"true"},pick(["🎉","⭐","✨","🌟"]));document.body.append(s);
   const a=Math.random()*Math.PI*2,r=120+Math.random()*160;try{s.animate([{transform:"translate(-50%,-50%) scale(.4)",opacity:1},{transform:`translate(calc(-50% + ${Math.cos(a)*r}px),calc(-50% + ${Math.sin(a)*r}px)) scale(1.2) rotate(${ri(-120,120)}deg)`,opacity:0}],{duration:900+ri(0,300),easing:"cubic-bezier(.2,.8,.3,1)"}).onfinish=()=>s.remove()}catch(e){s.remove()}}}
+
+/* ================= online rooms (Firebase Realtime Database, REST + SSE) =================
+   rooms/{4-digit code}: {host, state: lobby|play, seed, created, players:{pid:{name,av,g,score,step,done,ms}}}
+   Same seed => every device generates the same puzzles. Nothing personal is stored; the host deletes the room after the game. */
+const RTDB="https://bebras-qandas-default-rtdb.europe-west1.firebasedatabase.app";
+const MP_TASKS=6,MP_SECS=10*60,MP_MAX=4,MP_LV=[1,1,2,2,3,3];
+let MP=null;
+function seeded(seed,fn){const real=Math.random;let a=seed>>>0;Math.random=()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};try{return fn()}finally{Math.random=real}}
+async function db(method,path,body){const r=await fetch(`${RTDB}/${path}.json`,{method,headers:{"Content-Type":"application/json"},body:body===undefined?undefined:JSON.stringify(body)});if(!r.ok)throw new Error("db "+r.status);return r.json()}
+function setAt(obj,path,val){const ks=path.split("/").filter(Boolean);if(!ks.length)return val;let o=obj||{};const root=o;for(let i=0;i<ks.length-1;i++){if(typeof o[ks[i]]!=="object"||o[ks[i]]===null)o[ks[i]]={};o=o[ks[i]]}if(val===null)delete o[ks.at(-1)];else o[ks.at(-1)]=val;return root}
+function listen(code,onData){const es=new EventSource(`${RTDB}/rooms/${code}.json`);let data=null;
+  const h=e=>{try{const m=JSON.parse(e.data);if(e.type==="put")data=setAt(data,m.path,m.data);else for(const k in m.data)data=setAt(data,(m.path+"/"+k).replace(/^\/+/,""),m.data[k]);onData(data)}catch(err){}};
+  es.addEventListener("put",h);es.addEventListener("patch",h);return es}
+const mpPlayers=()=>Object.entries((MP&&MP.room&&MP.room.players)||{}).map(([id,p])=>({id,...p}));
+const rankOf=list=>list.slice().sort((a,b)=>(b.score||0)-(a.score||0)||(a.done&&b.done?(a.ms||9e9)-(b.ms||9e9):(b.step||0)-(a.step||0)));
+
+function openRoomScreen(){const nm=P?P.name:"";$("#mpName").value=nm;MP_G=P?P.g:"m";paintMpG();$("#mpCode").value="";$("#mpErr").textContent="";go("room")}
+let MP_G="m";function paintMpG(){[...$("#mpG").children].forEach(b=>b.classList.toggle("sel",b.dataset.g===MP_G))}
+$("#mpG").addEventListener("click",e=>{if(e.target.dataset.g){MP_G=e.target.dataset.g;paintMpG()}});
+function mpMe(){const name=$("#mpName").value.trim().slice(0,16);if(!name){$("#mpErr").textContent="اكتب اسمك أول 🙂";return null}
+  if(!P||P.name!==name)P={id:"tmp",name,g:MP_G,av:MP_G==="f"?"🐰":"🦫",st:{},chal:[],days:{}};else P.g=MP_G;return {name,g:MP_G,av:P.av}}
+$("#mpCreate").addEventListener("click",async()=>{const me=mpMe();if(!me)return;$("#mpErr").textContent="لحظة…";
+  try{let code;for(let i=0;i<8;i++){code=String(ri(1000,9999));if(!(await db("GET","rooms/"+code)))break}
+    const pid=Math.random().toString(36).slice(2,10);
+    await db("PUT","rooms/"+code,{host:pid,state:"lobby",seed:ri(1,2e9),created:Date.now(),players:{[pid]:{...me,score:0,step:0,done:false}}});
+    enterLobby(code,pid)}catch(e){$("#mpErr").textContent="ما قدرت أسوي الغرفة. تأكد من الإنترنت وجرّب مرة ثانية."}});
+$("#mpJoin").addEventListener("click",async()=>{const me=mpMe();if(!me)return;const code=$("#mpCode").value.replace(/[٠-٩]/g,d=>AR.indexOf(d)).replace(/\D/g,"");
+  if(code.length!==4){$("#mpErr").textContent="رقم الغرفة ٤ أرقام";return}$("#mpErr").textContent="لحظة…";
+  try{const room=await db("GET","rooms/"+code);if(!room){$("#mpErr").textContent="ما لقيت غرفة بهذا الرقم. تأكد من الرقم.";return}
+    if(room.state!=="lobby"){$("#mpErr").textContent="اللعبة في هذي الغرفة بدأت. اطلب من صاحبك يسوي غرفة جديدة.";return}
+    if(Object.keys(room.players||{}).length>=MP_MAX){$("#mpErr").textContent="الغرفة مليانة (٤ لاعبين).";return}
+    const pid=Math.random().toString(36).slice(2,10);await db("PUT",`rooms/${code}/players/${pid}`,{...me,score:0,step:0,done:false});enterLobby(code,pid)}
+  catch(e){$("#mpErr").textContent="ما قدرت أدخل. تأكد من الإنترنت وجرّب مرة ثانية."}});
+
+function enterLobby(code,pid){if(MP&&MP.es)MP.es.close();MP={code,pid,room:null,started:false};$("#lobbyCode").textContent=n2a(code);
+  MP.es=listen(code,room=>{MP.room=room;if(!room){mpGone();return}paintLobby();if(room.state==="play"&&!MP.started){MP.started=true;gate(mpStart)}if(MP.playing)paintBoard()});
+  voice("welcome");go("lobby")}
+function paintLobby(){const box=$("#lobbyList");box.innerHTML="";const ps=mpPlayers();ps.forEach(p=>box.append(el("div",{class:"lp pop"},el("span",{},p.av),el("b",{},p.name+(p.id===MP.room.host?" 👑":"")+(p.id===MP.pid?" (أنت)":"")))));
+  for(let i=ps.length;i<MP_MAX;i++)box.append(el("div",{class:"lp wait"},el("span",{},"⏳"),el("b",{},"ننتظر صاحب…")));
+  const host=MP.room.host===MP.pid;$("#lobbyStart").hidden=!host;$("#lobbyWait").hidden=host;$("#lobbyStart").disabled=ps.length<1}
+$("#lobbyStart").addEventListener("click",()=>{if(MP)db("PATCH","rooms/"+MP.code,{state:"play"}).catch(()=>{})});
+$("#lobbyLeave").addEventListener("click",()=>mpLeave());
+async function mpLeave(){if(MP){if(MP.es)MP.es.close();clearInterval(MP.tick);try{if(MP.room&&MP.room.host===MP.pid&&MP.room.state==="lobby")await db("DELETE","rooms/"+MP.code);else await db("DELETE",`rooms/${MP.code}/players/${MP.pid}`)}catch(e){}}MP=null;go("home")}
+function mpGone(){if(MP&&MP.es)MP.es.close();if(MP&&MP.over)return;clearInterval(MP&&MP.tick);MP=null;toast("الغرفة انتهت أو انحذفت");go("home")}
+
+function mpStart(){const seed=MP.room.seed;MP.tasks=seeded(seed,()=>{const types=wpick(Object.keys(TYPES),MP_TASKS);return types.map((t,i)=>seeded(seed+i*7919,()=>{const q=TYPES[t].gen(MP_LV[i]);q.t=t;q.lv=MP_LV[i];return q}))});
+  MP.i=0;MP.score=0;MP.t0=Date.now();MP.playing=true;MP.tick=setInterval(mpTick,500);mpShow();go("mp")}
+function mpTick(){const left=MP_SECS-Math.floor((Date.now()-MP.t0)/1000);if(left<=0){mpFinish();return}$("#mpTimer").textContent=`⏱ ${n2a(String(Math.floor(left/60)).padStart(2,"0"))}:${n2a(String(left%60).padStart(2,"0"))}`}
+function paintBoard(){const box=$("#mpBoard");if(!box)return;box.innerHTML="";rankOf(mpPlayers()).forEach((p,k)=>box.append(el("div",{class:"sb"+(p.id===MP.pid?" me":"")},el("span",{class:"r"},["🥇","🥈","🥉","4"][k]||""),el("span",{},p.av+" "+p.name),el("span",{class:"bar2"},el("i",{style:`width:${Math.min(100,(p.step||0)/MP_TASKS*100)}%`})),el("b",{},n2a(p.score||0)))))}
+function mpShow(){const q=MP.tasks[MP.i],def=TYPES[q.t];$("#mpTitle").textContent=`لغز ${n2a(MP.i+1)} من ${n2a(MP_TASKS)} · ${def.emoji} ${def.name}`;const L=$("#mpLevel");L.className="level l"+q.lv;L.textContent="+"+n2a(q.lv*10);
+  renderStory($("#mpStory"),def.story(q));const b=$("#mpPuzzle");b.innerHTML="";b.style.pointerEvents="";$("#mpFb").textContent="";$("#mpCheck").disabled=true;$("#mpCheck").textContent="تحقّق";MP.checked=false;
+  def.render(q,b,{ready:v=>{if(!MP.checked)$("#mpCheck").disabled=!v}});paintBoard();window.scrollTo(0,0)}
+$("#mpCheck").addEventListener("click",()=>{if(!MP)return;if(MP.checked){MP.i++;if(MP.i>=MP_TASKS)mpFinish();else mpShow();return}
+  const q=MP.tasks[MP.i],def=TYPES[q.t];let ok=false;try{ok=!!def.check(q)}catch(e){}MP.checked=true;if(def.reveal)def.reveal(q);$("#mpPuzzle").style.pointerEvents="none";
+  if(ok){MP.score+=q.lv*10;sndOk();confetti();voice(pick(["ok1","ok2","ok3"]))}else{sndNo();voice("no")}
+  $("#mpFb").textContent=ok?T(`أحسنت! +${n2a(q.lv*10)} نقطة`,`أحسنتِ! +${n2a(q.lv*10)} نقطة`):"💡 "+fem(def.explain(q));$("#mpFb").className="fb "+(ok?"ok":"no");
+  $("#mpCheck").textContent=MP.i+1>=MP_TASKS?"النتيجة":"التالي";db("PATCH",`rooms/${MP.code}/players/${MP.pid}`,{score:MP.score,step:MP.i+1}).catch(()=>{})});
+function mpFinish(){if(!MP||MP.over)return;MP.over=true;MP.playing=false;clearInterval(MP.tick);const ms=Date.now()-MP.t0;
+  db("PATCH",`rooms/${MP.code}/players/${MP.pid}`,{score:MP.score,step:MP_TASKS,done:true,ms}).catch(()=>{});voice("chal_end");go("podium");paintPodium();
+  if(MP.es)MP.es.close();MP.es=listen(MP.code,room=>{if(!room)return;MP.room=room;paintPodium();if(room.host===MP.pid&&mpPlayers().every(p=>p.done)&&!MP.cleanup){MP.cleanup=setTimeout(()=>db("DELETE","rooms/"+MP.code).catch(()=>{}),120000)}})}
+function paintPodium(){const box=$("#podium");box.innerHTML="";const ps=rankOf(mpPlayers());const all=ps.every(p=>p.done);
+  box.append(el("h2",{style:"text-align:center;color:var(--deep)"},all?"🏆 النتيجة النهائية":"⏳ ننتظر الباقين يخلصون…"));
+  ps.forEach((p,k)=>box.append(el("div",{class:"pd"+(p.id===MP.pid?" me":"")+(k===0&&all?" win pop":"")},el("span",{class:"m"},["🥇","🥈","🥉","🎖️"][k]||"🎖️"),el("span",{},p.av+" "+p.name),el("b",{},`${n2a(p.score||0)} نقطة`),el("small",{},p.done?`${n2a(Math.round((p.ms||0)/60000))} د`:`لغز ${n2a(p.step||0)}`))));
+  if(all&&!MP.celebrated){MP.celebrated=true;if(ps[0]&&ps[0].id===MP.pid){sndLevel();confetti();toast(T("🏆 فزت! تعبك وتركيزك وصّلوك، بتوفيق الله","🏆 فزتِ! تعبك وتركيزك وصّلوك، بتوفيق الله"))}else{sndBadge();toast(T("لعبت مع أصحابك وتعلّمت، وهذا هو الفوز الحقيقي 🤝","لعبتِ مع صاحباتك وتعلّمتِ، وهذا هو الفوز الحقيقي 🤝"))}}}
+$("#podiumHome").addEventListener("click",()=>{if(MP&&MP.es)MP.es.close();MP=null;go("home")});
+$("#goOnline").addEventListener("click",openRoomScreen);
+$("#mapOnline")&&$("#mapOnline").addEventListener("click",openRoomScreen);
 
 /* ================= badges ================= */
 const BADGES=[
