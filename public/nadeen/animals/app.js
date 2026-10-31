@@ -6,21 +6,25 @@
   function plain(s) { return String(s).replace(/[\u{1F300}-\u{1FAFF}☀-➿⭐️]/gu, '').replace(/\//g, ' أو '); }
 
   // ---------- saved player (each device keeps its own) ----------
-  var PLAYERS = [['nadeen', 'نادين', 'f'], ['saleh', 'صالح', 'm'], ['malak', 'ملك يوسف', 'f'], ['rawaf', 'رواف', 'm']];
+  // لاعبون بأسماء يكتبونها بأنفسهم (لكل اسم حفظٌ مستقلّ على هذا الجهاز)
   var ACTIVE = ''; try { ACTIVE = localStorage.getItem('zoo_active') || ''; } catch (e) {}
-  var ME = PLAYERS.filter(function (p) { return p[0] === ACTIVE; })[0] || null, MALE = true;   // عامّ للجميع: لا مؤنث ولا مذكر (صيغة الجمع)
-  var KEY = 'zoo_player_v2_' + ACTIVE, P = null;
+  var ME = ACTIVE ? [ACTIVE, ACTIVE] : null, MALE = true;   // صياغة عامّة للجميع (صيغة الجمع)
+  var KEY = 'zoo_player_v3_' + ACTIVE, P = null;
   try { P = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
-  if (!P && ACTIVE === 'nadeen') { try { P = JSON.parse(localStorage.getItem('zoo_player_v1') || 'null'); } catch (e) {} }   // Nadeen's old save
   if (P && ME) { P.name = ME[1]; P.srs = P.srs || {}; }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(P)); } catch (e) {} }
 
 
   // ---------- who is playing (4 players, each has her/his own saved game) ----------
   function who() {
-    app.innerHTML = '<div class="wrap"><h1 class="t">🐾 مغامرة في عالم الحيوانات</h1><div class="sub">من سيلعب الآن؟ اضغط على اسمك</div><div class="worlds">' +
-      PLAYERS.map(function (p, i) { return '<button class="tile blk" data-p="' + p[0] + '" style="--c:' + ['#FF5FA2', '#22A6E8', '#7B5CFF', '#22C55E'][i] + '"><span class="ic">' + (p[2] === 'f' ? '👧' : '👦') + '</span><span class="tt"><b>' + p[1] + '</b></span></button>'; }).join('') + '</div></div>';
-    [].forEach.call(app.querySelectorAll('[data-p]'), function (b) { b.onclick = function () { try { localStorage.setItem('zoo_active', b.dataset.p); } catch (e) {} location.reload(); }; });
+    var names = []; try { for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k.indexOf('zoo_player_v3_') === 0) names.push(k.slice(14)); } } catch (e) {}
+    app.innerHTML = '<div class="wrap"><h1 class="t">🐾 مغامرة في عالم الحيوانات</h1><div class="sub">اكتبوا اسمكم لتبدأ مغامرتكم، وسيبقى تقدّمكم محفوظًا باسمكم</div>' +
+      '<div class="blk" style="padding:14px;margin:10px 0"><input class="name" id="wn" maxlength="14" placeholder="اكتب اسمك هنا"><button class="btn g" id="wg" style="width:100%;margin-top:10px">ابدأ المغامرة ▶</button></div>' +
+      (names.length ? '<div class="sub">أو ارجعوا إلى اسم سبق أن لعب هنا:</div><div class="worlds">' + names.map(function (n, i) { return '<button class="tile blk" data-p="' + n.replace(/"/g, '&quot;') + '" style="--c:' + ['#FF5FA2', '#22A6E8', '#7B5CFF', '#22C55E'][i % 4] + '"><span class="ic">🧒</span><span class="tt"><b>' + n + '</b></span></button>'; }).join('') + '</div>' : '') + '</div>';
+    function go(n) { n = (n || '').trim(); if (!n) { document.getElementById('wn').focus(); return; } try { localStorage.setItem('zoo_active', n); } catch (e) {} location.reload(); }
+    document.getElementById('wg').onclick = function () { go(document.getElementById('wn').value); };
+    document.getElementById('wn').onkeydown = function (e) { if (e.key === 'Enter') go(this.value); };
+    [].forEach.call(app.querySelectorAll('[data-p]'), function (b) { b.onclick = function () { go(b.dataset.p); }; });
   }
   // boys get masculine wording (the text was written for girls)
   var MREP = [['رائعةٌ', 'رائعٌ'], ['البطلاتُ', 'الأبطالُ'], ['يتدرَّبن', 'يتدرَّبون'], ['البطلةُ', 'البطل/ةُ'], ['بطلةُ', 'بطل/ةُ'], ['بطلة', 'بطل/ة'], ['المستكشفةُ', 'المستكشف/ةُ'], ['مستكشفة', 'مستكشف/ة'], ['قريبة', 'قريب'], ['أعيدي', 'أعيدوا'], ['أنتِ', 'أنتم'], ['ابدئي', 'ابدؤوا'], ['فقِّسي', 'فقِّسوا'], ['أحسنتِ', 'أحسنتم'], ['ركِّزي', 'ركِّزوا'], ['تنتظرُكِ', 'تنتظرُكم'], ['صمِّمي', 'صمِّموا'], ['شخصيّتَكِ', 'شخصيّتَكم'], ['اكتبي', 'اكتبوا'], ['أوصلي', 'أوصِلوا'], ['اهربي', 'اهربوا'], ['أخطأتِ', 'أخطأتم'], ['أضفتِ', 'أضفتم'], ['مجموعتِكِ', 'مجموعتِكم'], ['نجوتِ', 'نجوتم'], ['عقلُكِ', 'عقلُكم'], ['وفكِّري', 'وفكِّروا'], ['فكِّري', 'فكِّروا'], ['جرِّبي', 'جرِّبوا'], ['حاولي', 'حاولوا'], ['تعرفين', 'تعرفون'], ['تقرِّبُكِ', 'تقرِّبُكم'], ['اسمُكِ', 'اسمُكم'], ['تحتاجين', 'تحتاجون'], ['اسمَكِ', 'اسمَكم'], ['واعرفي', 'واعرفوا'], ['اسمعي', 'اسمعوا'], ['تريدين', 'تريدون'], ['تتقدَّمين', 'تتقدَّمون'], ['أصبتِ', 'أصبتم'], ['صوِّري', 'صوِّروا'], ['اقلبي', 'اقلبوا'], ['بينكِ', 'بينَكم'], ['لتجمعي', 'لتجمعوا'], ['تمنحُكِ', 'تمنحُكم'], ['أرسليها', 'أرسلوها'], ['صديقتك', 'صديقكم'], ['تفتحينه', 'تفتحونه'], ['اختاري', 'اختاروا'], ['شاهدي', 'شاهدوا'], ['احفظي', 'احفظوا'], ['انظري', 'انظروا'], ['تذكّري', 'تذكّروا'], ['استمعي', 'استمعوا'], ['أكملي', 'أكملوا'], ['حدّدي', 'حدّدوا'], ['اضغطي', 'اضغطوا'], ['لاحظي', 'لاحظوا'], ['كرّري', 'كرّروا'], ['أجيبي', 'أجيبوا'], ['ساعدي', 'ساعدوا'], ['اعرفي', 'اعرفوا'], ['جمعتِ', 'جمعتم'], ['ربحتِ', 'ربحتم'], ['عرفتِ', 'عرفتم'], ['نجحتِ', 'نجحتم'], ['أنهيتِ', 'أنهيتم'], ['اقرئي', 'اقرئوا'], ['رتّبي', 'رتّبوا'], ['صلي', 'صِلوا'], ['وصّلي', 'وصِّلوا'], ['تعلّمي', 'تعلّموا'], ['اختبري', 'اختبروا'], ['افتحي', 'افتحوا'], ['ارجعي', 'ارجعوا'], ['أكملي', 'أكملوا'], ['كرّري', 'كرّروا'], ['عرفتُها', 'عرفتُها'], ['اضغطي', 'اضغطوا'], ['جرّبي', 'جرّبوا'], ['تذكّري', 'تذكّروا'], ['راجعي', 'راجعوا'], ['أتقنتِ', 'أتقنتم'], ['قرأتِ', 'قرأتم'], ['أنهيتِ', 'أنهيتم'], ['نجحتِ', 'نجحتم'], ['لعبتِ', 'لعبتم'], ['تحتاجين', 'تحتاجون'], ['استمعي', 'استمعوا'], ['شاهدي', 'شاهدوا']];
