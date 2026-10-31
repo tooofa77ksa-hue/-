@@ -388,8 +388,8 @@ const sndTick=()=>cue([[880,0,.08,"square",.06]]);
 const sndGo=()=>cue([[523,0,.1,"square",.07],[1047,.1,.35,"square",.08]]);
 const sndBadge=()=>cue([[1319,0,.1,"sine",.12],[1568,.08,.1,"sine",.12],[2093,.16,.35,"sine",.1]]);
 const sndWhoosh=()=>cue([[200,0,.18,"sawtooth",.03,900]]);
-/* recorded Arabic voice lines (free Microsoft neural TTS, ar-SA Zariyah) */
-let VOICE=null;function voice(k){if(DB.mute)return;try{if(VOICE)VOICE.pause();VOICE=new Audio("audio/"+k+".mp3");VOICE.volume=.95;VOICE.play().catch(()=>{})}catch(e){}}
+/* natural Saudi voice lines (via Speko): boys hear Hiba (Hamsa), girls hear Noura Alotaibi (Munsit, Najdi) */
+let VOICE=null;function voice(k){if(DB.mute)return;try{if(VOICE)VOICE.pause();VOICE=new Audio("audio/"+(P&&P.g==="f"?"f_":"m_")+k+".mp3");VOICE.volume=.95;VOICE.play().catch(()=>{})}catch(e){}}
 const vg=(m,f)=>voice(P&&P.g==="f"?f:m);
 addEventListener("pointerdown",()=>{try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume()}catch(e){}},{once:true});
 /* toast */
@@ -851,7 +851,7 @@ $("#btnCheck").addEventListener("click",async()=>{const q=RUN.cur,def=TYPES[q.t]
   const ok=!!def.check(q);RUN.checked=true;$("#btnCheck").disabled=true;
   if(def.animate&&ok)await def.animate(q);
   if(def.reveal)def.reveal(q);LEVELED=null;record(q.t,q.lv,ok);if(ok){RUN.right++;confetti();const w=$("#pStory .who");if(w){w.classList.remove("hop");void w.offsetWidth;w.classList.add("hop")}}
-  (ok?sndOk:sndNo)();setTimeout(()=>{if(LEVELED){sndLevel();vg("lvl_m","lvl_f");toast(`⬆️ ${T("طلعت","طلعتِ")} للمستوى ${n2a(stat(LEVELED).lv)} في «${TYPES[LEVELED].name}»`)}else if(ok)vg(pick(["ok_m1","ok_m2","ok_n3"]),pick(["ok_f1","ok_f2","ok_n3"]));else vg("no_m","no_f");checkBadges()},450);const fb=el("div",{class:"fb "+(ok?"ok pop":"no shake")},el("h3",{},ok?(T("أحسنت!","أحسنتِ!")):T("مو هذا الحل","مو هذا الحل")),el("p",{style:"margin:0 0 6px"},ok?pick(P.g==="f"?PRAISE_F:PRAISE_M):pick(P.g==="f"?TRY_F:TRY_M)),el("p",{style:"margin:0;font-weight:400"},"💡 "+fem(def.explain(q))));
+  (ok?sndOk:sndNo)();setTimeout(()=>{if(LEVELED){sndLevel();voice("lvl");toast(`⬆️ ${T("طلعت","طلعتِ")} للمستوى ${n2a(stat(LEVELED).lv)} في «${TYPES[LEVELED].name}»`)}else if(ok)voice(pick(["ok1","ok2","ok3"]));else voice("no");checkBadges()},450);const fb=el("div",{class:"fb "+(ok?"ok pop":"no shake")},el("h3",{},ok?(T("أحسنت!","أحسنتِ!")):T("مو هذا الحل","مو هذا الحل")),el("p",{style:"margin:0 0 6px"},ok?pick(P.g==="f"?PRAISE_F:PRAISE_M):pick(P.g==="f"?TRY_F:TRY_M)),el("p",{style:"margin:0;font-weight:400"},"💡 "+fem(def.explain(q))));
   $("#pFb").innerHTML="";$("#pFb").append(fb);fb.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"nearest"});
   $("#btnCheck").textContent=RUN.count&&RUN.done+1>=RUN.count?"النتيجة":"التالي";$("#btnCheck").disabled=false;$("#btnSkip").hidden=true;
   // block further edits on the board
@@ -916,7 +916,7 @@ const GOAL_MIN=20;let lastAct=Date.now();
 const mins=s=>Math.round((s||0)/60);
 setInterval(()=>{if(!P||document.hidden)return;const on=document.querySelector(".screen.on");if(!on||on.id==="s-home"||on.id==="s-stats")return;if(Date.now()-lastAct>90000)return;
   P.time=P.time||{};const d=today();P.time[d]=(P.time[d]||0)+5;save();if(on.id==="s-map")paintTime()},5000);
-function paintTime(){const s=(P.time||{})[today()]||0,m=mins(s);P.goal=P.goal||{};if(m>=GOAL_MIN&&!P.goal[today()]){P.goal[today()]=1;save();sndBadge();vg("goal_m","goal_f");toast(T("🌟 وصلت هدف اليوم: ٢٠ دقيقة!","🌟 وصلتِ هدف اليوم: ٢٠ دقيقة!"),3500);checkBadges()}const box=$("#timeBox");if(!box)return;box.innerHTML="";
+function paintTime(){const s=(P.time||{})[today()]||0,m=mins(s);P.goal=P.goal||{};if(m>=GOAL_MIN&&!P.goal[today()]){P.goal[today()]=1;save();sndBadge();voice("goal");toast(T("🌟 وصلت هدف اليوم: ٢٠ دقيقة!","🌟 وصلتِ هدف اليوم: ٢٠ دقيقة!"),3500);checkBadges()}const box=$("#timeBox");if(!box)return;box.innerHTML="";
   box.append(el("div",{class:"tbar"},el("i",{style:`width:${Math.min(100,m/GOAL_MIN*100)}%`})),el("span",{},m>=GOAL_MIN?T(`⏱ لعبت اليوم ${n2a(m)} دقيقة، وصلت هدف اليوم 🌟 ارتاح وكمّل بكرة`,`⏱ لعبتِ اليوم ${n2a(m)} دقيقة، وصلتِ هدف اليوم 🌟 ارتاحي وكمّلي بكرة`):T(`⏱ لعبت اليوم ${n2a(m)} من ${n2a(GOAL_MIN)} دقيقة`,`⏱ لعبتِ اليوم ${n2a(m)} من ${n2a(GOAL_MIN)} دقيقة`)))}
 
 /* ================= confetti (game feel) ================= */
