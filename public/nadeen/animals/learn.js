@@ -26,7 +26,7 @@
         Z.stop();
         app.innerHTML = '<div class="wrap">' + Z.bar(true) + '<h1 class="t">' + C.ic + ' ' + C.name + '</h1><div class="sub">من ملحق الموسوعة ' + C.pg + ' · البطاقة ' + AR(i + 1) + ' من ' + AR(rows.length) + '</div>' +
           '<div class="prog">' + rows.map(function (_, k) { return '<i class="' + (k < i ? 'd' : k === i ? 'c' : '') + '"></i>'; }).join('') + '</div>' +
-          '<div class="q blk" style="text-align:center"><img class="pic" src="img/' + cd.img + '.jpg" alt="" onerror="this.style.display=\'none\'"><div style="font:800 20px B;margin-top:6px">' + cd.top + '</div><div class="lbig" style="font:800 40px/1.5 B;color:' + C.col + ';margin:4px 0">' + cd.big + '</div><div class="muted" style="font:600 15px R;color:#5B6280">' + cd.sub + '</div><button class="btn w" id="ls" style="margin-top:10px">🔊 اسمعي</button></div>' +
+          '<div class="q blk" style="text-align:center"><img class="pic" src="img/' + cd.img + '.jpg" alt="" onerror="this.style.display=\'none\'"><div style="font:800 20px B;margin-top:6px">' + cd.top + '</div><div class="lbig" style="font:800 40px/1.5 B;color:' + C.col + ';margin:4px 0">' + cd.big + '</div><div class="muted" style="font:600 15px R;color:#5B6280">' + cd.sub + '</div><button class="btn w" id="ls" style="margin-top:10px">🔊 استمعوا</button></div>' +
           '<div class="nav"><button class="btn p" id="ag">🔁 أعيدها لاحقًا</button><button class="btn g" id="ok">عرفتُها ✓</button></div></div>';
         var bk = document.getElementById('bk'); if (bk) bk.onclick = hub;
         var say = function () { if (cd.say.snd) Z.sound(cd.say.snd, cd.say.text, document.getElementById('ls'), function () { Z.speak(cd.say.text); }); else Z.speak(cd.say.text); };
@@ -38,10 +38,10 @@
       }
       function finish() {
         var P = Z.getP(); P.best['L_' + c] = 1; Z.save(); Z.confetti(14);
-        app.innerHTML = '<div class="wrap">' + Z.bar(true) + '<div class="ach blk">' + Z.avatar(P) + '<h2>أنهيتَ بطاقاتِ «' + C.name + '» 🎉</h2><div class="sub">الآن اختبرْ نفسَك: ما لم تعرفْه يرجعُ لك غدًا.</div></div><div class="nav"><button class="btn w" id="h">🗺️ الخطة</button><button class="btn g" id="q">اختبرْ نفسي ▶</button></div></div>';
+        app.innerHTML = '<div class="wrap">' + Z.bar(true) + '<div class="ach blk">' + Z.avatar(P) + '<h2>أنهينا بطاقاتِ «' + C.name + '» 🎉</h2><div class="sub">الآن اختبروا أنفسَكم: ما لم تعرفْه يرجعُ لك غدًا.</div></div><div class="nav"><button class="btn w" id="h">🗺️ الخطة</button><button class="btn g" id="q">هيّا نختبر ▶</button></div></div>';
         Z.wireBack(); var bk = document.getElementById('bk'); if (bk) bk.onclick = hub;
         document.getElementById('h').onclick = hub; document.getElementById('q').onclick = function () { quizCat(c); };
-        Z.play(function () { Z.speak('أحسنتِ! الآن اختبري نفسك.'); });
+        Z.play(function () { Z.speak('أحسنتم! الآن اختبروا أنفسكم.'); });
       }
       show();
     }
@@ -59,7 +59,7 @@
       var ks = []; ORDER.forEach(function (c) { keys(c).forEach(function (k) { if (box(k) < 2) ks.push(k); }); });
       var items = shuffle(ks).slice(0, 12).map(Z.reviewItem).filter(Boolean);
       if (!items.length) { Z.map(); return; }
-      Z.quiz('Q_weak', '🎯 ما لم أتقنْه بعد', items, { again: weak });
+      Z.quiz('Q_weak', '🎯 ما لم نتقنْه بعد بعد', items, { again: weak });
     }
 
     // ---------- plan + mastery map ----------
@@ -68,26 +68,26 @@
       ['اليوم الثاني', '#7B5CFF', [['R', 'dueFirst'], ['L', 'y'], ['Q', 'y'], ['L', 'h'], ['Q', 'h'], ['L', 'p'], ['Q', 'p'], ['E', 'exam']]]
     ];
     function stepDone(s) { var P = Z.getP(); if (s[0] === 'L') return !!P.best['L_' + s[1]]; if (s[0] === 'Q') return (P.best['Q_' + s[1]] || 0) > 0; if (s[0] === 'E') return (P.best.Q_exam || 0) > 0; return false; }
-    function stepName(s) { var C = CATS[s[1]]; if (s[0] === 'L') return '📖 تعلّمْ: ' + C.name + ' (' + AR(C.rows.length) + ')'; if (s[0] === 'Q') return '✏️ اختبرْ: ' + C.name; if (s[0] === 'E') return '🏆 اختبار الملحق الشامل'; return '🔁 مراجعةُ أمس'; }
+    function stepName(s) { var C = CATS[s[1]]; if (s[0] === 'L') return '📖 تعلّموا: ' + C.name + ' (' + AR(C.rows.length) + ')'; if (s[0] === 'Q') return '✏️ اختبروا: ' + C.name; if (s[0] === 'E') return '🏆 اختبار الملحق الشامل'; return '🔁 مراجعةُ أمس'; }
     function hub() {
       Z.stop(); var m = mastered(), P = Z.getP(), pct = Math.round(m[0] / m[1] * 100), due = Z.dueKeys().length;
-      app.innerHTML = '<div class="wrap">' + Z.bar(true) + '<h1 class="t">🎓 خطةُ يومين: أتقنْ ملحقَ الحيوانات</h1><div class="hello blk">كلُّ ما في ملحق الموسوعة (ص٢٣٦–٢٤٠): ' + AR(m[1]) + ' معلومة. بطاقة ← اختبار ← مراجعة. والنجوم تأتي مع الإتقان 🌟</div>' +
-        '<div class="blk" style="padding:12px 14px;margin:10px 0"><b style="font:800 18px B">أتقنتَ ' + AR(m[0]) + ' من ' + AR(m[1]) + '</b><div style="height:18px;border:3px solid var(--line);border-radius:12px;background:#fff;margin-top:6px;overflow:hidden"><div style="width:' + pct + '%;height:100%;background:linear-gradient(90deg,#22C55E,#86EFAC)"></div></div></div>' +
+      app.innerHTML = '<div class="wrap">' + Z.bar(true) + '<h1 class="t">🎓 خطةُ يومين: أتقنوا ملحقَ الحيوانات</h1><div class="hello blk">كلُّ ما في ملحق الموسوعة (ص٢٣٦–٢٤٠): ' + AR(m[1]) + ' معلومة. بطاقة ← اختبار ← مراجعة. والنجوم تأتي مع الإتقان 🌟</div>' +
+        '<div class="blk" style="padding:12px 14px;margin:10px 0"><b style="font:800 18px B">أتقنّا ' + AR(m[0]) + ' من ' + AR(m[1]) + '</b><div style="height:18px;border:3px solid var(--line);border-radius:12px;background:#fff;margin-top:6px;overflow:hidden"><div style="width:' + pct + '%;height:100%;background:linear-gradient(90deg,#22C55E,#86EFAC)"></div></div></div>' +
         DAYS.map(function (d) { return '<div class="blk" style="padding:12px 14px;margin:10px 0;border-right:10px solid ' + d[1] + '"><h2 style="margin:0 0 6px">' + d[0] + '</h2>' + d[2].map(function (s, k) { var ok = stepDone(s); return '<button class="opt" data-st="' + s[0] + ':' + s[1] + '" style="display:flex;width:100%;justify-content:space-between;align-items:center;margin:6px 0;' + (ok ? 'background:#d9f7d9' : '') + '"><span>' + stepName(s) + '</span><span>' + (ok ? '✅' : '◀') + '</span></button>'; }).join('') + '</div>'; }).join('') +
-        '<div class="nav" style="flex-wrap:wrap"><button class="btn w" id="mp">🧭 خريطة إتقاني</button><button class="btn p" id="wk">🎯 ما لم أتقنْه</button>' + (due ? '<button class="btn" id="dr" style="background:#F59E0B">🔔 مراجعة اليوم (' + AR(due) + ')</button>' : '') + '</div></div>';
+        '<div class="nav" style="flex-wrap:wrap"><button class="btn w" id="mp">🧭 خريطة إتقاني</button><button class="btn p" id="wk">🎯 ما لم نتقنْه بعد</button>' + (due ? '<button class="btn" id="dr" style="background:#F59E0B">🔔 مراجعة اليوم (' + AR(due) + ')</button>' : '') + '</div></div>';
       var bk = document.getElementById('bk'); if (bk) bk.onclick = Z.map;
-      [].forEach.call(app.querySelectorAll('[data-st]'), function (b) { b.onclick = function () { var p = b.dataset.st.split(':'); if (p[0] === 'L') deck(p[1]); else if (p[0] === 'Q') quizCat(p[1]); else if (p[0] === 'E') exam(); else { var it = Z.dueKeys().length; if (it) { Z.quiz('Q_rev', '🔁 مراجعة', shuffle(Z.dueKeys()).slice(0, 10).map(Z.reviewItem).filter(Boolean), { again: hub }); } else { Z.speak('لا مراجعة اليوم، أحسنتِ!'); } } }; });
+      [].forEach.call(app.querySelectorAll('[data-st]'), function (b) { b.onclick = function () { var p = b.dataset.st.split(':'); if (p[0] === 'L') deck(p[1]); else if (p[0] === 'Q') quizCat(p[1]); else if (p[0] === 'E') exam(); else { var it = Z.dueKeys().length; if (it) { Z.quiz('Q_rev', '🔁 مراجعة', shuffle(Z.dueKeys()).slice(0, 10).map(Z.reviewItem).filter(Boolean), { again: hub }); } else { Z.speak('لا مراجعة اليوم، أحسنتم!'); } } }; });
       document.getElementById('mp').onclick = mapView; document.getElementById('wk').onclick = weak;
       var dr = document.getElementById('dr'); if (dr) dr.onclick = function () { Z.quiz('Q_rev', '🔁 مراجعة اليوم', shuffle(Z.dueKeys()).slice(0, 10).map(Z.reviewItem).filter(Boolean), { again: hub }); };
       window.scrollTo(0, 0);
     }
     function mapView() {
       var m = mastered();
-      app.innerHTML = '<div class="wrap">' + Z.bar(true) + '<h1 class="t">🧭 خريطةُ إتقاني</h1><div class="sub">🟩 أتقنتُه · 🟨 أتعثّر · 🟥 أخطأتُ · ⬜ لم أجرّبه بعد</div><div class="blk" style="padding:10px 12px;margin:8px 0"><b>أتقنتَ ' + AR(m[0]) + ' من ' + AR(m[1]) + '</b></div>' +
+      app.innerHTML = '<div class="wrap">' + Z.bar(true) + '<h1 class="t">🧭 خريطةُ إتقاني</h1><div class="sub">🟩 أتقنتُه · 🟨 أتعثّر · 🟥 أخطأتُ · ⬜ لم أجرّبه بعد</div><div class="blk" style="padding:10px 12px;margin:8px 0"><b>أتقنّا ' + AR(m[0]) + ' من ' + AR(m[1]) + '</b></div>' +
         ORDER.map(function (c) { var C = CATS[c]; return '<div class="blk" style="padding:10px 12px;margin:10px 0;border-right:10px solid ' + C.col + '"><b style="font:800 18px B">' + C.ic + ' ' + C.name + ' · ' + C.pg + '</b><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">' + C.rows.map(function (r) { var b = box(c + ':' + r[0]), cd = C.card(r), bg = b < 0 ? '#fff' : b === 0 ? '#ffc9c9' : b === 1 ? '#fff3b0' : '#bdf3c8'; return '<span style="background:' + bg + ';border:3px solid var(--line);border-radius:12px;padding:3px 10px;font:700 14px R">' + cd.top.replace('♂ ', '') + ' ← ' + cd.big.replace('♀ ', '') + '</span>'; }).join('') + '</div></div>'; }).join('') + '</div>';
       var bk = document.getElementById('bk'); if (bk) bk.onclick = hub; window.scrollTo(0, 0);
     }
-    Z.addWorld(['wp', '🎓', 'خطةُ يومين', 'أتقنْ كلَّ ما في الملحق', '#0EA5E9', hub]);
+    Z.addWorld(['wp', '🎓', 'خطةُ يومين', 'أتقنوا كلَّ ما في الملحق', '#0EA5E9', hub]);
     window.ZOO.hub = hub;
   };
 })();

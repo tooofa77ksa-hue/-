@@ -85,9 +85,9 @@
       return { head: H('<div class="seq big2">' + rest[0] + ' ' + rest[1] + ' ' + rest[0] + ' ' + rest[1] + ' ' + rest[0] + ' ❓</div>'), ask: 'ما الشكلُ التالي؟', opts: three(rest[1], up), ans: rest[1], why: 'الشكلان يتبادلان: ' + rest[0] + ' ثم ' + rest[1] + '.' };
     }
     var GAMES = [
-      ['t1', '🔢', 'أكمِلِ العدد', 'متتالياتٌ عدديّة', '#FF8A3D', numPattern, 8], ['t2', '🔷', 'أكمِلِ الشكل', 'أنماطٌ مرسومة', '#22A6E8', picPattern, 8], ['t3', '🧩', 'الدخيل', 'من يختلفُ عن الباقي؟', '#22C55E', oddOne, 8],
+      ['t1', '🔢', 'أكمِلوا العدد', 'متتالياتٌ عدديّة', '#FF8A3D', numPattern, 8], ['t2', '🔷', 'أكمِلوا الشكل', 'أنماطٌ مرسومة', '#22A6E8', picPattern, 8], ['t3', '🧩', 'الدخيل', 'من يختلفُ عن الباقي؟', '#22C55E', oddOne, 8],
       ['t4', '🔗', 'العلاقة', 'التناظرُ اللفظيّ', '#FF5FA2', analogy, 8], ['t5', '⚖️', 'الميزان', 'كم تُوازن؟', '#7B5CFF', scale, 6], ['t6', '🤔', 'فكّرتُ في عدد', 'ألغازُ الأعداد', '#E11D48', riddle, 6],
-      ['t7', '📏', 'من الأطول؟', 'منطقُ الترتيب', '#0EA5A5', order, 6], ['t8', '🔄', 'غيّرِ القاعدة', 'مرونةٌ عقليّة', '#F59E0B', flex, 6]
+      ['t7', '📏', 'من الأطول؟', 'منطقُ الترتيب', '#0EA5A5', order, 6], ['t8', '🔄', 'غيّروا القاعدة', 'مرونةٌ عقليّة', '#F59E0B', flex, 6]
     ];
     function build(g) { var items = [], keys = {}, guard = 0; while (items.length < g[6] && guard++ < 80) { var it = g[5](); var k = it.ask + JSON.stringify(it.head); if (keys[k]) continue; keys[k] = 1; items.push(it); } return items; }
     function play(g) { Z.quiz(g[0], g[1] + ' ' + g[2], build(g), { again: function () { play(g); }, back: hub }); }
@@ -101,21 +101,21 @@
         [].forEach.call(app.querySelectorAll('.pad'), function (b) { b.onclick = function () { if (busy) return; press(+b.dataset.i); }; });
       }
       function flash(i, ms) { var p = app.querySelectorAll('.pad')[i]; if (!p) return; p.classList.add('lit'); setTimeout(function () { p.classList.remove('lit'); }, ms || 380); }
-      function show() { busy = true; draw('شاهدْ الألوان…'); var i = 0; (function step() { if (i >= seq.length) { busy = false; pos = 0; var s = app.querySelector('.sub'); if (s) s.textContent = 'دورُك! أعِدِ الترتيب'; return; } flash(seq[i]); i++; setTimeout(step, 650); })(); }
+      function show() { busy = true; draw('شاهدوا الألوان…'); var i = 0; (function step() { if (i >= seq.length) { busy = false; pos = 0; var s = app.querySelector('.sub'); if (s) s.textContent = 'دورُكم! أعيدوا الترتيب'; return; } flash(seq[i]); i++; setTimeout(step, 650); })(); }
       function next() { seq.push(R(0, 3)); level = seq.length; setTimeout(show, 700); }
       function press(i) {
         flash(i, 200);
         if (i !== seq[pos]) { busy = true; var st = level >= 7 ? 3 : level >= 5 ? 2 : 1, P = Z.getP(); P.best.t9 = Math.max(P.best.t9 || 0, st); P.stars += Math.max(0, level - 1); Z.save(); setTimeout(function () { Z.achievement('🎨 ذاكرةُ الألوان', st, Math.max(0, level - 1), Math.max(level, 1), [], null, simon); var mp = document.getElementById('mp'); if (mp) mp.onclick = hub; }, 500); return; }
         pos++; if (pos === seq.length) { Z.confetti(6); busy = true; next(); }
       }
-      Z.stop(); draw('هل تتذكّر الترتيب؟'); setTimeout(next, 600);
+      Z.stop(); draw('هل تتذكّرون الترتيب؟'); setTimeout(next, 600);
     }
 
     // ---------- thinking hub ----------
     function hub() {
       Z.stop(); var P = Z.getP();
-      var all = GAMES.concat([['t9', '🎨', 'ذاكرةُ الألوان', 'اتبعِ الترتيب', '#EC4899', null]]);
-      app.innerHTML = '<div class="wrap">' + Z.bar(true) + '<h1 class="t">🧠 عالمُ التفكير</h1><div class="hello blk">هنا نُدرِّبُ العقلَ على الأنماطِ والمنطقِ، مثلَ ألعابِ الأذكياء! كلُّ لعبةٍ أسئلتُها جديدةٌ في كلِّ مرّة.</div>' +
+      var all = GAMES.concat([['t9', '🎨', 'ذاكرةُ الألوان', 'اتبعوا الترتيب', '#EC4899', null]]);
+      app.innerHTML = '<div class="wrap">' + Z.bar(true) + '<h1 class="t">🧠 عالمُ التفكير</h1><div class="hello blk">هنا نُدرّب العقلَ على الأنماطِ والمنطقِ، مثلَ ألعابِ الأذكياء! كلُّ لعبةٍ أسئلتُها جديدةٌ في كلِّ مرّة.</div>' +
         '<div class="worlds">' + all.map(function (g, i) { var b = P.best[g[0]] || 0; return '<button class="tile blk" data-g="' + i + '" style="--c:' + g[4] + '"><span class="ic">' + g[1] + '</span><span class="tt"><b>' + g[2] + '</b><small>' + g[3] + '</small></span><span class="st">' + '⭐'.repeat(b) + '☆'.repeat(3 - b) + '</span></button>'; }).join('') + '</div></div>';
       var bk = document.getElementById('bk'); if (bk) bk.onclick = Z.map;
       [].forEach.call(app.querySelectorAll('[data-g]'), function (b) { b.onclick = function () { var g = all[+b.dataset.g]; if (g[0] === 't9') simon(); else play(g); }; });
