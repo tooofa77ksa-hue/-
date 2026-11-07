@@ -248,7 +248,9 @@ dialog select{font:inherit;width:100%;padding:8px 10px;border-radius:12px;border
 @media (max-width:520px){
   .tlrow{grid-template-columns:96px 1fr}
   body{font-size:17px}
-  .station .lodge{width:62px;height:62px;font-size:30px}
+  .station .lodge{width:50px;height:50px;font-size:25px;border-width:4px;box-shadow:0 3px 0 var(--bark)}
+  .station span{font-size:.78em;padding:0 6px}
+  .station .stars{font-size:.65em}
   .actions{grid-template-columns:1fr}
   .opts{grid-template-columns:1fr}
   .drow{grid-template-columns:96px 1fr 52px}
@@ -569,25 +571,25 @@ explain(q){const all=[...q.pre];for(let t=0;t<q.times;t++)all.push(...q.body);al
 /* ---- 3. shortest path (graphs) ---- */
 TYPES.path={world:"graph",emoji:"🛶",name:"أقصر طريق",
 gen(L){const n=[6,7,9,10][L-1];for(;;){const G=makeGraph(n,[2,4,6,8][L-1]);const w=G.edges.map(()=>ri(1,9));
-  let s=0,t=0,far=-1;for(let i=0;i<n;i++){const d=bfs(G,i);d.forEach((v,j)=>{if(v>far){far=v;s=i;t=j}})}if(far<2)continue;
+  let s=0,tgt=0,far=-1;for(let i=0;i<n;i++){const d=bfs(G,i);d.forEach((v,j)=>{if(v>far){far=v;s=i;tgt=j}})}if(far<2)continue;
   const dist=Array(n).fill(1e9);dist[s]=0;const done=Array(n).fill(false);for(let k=0;k<n;k++){let u=-1;for(let i=0;i<n;i++)if(!done[i]&&(u<0||dist[i]<dist[u]))u=i;done[u]=true;for(const[v,e]of G.adj[u])if(dist[u]+w[e]<dist[v])dist[v]=dist[u]+w[e]}
   // need at least two different routes to be interesting
-  if(G.edges.length<n)continue;return {G,w,s,t,best:dist[t]}}},
+  if(G.edges.length<n)continue;return {G,w,s,tgt,best:dist[tgt]}}},
 story(q){return {who:"🛶",p:["القندس يبي يروح من بيته 🏠 إلى الشجرة 🌳 عبر القنوات.","الرقم على كل قناة هو عدد الدقائق."],ask:"اضغط على المحطات بالترتيب لتكوين أسرع طريق."}},
 render(q,board,api){
-  const labels=q.G.pts.map((_,i)=>i===q.s?"🏠":i===q.t?"🌳":"");
+  const labels=q.G.pts.map((_,i)=>i===q.s?"🏠":i===q.tgt?"🌳":"");
   let route=[q.s];const total=el("div",{class:"total"});
   const wrap=el("div",{style:"width:100%;display:flex;justify-content:center"});
   const edgeOf=(a,b)=>{const f=q.G.adj[a].find(([v])=>v===b);return f?f[1]:-1};
-  const paint=()=>{const svg=drawGraph(q.G,{labels,weights:q.w,onNode:tap,fill:i=>route.includes(i)?"#ffe9a8":i===q.t?"#c9ecc0":"#fff"});
+  const paint=()=>{const svg=drawGraph(q.G,{labels,weights:q.w,onNode:tap,fill:i=>route.includes(i)?"#ffe9a8":i===q.tgt?"#c9ecc0":"#fff"});
     for(let k=1;k<route.length;k++){const e=edgeOf(route[k-1],route[k]);const ln=svg.querySelector(`[data-e="${e}"]`);ln.setAttribute("stroke","#f4c04e");ln.setAttribute("stroke-width",12)}
-    wrap.innerHTML="";wrap.append(svg);let sum=0;for(let k=1;k<route.length;k++)sum+=q.w[edgeOf(route[k-1],route[k])];total.textContent=`المجموع: ${n2a(sum)} دقيقة`;q.answer={route:route.slice(),sum};api.ready(route[route.length-1]===q.t)};
+    wrap.innerHTML="";wrap.append(svg);let sum=0;for(let k=1;k<route.length;k++)sum+=q.w[edgeOf(route[k-1],route[k])];total.textContent=`المجموع: ${n2a(sum)} دقيقة`;q.answer={route:route.slice(),sum};api.ready(route[route.length-1]===q.tgt)};
   function tap(i){const last=route[route.length-1];if(i===last&&route.length>1){route.pop();paint();return}
     const at=route.indexOf(i);if(at>=0){route=route.slice(0,at+1);paint();return}
     if(edgeOf(last,i)<0){wrap.classList.remove("shake");void wrap.offsetWidth;wrap.classList.add("shake");return}sndTap();route.push(i);paint()}
   board.append(wrap,total,el("div",{class:"muted"},T("اضغط على محطة مرة ثانية عشان ترجع خطوة.","اضغطي على محطة مرة ثانية عشان ترجعين خطوة.")));paint();
 },
-check(q){return q.answer&&q.answer.route.at(-1)===q.t&&q.answer.sum===q.best},
+check(q){return q.answer&&q.answer.route.at(-1)===q.tgt&&q.answer.sum===q.best},
 explain(q){return `أسرع طريق يأخذ ${n2a(q.best)} دقيقة. الطريق القصير بالعدد مو دايماً الأسرع؛ اجمع الأرقام لكل طريق وقارن.`}};
 
 /* ---- 4. spreading secret (graphs) ---- */
@@ -859,8 +861,8 @@ explain(q){return `خمّن دايماً الرقم اللي في النص: كل
 const WORLDS=[
  {id:"algo",emoji:"🤖",name:"عالم الخوارزميات",x:78,y:9,learn:"<b>الخوارزمية</b> = خطوات مرتّبة توصلك للهدف. في بيبراس تجيك روبوتات وبرامج فيها «كرّر» وألعاب تخمين. السرّ: نفّذ الخطوات بنفسك واحدة واحدة."},
  {id:"plan",emoji:"🗓️",name:"عالم التخطيط",x:58,y:24,learn:"<b>التخطيط</b> = نرتّب الوقت والمهام بذكاء: وش نسوي أول، وكيف نسوي أكثر شي بالوقت المتاح. السرّ: ابدأ باللي ما يعتمد على غيره، واختر اللي يخلص بدري."},
- {id:"graph",emoji:"🕸️",name:"عالم الشبكات",x:30,y:36,learn:"<b>الشبكة</b> = نقاط وخطوط تربطها، مثل الطرق أو الأصحاب. الأسئلة عن أقصر طريق، أو كم خطوة يوصل الخبر. السرّ: لوّن النقاط مرحلة مرحلة."},
- {id:"code",emoji:"🔢",name:"عالم الترميز",x:22,y:56,learn:"<b>الترميز</b> = نكتب المعلومة بشكل ثاني: رموز، أضواء، أرقام ثنائية، وشجرة أسئلة تفرز الأشياء. السرّ: لاحظ القاعدة وطبّقها بدقة."},
+ {id:"graph",emoji:"🕸️",name:"عالم الشبكات",x:30,y:34,learn:"<b>الشبكة</b> = نقاط وخطوط تربطها، مثل الطرق أو الأصحاب. الأسئلة عن أقصر طريق، أو كم خطوة يوصل الخبر. السرّ: لوّن النقاط مرحلة مرحلة."},
+ {id:"code",emoji:"🔢",name:"عالم الترميز",x:22,y:58,learn:"<b>الترميز</b> = نكتب المعلومة بشكل ثاني: رموز، أضواء، أرقام ثنائية، وشجرة أسئلة تفرز الأشياء. السرّ: لاحظ القاعدة وطبّقها بدقة."},
  {id:"sort",emoji:"📚",name:"عالم الترتيب",x:56,y:64,learn:"<b>الترتيب</b> = نرتّب الأشياء بأقل حركات. وفيه <b>الكومة</b>: آخر واحد ينحط هو أول واحد ينشال، مثل العيدان فوق بعض. السرّ: ابدأ باللي فوق."},
  {id:"pattern",emoji:"🎨",name:"عالم الأنماط",x:80,y:80,learn:"<b>النمط</b> = شي يتكرر بقاعدة. فيه مرايا ودوران وبطاقات فوق بعض وتسلسلات. السرّ: اشتغل صف صف أو عنصر عنصر."},
  {id:"logic",emoji:"🧩",name:"عالم المنطق",x:50,y:99,learn:"<b>المنطق</b> = نستنتج الجواب من الأدلة، وفيه بوابات «و» و«أو». السرّ: ابدأ بالدليل الأكيد، واكتب اللي عرفته، وشيل الاحتمالات الغلط."}];
@@ -1102,7 +1104,7 @@ function renderStats(parent){const box=$("#statsBody");box.innerHTML="";
   go("stats")}
 
 $("#muteBtn").addEventListener("click",()=>{DB.mute=!DB.mute;save();$("#muteBtn").textContent=DB.mute?"🔇":"🔊"});
-window.__bebras={TYPES};
+window.__bebras={TYPES,get run(){return RUN},get player(){return P},get ch(){return CH},get mp(){return MP}};
 go("home");
 })();
 </script>
