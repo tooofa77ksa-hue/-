@@ -211,7 +211,10 @@ dialog input{font:inherit;width:100%;padding:10px 12px;border-radius:12px;border
 .res{background:#fff;border-radius:var(--r-mid);padding:12px 16px;margin-top:22px;border-inline-start:8px solid var(--sun)}
 .res p{margin:2px 0 0;color:var(--muted)}
 .how p,.how li{color:var(--ink)}.how ol{margin:4px 0 6px;padding-inline-start:22px}
-.credit{text-align:center;font-weight:800;color:var(--deep);margin:18px 0 0;font-size:1.05em}
+.credit{text-align:center;font-weight:700;color:var(--deep);margin:14px 0 0;font-size:.82em;opacity:.85}
+.daily-tip{margin-top:10px;padding:8px 12px;border-radius:12px;background:#fff6db;font-size:.95em}
+.dates{display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:center;align-items:center;background:#fff3d6;border:2px solid #f0b43c;border-radius:14px;padding:8px 12px;margin:0 0 12px;font-weight:800;color:#7a4b00;font-size:.95em;text-align:center}
+.dates small{font-weight:700;opacity:.8}
 .conf{position:fixed;left:50%;top:45%;font-size:26px;pointer-events:none;z-index:20}
 dialog select{font:inherit;width:100%;padding:8px 10px;border-radius:12px;border:2px solid #cfe3e6;margin:6px 0 12px;background:#fff}
 .toast{position:fixed;left:50%;top:max(16px,env(safe-area-inset-top));transform:translateX(-50%);background:var(--deep);color:#fff;font-weight:800;padding:10px 20px;border-radius:999px;z-index:30;box-shadow:0 6px 0 rgba(0,0,0,.18);animation:pop .35s ease-out;max-width:92vw;text-align:center}
@@ -262,6 +265,7 @@ dialog select{font:inherit;width:100%;padding:8px 10px;border-radius:12px;border
 
 <!-- HOME -->
 <section class="screen on" id="s-home" aria-labelledby="h-home">
+  <div class="dates" role="note"><span class="d-reg">📝 آخر موعد للتسجيل: <b>22 نوفمبر</b> <small class="d-left"></small></span><span class="d-test">🏆 الاختبار: <b>5 ديسمبر</b> <small class="d-left"></small></span></div>
   <div class="hero">
     <svg class="dam" viewBox="0 0 420 120" aria-hidden="true">
       <path d="M0 92 C60 70 120 110 210 88 S350 70 420 92 V120 H0Z" fill="#1f6f78"/>
@@ -296,7 +300,7 @@ dialog select{font:inherit;width:100%;padding:8px 10px;border-radius:12px;border
   <p class="foot">أنواع الألغاز مستوحاة من أسئلة بيبراس الدولية 2014–2024 (أرشيف France-ioi برخصة CC BY-SA، وأدلة الحلول الأسترالية)، والألغاز نفسها من تأليفنا.<br>
   صفحة تدريب غير رسمية، ليست تابعة لموهبة.<br>
   <button id="toParent">لوحة ولي الأمر</button></p>
-  <p class="credit">تصميم عواطف الجهني</p>
+  <p class="credit">تصميم عواطف الجهني · جميع الحقوق محفوظة © 2026</p>
 </section>
 
 <!-- MAP -->
@@ -305,6 +309,7 @@ dialog select{font:inherit;width:100%;padding:8px 10px;border-radius:12px;border
     <button class="back" data-go="home">⇦ تغيير اللاعب</button>
     <span style="display:flex;gap:8px"><span class="pill" id="streak" hidden></span><button class="back" id="muteBtn" type="button" aria-label="الصوت">🔊</button><span class="pill" id="mapWho"></span></span>
   </div>
+  <div class="dates" role="note"><span class="d-reg">📝 آخر موعد للتسجيل: <b>22 نوفمبر</b> <small class="d-left"></small></span><span class="d-test">🏆 الاختبار: <b>5 ديسمبر</b> <small class="d-left"></small></span></div>
   <h2 id="h-map" style="font-size:1.5em;color:var(--deep)">خريطة النهر</h2>
   <div class="timebox" id="timeBox"></div>
   <div class="mapwrap" id="mapwrap">
@@ -451,6 +456,7 @@ let LEVELED=null;
 const T=(m,f)=>P&&P.g==="f"?f:m;
 const FEM={"رتّب":"رتّبي","رتّبها":"رتّبيها","اكتب":"اكتبي","اضغط":"اضغطي","واضغط":"واضغطي","نفّذ":"نفّذي","فكّر":"فكّري","لاحظ":"لاحظي","وطبّقها":"وطبّقيها","وشيل":"وشيلي","واكتب":"واكتبي","شغّل":"شغّلي","انتبه":"انتبهي","لوّن":"لوّني","اقرأ":"اقرئي","اختر":"اختاري","حطّهم":"حطّيهم","تتبّع":"تتبّعي","اجمع":"اجمعي","ابدأ":"ابدئي","فك":"فكّي","ارجع":"ارجعي","ودّ":"ودّي","جرّب":"جرّبي","اشتغل":"اشتغلي","قارن":"قارني","وقارن":"وقارني","ابحث":"ابحثي","تكتب":"تكتبين","كمّل":"كمّلي","وتجنّب":"وتجنّبي","شوف":"شوفي","ثم":"ثم"};
 const FEMRE=new RegExp("(^|[\\s،.«(:])("+Object.keys(FEM).sort((a,b)=>b.length-a.length).join("|")+")(?=[\\s،.!؟:»)]|$)","g");
+const gx=t=>t.replace(/\{([^|{}]*)\|([^{}]*)\}/g,(_,m,f)=>P&&P.g==="f"?f:m);
 const fem=t=>P&&P.g==="f"&&t?t.replace(FEMRE,(m,a,w)=>a+FEM[w]):t;
 
 /* ================= sound ================= */
@@ -862,13 +868,13 @@ explain(q){return `خمّن دايماً الرقم اللي في النص: كل
 
 /* ================= worlds ================= */
 const WORLDS=[
- {id:"algo",emoji:"🤖",name:"عالم الخوارزميات",x:78,y:9,learn:"<b>الخوارزمية</b> = خطوات مرتّبة توصلك للهدف. في بيبراس تجيك روبوتات وبرامج فيها «كرّر» وألعاب تخمين. السرّ: نفّذ الخطوات بنفسك واحدة واحدة."},
- {id:"plan",emoji:"🗓️",name:"عالم التخطيط",x:58,y:24,learn:"<b>التخطيط</b> = نرتّب الوقت والمهام بذكاء: وش نسوي أول، وكيف نسوي أكثر شي بالوقت المتاح. السرّ: ابدأ باللي ما يعتمد على غيره، واختر اللي يخلص بدري."},
- {id:"graph",emoji:"🕸️",name:"عالم الشبكات",x:30,y:34,learn:"<b>الشبكة</b> = نقاط وخطوط تربطها، مثل الطرق أو الأصحاب. الأسئلة عن أقصر طريق، أو كم خطوة يوصل الخبر. السرّ: لوّن النقاط مرحلة مرحلة."},
- {id:"code",emoji:"🔢",name:"عالم الترميز",x:22,y:58,learn:"<b>الترميز</b> = نكتب المعلومة بشكل ثاني: رموز، أضواء، أرقام ثنائية، وشجرة أسئلة تفرز الأشياء. السرّ: لاحظ القاعدة وطبّقها بدقة."},
- {id:"sort",emoji:"📚",name:"عالم الترتيب",x:56,y:64,learn:"<b>الترتيب</b> = نرتّب الأشياء بأقل حركات. وفيه <b>الكومة</b>: آخر واحد ينحط هو أول واحد ينشال، مثل العيدان فوق بعض. السرّ: ابدأ باللي فوق."},
- {id:"pattern",emoji:"🎨",name:"عالم الأنماط",x:80,y:80,learn:"<b>النمط</b> = شي يتكرر بقاعدة. فيه مرايا ودوران وبطاقات فوق بعض وتسلسلات. السرّ: اشتغل صف صف أو عنصر عنصر."},
- {id:"logic",emoji:"🧩",name:"عالم المنطق",x:50,y:99,learn:"<b>المنطق</b> = نستنتج الجواب من الأدلة، وفيه بوابات «و» و«أو». السرّ: ابدأ بالدليل الأكيد، واكتب اللي عرفته، وشيل الاحتمالات الغلط."}];
+ {id:"algo",emoji:"🤖",name:"عالم الخوارزميات",x:78,y:9,learn:"<b>ما الخوارزمية؟</b> هي خطوات مرتّبة تصل بها إلى هدف، مثل وصفة الكعك: خطوة بعد خطوة.<br><b>مثال:</b> «تقدّم 2، ثم انعطف يميناً» هذه خوارزمية صغيرة للروبوت.<br><b>ستجد{|ين} هنا:</b> برمجة القندس، وتتبّع برنامج فيه «كرّر»، وتخمين رقم بأقل عدد من الأسئلة.<br><b>💡 السرّ:</b> نفّذ{|ي} الخطوات بنفسك واحدة واحدة، ولا تقفز{|ي} فوق خطوة.<div class='daily-tip'>☀️ <b>التدريب اليومي:</b> العب{|ي} «مهمة اليوم» كل يوم 20 دقيقة. القليل كل يوم أفضل من الكثير مرة واحدة.</div>"},
+ {id:"plan",emoji:"🗓️",name:"عالم التخطيط",x:58,y:24,learn:"<b>ما التخطيط؟</b> أن نرتّب المهام والوقت قبل أن نبدأ، حتى ننجز أكثر في وقت أقل.<br><b>مثال:</b> لا نضع السقف قبل الجدران؛ الجدران أولاً.<br><b>ستجد{|ين} هنا:</b> جدول يوم في حديقة الحيوان، وبناء السدّ بالترتيب الصحيح.<br><b>💡 السرّ:</b> ابدأ{|ي} بالمهمة التي لا تحتاج غيرها، واختر{|ي} النشاط الذي ينتهي مبكراً.<div class='daily-tip'>☀️ <b>التدريب اليومي:</b> العب{|ي} «مهمة اليوم» كل يوم 20 دقيقة. القليل كل يوم أفضل من الكثير مرة واحدة.</div>"},
+ {id:"graph",emoji:"🕸️",name:"عالم الشبكات",x:30,y:34,learn:"<b>ما الشبكة؟</b> نقاط تصل بينها خطوط، مثل المدن والطرق، أو الأصدقاء ومن يعرف من.<br><b>مثال:</b> من البيت إلى المدرسة طريقان؛ أيّهما أقصر؟<br><b>ستجد{|ين} هنا:</b> أقصر طريق بالقارب، وكم دقيقة يحتاج الخبر حتى يصل إلى الجميع.<br><b>💡 السرّ:</b> لوّن{|ي} النقاط مرحلة بعد مرحلة: الأقرب أولاً، ثم الذي يليه.<div class='daily-tip'>☀️ <b>التدريب اليومي:</b> العب{|ي} «مهمة اليوم» كل يوم 20 دقيقة. القليل كل يوم أفضل من الكثير مرة واحدة.</div>"},
+ {id:"code",emoji:"🔢",name:"عالم الترميز",x:22,y:58,learn:"<b>ما الترميز؟</b> أن نكتب المعلومة بشكل آخر: برموز أو أضواء أو أرقام.<br><b>مثال:</b> لمبة مضاءة = 1، ولمبة مطفأة = 0. هكذا يفهم الحاسوب الأرقام.<br><b>ستجد{|ين} هنا:</b> لمبات السدّ (الأرقام الثنائية)، ورسالة سرّية، وشجرة أسئلة تفرز الأشياء.<br><b>💡 السرّ:</b> اكتشف{|ي} القاعدة أولاً، ثم طبّقها بدقة حرفاً حرفاً.<div class='daily-tip'>☀️ <b>التدريب اليومي:</b> العب{|ي} «مهمة اليوم» كل يوم 20 دقيقة. القليل كل يوم أفضل من الكثير مرة واحدة.</div>"},
+ {id:"sort",emoji:"📚",name:"عالم الترتيب",x:56,y:64,learn:"<b>ما الترتيب؟</b> أن نضع الأشياء بنظام، من الأصغر إلى الأكبر مثلاً، بأقل عدد من الحركات.<br><b>مثال:</b> العيدان فوق بعضها: آخر عود وضعناه هو أول عود نرفعه. هذه تُسمّى <b>الكومة</b>.<br><b>ستجد{|ين} هنا:</b> قلب الفطائر، ورافعة الصناديق، والتقاط العيدان.<br><b>💡 السرّ:</b> ابدأ{|ي} بالشيء الذي في الأعلى، وفكّر{|ي} قبل كل حركة.<div class='daily-tip'>☀️ <b>التدريب اليومي:</b> العب{|ي} «مهمة اليوم» كل يوم 20 دقيقة. القليل كل يوم أفضل من الكثير مرة واحدة.</div>"},
+ {id:"pattern",emoji:"🎨",name:"عالم الأنماط",x:80,y:80,learn:"<b>ما النمط؟</b> شيء يتكرّر بقاعدة ثابتة، مثل: أحمر، أزرق، أحمر، أزرق…<br><b>مثال:</b> 2، 4، 6، 8… القاعدة: نزيد 2 كل مرة.<br><b>ستجد{|ين} هنا:</b> المرآة والدوران، وماذا يأتي بعد ذلك؟<br><b>💡 السرّ:</b> انظر{|ي} إلى صفّ واحد أو قطعة واحدة في كل مرة، وابحث{|ي} عن الشيء الذي يتغيّر.<div class='daily-tip'>☀️ <b>التدريب اليومي:</b> العب{|ي} «مهمة اليوم» كل يوم 20 دقيقة. القليل كل يوم أفضل من الكثير مرة واحدة.</div>"},
+ {id:"logic",emoji:"🧩",name:"عالم المنطق",x:50,y:99,learn:"<b>ما المنطق؟</b> أن نصل إلى الجواب من الأدلّة، مثل المحقّق.<br><b>مثال:</b> «سارة ليست في البيت الأزرق، والبيت الأزرق فيه ولد» إذن نعرف شيئاً جديداً!<br><b>ستجد{|ين} هنا:</b> من يسكن أين؟ والميزان، ومصباح البوابات «و» و«أو».<br><b>💡 السرّ:</b> ابدأ{|ي} بالدليل الأكيد، واكتب{|ي} ما عرفته، واحذف{|ي} الاحتمالات الخاطئة.<div class='daily-tip'>☀️ <b>التدريب اليومي:</b> العب{|ي} «مهمة اليوم» كل يوم 20 دقيقة. القليل كل يوم أفضل من الكثير مرة واحدة.</div>"}];
 const W=Object.fromEntries(WORLDS.map(w=>[w.id,w]));
 const typesOf=wid=>Object.keys(TYPES).filter(k=>TYPES[k].world===wid);
 
@@ -903,7 +909,7 @@ $("#toParent").addEventListener("click",()=>{P=null;renderStats(true)});
 $("#goStats").addEventListener("click",()=>renderStats(false));
 
 /* ---- world ---- */
-function openWorld(wid){const w=W[wid];$("#wEmoji").textContent=w.emoji;$("#wName").textContent=w.name;$("#wLearn").innerHTML=fem(w.learn);const box=$("#wTypes");box.innerHTML="";
+function openWorld(wid){const w=W[wid];$("#wEmoji").textContent=w.emoji;$("#wName").textContent=w.name;$("#wLearn").innerHTML=gx(w.learn);const box=$("#wTypes");box.innerHTML="";
   typesOf(wid).forEach(t=>{const s=stat(t);const b=el("button",{class:"tcard",type:"button"},el("span",{class:"e"},TYPES[t].emoji),el("span",{},el("b",{},TYPES[t].name),el("br"),el("span",{class:"lv","aria-label":"المستوى "+s.lv},...[1,2,3,4].map(k=>el("i",{class:k<=s.lv?"on":""}))),el("br"),el("small",{class:"muted"},s.a?`${n2a(s.c)} صح من ${n2a(s.a)}`:T("ما جرّبته بعد","ما جرّبتيه بعد"))));
     b.addEventListener("click",()=>startPractice([t],"world",wid));box.append(b)});
   const mix=el("button",{class:"tcard",type:"button",style:"border-color:var(--leaf)"},el("span",{class:"e"},"🎲"),el("span",{},el("b",{},"ألغاز متنوّعة من هذا العالم"),el("br"),el("small",{class:"muted"},"6 ألغاز")));mix.addEventListener("click",()=>startPractice(typesOf(wid),"world",wid,6));box.append(mix);go("world")}
@@ -1110,7 +1116,14 @@ $("#muteBtn").addEventListener("click",()=>{DB.mute=!DB.mute;save();$("#muteBtn"
 /* ================= auto-update: make sure kids always get the newest version =================
    The page asks the server (bypassing the cache) for its own latest copy. If the build stamp differs,
    it reloads itself at the next safe moment. Progress lives in localStorage, so nothing is lost. */
-const BUILD="2026-11-08b";
+/* contest dates banner (Riyadh dates, English digits) */
+(function(){const day=d=>Math.ceil((new Date(d+"T23:59:59+03:00")-Date.now())/864e5);
+  const left=n=>n===0?"(اليوم!)":n===1?"(بقي يوم واحد)":n===2?"(بقي يومان)":`(بقي ${n} ${n<=10?"أيام":"يوماً"})`;
+  const r=day("2026-11-22"),t=day("2026-12-05");
+  document.querySelectorAll(".dates").forEach(b=>{if(t<0){b.remove();return}
+    const R=b.querySelector(".d-reg");if(r<0)R.remove();else R.querySelector(".d-left").textContent=left(r);
+    b.querySelector(".d-test .d-left").textContent=left(t)})})();
+const BUILD="2026-11-08c";
 async function checkUpdate(){try{const r=await fetch("./?nocache="+Date.now(),{cache:"no-store"});if(!r.ok)return;const t=await r.text();const m=t.match(/const BUILD="([^"]+)"/);
   if(m&&m[1]!==BUILD){const busy=document.querySelector("#s-chal.on,#s-mp.on,#s-lobby.on,#s-play.on");if(busy){UPD_PENDING=true;return}
     toast("🎁 فيه نسخة جديدة من اللعبة… لحظة",2000);setTimeout(()=>location.replace("./?v="+m[1]),1500)}}catch(e){}}

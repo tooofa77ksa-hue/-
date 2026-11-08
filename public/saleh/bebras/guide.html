@@ -49,7 +49,7 @@ ol.steps li::before{content:counter(s);flex:0 0 34px;height:34px;border-radius:5
 .btn{border:none;border-radius:18px;padding:12px 24px;font-weight:800;font-size:1.05em;background:var(--water);color:#fff;box-shadow:0 4px 0 var(--deep);cursor:pointer;text-decoration:none;display:inline-block}
 .btn.alt{background:#fff;color:var(--ink);box-shadow:0 4px 0 #b9d2d6}
 .btn:disabled{opacity:.4}
-.credit{text-align:center;font-weight:800;color:var(--deep);margin-top:22px}
+.credit{text-align:center;font-weight:700;color:var(--deep);margin-top:18px;font-size:.82em;opacity:.85}
 @keyframes in{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:none}}
 .card.anim{animation:in .3s ease-out}
 @media (prefers-reduced-motion:reduce){.card.anim{animation:none}}
@@ -70,7 +70,7 @@ body.poster .card .big{font-size:46px}
   <div class="title"><h1>📖 دليل نهر القندس</h1><p>كل ما تحتاج أن تعرفه في 8 صفحات قصيرة</p></div>
   <div class="dots" id="dots"></div>
   <div id="deck"></div>
-  <p class="credit">تصميم عواطف الجهني</p>
+  <p class="credit">تصميم عواطف الجهني · جميع الحقوق محفوظة © 2026</p>
 </main>
 <nav class="nav"><button class="btn alt" id="prev" type="button">⇨ السابق</button><button class="btn" id="next" type="button">التالي ⇦</button></nav>
 
@@ -180,7 +180,7 @@ next.onclick=()=>{if(i<PAGES.length-1){i++;render()}else location.href="./"};
 document.querySelectorAll(".who button").forEach(b=>b.onclick=()=>{G=b.dataset.g;try{localStorage.setItem("qndas_guide_g",G)}catch(e){}render()});
 addEventListener("keydown",e=>{if(e.key==="ArrowLeft")next.click();if(e.key==="ArrowRight")prev.click()});
 render();
-const BUILD="2026-11-08b";
+const BUILD="2026-11-08c";
 async function checkUpdate(){try{const r=await fetch("guide.html?nocache="+Date.now(),{cache:"no-store"});if(!r.ok)return;const m=(await r.text()).match(/const BUILD="([^"]+)"/);if(m&&m[1]!==BUILD)location.replace("guide.html?v="+m[1]+(G==="f"?"&g=f":""))}catch(e){}}
 checkUpdate();document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkUpdate()});
 })();
