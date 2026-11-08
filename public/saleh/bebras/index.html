@@ -228,6 +228,7 @@ dialog select{font:inherit;width:100%;padding:8px 10px;border-radius:12px;border
 .hop{animation:hop .6s ease-out}
 @keyframes hop{0%,100%{transform:translateY(0)}40%{transform:translateY(-14px) rotate(-6deg)}70%{transform:translateY(0) rotate(4deg)}}
 .big.online{background:#7b55a0;color:#fff}
+.big.guide{background:#fff;color:var(--ink);border:3px solid var(--sun);box-shadow:0 4px 0 #e2b23a}
 .inp{font:inherit;width:100%;padding:10px 12px;border-radius:12px;border:2px solid #cfe3e6;margin-top:6px;background:#fff}
 .inp.code{font-size:1.4em;font-weight:800;text-align:center;letter-spacing:6px;flex:1}
 .roomcode{text-align:center;font-size:clamp(60px,18vw,110px);font-weight:800;color:var(--deep);letter-spacing:10px;line-height:1.1}
@@ -271,7 +272,8 @@ dialog select{font:inherit;width:100%;padding:8px 10px;border-radius:12px;border
     <h1 id="h-home">نهر القندس</h1>
     <p>ألغاز تفكير بنفس أنواع أسئلة بيبراس</p>
   </div>
-  <button class="big online" id="goOnline" type="button" style="width:100%;margin-top:16px"><span class="e">🌐</span><span>العب مع أصحابك أونلاين<small>من 2 إلى 4 لاعبين، كل واحد بجهازه</small></span></button>
+  <a class="big guide" href="guide.html" id="goGuide" style="width:100%;margin-top:16px;text-decoration:none"><span class="e">📖</span><span>دليل اللعبة<small>كيف ألعب؟ وكيف ألعب مع أصحابي؟</small></span></a>
+  <button class="big online" id="goOnline" type="button" style="width:100%;margin-top:12px"><span class="e">🌐</span><span>العب مع أصحابك أونلاين<small>من 2 إلى 4 لاعبين، كل واحد بجهازه</small></span></button>
   <h2 style="font-size:1.2em;margin-top:18px">مين بيلعب؟</h2>
   <div class="players" id="players"></div>
   <div class="res how">
@@ -279,7 +281,7 @@ dialog select{font:inherit;width:100%;padding:8px 10px;border-radius:12px;border
     <p><b>👤 لاعب واحد:</b> اضغط «لاعب جديد»، اكتب اسمك، والعب.</p>
     <p><b>🌐 من 2 إلى 4 لاعبين، كل واحد بجهازه (أونلاين):</b></p>
     <ol>
-      <li>واحد منكم يضغط «🌐 العب مع أصحابك أونلاين»، يكتب اسمه، ويضغط «سوّ غرفة».</li>
+      <li>واحد منكم يضغط «🌐 العب مع أصحابك أونلاين»، يكتب اسمه، ويضغط «اصنع غرفة».</li>
       <li>تطلع له رقم غرفة من 4 أرقام، يرسله لأصحابه في الواتساب مع رابط اللعبة.</li>
       <li>أصحابه يفتحون الرابط، يضغطون «العب مع أصحابك أونلاين»، يكتبون أسماءهم ورقم الغرفة ويضغطون «ادخل».</li>
       <li>صاحب الغرفة 👑 يضغط «ابدأ»، والكل يحل نفس الألغاز الستة، والنقاط تتحدث مباشرة عند الجميع.</li>
@@ -316,6 +318,7 @@ dialog select{font:inherit;width:100%;padding:8px 10px;border-radius:12px;border
     <button class="big daily" id="goDaily"><span class="e">☀️</span><span>مهمة اليوم<small id="dailyInfo">5 ألغاز مختارة لك</small></span></button>
     <button class="big chal" id="goChal"><span class="e">🏆</span><span>تحدي بيبراس<small>10 مهام في 60 دقيقة، مثل بيبراس موهبة</small></span></button>
     <button class="big online" id="mapOnline" type="button" style="grid-column:1/-1"><span class="e">🌐</span><span>العب مع أصحابك أونلاين<small>غرفة برقم، من 2 إلى 4 لاعبين</small></span></button>
+    <a class="big guide" href="guide.html" id="mapGuide" style="grid-column:1/-1;text-decoration:none"><span class="e">📖</span><span>دليل اللعبة<small>شرح بسيط لكل شيء</small></span></a>
     <button class="big dash" id="goStats"><span class="e">📈</span><span>تقدّمي<small></small></span></button>
   </div>
 </section>
@@ -358,8 +361,8 @@ dialog select{font:inherit;width:100%;padding:8px 10px;border-radius:12px;border
     <div class="seg" id="mpG" style="margin-top:8px"><button type="button" data-g="m" class="sel">ولد</button><button type="button" data-g="f">بنت</button></div>
   </div>
   <div class="dcard">
-    <b>سوّ غرفة جديدة</b><p class="muted" style="margin:2px 0 8px">تطلع لك رقم غرفة ترسله لأصحابك.</p>
-    <button class="btn" id="mpCreate" type="button" style="width:100%">➕ سوّ غرفة</button>
+    <b>اصنع غرفة جديدة</b><p class="muted" style="margin:2px 0 8px">تطلع لك رقم غرفة ترسله لأصحابك.</p>
+    <button class="btn" id="mpCreate" type="button" style="width:100%">➕ اصنع غرفة</button>
   </div>
   <div class="dcard">
     <b>عندك رقم غرفة من صاحبك؟</b>
@@ -893,7 +896,7 @@ $("#dlgAdd").addEventListener("close",()=>{if($("#dlgAdd").returnValue!=="ok")re
 /* ---- map ---- */
 let WELCOMED=false;
 function streak(p){const d=p.days||{};let n=0,day=today();if(!d[day])day=addDays(day,-1);while(d[day]){n++;day=addDays(day,-1)}return n}
-function renderMap(){paintTime();if(!WELCOMED){WELCOMED=true;voice("welcome")}const sk=streak(P);$("#streak").textContent=sk?`🔥 ${n2a(sk)} ${sk===1?"يوم":"أيام"}`:"";$("#streak").hidden=!sk;$("#muteBtn").textContent=DB.mute?"🔇":"🔊";$("#goStats small").textContent=T("وين أنا قوي ووين أحتاج تدريب","وين أنا قوية ووين أحتاج تدريب");$("#mapWho").textContent=P.av+" "+P.name;$("#worldWho").textContent=P.av+" "+P.name;const wrap=$("#mapwrap");wrap.querySelectorAll(".station").forEach(s=>s.remove());
+function renderMap(){$("#mapGuide").href="guide.html?g="+(P&&P.g==="f"?"f":"m");paintTime();if(!WELCOMED){WELCOMED=true;voice("welcome")}const sk=streak(P);$("#streak").textContent=sk?`🔥 ${n2a(sk)} ${sk===1?"يوم":"أيام"}`:"";$("#streak").hidden=!sk;$("#muteBtn").textContent=DB.mute?"🔇":"🔊";$("#goStats small").textContent=T("وين أنا قوي ووين أحتاج تدريب","وين أنا قوية ووين أحتاج تدريب");$("#mapWho").textContent=P.av+" "+P.name;$("#worldWho").textContent=P.av+" "+P.name;const wrap=$("#mapwrap");wrap.querySelectorAll(".station").forEach(s=>s.remove());
   WORLDS.forEach(w=>{const st=worldStars(w.id);const b=el("button",{class:"station",type:"button",style:`right:${100-w.x}%;top:${w.y*0.9+4}%`},el("span",{class:"lodge"},w.emoji),el("span",{},w.name.replace("عالم ","")),el("span",{class:"stars","aria-label":`${st} نجوم`},"⭐".repeat(st)+"☆".repeat(3-st)));b.addEventListener("click",()=>openWorld(w.id));wrap.append(b)});
   const due=Object.values(P.st||{}).filter(s=>s.due&&s.due<=today()).length;$("#dailyInfo").textContent=due?`5 ألغاز، منها ${n2a(Math.min(due,5))} للمراجعة`:"5 ألغاز مختارة لك"}
 $("#toParent").addEventListener("click",()=>{P=null;renderStats(true)});
