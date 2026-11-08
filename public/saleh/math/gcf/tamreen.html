@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تمرين · القاسم المشترك الأكبر</title>
+<style>
+:root{--ink:#0f3b4a;--teal:#1aa6a0;--green:#1f9d55;--red:#d6336c;--bg:#f3f9fa;--mute:#4f6c77}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--ink);font-size:18px;line-height:1.7;overflow-x:hidden}
+.wrap{max-width:640px;margin:0 auto;padding:14px}
+h1{font-size:24px;text-align:center;margin:8px 0 2px}
+.sub{text-align:center;color:var(--mute);margin:0 0 10px}
+.card{background:#fff;border-radius:18px;padding:14px 16px;margin:12px 0;box-shadow:0 6px 18px rgba(15,59,74,.08)}
+.q{font-size:20px;font-weight:800;text-align:center;direction:ltr;margin:4px 0}
+.steps{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:8px 0}
+.pill{background:#e6f3f4;border-radius:10px;padding:4px 10px;font-weight:700;direction:ltr}
+button{font:inherit;border:0;border-radius:14px;padding:10px 14px;cursor:pointer;background:var(--teal);color:#fff;font-weight:700;min-height:44px;margin:3px}
+button.alt{background:#e6f3f4;color:var(--ink)}
+button:disabled{opacity:.4}
+input{font:inherit;font-size:22px;width:110px;padding:6px;border:2px solid #b8dfe2;border-radius:12px;text-align:center}
+.ok{color:var(--green);font-weight:800}
+.bad{color:var(--red);font-weight:800}
+.hint{background:#fff8e6;border-right:6px solid #f5b93d;padding:8px 12px;border-radius:10px;margin:8px 0}
+.prog{font-weight:800;color:var(--teal);text-align:center}
+.center{text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>تمرين: القاسم المشترك الأكبر</h1>
+<p class="sub">الدرس ١-٤ · اقسم على عدد أولي يقسم العددين، وكرّر، ثم اضرب ما قسمت عليه</p>
+
+<div class="card">
+  <div class="center"><b>المثال:</b> أوجد ق.م.أ للعددين 16 و 20</div>
+  <div class="q">16 &nbsp; 20</div>
+  <div class="hint">اقسم على 2 (يقسم 16 و 20): <span class="pill">8 &nbsp; 10</span></div>
+  <div class="hint">اقسم على 2 (يقسم 8 و 10): <span class="pill">4 &nbsp; 5</span></div>
+  <div class="hint">ما فيه عدد أولي يقسم 4 و 5 معاً.<br>إذن: <b>ق.م.أ = 2 × 2 = 4</b></div>
+</div>
+
+<div id="probs"></div>
+
+<p class="prog" id="score"></p>
+</div>
+
+<script>
+const PROBS=[
+ {a:12,b:18,ans:6},
+ {a:30,b:40,ans:10},
+ {a:36,b:27,ans:9},
+ {a:24,b:36,ans:12},
+ {a:28,b:42,ans:14},
+ {a:45,b:60,ans:15}
+];
+const PRIMES=[2,3,5,7];
+const box=document.getElementById('probs');
+const done=new Set();
+
+function render(i){
+  const p=PROBS[i];
+  const st=p.state||(p.state={x:p.a,y:p.b,used:[],ok:false});
+  const el=document.getElementById('b'+i);
+  el.innerHTML='';
+  const q=document.createElement('div');
+  q.className='q';
+  q.textContent=st.x+'   '+st.y;
+  el.appendChild(q);
+  const used=document.createElement('div');
+  used.className='steps';
+  used.innerHTML=st.used.length?st.used.map(v=>'<span class="pill">÷ '+v+'</span>').join(''):'<span style="color:#4f6c77">لم تقسم بعد</span>';
+  el.appendChild(used);
+  const msg=document.createElement('div');
+  msg.id='m'+i;
+  el.appendChild(msg);
+  const btns=document.createElement('div');
+  btns.className='center';
+  PRIMES.forEach(d=>{
+    const k=document.createElement('button');
+    k.textContent='÷ '+d;
+    k.className='alt';
+    k.onclick=()=>{
+      if(st.x%d===0 && st.y%d===0){
+        st.x/=d; st.y/=d; st.used.push(d);
+        msg.innerHTML='<span class="ok">قسمنا الاثنين على '+d+' ✔</span>';
+        render(i);
+      } else {
+        msg.innerHTML='<span class="bad">'+d+' ما يقسم الاثنين معاً، جرّب غيره</span>';
+      }
+    };
+    btns.appendChild(k);
+  });
+  const stop=document.createElement('button');
+  stop.textContent='ما فيه قسمة';
+  stop.onclick=()=>{
+    const prod=st.used.reduce((s,v)=>s*v,1);
+    msg.innerHTML='<div class="hint">ق.م.أ = '+(st.used.length?st.used.join(' × '):'1')+' = <b>'+prod+'</b><br>اكتبه في الخانة:</div>';
+    const row=document.createElement('div');
+    row.className='center';
+    const inp=document.createElement('input');
+    inp.type='number';inp.inputMode='numeric';
+    const chk=document.createElement('button');
+    chk.textContent='تحقّق';
+    const r=document.createElement('span');
+    chk.onclick=()=>{
+      if(Number(inp.value)===p.ans){
+        r.innerHTML=' <span class="ok">✔ صح</span>';
+        if(!done.has(i)){done.add(i);}
+      } else {
+        r.innerHTML=' <span class="bad">✘ جرّب مرة ثانية</span>';
+      }
+      document.getElementById('score').textContent='الحلول الصحيحة: '+done.size+' من '+PROBS.length;
+    };
+    row.appendChild(inp);row.appendChild(chk);row.appendChild(r);
+    msg.appendChild(row);
+  };
+  btns.appendChild(stop);
+  el.appendChild(btns);
+}
+
+PROBS.forEach((p,i)=>{
+  const c=document.createElement('div');
+  c.className='card';
+  c.innerHTML='<div class="center"><b>السؤال '+(i+1)+':</b> أوجد ق.م.أ للعددين</div><div id="b'+i+'"></div>';
+  box.appendChild(c);
+  render(i);
+});
+document.getElementById('score').textContent='الحلول الصحيحة: 0 من '+PROBS.length;
+</script>
+</body>
+</html>
