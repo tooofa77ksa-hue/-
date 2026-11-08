@@ -73,6 +73,7 @@ body.poster .card .big{font-size:46px}
   <div class="title"><h1>📖 دليل نهر القندس</h1><p>كل ما تحتاج أن تعرفه في 8 صفحات قصيرة</p></div>
   <div class="dots" id="dots"></div>
   <div id="deck"></div>
+  <div class="tip" style="margin-top:16px;font-weight:500;font-size:.9em">ℹ️ <b>هذه اللعبة للتدريب والمساعدة فقط، وليست اختبار بيبراس الرسمي.</b><br>صُمّمت بناءً على أنواع أسئلة مسابقة بيبراس الدولية (2014–2024) الأكثر تكراراً، ونظام تحدي بيبراس في موهبة (10 مهام، 60 دقيقة، 400 نقطة)، ومهارات التفكير الحاسوبي السبع. الألغاز من تأليفنا.</div>
   <p class="credit">تصميم عواطف الجهني · جميع الحقوق محفوظة © 2026</p>
 </main>
 <nav class="nav"><button class="btn alt" id="prev" type="button">⇨ السابق</button><button class="btn" id="next" type="button">التالي ⇦</button></nav>
@@ -191,7 +192,7 @@ next.onclick=()=>{if(i<PAGES.length-1){i++;render()}else location.href="./"};
 document.querySelectorAll(".who button").forEach(b=>b.onclick=()=>{G=b.dataset.g;try{localStorage.setItem("qndas_guide_g",G)}catch(e){}render()});
 addEventListener("keydown",e=>{if(e.key==="ArrowLeft")next.click();if(e.key==="ArrowRight")prev.click()});
 render();
-const BUILD="2026-11-08d";
+const BUILD="2026-11-08e";
 async function checkUpdate(){try{const r=await fetch("guide.html?nocache="+Date.now(),{cache:"no-store"});if(!r.ok)return;const m=(await r.text()).match(/const BUILD="([^"]+)"/);if(m&&m[1]!==BUILD)location.replace("guide.html?v="+m[1]+(G==="f"?"&g=f":""))}catch(e){}}
 checkUpdate();document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkUpdate()});
 })();
