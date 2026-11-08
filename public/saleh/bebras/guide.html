@@ -50,6 +50,9 @@ ol.steps li::before{content:counter(s);flex:0 0 34px;height:34px;border-radius:5
 .btn.alt{background:#fff;color:var(--ink);box-shadow:0 4px 0 #b9d2d6}
 .btn:disabled{opacity:.4}
 .credit{text-align:center;font-weight:700;color:var(--deep);margin-top:18px;font-size:.82em;opacity:.85}
+.listen{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 auto 10px;border:none;border-radius:999px;padding:8px 20px;font-weight:800;font-size:1em;background:var(--sun);color:#3c2a00;box-shadow:0 3px 0 #c99a2e;cursor:pointer}
+.listen.on{background:var(--water);color:#fff;box-shadow:0 3px 0 var(--deep)}
+body.poster .listen{display:none}
 @keyframes in{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:none}}
 .card.anim{animation:in .3s ease-out}
 @media (prefers-reduced-motion:reduce){.card.anim{animation:none}}
@@ -170,9 +173,17 @@ const deck=document.getElementById("deck"),dots=document.getElementById("dots"),
 const qs=new URLSearchParams(location.search);let G=qs.get("g")==="f"?"f":"m";let i=0;const poster=qs.get("poster")==="1";
 try{if(!qs.get("g")){const s=localStorage.getItem("qndas_guide_g");if(s==="f"||s==="m")G=s}}catch(e){}
 const fill=t=>t.replace(/\{([^|}]*)\|([^}]*)\}/g,(_,m,f)=>G==="f"?f:m);
+/* narration: audio/guide/{m|f}_{page}.mp3 (Munsit voices: Mishari for boys, Arwa for girls) */
+let SND=null,AUTO=false;
+function stopVoice(){if(SND){SND.pause();SND=null}const b=document.getElementById("listen");if(b){b.classList.remove("on");b.textContent="🔊 "+(G==="f"?"اسمعي":"اسمع")}}
+function playVoice(){stopVoice();const b=document.getElementById("listen");SND=new Audio(`audio/guide/${G}_${i+1}.mp3`);
+  SND.onended=()=>{if(b){b.classList.remove("on");b.textContent="🔁 "+(G==="f"?"اسمعي مرة أخرى":"اسمع مرة أخرى")}};
+  SND.play().then(()=>{if(b){b.classList.add("on");b.textContent="⏸ إيقاف"}}).catch(()=>{AUTO=false})}
 function render(){document.querySelectorAll(".who button").forEach(b=>b.classList.toggle("on",b.dataset.g===G));
   if(poster){document.body.classList.add("poster");deck.innerHTML=PAGES.map(p=>`<section class="card">${fill(p)}</section>`).join("");return}
-  deck.innerHTML=`<section class="card anim" aria-live="polite">${fill(PAGES[i])}</section>`;
+  deck.innerHTML=`<section class="card anim" aria-live="polite"><button class="listen" id="listen" type="button">🔊 ${G==="f"?"اسمعي":"اسمع"}</button>${fill(PAGES[i])}</section>`;
+  const lb=document.getElementById("listen");lb.onclick=()=>{if(SND&&!SND.paused){stopVoice();AUTO=false}else{AUTO=true;playVoice()}};
+  if(AUTO)playVoice();else stopVoice();
   dots.innerHTML="";PAGES.forEach((_,k)=>{const b=document.createElement("button");b.type="button";b.className=k===i?"on":"";b.setAttribute("aria-label","الصفحة "+(k+1));b.onclick=()=>{i=k;render()};dots.append(b)});
   prev.disabled=i===0;next.textContent=i===PAGES.length-1?"🎮 إلى اللعبة":"التالي ⇦";window.scrollTo(0,0)}
 prev.onclick=()=>{if(i>0){i--;render()}};
@@ -180,7 +191,7 @@ next.onclick=()=>{if(i<PAGES.length-1){i++;render()}else location.href="./"};
 document.querySelectorAll(".who button").forEach(b=>b.onclick=()=>{G=b.dataset.g;try{localStorage.setItem("qndas_guide_g",G)}catch(e){}render()});
 addEventListener("keydown",e=>{if(e.key==="ArrowLeft")next.click();if(e.key==="ArrowRight")prev.click()});
 render();
-const BUILD="2026-11-08c";
+const BUILD="2026-11-08d";
 async function checkUpdate(){try{const r=await fetch("guide.html?nocache="+Date.now(),{cache:"no-store"});if(!r.ok)return;const m=(await r.text()).match(/const BUILD="([^"]+)"/);if(m&&m[1]!==BUILD)location.replace("guide.html?v="+m[1]+(G==="f"?"&g=f":""))}catch(e){}}
 checkUpdate();document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkUpdate()});
 })();
