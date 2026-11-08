@@ -278,16 +278,6 @@ dialog select{font:inherit;width:100%;padding:8px 10px;border-radius:12px;border
     <h1 id="h-home">نهر القندس</h1>
     <p>ألغاز تفكير بنفس أنواع أسئلة بيبراس</p>
   </div>
-  <div class="about" role="note">
-    <p>ℹ️ <b>هذه اللعبة للتدريب والمساعدة فقط، وليست اختبار بيبراس الرسمي.</b></p>
-    <p><b>صُمّمت بناءً على:</b></p>
-    <ul>
-      <li>أنواع أسئلة مسابقة بيبراس الدولية من 2014 إلى 2024، والأكثر تكراراً منها.</li>
-      <li>نظام تحدي بيبراس في موهبة: 10 مهام في 60 دقيقة، 400 نقطة بدون خصم، وحدود الميداليات لكل صف.</li>
-      <li>مهارات التفكير الحاسوبي: الخوارزميات، والتخطيط، والشبكات، والترميز، والترتيب، والأنماط، والمنطق.</li>
-    </ul>
-    <p class="muted" style="margin:0">الألغاز من تأليفنا، وليست أسئلة المسابقة نفسها.</p>
-  </div>
   <a class="big guide" href="guide.html" id="goGuide" style="width:100%;margin-top:16px;text-decoration:none"><span class="e">📖</span><span>دليل اللعبة<small>كيف ألعب؟ وكيف ألعب مع أصحابي؟</small></span></a>
   <button class="big online" id="goOnline" type="button" style="width:100%;margin-top:12px"><span class="e">🌐</span><span>العب مع أصحابك أونلاين<small>من 2 إلى 4 لاعبين، كل واحد بجهازه</small></span></button>
   <h2 style="font-size:1.2em;margin-top:18px">مين بيلعب؟</h2>
@@ -308,6 +298,16 @@ dialog select{font:inherit;width:100%;padding:8px 10px;border-radius:12px;border
   <div class="res">
     <b>تدرّب على أسئلة بيبراس السعودية الحقيقية</b>
     <p>أسئلة السنوات الماضية وكتاب النشاط في موقع بيبراس السعودية الرسمي: <span dir="ltr">bebrasksa.org</span></p>
+  </div>
+  <div class="about" role="note">
+    <p>ℹ️ <b>هذه اللعبة للتدريب والمساعدة فقط، وليست اختبار بيبراس الرسمي.</b></p>
+    <p><b>صُمّمت بناءً على:</b></p>
+    <ul>
+      <li>أنواع أسئلة مسابقة بيبراس الدولية من 2014 إلى 2024، والأكثر تكراراً منها.</li>
+      <li>نظام تحدي بيبراس في موهبة: 10 مهام في 60 دقيقة، 400 نقطة بدون خصم، وحدود الميداليات لكل صف.</li>
+      <li>مهارات التفكير الحاسوبي: الخوارزميات، والتخطيط، والشبكات، والترميز، والترتيب، والأنماط، والمنطق.</li>
+    </ul>
+    <p class="muted" style="margin:0">الألغاز من تأليفنا، وليست أسئلة المسابقة نفسها.</p>
   </div>
   <p class="foot">أنواع الألغاز مستوحاة من أسئلة بيبراس الدولية 2014–2024 (أرشيف France-ioi برخصة CC BY-SA، وأدلة الحلول الأسترالية)، والألغاز نفسها من تأليفنا.<br>
   صفحة تدريب غير رسمية، ليست تابعة لموهبة.<br>
@@ -1135,7 +1135,7 @@ $("#muteBtn").addEventListener("click",()=>{DB.mute=!DB.mute;save();$("#muteBtn"
   document.querySelectorAll(".dates").forEach(b=>{if(t<0){b.remove();return}
     const R=b.querySelector(".d-reg");if(r<0)R.remove();else R.querySelector(".d-left").textContent=left(r);
     b.querySelector(".d-test .d-left").textContent=left(t)})})();
-const BUILD="2026-11-08e";
+const BUILD="2026-11-08f";
 async function checkUpdate(){try{const r=await fetch("./?nocache="+Date.now(),{cache:"no-store"});if(!r.ok)return;const t=await r.text();const m=t.match(/const BUILD="([^"]+)"/);
   if(m&&m[1]!==BUILD){const busy=document.querySelector("#s-chal.on,#s-mp.on,#s-lobby.on,#s-play.on");if(busy){UPD_PENDING=true;return}
     toast("🎁 فيه نسخة جديدة من اللعبة… لحظة",2000);setTimeout(()=>location.replace("./?v="+m[1]),1500)}}catch(e){}}
