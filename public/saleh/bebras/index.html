@@ -1107,6 +1107,17 @@ function renderStats(parent){const box=$("#statsBody");box.innerHTML="";
   go("stats")}
 
 $("#muteBtn").addEventListener("click",()=>{DB.mute=!DB.mute;save();$("#muteBtn").textContent=DB.mute?"🔇":"🔊"});
+/* ================= auto-update: make sure kids always get the newest version =================
+   The page asks the server (bypassing the cache) for its own latest copy. If the build stamp differs,
+   it reloads itself at the next safe moment. Progress lives in localStorage, so nothing is lost. */
+const BUILD="2026-11-08b";
+async function checkUpdate(){try{const r=await fetch("./?nocache="+Date.now(),{cache:"no-store"});if(!r.ok)return;const t=await r.text();const m=t.match(/const BUILD="([^"]+)"/);
+  if(m&&m[1]!==BUILD){const busy=document.querySelector("#s-chal.on,#s-mp.on,#s-lobby.on,#s-play.on");if(busy){UPD_PENDING=true;return}
+    toast("🎁 فيه نسخة جديدة من اللعبة… لحظة",2000);setTimeout(()=>location.replace("./?v="+m[1]),1500)}}catch(e){}}
+let UPD_PENDING=false;
+checkUpdate();setInterval(checkUpdate,5*60*1000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkUpdate()});
+const _go=go;go=function(id){_go(id);if(UPD_PENDING&&(id==="home"||id==="map"||id==="world"||id==="result"||id==="podium")){UPD_PENDING=false;checkUpdate()}};
 window.__bebras={TYPES,get run(){return RUN},get player(){return P},get ch(){return CH},get mp(){return MP}};
 go("home");
 })();
