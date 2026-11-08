@@ -212,6 +212,8 @@ dialog input{font:inherit;width:100%;padding:10px 12px;border-radius:12px;border
 .res p{margin:2px 0 0;color:var(--muted)}
 .how p,.how li{color:var(--ink)}.how ol{margin:4px 0 6px;padding-inline-start:22px}
 .credit{text-align:center;font-weight:700;color:var(--deep);margin:14px 0 0;font-size:.82em;opacity:.85}
+.about{background:#fff;border:2px dashed #9cc9cf;border-radius:16px;padding:10px 14px;margin:14px 0 0;font-size:.92em;line-height:1.6}
+.about p{margin:4px 0}.about ul{margin:4px 0;padding-inline-start:20px}
 .daily-tip{margin-top:10px;padding:8px 12px;border-radius:12px;background:#fff6db;font-size:.95em}
 .dates{display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:center;align-items:center;background:#fff3d6;border:2px solid #f0b43c;border-radius:14px;padding:8px 12px;margin:0 0 12px;font-weight:800;color:#7a4b00;font-size:.95em;text-align:center}
 .dates small{font-weight:700;opacity:.8}
@@ -275,6 +277,16 @@ dialog select{font:inherit;width:100%;padding:8px 10px;border-radius:12px;border
     </svg>
     <h1 id="h-home">نهر القندس</h1>
     <p>ألغاز تفكير بنفس أنواع أسئلة بيبراس</p>
+  </div>
+  <div class="about" role="note">
+    <p>ℹ️ <b>هذه اللعبة للتدريب والمساعدة فقط، وليست اختبار بيبراس الرسمي.</b></p>
+    <p><b>صُمّمت بناءً على:</b></p>
+    <ul>
+      <li>أنواع أسئلة مسابقة بيبراس الدولية من 2014 إلى 2024، والأكثر تكراراً منها.</li>
+      <li>نظام تحدي بيبراس في موهبة: 10 مهام في 60 دقيقة، 400 نقطة بدون خصم، وحدود الميداليات لكل صف.</li>
+      <li>مهارات التفكير الحاسوبي: الخوارزميات، والتخطيط، والشبكات، والترميز، والترتيب، والأنماط، والمنطق.</li>
+    </ul>
+    <p class="muted" style="margin:0">الألغاز من تأليفنا، وليست أسئلة المسابقة نفسها.</p>
   </div>
   <a class="big guide" href="guide.html" id="goGuide" style="width:100%;margin-top:16px;text-decoration:none"><span class="e">📖</span><span>دليل اللعبة<small>كيف ألعب؟ وكيف ألعب مع أصحابي؟</small></span></a>
   <button class="big online" id="goOnline" type="button" style="width:100%;margin-top:12px"><span class="e">🌐</span><span>العب مع أصحابك أونلاين<small>من 2 إلى 4 لاعبين، كل واحد بجهازه</small></span></button>
@@ -1123,7 +1135,7 @@ $("#muteBtn").addEventListener("click",()=>{DB.mute=!DB.mute;save();$("#muteBtn"
   document.querySelectorAll(".dates").forEach(b=>{if(t<0){b.remove();return}
     const R=b.querySelector(".d-reg");if(r<0)R.remove();else R.querySelector(".d-left").textContent=left(r);
     b.querySelector(".d-test .d-left").textContent=left(t)})})();
-const BUILD="2026-11-08d";
+const BUILD="2026-11-08e";
 async function checkUpdate(){try{const r=await fetch("./?nocache="+Date.now(),{cache:"no-store"});if(!r.ok)return;const t=await r.text();const m=t.match(/const BUILD="([^"]+)"/);
   if(m&&m[1]!==BUILD){const busy=document.querySelector("#s-chal.on,#s-mp.on,#s-lobby.on,#s-play.on");if(busy){UPD_PENDING=true;return}
     toast("🎁 فيه نسخة جديدة من اللعبة… لحظة",2000);setTimeout(()=>location.replace("./?v="+m[1]),1500)}}catch(e){}}
