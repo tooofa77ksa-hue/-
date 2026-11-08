@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f6f78">
+<title>دليل نهر القندس</title>
+<meta name="description" content="دليل مصوّر بسيط يشرح كيف تلعب نهر القندس، وكيف تلعب مع أصحابك">
+<style>
+@font-face{font-family:"Baloo Bhaijaan 2";src:url("../../fonts/nahrawan-baloo-regular.ttf") format("truetype");font-weight:400;font-display:swap}
+@font-face{font-family:"Baloo Bhaijaan 2";src:url("../../fonts/nahrawan-baloo-semibold.ttf") format("truetype");font-weight:600;font-display:swap}
+@font-face{font-family:"Baloo Bhaijaan 2";src:url("../../fonts/nahrawan-baloo-extrabold.ttf") format("truetype");font-weight:800;font-display:swap}
+:root{--water:#1f6f78;--deep:#134a52;--foam:#dff3f1;--sky:#eef9fb;--bark:#7a4b22;--wood:#c58b4c;--leaf:#4f9a5c;--sun:#f4c04e;--ink:#1d2b30;--muted:#56717a;--purple:#7b55a0}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{min-height:100vh;background:var(--sky);color:var(--ink);font-family:"Baloo Bhaijaan 2","Geeza Pro",Tahoma,sans-serif;font-size:19px;line-height:1.7;
+  background-image:radial-gradient(120% 60% at 50% 110%,#cdebe6 0,transparent 60%)}
+button,a{font:inherit;color:inherit}
+button:focus-visible,a:focus-visible{outline:4px solid var(--sun);outline-offset:3px}
+main{max-width:640px;margin:0 auto;padding:16px 16px 130px}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.back{background:#fff;border:2px solid #cfe3e6;border-radius:999px;padding:6px 16px;font-weight:600;text-decoration:none}
+.who{display:flex;background:#fff;border:2px solid #cfe3e6;border-radius:999px;overflow:hidden}
+.who button{border:none;background:none;padding:6px 14px;font-weight:800;cursor:pointer}
+.who button.on{background:var(--water);color:#fff}
+.title{text-align:center;margin:18px 0 6px}
+.title h1{margin:0;font-size:clamp(30px,8vw,44px);color:var(--deep);font-weight:800;line-height:1.2}
+.title p{margin:0;color:var(--muted)}
+.dots{display:flex;gap:6px;justify-content:center;margin:14px 0}
+.dots button{width:12px;height:12px;border-radius:50%;border:none;background:#cfe3e6;padding:0;cursor:pointer}
+.dots button.on{background:var(--water);width:28px;border-radius:6px}
+.card{background:#fff;border-radius:28px;padding:20px 20px 22px;box-shadow:0 6px 0 #cfe3e6}
+.card .big{font-size:72px;text-align:center;line-height:1.1;margin:4px 0 2px}
+.card h2{text-align:center;margin:0 0 10px;font-size:1.55em;color:var(--deep);line-height:1.3}
+.card p{margin:8px 0}
+ol.steps{list-style:none;padding:0;margin:12px 0;counter-reset:s}
+ol.steps li{counter-increment:s;display:flex;gap:12px;align-items:flex-start;margin:10px 0}
+ol.steps li::before{content:counter(s);flex:0 0 34px;height:34px;border-radius:50%;background:var(--sun);color:#3c2a00;font-weight:800;display:grid;place-items:center;font-size:.95em}
+.worlds{display:grid;gap:8px;margin:10px 0}
+.worlds div{display:flex;gap:10px;align-items:center;background:var(--foam);border-radius:14px;padding:6px 12px}
+.worlds span{font-size:28px}
+.ui{display:inline-block;background:var(--water);color:#fff;border-radius:12px;padding:0 10px;font-weight:800;white-space:nowrap}
+.ui.sun{background:var(--sun);color:#3c2a00}.ui.purple{background:var(--purple)}.ui.white{background:#fff;color:var(--ink);border:2px solid #cfe3e6}
+.tip{background:#fff6dc;border-radius:16px;padding:10px 14px;margin-top:12px;font-weight:600}
+.levels{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:10px 0}
+.levels b{border-radius:999px;padding:2px 12px;color:#fff}
+.code{font-size:44px;font-weight:800;color:var(--deep);letter-spacing:8px;text-align:center;direction:ltr}
+.nav{position:fixed;inset:auto 0 0 0;background:rgba(238,249,251,.96);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border-top:2px solid #cfe3e6;padding:10px 16px max(10px,env(safe-area-inset-bottom));display:flex;gap:10px;justify-content:center}
+.btn{border:none;border-radius:18px;padding:12px 24px;font-weight:800;font-size:1.05em;background:var(--water);color:#fff;box-shadow:0 4px 0 var(--deep);cursor:pointer;text-decoration:none;display:inline-block}
+.btn.alt{background:#fff;color:var(--ink);box-shadow:0 4px 0 #b9d2d6}
+.btn:disabled{opacity:.4}
+.credit{text-align:center;font-weight:800;color:var(--deep);margin-top:22px}
+@keyframes in{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:none}}
+.card.anim{animation:in .3s ease-out}
+@media (prefers-reduced-motion:reduce){.card.anim{animation:none}}
+/* one-page poster mode (?poster=1) */
+body.poster main{max-width:1500px;padding:24px}
+body.poster .nav,body.poster .dots,body.poster header{display:none}
+body.poster #deck{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+body.poster .card{font-size:15px;padding:14px 16px}
+body.poster .card .big{font-size:46px}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <a class="back" href="./">⇦ العودة إلى اللعبة</a>
+    <div class="who" role="group" aria-label="من يقرأ؟"><button type="button" data-g="m" class="on">أنا ولد</button><button type="button" data-g="f">أنا بنت</button></div>
+  </header>
+  <div class="title"><h1>📖 دليل نهر القندس</h1><p>كل ما تحتاج أن تعرفه في 8 صفحات قصيرة</p></div>
+  <div class="dots" id="dots"></div>
+  <div id="deck"></div>
+  <p class="credit">تصميم عواطف الجهني</p>
+</main>
+<nav class="nav"><button class="btn alt" id="prev" type="button">⇨ السابق</button><button class="btn" id="next" type="button">التالي ⇦</button></nav>
+
+<script>
+(()=>{"use strict";
+/* {m|f}: masculine | feminine wording */
+const PAGES=[
+`<div class="big">👋</div><h2>مرحبًا في نهر القندس!</h2>
+<p>هذه لعبة ألغاز {تدرّبك|تدرّبكِ} على التفكير، مثل أسئلة مسابقة «بيبراس».</p>
+<ol class="steps">
+<li>{افتح|افتحي} رابط اللعبة.</li>
+<li>{اضغط|اضغطي} زر <span class="ui white">➕ لاعب جديد</span></li>
+<li>{اكتب|اكتبي} اسمك، ثم {اختر|اختاري}: ولد أو بنت، {وصفّك|وصفّكِ}.</li>
+<li>{اضغط|اضغطي} <span class="ui">أضف</span></li>
+</ol>
+<div class="tip">في المرة القادمة: {اضغط|اضغطي} على اسمك فقط، {وستجد|وستجدين} كل شيء محفوظًا.</div>`,
+
+`<div class="big">🗺️</div><h2>خريطة النهر</h2>
+<p>على النهر 7 عوالم. في كل عالم نوع من الألغاز:</p>
+<div class="worlds">
+<div><span>🤖</span><b>الخوارزميات:</b> {تعطي|تعطين} أوامر بالترتيب.</div>
+<div><span>🗓️</span><b>التخطيط:</b> {ترتّب|ترتّبين} الوقت والأعمال.</div>
+<div><span>🕸️</span><b>الشبكات:</b> {تجد|تجدين} أقصر طريق.</div>
+<div><span>🔢</span><b>الترميز:</b> {تفكّ|تفكّين} الرموز والأسرار.</div>
+<div><span>📚</span><b>الترتيب:</b> {ترتّب|ترتّبين} الأشياء بأقل حركات.</div>
+<div><span>🎨</span><b>الأنماط:</b> {تكتشف|تكتشفين} ما يتكرر.</div>
+<div><span>🧩</span><b>المنطق:</b> {تعرف|تعرفين} الجواب من الأدلة.</div>
+</div>
+<div class="tip">{اضغط|اضغطي} على أي عالم لتبدأ. في أول كل عالم شرح قصير.</div>`,
+
+`<div class="big">⭐</div><h2>كيف {تحل|تحلين} اللغز؟</h2>
+<ol class="steps">
+<li>{اقرأ|اقرئي} القصة بهدوء.</li>
+<li>{اضغط|اضغطي} أو {حرّك|حرّكي} الأشياء لتجيب.</li>
+<li>{اضغط|اضغطي} <span class="ui">تحقّق</span></li>
+</ol>
+<p>لكل لغز 4 مستويات:</p>
+<div class="levels"><b style="background:#4f9a5c">سهل</b><b style="background:#d98a2b">متوسط</b><b style="background:#c2453b">صعب</b><b style="background:#7b55a0">تحدّي</b></div>
+<p>إذا {أجبت|أجبتِ} صحيحًا مرتين متتاليتين، {تصعد|تصعدين} إلى المستوى التالي ⬆️</p>
+<div class="tip">{أخطأت|أخطأتِ}؟ لا {تحزن|تحزني}! {اقرأ|اقرئي} الشرح 💡 {وحاول|وحاولي} مرة أخرى. الخطأ جزء من التعلّم.</div>`,
+
+`<div class="big">☀️</div><h2>مهمة اليوم</h2>
+<p>كل يوم {ابدأ|ابدئي} بزر <span class="ui sun">☀️ مهمة اليوم</span></p>
+<p>فيها 5 ألغاز تختارها اللعبة {لك|لكِ}: الألغاز التي {تحتاج|تحتاجين} أن {تتدرب|تتدربي} عليها، والألغاز التي {أخطأت|أخطأتِ} فيها من قبل.</p>
+<div class="tip">⏱ {العب|العبي} 20 دقيقة كل يوم. هذا يكفي! عندما {تصل|تصلين} إلى 20 دقيقة {ستسمع|ستسمعين} تهنئة 🌟</div>`,
+
+`<div class="big">🏆</div><h2>تحدي بيبراس</h2>
+<p>هذا اختبار مثل المسابقة الحقيقية:</p>
+<ol class="steps">
+<li>10 مهام في 60 دقيقة.</li>
+<li>لكل مهمة 4 مستويات: ★ ★★ ★★★ ★★★★</li>
+<li>كل مستوى 10 نقاط، والمجموع 400 نقطة.</li>
+<li>الخطأ لا يُنقص نقاطك، {فحاول|فحاولي} في كل المهام.</li>
+</ol>
+<p>في النهاية {ترى|ترين} نتيجتك: 🥉 برونزية، 🥈 فضية، 🥇 ذهبية.</p>
+<div class="tip">نصيحة: {ابدأ|ابدئي} بنجمة واحدة ★ ثم {اصعد|اصعدي}.</div>`,
+
+`<div class="big">🌐</div><h2>{العب مع أصحابك|العبي مع صاحباتك}</h2>
+<p>من 2 إلى 4 لاعبين، كل واحد بجهازه:</p>
+<ol class="steps">
+<li>{اضغط|اضغطي} <span class="ui purple">🌐 العب مع أصحابك أونلاين</span></li>
+<li>{اكتب|اكتبي} اسمك، ثم {اضغط|اضغطي} <span class="ui">➕ اصنع غرفة</span></li>
+<li>يظهر لك رقم الغرفة:</li>
+</ol>
+<div class="code">4521</div>
+<ol class="steps" start="4" style="counter-reset:s 3">
+<li>{أرسل|أرسلي} الرقم {لأصحابك|لصاحباتك} مع رابط اللعبة.</li>
+<li>{أصحابك يضغطون|صاحباتك يضغطن} نفس الزر، {ويكتبون|ويكتبن} الاسم ورقم الغرفة، ثم <span class="ui">ادخل</span></li>
+<li>عندما تظهر الأسماء، {اضغط|اضغطي} <span class="ui">🚀 ابدأ اللعب</span></li>
+<li>{تحلّون|تحللن} نفس الألغاز الستة في 10 دقائق، {وترون|وترين} النقاط مباشرة.</li>
+<li>في النهاية تظهر منصة الفائزين 🥇🥈🥉</li>
+</ol>
+<div class="tip">الفوز الحقيقي أن {تتعلموا|تتعلمن} معًا وتفرحوا لبعضكم 🤝</div>`,
+
+`<div class="big">🏅</div><h2>الأوسمة والأيام</h2>
+<p>كلما {لعبت|لعبتِ} {تحصل|تحصلين} على أوسمة، مثل:</p>
+<div class="worlds">
+<div><span>🌱</span>أول لغز</div>
+<div><span>💯</span>100 لغز</div>
+<div><span>🗺️</span>مستكشف العوالم السبعة</div>
+<div><span>🥇</span>مستوى الميدالية الذهبية</div>
+</div>
+<p>والنار 🔥 تعدّ الأيام التي {لعبت|لعبتِ} فيها يومًا بعد يوم.</p>
+<div class="tip">{شاهد|شاهدي} أوسمتك {وتقدّمك|وتقدّمكِ} من زر <span class="ui white">📈 تقدّمي</span></div>`,
+
+`<div class="big">💡</div><h2>نصائح مهمة</h2>
+<ol class="steps">
+<li>{العب|العبي} دائمًا من نفس الجهاز ونفس المتصفح، حتى يبقى تقدّمك محفوظًا.</li>
+<li>لا {تستخدم|تستخدمي} «التصفح الخاص».</li>
+<li>{ضع|ضعي} اللعبة على شاشة جهازك: {افتحها|افتحيها} في سفاري، ثم زر المشاركة ⬆️، ثم «إضافة إلى الشاشة الرئيسية».</li>
+<li>لم يظهر اسمك؟ {افتح|افتحي} الرابط من نفس المكان الذي {فتحته|فتحتِه} منه أول مرة.</li>
+<li>زر 🔊 يشغّل الصوت، وزر 🔇 يوقفه.</li>
+</ol>
+<div style="text-align:center;margin-top:16px"><a class="btn" href="./">🎮 {ابدأ|ابدئي} اللعب الآن</a></div>`];
+
+const deck=document.getElementById("deck"),dots=document.getElementById("dots"),prev=document.getElementById("prev"),next=document.getElementById("next");
+const qs=new URLSearchParams(location.search);let G=qs.get("g")==="f"?"f":"m";let i=0;const poster=qs.get("poster")==="1";
+try{if(!qs.get("g")){const s=localStorage.getItem("qndas_guide_g");if(s==="f"||s==="m")G=s}}catch(e){}
+const fill=t=>t.replace(/\{([^|}]*)\|([^}]*)\}/g,(_,m,f)=>G==="f"?f:m);
+function render(){document.querySelectorAll(".who button").forEach(b=>b.classList.toggle("on",b.dataset.g===G));
+  if(poster){document.body.classList.add("poster");deck.innerHTML=PAGES.map(p=>`<section class="card">${fill(p)}</section>`).join("");return}
+  deck.innerHTML=`<section class="card anim" aria-live="polite">${fill(PAGES[i])}</section>`;
+  dots.innerHTML="";PAGES.forEach((_,k)=>{const b=document.createElement("button");b.type="button";b.className=k===i?"on":"";b.setAttribute("aria-label","الصفحة "+(k+1));b.onclick=()=>{i=k;render()};dots.append(b)});
+  prev.disabled=i===0;next.textContent=i===PAGES.length-1?"🎮 إلى اللعبة":"التالي ⇦";window.scrollTo(0,0)}
+prev.onclick=()=>{if(i>0){i--;render()}};
+next.onclick=()=>{if(i<PAGES.length-1){i++;render()}else location.href="./"};
+document.querySelectorAll(".who button").forEach(b=>b.onclick=()=>{G=b.dataset.g;try{localStorage.setItem("qndas_guide_g",G)}catch(e){}render()});
+addEventListener("keydown",e=>{if(e.key==="ArrowLeft")next.click();if(e.key==="ArrowRight")prev.click()});
+render();
+})();
+</script>
+</body>
+</html>
