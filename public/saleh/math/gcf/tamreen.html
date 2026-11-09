@@ -136,5 +136,30 @@ PROBS.forEach((p,i)=>{
 });
 document.getElementById('score').textContent='الحلول الصحيحة: 0 من '+PROBS.length;
 </script>
+<div class="card">
+  <div class="center"><b>أسئلة بالطريقة المختصرة</b></div>
+  <p class="center" style="color:#4f6c77">طبّق الخطوات الثلاث، وبعدين اكتب الجواب.</p>
+  <div id="sq"></div>
+  <p class="prog" id="sqScore"></p>
+</div>
+
+<script>
+const SQ=[{a:18,b:24,ans:6},{a:24,b:40,ans:8},{a:36,b:48,ans:12},{a:35,b:56,ans:7},{a:45,b:75,ans:15},{a:50,b:80,ans:10}];
+const sqBox=document.getElementById('sq'); const sqDone=new Set();
+SQ.forEach((it,i)=>{
+  const d=document.createElement('div'); d.style.margin='10px 0';
+  d.innerHTML='<div class="q">'+(i+1)+') '+it.a+' &nbsp; '+it.b+'</div>';
+  const inp=document.createElement('input'); inp.type='number'; inp.inputMode='numeric';
+  const btn=document.createElement('button'); btn.textContent='تحقّق';
+  const r=document.createElement('span');
+  btn.onclick=()=>{
+    if(Number(inp.value)===it.ans){ r.innerHTML=' <span class="ok">✔ صح</span>'; sqDone.add(i); }
+    else { r.innerHTML=' <span class="bad">✘ جرّب: أكبر عدد يقسم الاثنين؟</span>'; }
+    document.getElementById('sqScore').textContent='الصح: '+sqDone.size+' من '+SQ.length;
+  };
+  d.appendChild(inp); d.appendChild(btn); d.appendChild(r); sqBox.appendChild(d);
+});
+document.getElementById('sqScore').textContent='الصح: 0 من '+SQ.length;
+</script>
 </body>
 </html>
