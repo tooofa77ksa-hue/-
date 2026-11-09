@@ -289,6 +289,15 @@ tbody tr:hover{background:var(--surface-2)}
 }
 .gate-card input:focus{border-color:var(--teal)}
 .gate-err{color:#a33;font-size:12.5px;font-weight:600;min-height:18px;margin-bottom:6px}
+.gate-pin-wrap{position:relative}
+.gate-pin-wrap input{padding-left:40px}
+.gate-eye{
+  position:absolute;left:8px;top:50%;transform:translateY(-50%);
+  width:28px;height:28px;border:none;background:transparent;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;color:var(--muted);border-radius:7px;
+}
+.gate-eye:hover{background:var(--bg);color:var(--ink)}
+.gate-eye svg{width:18px;height:18px}
 
 /* ============ Misc ============ */
 .empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:13.5px}
@@ -587,6 +596,8 @@ function icon(name){
     volume:'M4 9v6h4l5 5V4L8 9H4zM16.5 8.5a5 5 0 010 7M19.5 5.5a9 9 0 010 13',
     volumeMute:'M4 9v6h4l5 5V4L8 9H4zM17 9l6 6M23 9l-6 6',
     info:'M12 16v-5M12 8h.01M22 12a10 10 0 11-20 0 10 10 0 0120 0z',
+    eye:'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8zM12 15a3 3 0 100-6 3 3 0 000 6z',
+    eyeOff:'M17.94 17.94A10.94 10.94 0 0112 20c-7 0-11-8-11-8a21.8 21.8 0 015.06-6.06M9.9 4.24A10.4 10.4 0 0112 4c7 0 11 8 11 8a21.8 21.8 0 01-3.22 4.5M1 1l22 22M14.12 14.12a3 3 0 11-4.24-4.24',
   };
   return `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths[name]?`<path d="${paths[name]}"/>`:''}</svg>`;
 }
@@ -3428,13 +3439,24 @@ function renderGate(){
         <p>مدرسة النهروان الثانوية — خطة التحسين 1448هـ</p>
         <form id="gateForm">
           <input name="user" placeholder="اسم المستخدم" autocomplete="off">
-          <input name="pin" placeholder="الرمز السري" type="password" autocomplete="off">
+          <div class="gate-pin-wrap">
+            <input name="pin" id="gatePin" placeholder="الرمز السري" type="password" autocomplete="off">
+            <button type="button" class="gate-eye" id="gateEye" aria-label="إظهار الرمز السري" title="إظهار/إخفاء الرمز السري">${icon('eye')}</button>
+          </div>
           <div class="gate-err" id="gateErr"></div>
           <button type="submit" class="btn primary" style="width:100%;justify-content:center">دخول</button>
         </form>
       </div>
     </div>
   `;
+  const eyeBtn = document.getElementById('gateEye');
+  const pinInput = document.getElementById('gatePin');
+  eyeBtn.addEventListener('click', ()=>{
+    const show = pinInput.type === 'password';
+    pinInput.type = show ? 'text' : 'password';
+    eyeBtn.innerHTML = icon(show ? 'eyeOff' : 'eye');
+    eyeBtn.setAttribute('aria-label', show ? 'إخفاء الرمز السري' : 'إظهار الرمز السري');
+  });
   document.getElementById('gateForm').addEventListener('submit', async e=>{
     e.preventDefault();
     const fd = new FormData(e.target);
