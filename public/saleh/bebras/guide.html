@@ -192,7 +192,7 @@ next.onclick=()=>{if(i<PAGES.length-1){i++;render()}else location.href="./"};
 document.querySelectorAll(".who button").forEach(b=>b.onclick=()=>{G=b.dataset.g;try{localStorage.setItem("qndas_guide_g",G)}catch(e){}render()});
 addEventListener("keydown",e=>{if(e.key==="ArrowLeft")next.click();if(e.key==="ArrowRight")prev.click()});
 render();
-const BUILD="2026-11-08f";
+const BUILD="2026-11-09a";
 async function checkUpdate(){try{const r=await fetch("guide.html?nocache="+Date.now(),{cache:"no-store"});if(!r.ok)return;const m=(await r.text()).match(/const BUILD="([^"]+)"/);if(m&&m[1]!==BUILD)location.replace("guide.html?v="+m[1]+(G==="f"?"&g=f":""))}catch(e){}}
 checkUpdate();document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkUpdate()});
 })();
