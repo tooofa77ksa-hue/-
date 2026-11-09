@@ -105,6 +105,7 @@ h1,h2,h3{line-height:1.25;margin:0}
 .cell.target{background:#ffe2a0}
 .minigrid{--c:30px}.minigrid .cell{border-radius:6px}
 .minigrid .cell.on{background:var(--bark)}
+.minigrid.sol .cell.on{background:var(--leaf)}
 .cmds{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;direction:ltr}
 .cmd{min-width:58px;height:58px;border-radius:14px;border:none;background:#fff;font-size:30px;font-weight:800;box-shadow:0 4px 0 #b9d2d6}
 .prog{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;min-height:48px;direction:rtl;background:#fff;border-radius:14px;padding:8px;width:100%}
@@ -687,9 +688,10 @@ TYPES.mirror={world:"pattern",emoji:"🪞",name:"المرآة والدوران",
 gen(L){const N=L===1?4:L===4?6:5;const rnd=()=>[...Array(N)].map(()=>[...Array(N)].map(()=>Math.random()<.4));let a=rnd();let rule,res,b=null;
   if(L===1){rule="mirror";res=a.map(r=>r.slice().reverse())}
   else if(L===2){rule=pick(["rot","flipv"]);res=rule==="rot"?a.map((r,y)=>r.map((_,x)=>a[N-1-x][y])):a.slice().reverse().map(r=>r.slice())}
-  else{rule="xor";b=rnd();res=a.map((r,y)=>r.map((v,x)=>v!==b[y][x]))}
+  else if(L===3){rule="stack";b=rnd();res=a.map((r,y)=>r.map((v,x)=>v||b[y][x]))}
+  else{rule="mstack";b=rnd();res=a.map((r,y)=>r.map((v,x)=>v||b[y][N-1-x]))}
   return {N,a,b,rule,res}},
-story(q){const t={mirror:"القندس يشوف الرسمة في المرآة: اليمين يصير يسار.",rot:"القندس لفّ البطاقة ربع لفّة باتجاه عقارب الساعة ↻.",flipv:"القندس قلب البطاقة من فوق لتحت (الأعلى يصير أسفل).",xor:"عند القندس بطاقتين شفافتين. حطّهم فوق بعض: المربع اللي ملوّن في بطاقة وحدة بس يبقى ملوّن، واللي ملوّن في الاثنتين يختفي."}[q.rule];
+story(q){const t={mirror:"القندس يشوف الرسمة في المرآة: اليمين يصير يسار.",rot:"القندس لفّ البطاقة ربع لفّة باتجاه عقارب الساعة ↻.",flipv:"القندس قلب البطاقة من فوق لتحت (الأعلى يصير أسفل).",stack:"عند القندس بطاقتين شفافتين. حطّ البطاقة الثانية فوق الأولى: أي مربع ملوّن في بطاقة منهم يبان ملوّن.",mstack:"عند القندس بطاقتين شفافتين. قلب البطاقة الثانية مثل المرآة (اليمين يصير يسار)، ثم حطّها فوق الأولى: أي مربع ملوّن في بطاقة منهم يبان ملوّن."}[q.rule];
   return {who:"🪞",p:[t],ask:"لوّن المربعات في شبكتك عشان تطلع النتيجة."}},
 render(q,board,api){const mini=(m)=>{const g=el("div",{class:"grid minigrid",style:`grid-template-columns:repeat(${q.N},var(--c))`});m.flat().forEach(v=>g.append(el("div",{class:"cell"+(v?" on":"")})));return g};
   const row=el("div",{style:"display:flex;gap:18px;align-items:center;justify-content:center;flex-wrap:wrap;direction:ltr"},mini(q.a));
@@ -698,8 +700,9 @@ render(q,board,api){const mini=(m)=>{const g=el("div",{class:"grid minigrid",sty
   for(let y=0;y<q.N;y++)for(let x=0;x<q.N;x++){const c=el("button",{class:"cell",type:"button","aria-pressed":"false"});c.addEventListener("click",()=>{sndTap();mine[y][x]=!mine[y][x];c.classList.toggle("on",mine[y][x]);c.setAttribute("aria-pressed",mine[y][x]);api.ready(true)});g.append(c)}
   q.answer=mine;q._g=g;board.append(g)},
 check(q){return q.answer.every((r,y)=>r.every((v,x)=>v===q.res[y][x]))},
-reveal(q){q.res.flat().forEach((v,i)=>{const c=q._g.children[i];if(v!==q.answer.flat()[i])c.classList.add("pick")})},
-explain(q){return {mirror:"اشتغل عمود عمود: العمود الأول من اليمين ينسخ في أول عمود من اليسار.",rot:"الصف الأول من فوق يصير العمود الأخير على اليمين. تتبّع كل صف لوحده.",flipv:"الصف الأخير تحت يصير أول صف فوق.",xor:"قارن كل مربع في البطاقتين: ملوّن مرة وحدة = يبقى، مرتين = يختفي."}[q.rule]+" المربعات اللي عليها إطار أصفر هي اللي تحتاج تعديل."}};
+reveal(q){let wrong=false;q.res.flat().forEach((v,i)=>{const c=q._g.children[i];if(v!==q.answer.flat()[i]){c.classList.add("pick");wrong=true}});
+  if(wrong&&q._g.parentNode){const g=el("div",{class:"grid minigrid sol",style:`grid-template-columns:repeat(${q.N},var(--c))`});q.res.flat().forEach(v=>g.append(el("div",{class:"cell"+(v?" on":"")})));q._g.parentNode.append(el("div",{style:"font-weight:800;color:var(--leaf)"},"✅ الحل الصحيح:"),g)}},
+explain(q){return {mirror:"اشتغل عمود عمود: العمود الأول من اليمين ينسخ في أول عمود من اليسار.",rot:"الصف الأول من فوق يصير العمود الأخير على اليمين. تتبّع كل صف لوحده.",flipv:"الصف الأخير تحت يصير أول صف فوق.",stack:"امشِ مربع مربع: إذا المربع ملوّن في الأولى أو في الثانية، لوّنه.",mstack:"أول شيء اقلب البطاقة الثانية في بالك: العمود الأخير يصير الأول. بعدين لوّن أي مربع ملوّن في الأولى أو في الثانية المقلوبة."}[q.rule]+" المربعات اللي عليها إطار أصفر هي اللي تحتاج تعديل، وتحت تشوف الحل الصحيح."}};
 
 /* ---- 10. sequences (patterns) ---- */
 const SH=["🔺","🟦","⚪","⭐","🌙","🍀"];
@@ -1135,7 +1138,7 @@ $("#muteBtn").addEventListener("click",()=>{DB.mute=!DB.mute;save();$("#muteBtn"
   document.querySelectorAll(".dates").forEach(b=>{if(t<0){b.remove();return}
     const R=b.querySelector(".d-reg");if(r<0)R.remove();else R.querySelector(".d-left").textContent=left(r);
     b.querySelector(".d-test .d-left").textContent=left(t)})})();
-const BUILD="2026-11-08f";
+const BUILD="2026-11-09a";
 async function checkUpdate(){try{const r=await fetch("./?nocache="+Date.now(),{cache:"no-store"});if(!r.ok)return;const t=await r.text();const m=t.match(/const BUILD="([^"]+)"/);
   if(m&&m[1]!==BUILD){const busy=document.querySelector("#s-chal.on,#s-mp.on,#s-lobby.on,#s-play.on");if(busy){UPD_PENDING=true;return}
     toast("🎁 فيه نسخة جديدة من اللعبة… لحظة",2000);setTimeout(()=>location.replace("./?v="+m[1]),1500)}}catch(e){}}
