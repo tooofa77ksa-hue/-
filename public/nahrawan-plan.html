@@ -3438,9 +3438,9 @@ function renderGate(){
         <h2>الدخول إلى إدارة الخطة</h2>
         <p>مدرسة النهروان الثانوية — خطة التحسين 1448هـ</p>
         <form id="gateForm">
-          <input name="user" placeholder="اسم المستخدم" autocomplete="off">
+          <input name="user" id="gateUser" placeholder="اسم المستخدم" autocomplete="username" value="ahmad">
           <div class="gate-pin-wrap">
-            <input name="pin" id="gatePin" placeholder="الرمز السري" type="password" autocomplete="off">
+            <input name="pin" id="gatePin" placeholder="الرمز السري" type="password" autocomplete="current-password">
             <button type="button" class="gate-eye" id="gateEye" aria-label="إظهار الرمز السري" title="إظهار/إخفاء الرمز السري">${icon('eye')}</button>
           </div>
           <div class="gate-err" id="gateErr"></div>
