@@ -87,6 +87,9 @@ td.c1{color:#1f5c99;font-weight:800}td.c2{color:#1f7a4d;font-weight:800}td.c3{co
 .car{position:absolute;top:8px;font-size:32px;transition:right .6s ease;direction:ltr}
 .car.now{filter:drop-shadow(0 0 6px var(--gold))}
 .fin{position:absolute;left:0;top:0;bottom:0;width:26px;font-size:22px;display:flex;align-items:center;justify-content:center}
+.zomb{margin:12px auto;max-width:340px;background:#e8f7e1;border:3px solid #5b8c2a;border-radius:16px;padding:12px;text-align:center;font-size:18px;color:#2f4a12;animation:jump .9s ease-in-out infinite alternate}
+.zomb:before{content:'🧟';display:block;font-size:56px}
+@keyframes jump{from{transform:translateY(0)}to{transform:translateY(-10px)}}
 footer{text-align:center;color:#6b5b2e;font-size:14px;padding:18px 0 4px}
 @media (max-width:480px){.grid3{grid-template-columns:1fr 1fr}.cover h1{font-size:36px}}
 </style>
@@ -267,8 +270,11 @@ function nextQ(){
   if(qi>=qs.length){
     const m=Math.max(...scores); const w=players.filter((_,i)=>scores[i]===m);
     play('end');
+    const mx=Math.max(...scores), mn=Math.min(...scores);
+    const loser=players.filter((_,i)=>scores[i]===mn);
+    const zomb=(mn<mx)?'<div class="zomb">🧟 <b>'+loser.join(' و')+'</b> خسر السباق! الزومبي يطاردك!</div>':'';
     area.innerHTML='<div class="winner">🏆 '+(w.length>1?'تعادل بين: '+w.join(' و'):'الفائز: '+w[0]+' بـ '+m+' نقطة')+'</div>'+
-      '<div style="text-align:center;margin-top:10px"><button class="btn alt" onclick="location.reload()">🔁 لعبة جديدة</button></div>';
+      zomb+'<div style="text-align:center;margin-top:10px"><button class="btn alt" onclick="location.reload()">🔁 لعبة جديدة</button></div>';
     return;
   }
   answered=false; const it=qs[qi];
