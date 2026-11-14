@@ -50,6 +50,7 @@ input[type=text]{width:100%;font:inherit;font-size:20px;padding:12px;border:3px 
 @keyframes sh{20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
 .lesson{background:#fff7d6;border-radius:18px;padding:12px;margin-bottom:12px;text-align:right;font-size:19px;line-height:1.9}
 .note{font-size:15px;color:#4b5b72}
+.zbox{text-align:center;margin:8px 0}
 footer{text-align:center;font-size:14px;color:#2b3f63;margin-top:16px}
 </style>
 </head>
@@ -58,6 +59,7 @@ footer{text-align:center;font-size:14px;color:#2b3f63;margin-top:16px}
 <!-- شاشة البداية -->
 <section class="scr on" id="s-start">
   <div class="title">
+    <div style="display:flex;justify-content:center"><svg viewBox="0 0 120 120" width="110" height="110" aria-hidden="true"><circle cx="60" cy="62" r="34" fill="#ffd9b3"/><path d="M26 52 Q60 10 94 52 L94 46 Q60 6 26 46Z" fill="#e63946"/><rect x="24" y="40" width="72" height="12" rx="6" fill="#c1121f"/><circle cx="48" cy="64" r="5" fill="#17315a"/><circle cx="72" cy="64" r="5" fill="#17315a"/><path d="M46 80 Q60 92 74 80" stroke="#17315a" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="36" cy="72" r="5" fill="#ff9aa2"/><circle cx="84" cy="72" r="5" fill="#ff9aa2"/></svg></div>
     <h1>🏝️ رحلة الإعراب</h1>
     <p>مبادرة الطالب: صالح محمد الشمراني</p>
     <p>مادة لغتي · فصل موهبة · الصف السادس</p>
@@ -97,7 +99,7 @@ footer{text-align:center;font-size:14px;color:#2b3f63;margin-top:16px}
 <section class="scr" id="s-end">
   <div class="title"><h1 style="font-size:34px">🏆 فائز!</h1></div>
   <div class="card" style="text-align:center">
-    <div class="trophy">🏆</div>
+    <div class="zbox"><svg viewBox="0 0 120 120" width="110" height="110" aria-hidden="true"><circle cx="60" cy="62" r="34" fill="#ffd9b3"/><path d="M26 52 Q60 10 94 52 L94 46 Q60 6 26 46Z" fill="#e63946"/><rect x="24" y="40" width="72" height="12" rx="6" fill="#c1121f"/><circle cx="48" cy="64" r="5" fill="#17315a"/><circle cx="72" cy="64" r="5" fill="#17315a"/><path d="M46 80 Q60 92 74 80" stroke="#17315a" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="36" cy="72" r="5" fill="#ff9aa2"/><circle cx="84" cy="72" r="5" fill="#ff9aa2"/></svg></div>
     <div style="font-size:26px;font-weight:900" id="endText"></div>
     <div class="stars" id="endStars" style="font-size:34px;margin:8px 0"></div>
     <button class="btn" id="again">العب مرة ثانية 🔁</button>
@@ -112,13 +114,18 @@ footer{text-align:center;font-size:14px;color:#2b3f63;margin-top:16px}
 let AC=null, muted=false;
 function ctx(){ if(!AC) AC=new (window.AudioContext||window.webkitAudioContext)(); return AC; }
 function tone(f,d,t='sine',v=.15,when=0){ if(muted) return; const c=ctx(); const o=c.createOscillator(), g=c.createGain(); o.type=t; o.frequency.value=f; g.gain.value=v; o.connect(g); g.connect(c.destination); const s=c.currentTime+when; o.start(s); g.gain.setValueAtTime(v,s); g.gain.exponentialRampToValueAtTime(.001,s+d); o.stop(s+d+.05); }
-function sfx(k){ try{
-  if(k==='tap') tone(520,.08,'triangle',.12);
-  if(k==='good'){ tone(660,.12,'triangle',.18); tone(880,.14,'triangle',.18,.1); tone(1320,.2,'triangle',.16,.2); }
-  if(k==='bad'){ tone(260,.25,'sawtooth',.08); tone(200,.3,'sawtooth',.07,.15); }
-  if(k==='open'){ [523,659,784,1046].forEach((f,i)=>tone(f,.15,'square',.07,i*.09)); }
-  if(k==='win'){ [523,659,784,659,784,1046].forEach((f,i)=>tone(f,.18,'triangle',.16,i*.12)); }
-}catch(e){} }
+const CLIP={};
+function clip(n){ if(muted) return; try{ const a=new Audio('aud/'+n+'.mp3'); a.play().catch(()=>{}); }catch(e){} }
+function sfx(k){
+  try{
+    if(k==='tap') tone(520,.08,'triangle',.12);
+    if(k==='good'){ clip(Math.random()<.5?'brafo':'shatir'); tone(880,.12,'triangle',.12,.05); }
+    if(k==='bad'){ clip('retry'); }
+    if(k==='open'){ clip('start'); }
+    if(k==='win'){ clip('winner'); }
+    if(k==='zombie'){ clip('zombie'); }
+  }catch(e){}
+}
 function setMute(){ muted=!muted; ['mute','mute2'].forEach(id=>document.getElementById(id).textContent=muted?'🔇 كتم':'🔊'); }
 document.getElementById('mute').onclick=setMute; document.getElementById('mute2').onclick=setMute;
 
@@ -222,7 +229,7 @@ function choose(k){
     sfx('bad'); lives--; document.getElementById('hearts').textContent=hearts(Math.max(0,lives));
     btns[k].classList.add('dis'); btns[k].style.opacity='.3';
     document.getElementById('qcard').classList.remove('shake'); void document.getElementById('qcard').offsetWidth; document.getElementById('qcard').classList.add('shake');
-    if(lives<=0){ answered=true; fb.className='fb no'; fb.innerHTML='💔 انتهت المحاولات. تلميح: '+q.why; btns[correctIdx].classList.add('good'); document.getElementById('next').style.display='inline-block'; document.getElementById('next').textContent='أعد المرحلة 🔁'; }
+    if(lives<=0){ answered=true; sfx('zombie'); fb.className='fb no'; fb.innerHTML='<div class="zbox"><svg viewBox="0 0 120 120" width="120" height="120" aria-hidden="true"><circle cx="60" cy="60" r="38" fill="#7bc96f" stroke="#2f6b2a" stroke-width="3"/><circle cx="46" cy="54" r="8" fill="#fff"/><circle cx="74" cy="54" r="8" fill="#fff"/><circle cx="48" cy="55" r="4" fill="#c1121f"/><circle cx="76" cy="55" r="4" fill="#c1121f"/><path d="M40 82 L46 76 L52 82 L58 76 L64 82 L70 76 L76 82" stroke="#2f6b2a" stroke-width="3" fill="none"/></svg></div>💔 الزومبي اقترب! تلميح: '+q.why; btns[correctIdx].classList.add('good'); document.getElementById('next').style.display='inline-block'; document.getElementById('next').textContent='أعد المرحلة 🔁'; }
     else { fb.className='fb no'; fb.innerHTML='لطيف! جرّب مرة ثانية. 💡 '+q.tip; }
   }
 }
@@ -242,7 +249,7 @@ function finishStage(){
 }
 function st3(i){ return STAGES[i].qs.length*3*0.8|0; }
 function st2(i){ return STAGES[i].qs.length*2*0.5|0; }
-function endGame(){
+function endGame(){ sfx("win");
   sfx('win');
   const all=Object.values(S.done).reduce((a,b)=>a+b,0);
   document.getElementById('endText').textContent='مجموع النجوم: '+S.stars+' · أحسنت يا '+(S.name||'بطل')+'!';
