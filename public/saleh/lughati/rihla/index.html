@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>رحلة الإعراب · مبادرة صالح الشمراني</title>
+<style>
+:root{--sky1:#7fd4ff;--sky2:#d8f4ff;--g:#58c46a;--y:#ffc83d;--r:#ff6b6b;--b:#3b7dd8;--ink:#17315a}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'Tajawal','Cairo','Segoe UI',Tahoma,sans-serif;background:linear-gradient(180deg,var(--sky1),var(--sky2) 70%);color:var(--ink);font-size:20px;min-height:100vh;overflow-x:hidden}
+.scr{display:none;min-height:100vh;padding:12px 14px 30px;max-width:640px;margin:0 auto}
+.scr.on{display:block}
+.hud{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fff;border-radius:18px;padding:8px 12px;box-shadow:0 6px 0 rgba(23,49,90,.2)}
+.hud .chip{background:#eef6ff;border-radius:12px;padding:4px 10px;font-weight:800}
+.btn{background:var(--g);color:#fff;border:0;border-radius:18px;padding:14px 22px;font:inherit;font-size:22px;font-weight:900;box-shadow:0 6px 0 #2f8a40;cursor:pointer;margin:6px}
+.btn:active{transform:translateY(4px);box-shadow:0 2px 0 #2f8a40}
+.btn.alt{background:#fff;color:var(--ink);box-shadow:0 6px 0 #aab9cc}
+.btn.sm{font-size:16px;padding:8px 12px;box-shadow:0 4px 0 #aab9cc;background:#fff;color:var(--ink)}
+.title{text-align:center;margin:20px 0 6px}
+.title h1{font-size:44px;margin:0;color:#fff;text-shadow:0 4px 0 var(--b),0 0 10px rgba(0,0,0,.2)}
+.title p{margin:4px 0;font-weight:800;color:var(--ink)}
+.card{background:#fff;border-radius:22px;padding:16px;margin:12px 0;box-shadow:0 8px 0 rgba(23,49,90,.18)}
+input[type=text]{width:100%;font:inherit;font-size:20px;padding:12px;border:3px solid #cfe2ff;border-radius:14px;margin-top:6px}
+.map{display:grid;gap:14px;margin-top:14px}
+.isle{display:flex;align-items:center;gap:12px;background:#fff;border-radius:22px;padding:12px;box-shadow:0 8px 0 rgba(23,49,90,.18);cursor:pointer;border:0;font:inherit;text-align:right;color:var(--ink)}
+.isle .ico{font-size:44px;width:70px;height:70px;background:#f3f8ff;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none}
+.isle.lock{opacity:.5;filter:grayscale(.6)}
+.isle .st{font-size:22px;font-weight:900}
+.stars{color:var(--y);font-size:20px;letter-spacing:2px}
+.prog{height:14px;background:#e9efff;border-radius:999px;overflow:hidden;margin:8px 0}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,var(--g),var(--y));width:0;transition:width .4s}
+.qcard{background:#fff;border-radius:24px;padding:18px;box-shadow:0 8px 0 rgba(23,49,90,.18);text-align:center}
+.qcard .tip{background:#fff7d6;border-radius:14px;padding:8px 10px;font-size:17px;margin-bottom:10px;text-align:right}
+.qtext{font-size:26px;font-weight:900;line-height:1.7;margin:8px 0 12px}
+.ans{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ans button{font:inherit;font-size:22px;font-weight:900;border:0;border-radius:18px;padding:16px 8px;color:#fff;cursor:pointer;box-shadow:0 6px 0 rgba(0,0,0,.25)}
+.c0{background:#ff7a59}.c1{background:#3ea8ff}.c2{background:#a66cff}.c3{background:#3ccf91}
+.ans button.dis{opacity:.45}
+.ans button.good{outline:5px solid #fff;box-shadow:0 0 0 6px var(--g)}
+.fb{min-height:70px;margin-top:10px;border-radius:18px;padding:10px;font-size:19px;font-weight:800}
+.fb.ok{background:#e6fbe9;color:#17743a}.fb.no{background:#ffe9e9;color:#a52a2a}
+.hearts{font-size:24px;letter-spacing:2px}
+.trophy{font-size:90px;text-align:center;animation:bob 1.2s ease-in-out infinite alternate}
+@keyframes bob{to{transform:translateY(-12px) rotate(-4deg)}}
+.pop{position:fixed;inset:0;pointer-events:none;display:none;align-items:center;justify-content:center;font-size:90px;z-index:9}
+.pop.on{display:flex;animation:fade .9s ease forwards}
+@keyframes fade{0%{opacity:0;transform:scale(.4)}30%{opacity:1;transform:scale(1.1)}100%{opacity:0;transform:scale(1)}}
+.shake{animation:sh .4s}
+@keyframes sh{20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
+.lesson{background:#fff7d6;border-radius:18px;padding:12px;margin-bottom:12px;text-align:right;font-size:19px;line-height:1.9}
+.note{font-size:15px;color:#4b5b72}
+footer{text-align:center;font-size:14px;color:#2b3f63;margin-top:16px}
+</style>
+</head>
+<body>
+
+<!-- شاشة البداية -->
+<section class="scr on" id="s-start">
+  <div class="title">
+    <h1>🏝️ رحلة الإعراب</h1>
+    <p>مبادرة الطالب: صالح محمد الشمراني</p>
+    <p>مادة لغتي · فصل موهبة · الصف السادس</p>
+  </div>
+  <div class="card">
+    <div>إشراف المعلم:</div>
+    <input type="text" id="teacher" placeholder="اسم المعلم">
+    <div style="margin-top:12px;text-align:center"><button class="btn" id="go">ابدأ الرحلة 🚀</button></div>
+    <div class="note" style="text-align:center">الصوت: <button class="btn sm" id="mute">🔊 تشغيل</button></div>
+  </div>
+  <div class="card note">المراحل: الأفعال الناسخة · الحروف الناسخة · اسم الفاعل واسم المفعول · اسم الآلة. كل مرحلة فيها أسئلة متدرجة، والبطل يحتاج يجاوب صح عشان يفتح المرحلة اللي بعدها.</div>
+</section>
+
+<!-- الخريطة -->
+<section class="scr" id="s-map">
+  <div class="hud"><span class="chip">⭐ <b id="totalStars">0</b></span><span class="hearts" id="hudHearts">❤️❤️❤️</span><button class="btn sm" id="mute2">🔊</button></div>
+  <div class="title" style="margin:12px 0 0"><h1 style="font-size:30px">خريطة الرحلة</h1></div>
+  <div class="map" id="mapList"></div>
+  <footer id="tFoot"></footer>
+</section>
+
+<!-- اللعب -->
+<section class="scr" id="s-play">
+  <div class="hud"><button class="btn sm" id="back">⇦ الخريطة</button><span class="chip" id="qLabel">السؤال 1 من 5</span><span class="hearts" id="hearts">❤️❤️❤️</span></div>
+  <div class="prog"><i id="bar"></i></div>
+  <div class="card lesson" id="rule"></div>
+  <div class="qcard" id="qcard">
+    <div class="tip" id="qtip"></div>
+    <div class="qtext" id="qtext"></div>
+    <div class="ans" id="qans"></div>
+    <div class="fb" id="fb"></div>
+    <div style="margin-top:8px"><button class="btn" id="next" style="display:none">التالي ➡️</button></div>
+  </div>
+</section>
+
+<!-- النهاية -->
+<section class="scr" id="s-end">
+  <div class="title"><h1 style="font-size:34px">🏆 فائز!</h1></div>
+  <div class="card" style="text-align:center">
+    <div class="trophy">🏆</div>
+    <div style="font-size:26px;font-weight:900" id="endText"></div>
+    <div class="stars" id="endStars" style="font-size:34px;margin:8px 0"></div>
+    <button class="btn" id="again">العب مرة ثانية 🔁</button>
+    <button class="btn alt" id="toMap">الخريطة</button>
+  </div>
+</section>
+
+<div class="pop" id="pop"></div>
+
+<script>
+// ===== الأصوات (Web Audio، بدون ملفات) =====
+let AC=null, muted=false;
+function ctx(){ if(!AC) AC=new (window.AudioContext||window.webkitAudioContext)(); return AC; }
+function tone(f,d,t='sine',v=.15,when=0){ if(muted) return; const c=ctx(); const o=c.createOscillator(), g=c.createGain(); o.type=t; o.frequency.value=f; g.gain.value=v; o.connect(g); g.connect(c.destination); const s=c.currentTime+when; o.start(s); g.gain.setValueAtTime(v,s); g.gain.exponentialRampToValueAtTime(.001,s+d); o.stop(s+d+.05); }
+function sfx(k){ try{
+  if(k==='tap') tone(520,.08,'triangle',.12);
+  if(k==='good'){ tone(660,.12,'triangle',.18); tone(880,.14,'triangle',.18,.1); tone(1320,.2,'triangle',.16,.2); }
+  if(k==='bad'){ tone(260,.25,'sawtooth',.08); tone(200,.3,'sawtooth',.07,.15); }
+  if(k==='open'){ [523,659,784,1046].forEach((f,i)=>tone(f,.15,'square',.07,i*.09)); }
+  if(k==='win'){ [523,659,784,659,784,1046].forEach((f,i)=>tone(f,.18,'triangle',.16,i*.12)); }
+}catch(e){} }
+function setMute(){ muted=!muted; ['mute','mute2'].forEach(id=>document.getElementById(id).textContent=muted?'🔇 كتم':'🔊'); }
+document.getElementById('mute').onclick=setMute; document.getElementById('mute2').onclick=setMute;
+
+// ===== المحتوى: 4 مراحل (كل مرحلة: قاعدة + أسئلة متدرجة) =====
+const STAGES=[
+ {name:'الأفعال الناسخة', icon:'🪄',
+  rule:'<b>الأفعال الناسخة</b> تدخل على الجملة الاسمية: تنصب المبتدأ ويسمى <b>اسمها</b>، وترفع الخبر ويسمى <b>خبرها</b>.<br>مثال: <span style="color:#c0392b">كان</span> الطالبُ مجتهداً.',
+  qs:[
+   {type:'mcq',tip:'تذكّر: كان تدخل على الجملة الماضية.',q:'في الجملة: "كان الطالبُ مجتهداً"، ما إعراب "مجتهداً"؟',o:['خبر كان منصوب','اسم كان مرفوع','فاعل مرفوع'],a:0,why:'مجتهداً هو الخبر، وخبر كان يكون منصوباً.'},
+   {type:'mcq',tip:'تذكّر: صار تفيد التحول والتغير.',q:'في الجملة: "صار الجوُّ معتدلاً"، ما إعراب "الجوُّ"؟',o:['اسم صار مرفوع','خبر صار منصوب','مفعول به منصوب'],a:0,why:'الجوُّ هو اسم صار، والاسم يكون مرفوعاً.'},
+   {type:'tf',tip:'تذكّر: ليس تدخل على الجملة المنفية.',q:'"ليس" تدخل على الجملة الماضية المثبتة.',a:false,why:'خطأ! ليس تدخل على الجملة المنفية، مثل: ليس التلميذُ مهملاً.'},
+   {type:'fill',tip:'اختر الفعل الناسخ المناسب للجملة المنفية.',q:'..... التلميذُ مهملاً.',o:['كان','ليس','صار'],a:1,why:'لأن الجملة منفية، فالفعل الناسخ هو ليس.'},
+   {type:'mcq',tip:'تحدّي: انتبه للتغيّر.',q:'اختر الجملة الصحيحة:',o:['صار الجوُّ معتدلاً','صار الجوَّ معتدلٌ','صارَ الجوُّ معتدلٌ'],a:0,why:'في الجملة الصحيحة: اسم صار مرفوع، وخبرها منصوب.'}
+  ]},
+ {name:'الحروف الناسخة', icon:'✨',
+  rule:'<b>إنّ وأخواتها</b> (إنّ، أنّ، كأنّ، لكنّ، ليت، لعلّ) تنصب الاسم بعدها ويسمى <b>اسمها</b>، وترفع الخبر ويسمى <b>خبرها</b>.<br>مثال: <span style="color:#c0392b">إنّ</span> الصبرَ مفتاحُ الفرج.',
+  qs:[
+   {type:'mcq',tip:'تذكّر: الاسم بعد إنّ منصوب.',q:'في "إنّ الصبرَ مفتاحُ الفرج": ما إعراب "الصبرَ"؟',o:['اسم إنّ منصوب','خبر إنّ مرفوع','فاعل مرفوع'],a:0,why:'الصبرَ اسم إنّ، ومنصوب بالفتحة.'},
+   {type:'mcq',tip:'تذكّر: ليت للتمني.',q:'أي حرف ناسخ يفيد التمنّي؟',o:['ليت','لعلّ','لكنّ'],a:0,why:'ليت تفيد التمني، مثل: ليتَ الشبابَ يعود.'},
+   {type:'tf',tip:'تذكّر: لكنّ للاستدراك.',q:'"لكنّ" تفيد الاستدراك (الاستثناء بعد كلام).',a:true,why:'صح! مثل: الجوُّ حارّ، لكنّه مريح.'},
+   {type:'fill',tip:'اختر الحرف الناسخ المناسب للترجّي.',q:'..... الطالبَ ناجحٌ. (يفيد الترجّي)',o:['إنّ','لعلّ','ليت'],a:1,why:'لعلّ تفيد الترجّي، أي الأمل في شيء ممكن.'},
+   {type:'mcq',tip:'تحدّي: انتبه للمنصوب والمرفوع.',q:'اختر الجملة الصحيحة:',o:['إنّ الطالبَ مجتهدٌ','إنّ الطالبُ مجتهدَ','إنّ الطالبُ مجتهدُ'],a:0,why:'اسم إنّ منصوب (الطالبَ)، وخبرها مرفوع (مجتهدٌ).'}
+  ]},
+ {name:'اسم الفاعل واسم المفعول', icon:'🏃',
+  rule:'<b>اسم الفاعل</b> يدل على من قام بالفعل، مثل: <span style="color:#c0392b">كاتب</span>.<br><b>اسم المفعول</b> يدل على من وقع عليه الفعل، مثل: <span style="color:#c0392b">مكتوب</span>.',
+  qs:[
+   {type:'mcq',tip:'تذكّر: اسم الفاعل يدل على من قام بالفعل.',q:'ما اسم الفاعل من الفعل "كَتَبَ"؟',o:['كاتب','مكتوب','كتاب'],a:0,why:'اسم الفاعل كاتب، لأنه يدل على من كتب.'},
+   {type:'mcq',tip:'تذكّر: اسم المفعول يدل على من وقع عليه الفعل.',q:'ما اسم المفعول من الفعل "كَتَبَ"؟',o:['مكتوب','كاتب','كتابة'],a:0,why:'اسم المفعول مكتوب، لأنه يدل على ما وقعت عليه الكتابة.'},
+   {type:'tf',tip:'تذكّر: صيغة اسم الفاعل على وزن فاعل.',q:'"عالم" اسم فاعل من الفعل "عَلِمَ".',a:true,why:'صح! عالم على وزن فاعل، وهو يدل على من علِم.'},
+   {type:'fill',tip:'اختر الكلمة المناسبة.',q:'الطالبُ ..... الدرسَ. (اسم فاعل من درس)',o:['مدروس','دارس','مدرسة'],a:1,why:'دارس هو اسم الفاعل، لأنه يدل على من قام بالدراسة.'},
+   {type:'mcq',tip:'تحدّي: اسم المفعول على وزن مفعول.',q:'اختر اسم المفعول من الفعل "فَهِمَ":',o:['مفهوم','فاهم','فهم'],a:0,why:'اسم المفعول مفهوم، على وزن مفعول.'}
+  ]},
+ {name:'اسم الآلة', icon:'🔧',
+  rule:'<b>اسم الآلة</b> يدل على الأداة التي نعمل بها الفعل، ويأتي على وزن <b>مِفعال</b> أو <b>مِفعَلة</b>، مثل: <span style="color:#c0392b">مِفتاح</span> من فتح.',
+  qs:[
+   {type:'mcq',tip:'تذكّر: اسم الآلة يدل على الأداة.',q:'ما اسم الآلة من الفعل "فَتَحَ"؟',o:['مِفتاح','فاتح','مفتوح'],a:0,why:'مِفتاح هو الأداة التي نفتح بها.'},
+   {type:'mcq',tip:'تذكّر: اسم الآلة يدل على ما نعمل به.',q:'أي كلمة تدل على آلة؟',o:['مِبرَد','بارد','بِرادة'],a:0,why:'المِبرَد أداة نبرد بها الحديد.'},
+   {type:'tf',tip:'تذكّر: اسم الآلة يدل على الأداة.',q:'"مِكنسة" اسم آلة.',a:true,why:'صح! المِكنسة أداة نكنس بها.'},
+   {type:'fill',tip:'اختر اسم الآلة المناسب.',q:'نستعمل ..... لنقطع الورق.',o:['مِقص','قاطع','مقطوع'],a:0,why:'المِقص أداة نقطع بها الورق.'},
+   {type:'mcq',tip:'تحدّي: ميّز بين اسم الفاعل واسم الآلة.',q:'أي الكلمات اسم آلة؟',o:['مِثقب','ثاقب','مثقوب'],a:0,why:'المِثقب أداة نثقب بها، أما ثاقب فهو اسم فاعل.'}
+  ]}
+];
+
+// ===== الحالة =====
+const KEY='rihlat-alEarab-v1';
+let S={name:'',teacher:'',unlocked:0,done:{},stars:0};
+function save(){ try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} }
+function load(){ try{ const d=JSON.parse(localStorage.getItem(KEY)||'null'); if(d) S=Object.assign(S,d); }catch(e){} }
+load();
+function show(id){ document.querySelectorAll('.scr').forEach(s=>s.classList.toggle('on',s.id===id)); window.scrollTo(0,0); }
+function hearts(n){ return '❤️'.repeat(n)+'🖤'.repeat(3-n); }
+function popup(t){ const p=document.getElementById('pop'); p.textContent=t; p.classList.remove('on'); void p.offsetWidth; p.classList.add('on'); }
+
+// ===== الخريطة =====
+function drawMap(){
+  document.getElementById('totalStars').textContent=S.stars;
+  const box=document.getElementById('mapList'); box.innerHTML='';
+  STAGES.forEach((st,i)=>{
+    const open=i<=S.unlocked, d=S.done[i]||0;
+    const b=document.createElement('button'); b.className='isle'+(open?'':' lock');
+    b.innerHTML='<div class="ico">'+st.icon+'</div><div style="flex:1"><div class="st">'+(i+1)+') '+st.name+'</div><div class="stars">'+'⭐'.repeat(d)+'☆'.repeat(3-d)+'</div></div><div style="font-size:26px">'+(open?'▶️':'🔒')+'</div>';
+    b.onclick=()=>{ if(!open){ sfx('bad'); return; } sfx('tap'); startStage(i); };
+    box.appendChild(b);
+  });
+  document.getElementById('tFoot').textContent='المعلم: '+(S.teacher||'—');
+}
+
+// ===== اللعب =====
+let cur=0,qi=0,lives=3,gotStars=0,answered=false;
+function startStage(i){ cur=i; qi=0; lives=3; gotStars=0; show('s-play'); sfx('open'); showQ(); }
+function showQ(){
+  const st=STAGES[cur], q=st.qs[qi]; answered=false;
+  document.getElementById('rule').innerHTML=st.rule;
+  document.getElementById('qLabel').textContent='السؤال '+(qi+1)+' من '+st.qs.length;
+  document.getElementById('bar').style.width=(qi/st.qs.length*100)+'%';
+  document.getElementById('hearts').textContent=hearts(lives);
+  document.getElementById('qtip').textContent='💡 '+q.tip;
+  document.getElementById('qtext').textContent=q.q;
+  const A=document.getElementById('qans'); A.innerHTML='';
+  const opts=q.type==='tf'?['✔ صح','✘ خطأ']:q.o;
+  opts.forEach((t,k)=>{
+    const b=document.createElement('button'); b.className='c'+(k%4); b.textContent=t;
+    b.onclick=()=>choose(k);
+    A.appendChild(b);
+  });
+  const fb=document.getElementById('fb'); fb.className='fb'; fb.textContent='';
+  document.getElementById('next').style.display='none';
+}
+function choose(k){
+  if(answered) return; const st=STAGES[cur], q=st.qs[qi];
+  const correctIdx= q.type==='tf' ? (q.a?0:1) : q.a;
+  const btns=[...document.querySelectorAll('#qans button')];
+  const fb=document.getElementById('fb');
+  if(k===correctIdx){
+    answered=true; sfx('good'); btns[k].classList.add('good');
+    fb.className='fb ok'; fb.innerHTML='🎉 أحسنت! '+q.why;
+    gotStars+= (lives===3?3:lives===2?2:1); popup('⭐');
+    S.stars+=0; document.getElementById('next').style.display='inline-block';
+    btns.forEach(x=>x.classList.add('dis'));
+  } else {
+    sfx('bad'); lives--; document.getElementById('hearts').textContent=hearts(Math.max(0,lives));
+    btns[k].classList.add('dis'); btns[k].style.opacity='.3';
+    document.getElementById('qcard').classList.remove('shake'); void document.getElementById('qcard').offsetWidth; document.getElementById('qcard').classList.add('shake');
+    if(lives<=0){ answered=true; fb.className='fb no'; fb.innerHTML='💔 انتهت المحاولات. تلميح: '+q.why; btns[correctIdx].classList.add('good'); document.getElementById('next').style.display='inline-block'; document.getElementById('next').textContent='أعد المرحلة 🔁'; }
+    else { fb.className='fb no'; fb.innerHTML='لطيف! جرّب مرة ثانية. 💡 '+q.tip; }
+  }
+}
+document.getElementById('next').onclick=()=>{
+  const st=STAGES[cur];
+  if(lives<=0){ startStage(cur); return; }
+  qi++;
+  if(qi>=st.qs.length){ finishStage(); return; }
+  showQ();
+};
+function finishStage(){
+  S.stars+=gotStars; S.done[cur]=Math.max(S.done[cur]||0, gotStars>=st3(cur)?3:gotStars>=st2(cur)?2:1);
+  if(cur>=S.unlocked && cur<STAGES.length-1) S.unlocked=cur+1;
+  save();
+  if(cur===STAGES.length-1){ endGame(); return; }
+  sfx('open'); show('s-map'); drawMap(); popup('🔓');
+}
+function st3(i){ return STAGES[i].qs.length*3*0.8|0; }
+function st2(i){ return STAGES[i].qs.length*2*0.5|0; }
+function endGame(){
+  sfx('win');
+  const all=Object.values(S.done).reduce((a,b)=>a+b,0);
+  document.getElementById('endText').textContent='مجموع النجوم: '+S.stars+' · أحسنت يا '+(S.name||'بطل')+'!';
+  document.getElementById('endStars').textContent='⭐'.repeat(Math.min(3,Math.round(all/4)))||'⭐';
+  show('s-end');
+}
+document.getElementById('back').onclick=()=>{ show('s-map'); drawMap(); };
+document.getElementById('toMap').onclick=()=>{ show('s-map'); drawMap(); };
+document.getElementById('again').onclick=()=>{ S={name:S.name,teacher:S.teacher,unlocked:0,done:{},stars:0}; save(); show('s-map'); drawMap(); };
+document.getElementById('go').onclick=()=>{
+  S.teacher=document.getElementById('teacher').value.trim()||S.teacher||'';
+  S.name='صالح'; save(); sfx('tap'); show('s-map'); drawMap();
+};
+document.getElementById('teacher').value=S.teacher||'';
+</script>
+</body>
+</html>
