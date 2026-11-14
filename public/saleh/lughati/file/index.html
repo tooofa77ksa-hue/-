@@ -79,6 +79,14 @@ td.c1{color:#1f5c99;font-weight:800}td.c2{color:#1f7a4d;font-weight:800}td.c3{co
 .drop input[type=text]{width:100%;padding:8px;font:inherit;border:1px solid #cfd8e3;border-radius:10px;margin-top:4px}
 .work{border-radius:14px;padding:10px;margin:8px 0;background:#fff;border:1px solid #e3d59b}
 .work img{max-width:100%;border-radius:10px;margin-top:6px}
+.listen{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+.lbtn{background:var(--gold);color:var(--navy);border:0;border-radius:999px;padding:8px 14px;font:inherit;font-weight:800;box-shadow:0 3px 0 #9c7a12;cursor:pointer}
+.track{width:100%;background:#fff;border-radius:16px;padding:10px;border:2px solid #e5d59b}
+.lane{margin:8px 0}.lname{font-weight:800;color:var(--navy)}.lscore{background:var(--green);color:#fff;border-radius:999px;padding:0 8px;font-size:14px}
+.road{position:relative;height:54px;background:repeating-linear-gradient(90deg,#4a4f57 0 22px,#3d4149 22px 44px);border-radius:12px;margin-top:4px;overflow:hidden}
+.car{position:absolute;top:8px;font-size:32px;transition:right .6s ease;direction:ltr}
+.car.now{filter:drop-shadow(0 0 6px var(--gold))}
+.fin{position:absolute;left:0;top:0;bottom:0;width:26px;font-size:22px;display:flex;align-items:center;justify-content:center}
 footer{text-align:center;color:#6b5b2e;font-size:14px;padding:18px 0 4px}
 @media (max-width:480px){.grid3{grid-template-columns:1fr 1fr}.cover h1{font-size:36px}}
 </style>
@@ -95,7 +103,7 @@ footer{text-align:center;color:#6b5b2e;font-size:14px;padding:18px 0 4px}
     <div>إعداد الطالب: <b>صالح محمد الشمراني</b></div>
     <div>الصف: <b>السادس الابتدائي</b></div>
     <div>المعلمة: <b>................</b></div>
-    <div>العام الدراسي: <b>١٤٤٨ هـ</b></div>
+    <div>العام الدراسي: <b>1448 هـ</b></div>
   </div>
 </header>
 
@@ -133,6 +141,11 @@ footer{text-align:center;color:#6b5b2e;font-size:14px;padding:18px 0 4px}
       <div class="mini" style="border-color:#c9a8e6"><span class="ic">🔄</span><b>صار</b>تفيد التحول والتغير<div class="ex">صار الجوُّ معتدلاً.</div></div>
       <div class="mini" style="border-color:#9fd7b3"><span class="ic">🚫</span><b>ليس</b>تدخل على الجملة المنفية<div class="ex">ليس التلميذُ مهملاً.</div></div>
     </div>
+    <div class="listen">
+      <button class="lbtn" onclick="play('r_kana')">🔊 كان</button>
+      <button class="lbtn" onclick="play('r_sar')">🔊 صار</button>
+      <button class="lbtn" onclick="play('r_laysa')">🔊 ليس</button>
+    </div>
   </div>
 </section>
 
@@ -150,6 +163,12 @@ footer{text-align:center;color:#6b5b2e;font-size:14px;padding:18px 0 4px}
       <tr><td>الأسماء الخمسة</td><td class="c1">الواو</td><td class="c2">الألف</td><td class="c3">الياء</td></tr>
     </table>
     <div class="ex g" style="margin-top:12px"><b>علامات نصب الخبر:</b> الفتحة للمفرد وجمع التكسير · الياء للمثنى وجمع المذكر السالم · الكسرة لجمع المؤنث السالم (نيابة عن الفتحة) · الألف للأسماء الخمسة.</div>
+    <div class="listen">
+      <button class="lbtn" onclick="play('r_mothanna')">🔊 المثنى</button>
+      <button class="lbtn" onclick="play('r_jamaa_m')">🔊 جمع المذكر</button>
+      <button class="lbtn" onclick="play('r_jamaa_f')">🔊 جمع المؤنث</button>
+      <button class="lbtn" onclick="play('r_asmaa')">🔊 الأسماء الخمسة</button>
+    </div>
   </div>
 </section>
 
@@ -206,6 +225,8 @@ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
   window.scrollTo({top:0,behavior:'smooth'});
 });
 
+const AUD={};
+function play(n){ try{ const a=new Audio('audio/'+n+'.mp3'); a.play().catch(()=>{}); }catch(e){} }
 function shuffle(a){return a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);}
 
 // ===== ألعاب الفرق =====
@@ -231,16 +252,21 @@ document.getElementById('startG').onclick=()=>{
     const idx=shuffle([0,1,2]); return {q:q.q,o:idx.map(i=>q.o[i]),a:idx.indexOf(q.a)};
   });
   document.getElementById('setup').style.display='none';
+  play('intro');
   showBoard(); nextQ();
 };
 function showBoard(){
-  document.getElementById('board').innerHTML=players.map((p,i)=>
-    '<div class="pl'+(i===turn?' turn':'')+'"><b>'+p+'</b><div class="sc">'+scores[i]+'</div></div>').join('');
+  const n=qs.length||8;
+  document.getElementById('board').innerHTML='<div class="track">'+players.map((p,i)=>
+    '<div class="lane"><div class="lname">'+p+' <span class="lscore">'+scores[i]+'</span></div>'+
+    '<div class="road"><div class="car'+(i===turn?' now':'')+'" style="right:calc('+Math.min(100,(scores[i]/n)*100)+'% - 0px)">🏎️</div><div class="fin">🏁</div></div></div>'
+  ).join('')+'</div>';
 }
 function nextQ(){
   const area=document.getElementById('gameArea');
   if(qi>=qs.length){
     const m=Math.max(...scores); const w=players.filter((_,i)=>scores[i]===m);
+    play('end');
     area.innerHTML='<div class="winner">🏆 '+(w.length>1?'تعادل بين: '+w.join(' و'):'الفائز: '+w[0]+' بـ '+m+' نقطة')+'</div>'+
       '<div style="text-align:center;margin-top:10px"><button class="btn alt" onclick="location.reload()">🔁 لعبة جديدة</button></div>';
     return;
@@ -253,8 +279,8 @@ function nextQ(){
     if(answered) return; answered=true;
     const k=+b.dataset.k; const msg=document.getElementById('msg');
     area.querySelectorAll('.opt').forEach(x=>x.disabled=true);
-    if(k===it.a){ b.classList.add('ok'); scores[turn]++; msg.className='msg good'; msg.textContent='✔ أحسنت يا '+players[turn]+'! نقطة'; }
-    else { b.classList.add('no'); area.querySelectorAll('.opt')[it.a].classList.add('ok'); msg.className='msg bad'; msg.textContent='✘ الجواب الصحيح: '+it.o[it.a]; }
+    if(k===it.a){ b.classList.add('ok'); scores[turn]++; play('good'); msg.className='msg good'; msg.textContent='✔ أحسنت يا '+players[turn]+'! نقطة'; }
+    else { play('bad'); b.classList.add('no'); area.querySelectorAll('.opt')[it.a].classList.add('ok'); msg.className='msg bad'; msg.textContent='✘ الجواب الصحيح: '+it.o[it.a]; }
     setTimeout(()=>{ qi++; turn=(turn+1)%players.length; showBoard(); nextQ(); },1600);
   });
 }
