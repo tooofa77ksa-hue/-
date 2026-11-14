@@ -140,7 +140,7 @@ function clip(n){ if(muted) return; try{ const a=new Audio('aud/'+n+'.mp3'); a.p
 function sfx(k){
   try{
     if(k==='tap') tone(520,.08,'triangle',.12);
-    if(k==='good'){ clip(Math.random()<.5?'brafo':'shatir'); tone(880,.12,'triangle',.12,.05); }
+    if(k==='good'){ clip(Math.random()<.5?'brafo':'proud'); tone(880,.12,'triangle',.12,.05); }
     if(k==='bad'){ clip('retry'); }
     if(k==='open'){ clip('start'); }
     if(k==='win'){ clip('winner'); }
