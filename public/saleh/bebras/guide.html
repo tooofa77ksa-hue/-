@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light only">
 <meta name="theme-color" content="#1f6f78">
 <title>دليل نهر القندس</title>
 <meta name="description" content="دليل مصوّر بسيط يشرح كيف تلعب نهر القندس، وكيف تلعب مع أصحابك">
@@ -10,7 +11,7 @@
 @font-face{font-family:"Baloo Bhaijaan 2";src:url("../../fonts/nahrawan-baloo-regular.ttf") format("truetype");font-weight:400;font-display:swap}
 @font-face{font-family:"Baloo Bhaijaan 2";src:url("../../fonts/nahrawan-baloo-semibold.ttf") format("truetype");font-weight:600;font-display:swap}
 @font-face{font-family:"Baloo Bhaijaan 2";src:url("../../fonts/nahrawan-baloo-extrabold.ttf") format("truetype");font-weight:800;font-display:swap}
-:root{--water:#1f6f78;--deep:#134a52;--foam:#dff3f1;--sky:#eef9fb;--bark:#7a4b22;--wood:#c58b4c;--leaf:#4f9a5c;--sun:#f4c04e;--ink:#1d2b30;--muted:#56717a;--purple:#7b55a0}
+:root{color-scheme:light only;--water:#1f6f78;--deep:#134a52;--foam:#dff3f1;--sky:#eef9fb;--bark:#7a4b22;--wood:#c58b4c;--leaf:#4f9a5c;--sun:#f4c04e;--ink:#1d2b30;--muted:#56717a;--purple:#7b55a0}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0}
 body{min-height:100vh;background:var(--sky);color:var(--ink);font-family:"Baloo Bhaijaan 2","Geeza Pro",Tahoma,sans-serif;font-size:19px;line-height:1.7;
@@ -192,7 +193,7 @@ next.onclick=()=>{if(i<PAGES.length-1){i++;render()}else location.href="./"};
 document.querySelectorAll(".who button").forEach(b=>b.onclick=()=>{G=b.dataset.g;try{localStorage.setItem("qndas_guide_g",G)}catch(e){}render()});
 addEventListener("keydown",e=>{if(e.key==="ArrowLeft")next.click();if(e.key==="ArrowRight")prev.click()});
 render();
-const BUILD="2026-11-09a";
+const BUILD="2026-11-16a";
 async function checkUpdate(){try{const r=await fetch("guide.html?nocache="+Date.now(),{cache:"no-store"});if(!r.ok)return;const m=(await r.text()).match(/const BUILD="([^"]+)"/);if(m&&m[1]!==BUILD)location.replace("guide.html?v="+m[1]+(G==="f"?"&g=f":""))}catch(e){}}
 checkUpdate();document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkUpdate()});
 })();
