@@ -952,7 +952,7 @@ const BOOK=[["1-1","القلائد",1,1,"algo"],["1-2","العصي",1,1,"sort"],
 function bookRec(b,g){if(!g)return null;if(g<=4)return b.lv===1&&b.d<=2?"fit":"hard";if(g<=6)return b.lv===1||b.d<=2?"fit":"hard";if(g<=9)return "fit";return b.lv===2?"fit":"easy"}
 const BOOKREC={fit:"⭐ مناسبة لصفك",hard:"💪 تحدٍّ أصعب",easy:"⚡ تمرين سريع"};
 function bookDone(){try{return (JSON.parse(localStorage.getItem("qndas_book_v1")||"{}").done)||{}}catch(e){return {}}}
-function bookURL(id){return "book.html?embed=1&g="+(P&&P.g==="f"?"f":"m")+"&grade="+(P&&P.grade||0)+(id?"&t="+id:"")}
+function bookURL(id){return "book.html?v="+BUILD+"&embed=1&g="+(P&&P.g==="f"?"f":"m")+"&grade="+(P&&P.grade||0)+(id?"&t="+id:"")}
 function openBook(id,after){const ov=el("div",{class:"bookov",role:"dialog","aria-label":"مهمة من كتاب موهبة"});const x=el("button",{class:"btn bookx",type:"button"},"✕ رجوع");const fr=el("iframe",{src:bookURL(id),title:"كتاب موهبة"});
   x.addEventListener("click",()=>{ov.remove();if(after)after()});ov.append(x,fr);document.body.append(ov)}
 function bookSection(wid){const list=BOOK.filter(b=>b.w===wid);if(!list.length)return null;const done=bookDone();
@@ -1168,7 +1168,7 @@ $("#muteBtn").addEventListener("click",()=>{DB.mute=!DB.mute;save();$("#muteBtn"
   document.querySelectorAll(".dates").forEach(b=>{if(t<0){b.remove();return}
     const R=b.querySelector(".d-reg");if(r<0)R.remove();else R.querySelector(".d-left").textContent=left(r);
     b.querySelector(".d-test .d-left").textContent=left(t)})})();
-const BUILD="2026-11-16c";
+const BUILD="2026-11-16d";
 async function checkUpdate(){try{const r=await fetch("./?nocache="+Date.now(),{cache:"no-store"});if(!r.ok)return;const t=await r.text();const m=t.match(/const BUILD="([^"]+)"/);
   if(m&&m[1]!==BUILD){const busy=document.querySelector("#s-chal.on,#s-mp.on,#s-lobby.on,#s-play.on");if(busy){UPD_PENDING=true;return}
     toast("🎁 فيه نسخة جديدة من اللعبة… لحظة",2000);setTimeout(()=>location.replace("./?v="+m[1]),1500)}}catch(e){}}
