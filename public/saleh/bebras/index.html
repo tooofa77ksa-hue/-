@@ -259,6 +259,12 @@ dialog select{font:inherit;width:100%;padding:8px 10px;border-radius:12px;border
 .bookov{position:fixed;inset:0;z-index:60;background:var(--sky,#eef9fb);display:flex;flex-direction:column}
 .bookov iframe{flex:1;width:100%;border:0}
 .bookx{margin:max(8px,env(safe-area-inset-top)) 12px 6px;align-self:flex-start}
+.newb{display:inline-block;margin-inline-start:8px;background:#e8590c;color:#fff;border-radius:999px;padding:0 10px;font-size:.72em;font-weight:800;vertical-align:middle;animation:newpulse 1.6s ease-in-out infinite}
+@keyframes newpulse{50%{transform:scale(1.08)}}
+.newov{position:fixed;inset:0;z-index:70;background:rgba(19,74,82,.55);display:grid;place-items:center;padding:16px}
+.newcard{background:#fff;border-radius:24px;padding:18px 18px 16px;max-width:420px;width:100%;text-align:center;box-shadow:0 8px 0 #134a52}
+.newcard .gift{font-size:56px;line-height:1}.newcard h2{margin:6px 0;color:#176638}.newcard p{margin:6px 0}
+.newcard .actions{display:grid;gap:10px;margin-top:12px}.newcard .btn{text-decoration:none;display:block;text-align:center}
 @media (prefers-reduced-motion:reduce){.pop,.shake,.hop,.gbeaver,.toast{animation:none}*{transition:none!important}}
 @media (max-width:520px){
   .tlrow{grid-template-columns:96px 1fr}
@@ -933,7 +939,7 @@ $("#dlgAdd").addEventListener("close",()=>{if($("#dlgAdd").returnValue!=="ok")re
 /* ---- map ---- */
 let WELCOMED=false;
 function streak(p){const d=p.days||{};let n=0,day=today();if(!d[day])day=addDays(day,-1);while(d[day]){n++;day=addDays(day,-1)}return n}
-function renderMap(){const mb=document.getElementById("mapBook");if(mb)mb.href="book.html?g="+(P&&P.g==="f"?"f":"m")+"&grade="+(P&&P.grade||0);$("#mapGuide").href="guide.html?g="+(P&&P.g==="f"?"f":"m");paintTime();if(!WELCOMED){WELCOMED=true;voice("welcome")}const sk=streak(P);$("#streak").textContent=sk?`🔥 ${daysTxt(sk)}`:"";$("#streak").hidden=!sk;$("#muteBtn").textContent=DB.mute?"🔇":"🔊";$("#goStats small").textContent=T("وين أنا قوي ووين أحتاج تدريب","وين أنا قوية ووين أحتاج تدريب");$("#mapWho").textContent=P.av+" "+P.name;$("#worldWho").textContent=P.av+" "+P.name;const wrap=$("#mapwrap");wrap.querySelectorAll(".station").forEach(s=>s.remove());
+function renderMap(){setTimeout(()=>{markNew();whatsNew()},600);const mb=document.getElementById("mapBook");if(mb)mb.href="book.html?g="+(P&&P.g==="f"?"f":"m")+"&grade="+(P&&P.grade||0);$("#mapGuide").href="guide.html?g="+(P&&P.g==="f"?"f":"m");paintTime();if(!WELCOMED){WELCOMED=true;voice("welcome")}const sk=streak(P);$("#streak").textContent=sk?`🔥 ${daysTxt(sk)}`:"";$("#streak").hidden=!sk;$("#muteBtn").textContent=DB.mute?"🔇":"🔊";$("#goStats small").textContent=T("وين أنا قوي ووين أحتاج تدريب","وين أنا قوية ووين أحتاج تدريب");$("#mapWho").textContent=P.av+" "+P.name;$("#worldWho").textContent=P.av+" "+P.name;const wrap=$("#mapwrap");wrap.querySelectorAll(".station").forEach(s=>s.remove());
   WORLDS.forEach(w=>{const st=worldStars(w.id);const b=el("button",{class:"station",type:"button",style:`right:${100-w.x}%;top:${w.y*0.9+4}%`},el("span",{class:"lodge"},w.emoji),el("span",{},w.name.replace("عالم ","")),el("span",{class:"stars","aria-label":`${st} نجوم`},"⭐".repeat(st)+"☆".repeat(3-st)));b.addEventListener("click",()=>openWorld(w.id));wrap.append(b)});
   const due=Object.values(P.st||{}).filter(s=>s.due&&s.due<=today()).length;$("#dailyInfo").textContent=due?`5 ألغاز، منها ${n2a(Math.min(due,5))} للمراجعة`:"5 ألغاز مختارة لك"}
 $("#toParent").addEventListener("click",()=>{P=null;renderStats(true)});
@@ -943,9 +949,22 @@ $("#goStats").addEventListener("click",()=>renderStats(false));
 function openWorld(wid){const w=W[wid];$("#wEmoji").textContent=w.emoji;$("#wName").textContent=w.name;$("#wLearn").innerHTML=gx(w.learn);const box=$("#wTypes");box.innerHTML="";
   typesOf(wid).forEach(t=>{const s=stat(t);const b=el("button",{class:"tcard",type:"button"},el("span",{class:"e"},TYPES[t].emoji),el("span",{},el("b",{},TYPES[t].name),el("br"),el("span",{class:"lv","aria-label":"المستوى "+s.lv},...[1,2,3,4].map(k=>el("i",{class:k<=s.lv?"on":""}))),el("br"),el("small",{class:"muted"},s.a?`${n2a(s.c)} صح من ${n2a(s.a)}`:T("ما جرّبته بعد","ما جرّبتيه بعد"))));
     b.addEventListener("click",()=>startPractice([t],"world",wid));box.append(b)});
-  const mix=el("button",{class:"tcard",type:"button",style:"border-color:var(--leaf)"},el("span",{class:"e"},"🎲"),el("span",{},el("b",{},"ألغاز متنوّعة من هذا العالم"),el("br"),el("small",{class:"muted"},"6 ألغاز")));mix.addEventListener("click",()=>startPractice(typesOf(wid),"world",wid,6));box.append(mix);document.querySelectorAll("#s-world .booksec").forEach(n=>n.remove());const bs=bookSection(wid);if(bs)box.after(bs);go("world")}
+  const mix=el("button",{class:"tcard",type:"button",style:"border-color:var(--leaf)"},el("span",{class:"e"},"🎲"),el("span",{},el("b",{},"ألغاز متنوّعة من هذا العالم"),el("br"),el("small",{class:"muted"},"6 ألغاز")));mix.addEventListener("click",()=>startPractice(typesOf(wid),"world",wid,6));box.append(mix);document.querySelectorAll("#s-world .booksec").forEach(n=>n.remove());const bs=bookSection(wid);if(bs)box.after(bs);markNew();go("world")}
 
 
+
+/* one-time "what's new" card + NEW badges (badges until the contest day) */
+const NEWBOOK_KEY="qndas_new_book";const SHOW_NEW=Date.now()<new Date("2026-12-06T00:00:00+03:00").getTime();
+function markNew(){if(!SHOW_NEW)return;document.querySelectorAll("#goBook,#mapBook,.booksec h3").forEach(e=>{if(e.querySelector(".newb"))return;const tgt=e.tagName==="H3"?e:e.querySelector("span:not(.e)")||e;tgt.insertBefore(el("span",{class:"newb"},"🆕 جديد"),tgt.querySelector("small"))})}
+function whatsNew(){let seen=false;try{seen=localStorage.getItem(NEWBOOK_KEY)==="1"}catch(e){}if(seen||document.querySelector(".newcard"))return;
+  const close=()=>{try{localStorage.setItem(NEWBOOK_KEY,"1")}catch(e){}ov.remove()};
+  const ov=el("div",{class:"newov",role:"dialog","aria-label":"جديد في اللعبة"});
+  const card=el("div",{class:"newcard"},el("div",{class:"gift"},"🎁"),el("h2",{},"جديد في نهر القندس!"),
+    el("p",{},el("b",{},"📗 مهام كتاب موهبة صارت داخل اللعبة!")),
+    el("p",{},"20 مهمة حقيقية من كتاب «التفكير الحاسوبي» الذي أعدّه فريق بيبراس السعودي ونشرته موهبة."),
+    el("p",{},T("تلقاها داخل كل محطة في الخريطة باللون الأخضر، ومع كل مهمة شرح سهل: 🔍 لاحظ ← ✋ جرّب ← ✅ لذلك.","تلقينها داخل كل محطة في الخريطة باللون الأخضر، ومع كل مهمة شرح سهل: 🔍 لاحظي ← ✋ جرّبي ← ✅ لذلك.")),
+    el("div",{class:"actions",style:"grid-template-columns:1fr 1fr"},el("a",{class:"btn",href:"book.html?g="+(P&&P.g==="f"?"f":"m")+"&grade="+(P&&P.grade||0),onclick:()=>{try{localStorage.setItem(NEWBOOK_KEY,"1")}catch(e){}}},T("📗 افتح كتاب موهبة","📗 افتحي كتاب موهبة")),el("button",{class:"btn alt",type:"button",onclick:close},"👍 تمام")));
+  ov.append(card);document.body.append(ov)}
 /* ---- tasks from Mawhiba's book, shown inside the matching world ---- */
 const BOOK=[["1-1","القلائد",1,1,"algo"],["1-2","العصي",1,1,"sort"],["1-3","ترتيب القمصان",1,1,"algo"],["1-4","رسالة من القنادس الأجداد",2,1,"code"],["1-5","سوار من النجوم والأقمار",2,1,"algo"],["1-6","لوحة بيبراس",2,1,"code"],["1-7","الري",2,1,"logic"],["1-8","الأرقام",3,1,"code"],["1-9","الصواميل والمسامير",3,1,"sort"],["1-10","الجيران",3,1,"logic"],
  ["2-1","نمل في المستنقع",1,2,"graph"],["2-2","في خطر",1,2,"pattern"],["2-3","ملكة جمال إنفينيتي",2,2,"graph"],["2-4","ذات الرداء الأحمر",2,2,"plan"],["2-5","شبكة القنادس",2,2,"logic"],["2-6","الجواسيس",2,2,"graph"],["2-7","المتحف",2,2,"graph"],["2-8","مسارات الطيران",3,2,"graph"],["2-9","شراء الأحذية",3,2,"plan"],["2-10","الدوال",3,2,"logic"]].map(([id,t,d,lv,w])=>({id,t,d,lv,w}));
@@ -1168,7 +1187,7 @@ $("#muteBtn").addEventListener("click",()=>{DB.mute=!DB.mute;save();$("#muteBtn"
   document.querySelectorAll(".dates").forEach(b=>{if(t<0){b.remove();return}
     const R=b.querySelector(".d-reg");if(r<0)R.remove();else R.querySelector(".d-left").textContent=left(r);
     b.querySelector(".d-test .d-left").textContent=left(t)})})();
-const BUILD="2026-11-16d";
+const BUILD="2026-11-16e";
 async function checkUpdate(){try{const r=await fetch("./?nocache="+Date.now(),{cache:"no-store"});if(!r.ok)return;const t=await r.text();const m=t.match(/const BUILD="([^"]+)"/);
   if(m&&m[1]!==BUILD){const busy=document.querySelector("#s-chal.on,#s-mp.on,#s-lobby.on,#s-play.on");if(busy){UPD_PENDING=true;return}
     toast("🎁 فيه نسخة جديدة من اللعبة… لحظة",2000);setTimeout(()=>location.replace("./?v="+m[1]),1500)}}catch(e){}}
@@ -1176,6 +1195,7 @@ let UPD_PENDING=false;
 checkUpdate();setInterval(checkUpdate,5*60*1000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkUpdate()});
 const _go=go;go=function(id){_go(id);if(UPD_PENDING&&(id==="home"||id==="map"||id==="world"||id==="result"||id==="podium")){UPD_PENDING=false;checkUpdate()}};
+try{markNew()}catch(e){}
 window.__bebras={TYPES,get run(){return RUN},get player(){return P},get ch(){return CH},get mp(){return MP}};
 go("home");
 })();
