@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light only">
+<meta name="theme-color" content="#1f6f78">
+<title>كتاب موهبة · نهر القندس</title>
+<meta name="description" content="مهام كتاب «التفكير الحاسوبي» من موهبة للتدريب على بيبراس، مع التصحيح والشرح">
+<style>
+@font-face{font-family:"Baloo Bhaijaan 2";src:url("../../fonts/nahrawan-baloo-regular.ttf") format("truetype");font-weight:400;font-display:swap}
+@font-face{font-family:"Baloo Bhaijaan 2";src:url("../../fonts/nahrawan-baloo-semibold.ttf") format("truetype");font-weight:600;font-display:swap}
+@font-face{font-family:"Baloo Bhaijaan 2";src:url("../../fonts/nahrawan-baloo-extrabold.ttf") format("truetype");font-weight:800;font-display:swap}
+:root{color-scheme:light only;--water:#1f6f78;--deep:#134a52;--foam:#dff3f1;--sky:#eef9fb;--bark:#7a4b22;--wood:#c58b4c;--leaf:#4f9a5c;--sun:#f4c04e;--ink:#1d2b30;--muted:#56717a;--green:#176638}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{min-height:100vh;background:var(--sky);color:var(--ink);font-family:"Baloo Bhaijaan 2","Geeza Pro",Tahoma,sans-serif;font-size:18px;line-height:1.7}
+button,a,input{font:inherit;color:inherit}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:4px solid var(--sun);outline-offset:3px}
+main{max-width:720px;margin:0 auto;padding:14px 16px 40px}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.back{background:#fff;border:2px solid #cfe3e6;border-radius:999px;padding:6px 16px;font-weight:600;text-decoration:none;cursor:pointer}
+.pill{background:#fff;border:2px solid #cfe3e6;border-radius:999px;padding:4px 14px;font-weight:800}
+h1{margin:14px 0 2px;text-align:center;color:var(--green);font-size:clamp(26px,7vw,38px);line-height:1.25}
+.sub{text-align:center;color:var(--muted);margin:0 0 10px}
+.note{background:#fff;border:2px dashed #9cc9cf;border-radius:16px;padding:10px 14px;font-size:.9em;margin:10px 0}
+h2{color:var(--deep);margin:18px 0 8px;font-size:1.3em}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.task{background:#fff;border:3px solid #cfe3e6;border-radius:18px;padding:10px 12px;text-align:right;cursor:pointer;display:flex;flex-direction:column;gap:2px;min-height:96px}
+.task b{font-size:1.02em;line-height:1.35}
+.task small{color:var(--muted)}
+.task.done{border-color:var(--leaf);background:#f0faf2}
+.task.done::after{content:"✅ محلولة";font-size:.8em;color:var(--leaf);font-weight:800}
+.dots{display:inline-flex;gap:3px;direction:ltr}
+.dots i{width:12px;height:12px;border-radius:50%;border:2px solid var(--green);display:inline-block}
+.dots i.on{background:var(--green)}
+.score{background:#fff;border-radius:18px;padding:10px 14px;text-align:center;font-weight:800;font-size:1.15em;margin:8px 0;box-shadow:0 4px 0 #cfe3e6}
+#view{display:none}
+.card{background:#fff;border-radius:22px;padding:14px;box-shadow:0 5px 0 #cfe3e6;margin-top:10px}
+.thead{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.thead h2{margin:0}
+.fig{display:block;width:100%;height:auto;border-radius:12px;border:1px solid #e3eef0;margin:10px 0;cursor:zoom-in;background:#fff}
+.hint{font-size:.85em;color:var(--muted);text-align:center;margin:-4px 0 8px}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:10px 0}
+.opt{border:3px solid #cfe3e6;background:#fff;border-radius:16px;padding:10px;font-weight:800;font-size:1.1em;cursor:pointer;min-height:52px;direction:rtl}
+.opt.sel{border-color:var(--water);background:var(--foam)}
+.opt.ok{border-color:var(--leaf);background:#e3f5e6}
+.opt.no{border-color:#c2453b;background:#fde8e6}
+.ltr{direction:ltr;unicode-bidi:isolate}
+.inp{width:100%;font-size:1.4em;font-weight:800;text-align:center;border:3px solid #cfe3e6;border-radius:16px;padding:8px;margin:10px 0;background:#fff}
+.slots{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:10px 0}
+.slot{width:52px;height:60px;border-radius:14px;border:3px solid #cfe3e6;background:#fff;font-size:1.5em;font-weight:800;cursor:pointer}
+.slot.r{background:#e7e9ec;border-color:#8b939c}
+.slot.b{background:#ffe3cc;border-color:#e8590c}
+.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.btn{border:none;border-radius:18px;padding:12px 24px;font-weight:800;font-size:1.05em;background:var(--water);color:#fff;box-shadow:0 4px 0 var(--deep);cursor:pointer}
+.btn.alt{background:#fff;color:var(--ink);box-shadow:0 4px 0 #b9d2d6}
+.btn:disabled{opacity:.45}
+.fb{border-radius:18px;padding:12px 14px;margin-top:12px;font-weight:600}
+.fb.ok{background:#e3f5e6;border:3px solid var(--leaf)}
+.fb.no{background:#fde8e6;border:3px solid #c2453b}
+.fb.sol{background:#fff6dc;border:3px solid var(--sun)}
+.fb h3{margin:0 0 4px}
+.zoom{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;overflow:auto;z-index:20;padding:10px}
+.zoom img{width:200%;max-width:none;height:auto;background:#fff;border-radius:8px}
+.zoom button{position:fixed;top:12px;left:12px;z-index:21}
+.credit{text-align:center;font-weight:700;color:var(--deep);margin-top:18px;font-size:.82em;opacity:.85}
+.src{text-align:center;color:var(--muted);font-size:.8em;margin-top:6px}
+@media (max-width:420px){.grid{grid-template-columns:1fr 1fr}.task{min-height:88px;padding:8px 10px}.task b{font-size:.95em}}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <a class="back" href="./" id="toGame">⇦ العودة إلى اللعبة</a>
+  <span class="pill" id="pts"></span>
+</header>
+
+<section id="list">
+  <h1>📗 كتاب موهبة</h1>
+  <p class="sub">مهام كتاب «التفكير الحاسوبي» القائم على مهام مسابقة بيبراس</p>
+  <div class="note">📘 هذه المهام كما هي في الكتاب الذي نشرته <b>موهبة</b> مجاناً للتدريب، من إعداد فريق بيبراس السعودي. الكتاب فيه <b>مستويان</b>، وكل مهمة لها درجة صعوبة: ● سهل، ●● متوسط، ●●● صعب. اضغط على أي مهمة، واقرأ الصورة بهدوء، ثم أجب.</div>
+  <div class="score" id="sum"></div>
+  <h2>المستوى الأول</h2>
+  <div class="grid" id="g1"></div>
+  <h2>المستوى الثاني</h2>
+  <div class="grid" id="g2"></div>
+  <div class="actions"><button class="btn alt" id="reset" type="button">🔄 البدء من جديد</button></div>
+</section>
+
+<section id="view">
+  <div class="card">
+    <div class="thead"><h2 id="vTitle"></h2><span class="dots" id="vDots"></span></div>
+    <img class="fig" id="vImg" alt="">
+    <p class="hint">👆 اضغط على الصورة لتكبيرها</p>
+    <p style="font-weight:800;margin:6px 0" id="vQ"></p>
+    <div id="vAns"></div>
+    <div class="actions">
+      <button class="btn" id="check" type="button">تحقّق</button>
+      <button class="btn alt" id="showSol" type="button" hidden>💡 عرض الحل</button>
+    </div>
+    <div id="vFb"></div>
+    <div class="actions">
+      <button class="btn alt" id="prev" type="button">⇨ السابقة</button>
+      <button class="btn alt" id="toList" type="button">📋 كل المهام</button>
+      <button class="btn alt" id="next" type="button">التالية ⇦</button>
+    </div>
+  </div>
+</section>
+
+<p class="src">المصدر: كتاب «التفكير الحاسوبي: كتاب نشاط قائم على مهام مسابقة بيبراس»، إعداد فريق بيبراس السعودي، موهبة. صفحة تدريب غير رسمية.</p>
+<p class="credit">تصميم عواطف الجهني · جميع الحقوق محفوظة © 2026</p>
+</main>
+<div class="zoom" id="zoom"><button class="btn" type="button" id="zClose">✕ إغلاق</button><img id="zImg" alt=""></div>
+
+<script>
+(()=>{"use strict";
+const AB=["أ","ب","ج","د"];
+/* answers and explanations follow the book's «الحلول والإيضاحات» section */
+const T=[
+{id:"1-1",t:"القلائد",d:1,lv:1,k:"mc",o:AB,a:0,q:"أي من القلائد هي قلادة أسيل؟",ex:"الإجابة الصحيحة: أ. قلادة نورة نقصت 3 لآلئ صفراء، وقلادة سارة نقصت 3 لآلئ حمراء. فقلادة أسيل فيها 3 صفراء و3 حمراء فقط، وهذا يطابق القلادة أ."},
+{id:"1-2",t:"العصي",d:1,lv:1,k:"mc",o:AB,a:2,q:"بأي ترتيب يجب أن تلتقط هاجر العصي (من اليمين لليسار)؟",ex:"الإجابة الصحيحة: ج. في كل مرة نلتقط العصا التي فوق الجميع، ولا نلتقط عصا عليها عصا أخرى. هذا مثل «المكدس»: آخر ما وُضع هو أول ما يُرفع."},
+{id:"1-3",t:"ترتيب القمصان",d:1,lv:1,k:"mc",o:["أ (قلب واحد)","ب (قلبان)","ج (3 قلوب)","د (4 قلوب)"],a:1,q:"في أي درج ستضع أسماء القميص الأخير؟",ex:"الإجابة الصحيحة: ب (الدرج الثاني). القمصان 1 إلى 4 تذهب للأدراج الأربعة بالترتيب، ثم القميص 5 للدرج الأول، والقميص 6 للدرج الثاني. 6 ÷ 4 = 1 والباقي 2، والباقي هو رقم الدرج."},
+{id:"1-4",t:"رسالة من القنادس الأجداد",d:2,lv:1,k:"text",a:["LOVEWATER"],q:"ما هي الرسالة التي كتبها القنادس الأجداد؟ (اكتبها بالحروف الإنجليزية)",ph:"مثال: ABC",ex:"الإجابة الصحيحة: LOVEWATER. كل علامة = رمز الصف + رمز العمود، ومن الجدول نعرف الحرف. هذا اسمه «التشفير»."},
+{id:"1-5",t:"سوار من النجوم والأقمار",d:2,lv:1,k:"mc",o:AB,a:2,q:"أي سوار لا يمكن الحصول عليه باتباع تعليمات نورا؟",ex:"الإجابة الصحيحة: ج. حسب التعليمات كل قمر يكون بجوار نجمة، فلا يمكن أن تأتي 3 أقمار متتالية، والسوار ج فيه 3 أقمار متتالية."},
+{id:"1-6",t:"لوحة بيبراس",d:2,lv:1,k:"mc",o:AB,a:3,q:"كيف ستبدو اللوحة بعد تطبيق البكرة السحرية؟",ex:"الإجابة الصحيحة: د. كل شكل يتبدّل بالشكل الذي بعده حسب الأسهم في الدائرة. طبّق القاعدة على كل مربع لوحده."},
+{id:"1-7",t:"الري",d:2,lv:1,k:"mc",o:AB,a:1,q:"أي من الزهور ستحصل على الماء؟",ex:"الإجابة الصحيحة: ب. تتبّع الماء من الخزانين الأزرقين: يمر فقط من الصمامات المفتوحة (الواقفة)، ويقف عند المغلقة (النائمة). هكذا تعمل «البوابات المنطقية» في الحاسوب."},
+{id:"1-8",t:"الأرقام",d:3,lv:1,k:"num",a:["423958"],q:"ما هي الأرقام التي سيتم عرضها؟ (اكتب الأرقام الستة)",ph:"6 أرقام",ex:"الإجابة الصحيحة: 423958. كل صف في الجدول = رقم واحد. الصف الأول يشغّل B وC وF وG فيظهر 4، والصف الثاني يشغّل A وB وD وE وG فيظهر 2، وهكذا."},
+{id:"1-9",t:"الصواميل والمسامير",d:3,lv:1,k:"mc",o:AB,a:2,q:"ما هو تسلسل الصواميل والمسامير الذي لن يتسبب في خطأ للقندس بدر؟",ex:"الإجابة الصحيحة: ج. فيه 5 صواميل و5 مسامير، وعند التقاط أي مسمار تكون هناك صامولة في الدلو. أ: خطأ عند المسمار الثاني. ب: خطأ عند المسمار الخامس. د: تبقى صامولتان في الدلو."},
+{id:"1-10",t:"الجيران",d:3,lv:1,k:"num",a:["4"],q:"ما هو رقم منزل مريم؟",ph:"رقم المنزل",ex:"الإجابة الصحيحة: 4. المنازل التي لها 4 طرق هي 4 و5 و7. نواف له جاران فقط، فهو في 6، وزينب وباسم جاراه في 5 و7، فيبقى المنزل 4 لمريم."},
+{id:"2-1",t:"نمل في المستنقع",d:1,lv:2,k:"num",a:["7"],q:"ما هو العدد الأكبر للنمل الذي يمكنه الوصول إلى الطعام (و) بعد ثلاث دقائق؟",ph:"عدد النمل",ex:"الإجابة الصحيحة: 7 نملات. كل قشة تحمل نملة واحدة في كل مرة، وكل خطوة دقيقة. ابحث عن كل الطرق التي توصل للطعام في 3 دقائق أو أقل، ولا ترسل على قشة أكثر مما تستطيع الطرق بعدها أن تحمل."},
+{id:"2-2",t:"في خطر",d:1,lv:2,k:"num",a:["8"],q:"كم عدد الكرات الموجودة في الصندوق التي ليست في خطر؟",ph:"عدد الكرات",ex:"الإجابة الصحيحة: 8 كرات. ابدأ من الصف السفلي (ليس تحته فجوات)، ثم اصعد صفاً صفاً: الكرة ليست في خطر إذا كان تحتها مباشرة كرتان ليستا في خطر. هذه طريقة «التكرار»."},
+{id:"2-3",t:"ملكة جمال إنفينيتي",d:2,lv:2,k:"mc",o:["الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"],a:3,q:"ما هو أول يوم استخدمت فيه كل الطالبات اللقب؟",ex:"الإجابة الصحيحة: يوم الجمعة. الطالبة تبدأ باستخدام اللقب في اليوم التالي إذا كان أكثر من نصف زميلاتها يستخدمنه. لوّن الطالبات يوماً بعد يوم: الثلاثاء، ثم الأربعاء، ثم الخميس، ثم الجمعة."},
+{id:"2-4",t:"ذات الرداء الأحمر",d:2,lv:2,k:"num",a:["41"],q:"ما هو أكبر عدد من الزهور التي يمكن لذات الرداء الأحمر جمعها أثناء رحلتها؟",ph:"عدد الزهور",ex:"الإجابة الصحيحة: 41. في كل حقل اكتب أكبر عدد يمكن جمعه حتى هذا الحقل = زهور الحقل + الأكبر من (الحقل الذي فوقه، والحقل الذي على يساره). آخر حقل يعطي 41. هذه «البرمجة الديناميكية»."},
+{id:"2-5",t:"شبكة القنادس",d:2,lv:2,k:"slots",a:["رررببب","رربربب"],q:"إذا كان ترتيب القنادس الخارجة هو: ر ب ر ب ر ب، فما هو الترتيب الذي دخلت به؟ (اضغط على كل مربع ليتبدّل بين ر و ب، من اليمين لليسار)",ex:"توجد إجابتان صحيحتان: ر ر ر ب ب ب، أو ر ر ب ر ب ب. حتى يخرج ر في أقصى اليمين يجب أن يدخل المدخلان في أقصى اليمين ر ر، وحتى يخرج ب في أقصى اليسار يجب أن يدخل المدخلان في أقصى اليسار ب ب، والمدخلان في الوسط ر ب أو ب ر."},
+{id:"2-6",t:"الجواسيس",d:2,lv:2,k:"num",a:["4"],q:"ما هو الحد الأدنى لعدد الجولات اللازمة لتبادل الجواسيس الخمسة المتبقين لكافة المعلومات؟",ph:"عدد الجولات",ex:"الإجابة الصحيحة: 4 جولات. عدد الجواسيس فردي، فواحد منهم يبقى بلا لقاء في كل جولة. بعد 3 جولات يعرف 4 جواسيس كل شيء، ونحتاج جولة رابعة لتصل المعلومات للخامس."},
+{id:"2-7",t:"المتحف",d:2,lv:2,k:"mc",o:AB,a:2,q:"ما هو التصميم الذي يسمح لكل زائر بالدخول وزيارة كل غرفة مرة واحدة بالضبط ثم الخروج؟",ex:"الإجابة الصحيحة: ج. الجولة: 2، 1، 3، 4، 7، 6، 5. في التصميمين أ ود توجد غرفة لها باب واحد فقط، فيضطر الزائر للمرور بها مرتين."},
+{id:"2-8",t:"مسارات الطيران",d:3,lv:2,k:"num",a:["8"],q:"ما هو العدد الأقصى للمسارات التي يمكن لشركة الطيران إلغاؤها؟",ph:"عدد المسارات",ex:"الإجابة الصحيحة: 8 مسارات. لربط 8 مدن يكفي 7 مسارات (عدد المدن ناقص واحد). الموجود 15 مساراً، و15 − 7 = 8."},
+{id:"2-9",t:"شراء الأحذية",d:3,lv:2,k:"num",a:["2"],q:"ما هي أقل قيمة ممكنة لـ (س)؟",ph:"عدد المحاولات",ex:"الإجابة الصحيحة: 2. يبدأ خالد بالحذاء في المنتصف، فيعرف من نتيجته في أي منطقة من المناطق التسع يكون حذاؤه، ثم يجرب منتصفها. هذه فكرة «البحث الثنائي»."},
+{id:"2-10",t:"الدوال",d:3,lv:2,k:"mc",o:["[a, b, c, d, e]","[e, b, c, d, a]","[e, d, c, b, a]","[a, d, c, b, e]"],a:1,ltr:true,q:"ما هي قائمة الأرقام التي ستُعيدها الدالة test؟",ex:"الإجابة الصحيحة: [e, b, c, d, a]. دالة shaker تعيد نفس ما تعيده ahmed، و ahmed إذا طُبّقت مرتين ترجع القائمة كما كانت. فتبقى omar وحدها، وهي تبدّل العنصر الأول بالأخير."}];
+const PTS={1:[0,2,3,4],2:[0,6,7,8]};
+const pts=t=>PTS[t.lv][t.d];
+const ptsTxt=n=>n===2?"نقطتان":n+" نقاط";
+const KEY="qndas_book_v1";let S={done:{}};try{const r=localStorage.getItem(KEY);if(r)S=JSON.parse(r)||S}catch(e){}
+if(!S.done)S.done={};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const $=s=>document.querySelector(s);
+const el=(tag,attrs={},...kids)=>{const e=document.createElement(tag);for(const k in attrs){if(k==="class")e.className=attrs[k];else if(k.startsWith("on"))e.addEventListener(k.slice(2),attrs[k]);else e.setAttribute(k,attrs[k])}kids.forEach(c=>e.append(c));return e};
+const dots=n=>{const s=el("span",{class:"dots","aria-label":["","سهل","متوسط","صعب"][n]});for(let i=1;i<=3;i++)s.append(el("i",{class:i<=n?"on":""}));return s};
+const total=T.reduce((a,t)=>a+pts(t),0);
+function got(){return T.reduce((a,t)=>a+(S.done[t.id]?pts(t):0),0)}
+function renderList(){["g1","g2"].forEach(g=>$("#"+g).innerHTML="");
+  T.forEach((t,i)=>{const b=el("button",{class:"task"+(S.done[t.id]?" done":""),type:"button",onclick:()=>openTask(i)},el("small",{},t.id),el("b",{},t.t),el("span",{},dots(t.d)," ",el("small",{},ptsTxt(pts(t)))));$(t.lv===1?"#g1":"#g2").append(b)});
+  const n=Object.keys(S.done).length;$("#sum").textContent=`⭐ ${got()} نقطة · ${n} من ${T.length} مهمة محلولة`;$("#pts").textContent=`⭐ ${got()}`}
+let cur=0,sel=null,slots=null,answered=false;
+function openTask(i){cur=i;const t=T[i];sel=null;answered=false;
+  $("#list").hidden=true;$("#view").style.display="block";
+  $("#vTitle").textContent=t.id+" · "+t.t;$("#vDots").replaceWith(Object.assign(dots(t.d),{id:"vDots"}));
+  $("#vImg").src="book/t"+t.id+".jpg?v="+BUILD;$("#vImg").alt="صورة مهمة "+t.t+" من الكتاب";$("#vQ").textContent="❓ "+t.q;
+  const box=$("#vAns");box.innerHTML="";$("#vFb").innerHTML="";$("#showSol").hidden=true;$("#check").disabled=false;
+  if(t.k==="mc"){const g=el("div",{class:"opts"});t.o.forEach((o,k)=>g.append(el("button",{class:"opt"+(t.ltr?" ltr":""),type:"button",onclick:e=>{if(answered)return;sel=k;g.querySelectorAll(".opt").forEach((x,j)=>x.classList.toggle("sel",j===k))}},o)));box.append(g)}
+  else if(t.k==="slots"){slots=Array(6).fill("ب");const g=el("div",{class:"slots"});slots.forEach((v,k)=>{const b=el("button",{class:"slot b",type:"button","aria-label":"المربع "+(k+1)},v);b.onclick=()=>{if(answered)return;slots[k]=slots[k]==="ر"?"ب":"ر";b.textContent=slots[k];b.className="slot "+(slots[k]==="ر"?"r":"b")};g.append(b)});box.append(g,el("p",{class:"hint"},"ر = رمادي · ب = بني"))}
+  else{const inp=el("input",{class:"inp"+(t.k==="text"?" ltr":""),id:"vInp",type:"text",inputmode:t.k==="num"?"numeric":"text",autocomplete:"off",autocapitalize:"characters",placeholder:t.ph||""});box.append(inp)}
+  $("#prev").disabled=i===0;$("#next").disabled=i===T.length-1;window.scrollTo(0,0)}
+const norm=s=>s.replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[\s,،.]/g,"").toUpperCase();
+function isRight(t){if(t.k==="mc")return sel===t.a;if(t.k==="slots")return t.a.includes(slots.join(""));const v=norm(($("#vInp")||{}).value||"");return t.a.some(a=>norm(a)===v)}
+function hasAnswer(t){if(t.k==="mc")return sel!==null;if(t.k==="slots")return true;return norm(($("#vInp")||{}).value||"").length>0}
+function showSol(t){$("#vFb").append(el("div",{class:"fb sol"},el("h3",{},"💡 الحل"),el("p",{style:"margin:0"},t.ex)));$("#showSol").hidden=true;
+  if(t.k==="mc"){answered=true;document.querySelectorAll("#vAns .opt").forEach((x,j)=>{if(j===t.a)x.classList.add("ok")})}}
+$("#check").onclick=()=>{const t=T[cur];if(!hasAnswer(t)){$("#vFb").innerHTML="";$("#vFb").append(el("div",{class:"fb no"},"اختر إجابة أولاً ✋"));return}
+  const ok=isRight(t);$("#vFb").innerHTML="";
+  if(ok){answered=true;S.done[t.id]=1;save();$("#check").disabled=true;$("#showSol").hidden=true;
+    if(t.k==="mc")document.querySelectorAll("#vAns .opt")[sel].classList.add("ok");
+    $("#vFb").append(el("div",{class:"fb ok"},el("h3",{},"✅ إجابة صحيحة! +"+ptsTxt(pts(t))),el("p",{style:"margin:0 0 6px"},"بتوفيق الله ثم بتركيزك وصلت للحل 🌟"),el("p",{style:"margin:0;font-weight:400"},"💡 "+t.ex)));$("#pts").textContent=`⭐ ${got()}`}
+  else{if(t.k==="mc")document.querySelectorAll("#vAns .opt")[sel].classList.add("no");
+    $("#vFb").append(el("div",{class:"fb no"},el("h3",{},"🌱 ليست هذه الإجابة"),el("p",{style:"margin:0"},"اقرأ الصورة مرة ثانية بهدوء، والمحاولة متاحة. وإذا احتجت، الحل موجود.")));$("#showSol").hidden=false}};
+$("#showSol").onclick=()=>showSol(T[cur]);
+$("#prev").onclick=()=>{if(cur>0)openTask(cur-1)};$("#next").onclick=()=>{if(cur<T.length-1)openTask(cur+1)};
+$("#toList").onclick=()=>{$("#view").style.display="none";$("#list").hidden=false;renderList();window.scrollTo(0,0)};
+$("#reset").onclick=()=>{if(confirm("مسح كل الإجابات المحلولة في هذا الجهاز والبدء من جديد؟")){S={done:{}};save();renderList()}};
+$("#vImg").onclick=()=>{$("#zImg").src=$("#vImg").src;$("#zoom").style.display="block"};
+$("#zClose").onclick=()=>{$("#zoom").style.display="none"};
+renderList();
+const BUILD="2026-11-16b";
+async function checkUpdate(){if($("#view").style.display==="block")return;try{const r=await fetch("book.html?nocache="+Date.now(),{cache:"no-store"});if(!r.ok)return;const m=(await r.text()).match(/const BUILD="([^"]+)"/);if(m&&m[1]!==BUILD)location.replace("book.html?v="+m[1])}catch(e){}}
+checkUpdate();document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkUpdate()});
+window.__book={T};
+})();
+</script>
+</body>
+</html>
