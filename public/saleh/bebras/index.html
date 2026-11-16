@@ -252,6 +252,13 @@ dialog select{font:inherit;width:100%;padding:8px 10px;border-radius:12px;border
 .pop{animation:pop .35s ease-out}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 .shake{animation:shake .3s}
+.booksec{margin-top:16px;background:#f0faf2;border:3px solid #9fd3ad;border-radius:var(--r-mid);padding:12px 14px}
+.booksec h3{margin:0 0 4px;color:#176638}
+.bookcard{border-color:#9fd3ad}.bookcard.done{background:#e3f5e6}
+.bookrec{font-weight:800;border-radius:999px;padding:0 8px}.bookrec.fit{background:#e3f5e6;color:#1d6b33}.bookrec.hard{background:#fde8d8;color:#a8430d}.bookrec.easy{background:#eef2f4;color:#56717a}
+.bookov{position:fixed;inset:0;z-index:60;background:var(--sky,#eef9fb);display:flex;flex-direction:column}
+.bookov iframe{flex:1;width:100%;border:0}
+.bookx{margin:max(8px,env(safe-area-inset-top)) 12px 6px;align-self:flex-start}
 @media (prefers-reduced-motion:reduce){.pop,.shake,.hop,.gbeaver,.toast{animation:none}*{transition:none!important}}
 @media (max-width:520px){
   .tlrow{grid-template-columns:96px 1fr}
@@ -342,7 +349,7 @@ dialog select{font:inherit;width:100%;padding:8px 10px;border-radius:12px;border
   <div class="actions">
     <button class="big daily" id="goDaily"><span class="e">☀️</span><span>مهمة اليوم<small id="dailyInfo">5 ألغاز مختارة لك</small></span></button>
     <button class="big chal" id="goChal"><span class="e">🏆</span><span>تحدي بيبراس<small>10 مهام في 60 دقيقة، مثل بيبراس موهبة</small></span></button>
-    <a class="big guide" href="book.html" style="grid-column:1/-1;text-decoration:none;border-color:#176638;box-shadow:0 4px 0 #0f4a28"><span class="e">📗</span><span>كتاب موهبة<small>20 مهمة من كتاب بيبراس الرسمي</small></span></a>
+    <a class="big guide" href="book.html" id="mapBook" style="grid-column:1/-1;text-decoration:none;border-color:#176638;box-shadow:0 4px 0 #0f4a28"><span class="e">📗</span><span>كتاب موهبة<small>20 مهمة من كتاب بيبراس الرسمي</small></span></a>
     <button class="big online" id="mapOnline" type="button" style="grid-column:1/-1"><span class="e">🌐</span><span>العب مع أصحابك أونلاين<small>غرفة برقم، من 2 إلى 4 لاعبين</small></span></button>
     <a class="big guide" href="guide.html" id="mapGuide" style="grid-column:1/-1;text-decoration:none"><span class="e">📖</span><span>دليل اللعبة<small>شرح بسيط لكل شيء</small></span></a>
     <button class="big dash" id="goStats"><span class="e">📈</span><span>تقدّمي<small></small></span></button>
@@ -926,7 +933,7 @@ $("#dlgAdd").addEventListener("close",()=>{if($("#dlgAdd").returnValue!=="ok")re
 /* ---- map ---- */
 let WELCOMED=false;
 function streak(p){const d=p.days||{};let n=0,day=today();if(!d[day])day=addDays(day,-1);while(d[day]){n++;day=addDays(day,-1)}return n}
-function renderMap(){$("#mapGuide").href="guide.html?g="+(P&&P.g==="f"?"f":"m");paintTime();if(!WELCOMED){WELCOMED=true;voice("welcome")}const sk=streak(P);$("#streak").textContent=sk?`🔥 ${daysTxt(sk)}`:"";$("#streak").hidden=!sk;$("#muteBtn").textContent=DB.mute?"🔇":"🔊";$("#goStats small").textContent=T("وين أنا قوي ووين أحتاج تدريب","وين أنا قوية ووين أحتاج تدريب");$("#mapWho").textContent=P.av+" "+P.name;$("#worldWho").textContent=P.av+" "+P.name;const wrap=$("#mapwrap");wrap.querySelectorAll(".station").forEach(s=>s.remove());
+function renderMap(){const mb=document.getElementById("mapBook");if(mb)mb.href="book.html?g="+(P&&P.g==="f"?"f":"m")+"&grade="+(P&&P.grade||0);$("#mapGuide").href="guide.html?g="+(P&&P.g==="f"?"f":"m");paintTime();if(!WELCOMED){WELCOMED=true;voice("welcome")}const sk=streak(P);$("#streak").textContent=sk?`🔥 ${daysTxt(sk)}`:"";$("#streak").hidden=!sk;$("#muteBtn").textContent=DB.mute?"🔇":"🔊";$("#goStats small").textContent=T("وين أنا قوي ووين أحتاج تدريب","وين أنا قوية ووين أحتاج تدريب");$("#mapWho").textContent=P.av+" "+P.name;$("#worldWho").textContent=P.av+" "+P.name;const wrap=$("#mapwrap");wrap.querySelectorAll(".station").forEach(s=>s.remove());
   WORLDS.forEach(w=>{const st=worldStars(w.id);const b=el("button",{class:"station",type:"button",style:`right:${100-w.x}%;top:${w.y*0.9+4}%`},el("span",{class:"lodge"},w.emoji),el("span",{},w.name.replace("عالم ","")),el("span",{class:"stars","aria-label":`${st} نجوم`},"⭐".repeat(st)+"☆".repeat(3-st)));b.addEventListener("click",()=>openWorld(w.id));wrap.append(b)});
   const due=Object.values(P.st||{}).filter(s=>s.due&&s.due<=today()).length;$("#dailyInfo").textContent=due?`5 ألغاز، منها ${n2a(Math.min(due,5))} للمراجعة`:"5 ألغاز مختارة لك"}
 $("#toParent").addEventListener("click",()=>{P=null;renderStats(true)});
@@ -936,8 +943,22 @@ $("#goStats").addEventListener("click",()=>renderStats(false));
 function openWorld(wid){const w=W[wid];$("#wEmoji").textContent=w.emoji;$("#wName").textContent=w.name;$("#wLearn").innerHTML=gx(w.learn);const box=$("#wTypes");box.innerHTML="";
   typesOf(wid).forEach(t=>{const s=stat(t);const b=el("button",{class:"tcard",type:"button"},el("span",{class:"e"},TYPES[t].emoji),el("span",{},el("b",{},TYPES[t].name),el("br"),el("span",{class:"lv","aria-label":"المستوى "+s.lv},...[1,2,3,4].map(k=>el("i",{class:k<=s.lv?"on":""}))),el("br"),el("small",{class:"muted"},s.a?`${n2a(s.c)} صح من ${n2a(s.a)}`:T("ما جرّبته بعد","ما جرّبتيه بعد"))));
     b.addEventListener("click",()=>startPractice([t],"world",wid));box.append(b)});
-  const mix=el("button",{class:"tcard",type:"button",style:"border-color:var(--leaf)"},el("span",{class:"e"},"🎲"),el("span",{},el("b",{},"ألغاز متنوّعة من هذا العالم"),el("br"),el("small",{class:"muted"},"6 ألغاز")));mix.addEventListener("click",()=>startPractice(typesOf(wid),"world",wid,6));box.append(mix);go("world")}
+  const mix=el("button",{class:"tcard",type:"button",style:"border-color:var(--leaf)"},el("span",{class:"e"},"🎲"),el("span",{},el("b",{},"ألغاز متنوّعة من هذا العالم"),el("br"),el("small",{class:"muted"},"6 ألغاز")));mix.addEventListener("click",()=>startPractice(typesOf(wid),"world",wid,6));box.append(mix);document.querySelectorAll("#s-world .booksec").forEach(n=>n.remove());const bs=bookSection(wid);if(bs)box.after(bs);go("world")}
 
+
+/* ---- tasks from Mawhiba's book, shown inside the matching world ---- */
+const BOOK=[["1-1","القلائد",1,1,"algo"],["1-2","العصي",1,1,"sort"],["1-3","ترتيب القمصان",1,1,"algo"],["1-4","رسالة من القنادس الأجداد",2,1,"code"],["1-5","سوار من النجوم والأقمار",2,1,"algo"],["1-6","لوحة بيبراس",2,1,"code"],["1-7","الري",2,1,"logic"],["1-8","الأرقام",3,1,"code"],["1-9","الصواميل والمسامير",3,1,"sort"],["1-10","الجيران",3,1,"logic"],
+ ["2-1","نمل في المستنقع",1,2,"graph"],["2-2","في خطر",1,2,"pattern"],["2-3","ملكة جمال إنفينيتي",2,2,"graph"],["2-4","ذات الرداء الأحمر",2,2,"plan"],["2-5","شبكة القنادس",2,2,"logic"],["2-6","الجواسيس",2,2,"graph"],["2-7","المتحف",2,2,"graph"],["2-8","مسارات الطيران",3,2,"graph"],["2-9","شراء الأحذية",3,2,"plan"],["2-10","الدوال",3,2,"logic"]].map(([id,t,d,lv,w])=>({id,t,d,lv,w}));
+function bookRec(b,g){if(!g)return null;if(g<=4)return b.lv===1&&b.d<=2?"fit":"hard";if(g<=6)return b.lv===1||b.d<=2?"fit":"hard";if(g<=9)return "fit";return b.lv===2?"fit":"easy"}
+const BOOKREC={fit:"⭐ مناسبة لصفك",hard:"💪 تحدٍّ أصعب",easy:"⚡ تمرين سريع"};
+function bookDone(){try{return (JSON.parse(localStorage.getItem("qndas_book_v1")||"{}").done)||{}}catch(e){return {}}}
+function bookURL(id){return "book.html?embed=1&g="+(P&&P.g==="f"?"f":"m")+"&grade="+(P&&P.grade||0)+(id?"&t="+id:"")}
+function openBook(id,after){const ov=el("div",{class:"bookov",role:"dialog","aria-label":"مهمة من كتاب موهبة"});const x=el("button",{class:"btn bookx",type:"button"},"✕ رجوع");const fr=el("iframe",{src:bookURL(id),title:"كتاب موهبة"});
+  x.addEventListener("click",()=>{ov.remove();if(after)after()});ov.append(x,fr);document.body.append(ov)}
+function bookSection(wid){const list=BOOK.filter(b=>b.w===wid);if(!list.length)return null;const done=bookDone();
+  const sec=el("div",{class:"booksec"},el("h3",{},"📗 من كتاب «التفكير الحاسوبي» · موهبة"),el("p",{class:"muted",style:"margin:0 0 8px"},"مهام حقيقية من كتاب النشاط الذي أعدّه فريق بيبراس السعودي ونشرته موهبة مجاناً للتدريب، مع الحل خطوة خطوة."));
+  const box=el("div",{class:"typelist"});list.forEach(b=>{const r=bookRec(b,P&&P.grade);const c=el("button",{class:"tcard bookcard"+(done[b.id]?" done":""),type:"button"},el("span",{class:"e"},done[b.id]?"✅":"📗"),el("span",{},el("b",{},b.t),el("br"),el("small",{class:"muted"},`مهمة ${b.id} · ${["","سهلة","متوسطة","صعبة"][b.d]}`),r?el("br"):"",r?el("small",{class:"bookrec "+r},BOOKREC[r]):""));
+    c.addEventListener("click",()=>openBook(b.id,()=>openWorld(wid)));box.append(c)});sec.append(box);return sec}
 /* ================= practice engine ================= */
 let RUN=null;
 const api={ready:v=>{$("#btnCheck").disabled=!v}};
@@ -1147,7 +1168,7 @@ $("#muteBtn").addEventListener("click",()=>{DB.mute=!DB.mute;save();$("#muteBtn"
   document.querySelectorAll(".dates").forEach(b=>{if(t<0){b.remove();return}
     const R=b.querySelector(".d-reg");if(r<0)R.remove();else R.querySelector(".d-left").textContent=left(r);
     b.querySelector(".d-test .d-left").textContent=left(t)})})();
-const BUILD="2026-11-16b";
+const BUILD="2026-11-16c";
 async function checkUpdate(){try{const r=await fetch("./?nocache="+Date.now(),{cache:"no-store"});if(!r.ok)return;const t=await r.text();const m=t.match(/const BUILD="([^"]+)"/);
   if(m&&m[1]!==BUILD){const busy=document.querySelector("#s-chal.on,#s-mp.on,#s-lobby.on,#s-play.on");if(busy){UPD_PENDING=true;return}
     toast("🎁 فيه نسخة جديدة من اللعبة… لحظة",2000);setTimeout(()=>location.replace("./?v="+m[1]),1500)}}catch(e){}}
