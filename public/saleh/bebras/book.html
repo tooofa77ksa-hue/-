@@ -59,6 +59,7 @@ h2{color:var(--deep);margin:18px 0 8px;font-size:1.3em}
 .fb{border-radius:18px;padding:12px 14px;margin-top:12px;font-weight:600}
 .fb.ok{background:#e3f5e6;border:3px solid var(--leaf)}
 .fb.no{background:#fde8e6;border:3px solid #c2453b}
+.fb.warn{background:#eef7ff;border:3px solid #6aa9d8}
 .fb.sol{background:#fff6dc;border:3px solid var(--sun)}
 .fb h3{margin:0 0 4px}
 .zoom{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;overflow:auto;z-index:20;padding:10px}
@@ -249,7 +250,10 @@ $("#check").onclick=()=>{const t=T[cur];if(!hasAnswer(t)){$("#vFb").innerHTML=""
     $("#vFb").append(el("div",{class:"fb ok"},el("h3",{},"✅ إجابة صحيحة! +"+ptsTxt(pts(t))),el("p",{style:"margin:0 0 6px"},fx("بتوفيق الله ثم بتركيزك {وصلت|وصلتِ} للحل 🌟")),el("h3",{style:"margin:8px 0 2px"},"💡 ليش هذه الإجابة؟"),steps(t)));$("#pts").textContent=`⭐ ${got()}`}
   else{if(t.k==="mc")document.querySelectorAll("#vAns .opt")[sel].classList.add("no");
     $("#vFb").append(el("div",{class:"fb no"},el("h3",{},"🌱 ليست هذه الإجابة"),el("p",{style:"margin:0"},fx("{اقرأ|اقرئي} الصورة مرة ثانية بهدوء، والمحاولة متاحة. وإذا {احتجت|احتجتِ}، الحل خطوة خطوة موجود."))));$("#showSol").hidden=false}};
-$("#showSol").onclick=()=>showSol(T[cur]);
+$("#showSol").onclick=()=>{if(document.querySelector("#vFb .fb.warn"))return;const t=T[cur];
+  const w=el("div",{class:"fb warn"},el("h3",{},"✋ لحظة!"),el("p",{style:"margin:0 0 8px"},fx("إذا {شفت|شفتِ} الحل الآن، ما تنحسب لك نقاط هذه المهمة. {جرّب|جرّبي} مرة ثانية؟ المحاولة تقوّي تفكيرك.")),
+    el("div",{class:"actions",style:"margin-top:4px"},el("button",{class:"btn alt",type:"button",onclick:()=>w.remove()},fx("💪 {أحاول|أحاول} مرة ثانية")),el("button",{class:"btn",type:"button",onclick:()=>{w.remove();showSol(t)}},"💡 نعم، أبغى الحل")));
+  $("#vFb").append(w);w.scrollIntoView({block:"nearest"})};
 $("#prev").onclick=()=>{if(cur>0)openTask(cur-1)};$("#next").onclick=()=>{if(cur<T.length-1)openTask(cur+1)};
 $("#toList").onclick=()=>{$("#view").style.display="none";$("#list").hidden=false;renderList();window.scrollTo(0,0)};
 $("#reset").onclick=()=>{if(confirm("مسح كل الإجابات المحلولة في هذا الجهاز والبدء من جديد؟")){S={done:{}};save();renderList()}};
@@ -259,7 +263,7 @@ if(EMBED)document.body.classList.add("embed");
 $("#zoomHint").textContent=fx("👆 {اضغط|اضغطي} على الصورة لتكبيرها");
 $("#noteTail").textContent=fx("{اضغط|اضغطي} على أي مهمة، {واقرأ|واقرئي} الصورة بهدوء، ثم {أجب|أجيبي}. مسابقة بيبراس في موهبة من الصف الثالث الابتدائي إلى الثالث الثانوي، وكل مهمة مكتوب عليها هل هي مناسبة لصفك.");
 renderList();
-const BUILD="2026-11-16c";
+const BUILD="2026-11-16d";
 async function checkUpdate(){if($("#view").style.display==="block")return;try{const r=await fetch("book.html?nocache="+Date.now(),{cache:"no-store"});if(!r.ok)return;const m=(await r.text()).match(/const BUILD="([^"]+)"/);if(m&&m[1]!==BUILD)location.replace("book.html?v="+m[1])}catch(e){}}
 checkUpdate();document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkUpdate()});
 const deep=T.findIndex(t=>t.id===QS.get("t"));if(deep>=0)openTask(deep);
