@@ -36,6 +36,7 @@ h1,h2,h3{line-height:1.25;margin:0}
 .hero h1{font-size:clamp(38px,9vw,64px);font-weight:800;color:var(--deep);letter-spacing:0}
 .hero p{margin:4px 0 0;color:var(--muted);font-size:1.05em}
 .dam{display:block;margin:10px auto 0;width:min(420px,90%)}
+#hero3d{width:100%;margin:0 auto;border-radius:24px;overflow:hidden;touch-action:manipulation}#hero3d:empty{display:none}#hero3d canvas{display:block;margin:0 auto}.hero .tap-tip{margin:6px 0 0;font-size:.85em;color:var(--muted)}
 .players{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:22px}
 .player{background:#fff;border:3px solid #cfe3e6;border-radius:var(--r-mid);padding:14px 10px;text-align:center}
 .player .av{font-size:44px;display:block;line-height:1.1}
@@ -295,6 +296,7 @@ dialog select{font:inherit;width:100%;padding:8px 10px;border-radius:12px;border
 <section class="screen on" id="s-home" aria-labelledby="h-home">
   <div class="dates" role="note"><span class="d-reg">📝 آخر موعد للتسجيل: <b>22 نوفمبر</b> <small class="d-left"></small></span><span class="d-test">🏆 الاختبار: <b>5 ديسمبر</b> <small class="d-left"></small></span></div>
   <div class="hero">
+    <div id="hero3d" aria-label="قندس يسبح في النهر، اضغط عليه ليقفز" role="img"></div>
     <svg class="dam" viewBox="0 0 420 120" aria-hidden="true">
       <path d="M0 92 C60 70 120 110 210 88 S350 70 420 92 V120 H0Z" fill="#1f6f78"/>
       <path d="M0 100 C70 84 140 116 210 98 S350 84 420 100" stroke="#dff3f1" stroke-width="3" fill="none" opacity=".6"/>
@@ -1198,7 +1200,7 @@ $("#muteBtn").addEventListener("click",()=>{DB.mute=!DB.mute;save();$("#muteBtn"
   document.querySelectorAll(".dates").forEach(b=>{if(t<0){b.remove();return}
     const R=b.querySelector(".d-reg");if(r<0)R.remove();else R.querySelector(".d-left").textContent=left(r);
     b.querySelector(".d-test .d-left").textContent=left(t)})})();
-const BUILD="2026-11-21b";
+const BUILD="2026-11-21c";
 async function checkUpdate(){try{const r=await fetch("./?nocache="+Date.now(),{cache:"no-store"});if(!r.ok)return;const t=await r.text();const m=t.match(/const BUILD="([^"]+)"/);
   if(m&&m[1]!==BUILD){const busy=document.querySelector("#s-chal.on,#s-mp.on,#s-lobby.on,#s-play.on");if(busy){UPD_PENDING=true;return}
     toast("🎁 فيه نسخة جديدة من اللعبة… لحظة",2000);setTimeout(()=>location.replace("./?v="+m[1]),1500)}}catch(e){}}
@@ -1207,10 +1209,12 @@ checkUpdate();setInterval(checkUpdate,5*60*1000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkUpdate()});
 const _go=go;go=function(id){_go(id);if(UPD_PENDING&&(id==="home"||id==="map"||id==="world"||id==="result"||id==="podium")){UPD_PENDING=false;checkUpdate()}};
 try{markNew()}catch(e){}
+addEventListener("beaver-jump",()=>{try{sndOk()}catch(e){}});
 $("#goBook").addEventListener("click",()=>openBook(null));
 window.__bebras={TYPES,get run(){return RUN},get player(){return P},get ch(){return CH},get mp(){return MP}};
 go("home");
 })();
 </script>
+<script type="module" src="hero3d.js?v=2026-11-21c"></script>
 </body>
 </html>
