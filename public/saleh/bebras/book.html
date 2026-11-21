@@ -68,6 +68,7 @@ h2{color:var(--deep);margin:18px 0 8px;font-size:1.3em}
 .steps p{margin:6px 0;font-weight:400}.steps b{font-weight:800}
 .rec{font-weight:800;border-radius:999px;padding:0 8px;align-self:flex-start}.rec.fit{background:#e3f5e6;color:#1d6b33}.rec.hard{background:#fde8d8;color:#a8430d}.rec.easy{background:#eef2f4;color:#56717a}
 body.embed header,body.embed .src{display:none}body.embed #navRow{display:none}
+.contact{text-align:center;margin:6px 0 0;font-size:.82em}.contact a{color:#128c4a;font-weight:800;text-decoration:none;border:2px solid #9fd3ad;border-radius:999px;padding:2px 12px;display:inline-block;background:#fff}
 .credit{text-align:center;font-weight:700;color:var(--deep);margin-top:18px;font-size:.82em;opacity:.85}
 .src{text-align:center;color:var(--muted);font-size:.8em;margin-top:6px}
 @media (max-width:420px){.grid{grid-template-columns:1fr 1fr}.task{min-height:88px;padding:8px 10px}.task b{font-size:.95em}}
@@ -114,6 +115,7 @@ body.embed header,body.embed .src{display:none}body.embed #navRow{display:none}
 
 <p class="src">المصدر: كتاب «التفكير الحاسوبي: كتاب نشاط قائم على مهام مسابقة بيبراس»، إعداد فريق بيبراس السعودي، موهبة. صفحة تدريب غير رسمية.</p>
 <p class="credit">تصميم عواطف الجهني · جميع الحقوق محفوظة © 2026</p>
+  <p class="contact"><a href="https://wa.me/966580908077" target="_blank" rel="noopener">💬 للتواصل عبر واتساب: <span dir="ltr">+966 58 090 8077</span></a></p>
 </main>
 <div class="zoom" id="zoom"><button class="btn" type="button" id="zClose">✕ إغلاق</button><img id="zImg" alt=""></div>
 
@@ -263,7 +265,7 @@ if(EMBED)document.body.classList.add("embed");
 $("#zoomHint").textContent=fx("👆 {اضغط|اضغطي} على الصورة لتكبيرها");
 $("#noteTail").textContent=fx("{اضغط|اضغطي} على أي مهمة، {واقرأ|واقرئي} الصورة بهدوء، ثم {أجب|أجيبي}. مسابقة بيبراس في موهبة من الصف الثالث الابتدائي إلى الثالث الثانوي، وكل مهمة مكتوب عليها هل هي مناسبة لصفك.");
 renderList();
-const BUILD="2026-11-16d";
+const BUILD="2026-11-21a";
 async function checkUpdate(){if($("#view").style.display==="block")return;try{const r=await fetch("book.html?nocache="+Date.now(),{cache:"no-store"});if(!r.ok)return;const m=(await r.text()).match(/const BUILD="([^"]+)"/);if(m&&m[1]!==BUILD)location.replace("book.html?v="+m[1])}catch(e){}}
 checkUpdate();document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkUpdate()});
 const deep=T.findIndex(t=>t.id===QS.get("t"));if(deep>=0)openTask(deep);
