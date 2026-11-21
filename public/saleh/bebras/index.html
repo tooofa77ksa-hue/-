@@ -266,6 +266,11 @@ dialog select{font:inherit;width:100%;padding:8px 10px;border-radius:12px;border
 .newcard{background:#fff;border-radius:24px;padding:18px 18px 16px;max-width:420px;width:100%;text-align:center;box-shadow:0 8px 0 #134a52}
 .newcard .gift{font-size:56px;line-height:1}.newcard h2{margin:6px 0;color:#176638}.newcard p{margin:6px 0}
 .newcard .actions{display:grid;gap:10px;margin-top:12px}.newcard .btn{text-decoration:none;display:block;text-align:center}
+.realcomp{margin-top:16px;background:linear-gradient(160deg,#1f7a45,#145c33);color:#fff;border-radius:var(--r-big,24px);padding:16px;box-shadow:0 6px 0 #0f4a28}
+.rc-top{display:flex;gap:12px;align-items:flex-start}.rc-e{font-size:46px;line-height:1}
+.realcomp h2{margin:0;font-size:1.45em;color:#fff;line-height:1.3}.realcomp p{margin:4px 0 0;opacity:.95}
+.rc-lv{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.rc-lv span{background:rgba(255,255,255,.16);border-radius:999px;padding:2px 12px;font-weight:700;font-size:.9em}
+.rc-go{width:100%;background:#f4c04e;color:#3c2a00;box-shadow:0 4px 0 #c99a2e;font-size:1.15em}
 @media (prefers-reduced-motion:reduce){.pop,.shake,.hop,.gbeaver,.toast{animation:none}*{transition:none!important}}
 @media (max-width:520px){
   .tlrow{grid-template-columns:96px 1fr}
@@ -299,8 +304,12 @@ dialog select{font:inherit;width:100%;padding:8px 10px;border-radius:12px;border
     <h1 id="h-home">نهر القندس</h1>
     <p>ألغاز تفكير بنفس أنواع أسئلة بيبراس</p>
   </div>
+  <section class="realcomp" aria-labelledby="h-real">
+    <div class="rc-top"><span class="rc-e">🏆</span><div><h2 id="h-real">مهام بيبراس الحقيقية</h2><p>20 مهمة من كتاب «التفكير الحاسوبي» الذي أعدّه فريق بيبراس السعودي ونشرته موهبة، مع الحل خطوة خطوة.</p></div></div>
+    <div class="rc-lv"><span>📗 المستوى الأول: 10 مهام</span><span>📘 المستوى الثاني: 10 مهام</span></div>
+    <button class="btn rc-go" id="goBook" type="button">🚀 ابدأ المهام الحقيقية</button>
+  </section>
   <a class="big guide" href="guide.html" id="goGuide" style="width:100%;margin-top:16px;text-decoration:none"><span class="e">📖</span><span>دليل اللعبة<small>كيف ألعب؟ وكيف ألعب مع أصحابي؟</small></span></a>
-  <a class="big guide" href="book.html" id="goBook" style="width:100%;margin-top:12px;text-decoration:none;border-color:#176638;box-shadow:0 4px 0 #0f4a28"><span class="e">📗</span><span>كتاب موهبة<small>20 مهمة من كتاب بيبراس الرسمي، مع الحل</small></span></a>
   <button class="big online" id="goOnline" type="button" style="width:100%;margin-top:12px"><span class="e">🌐</span><span>العب مع أصحابك أونلاين<small>من 2 إلى 4 لاعبين، كل واحد بجهازه</small></span></button>
   <h2 style="font-size:1.2em;margin-top:18px">مين بيلعب؟</h2>
   <div class="players" id="players"></div>
@@ -957,7 +966,7 @@ function openWorld(wid){const w=W[wid];$("#wEmoji").textContent=w.emoji;$("#wNam
 
 /* one-time "what's new" card + NEW badges (badges until the contest day) */
 const NEWBOOK_KEY="qndas_new_book";const SHOW_NEW=Date.now()<new Date("2026-12-06T00:00:00+03:00").getTime();
-function markNew(){if(!SHOW_NEW)return;document.querySelectorAll("#goBook,#mapBook,.booksec h3").forEach(e=>{if(e.querySelector(".newb"))return;const tgt=e.tagName==="H3"?e:e.querySelector("span:not(.e)")||e;tgt.insertBefore(el("span",{class:"newb"},"🆕 جديد"),tgt.querySelector("small"))})}
+function markNew(){if(!SHOW_NEW)return;document.querySelectorAll("#h-real,#mapBook,.booksec h3").forEach(e=>{if(e.querySelector(".newb"))return;const tgt=(e.tagName==="H3"||e.tagName==="H2")?e:e.querySelector("span:not(.e)")||e;tgt.insertBefore(el("span",{class:"newb"},"🆕 جديد"),tgt.querySelector("small"))})}
 function whatsNew(){let seen=false;try{seen=localStorage.getItem(NEWBOOK_KEY)==="1"}catch(e){}if(seen||document.querySelector(".newcard"))return;
   const close=()=>{try{localStorage.setItem(NEWBOOK_KEY,"1")}catch(e){}ov.remove()};
   const ov=el("div",{class:"newov",role:"dialog","aria-label":"جديد في اللعبة"});
@@ -1189,7 +1198,7 @@ $("#muteBtn").addEventListener("click",()=>{DB.mute=!DB.mute;save();$("#muteBtn"
   document.querySelectorAll(".dates").forEach(b=>{if(t<0){b.remove();return}
     const R=b.querySelector(".d-reg");if(r<0)R.remove();else R.querySelector(".d-left").textContent=left(r);
     b.querySelector(".d-test .d-left").textContent=left(t)})})();
-const BUILD="2026-11-21a";
+const BUILD="2026-11-21b";
 async function checkUpdate(){try{const r=await fetch("./?nocache="+Date.now(),{cache:"no-store"});if(!r.ok)return;const t=await r.text();const m=t.match(/const BUILD="([^"]+)"/);
   if(m&&m[1]!==BUILD){const busy=document.querySelector("#s-chal.on,#s-mp.on,#s-lobby.on,#s-play.on");if(busy){UPD_PENDING=true;return}
     toast("🎁 فيه نسخة جديدة من اللعبة… لحظة",2000);setTimeout(()=>location.replace("./?v="+m[1]),1500)}}catch(e){}}
@@ -1198,6 +1207,7 @@ checkUpdate();setInterval(checkUpdate,5*60*1000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkUpdate()});
 const _go=go;go=function(id){_go(id);if(UPD_PENDING&&(id==="home"||id==="map"||id==="world"||id==="result"||id==="podium")){UPD_PENDING=false;checkUpdate()}};
 try{markNew()}catch(e){}
+$("#goBook").addEventListener("click",()=>openBook(null));
 window.__bebras={TYPES,get run(){return RUN},get player(){return P},get ch(){return CH},get mp(){return MP}};
 go("home");
 })();
