@@ -433,6 +433,7 @@ function lobby(){screen();$('#b-home').hidden=true;
   main.appendChild(g);
   if(D.finals&&D.finals.length){main.appendChild(el('span','pill navy','🏆 منطقة الاختبارات'));var fg=el('div','grid');D.finals.forEach(function(x){var b=el('button','island');b.type='button';b.style.setProperty('--c','#16365f');b.innerHTML='<div class="ic">📝</div><div class="t">'+esc(x.title)+'</div><small class="muted">'+esc(x.sub||'')+'</small>';b.onclick=function(){exam(x,null)};fg.appendChild(b)});main.appendChild(fg)}
   var FB='https://tooofa77ksa-hue.github.io/-/saleh/english/files/';
+  var wl=el('a','island');wl.href='https://tooofa77ksa-hue.github.io/-/saleh/english-wool/';wl.style.setProperty('--c','#8a6d4a');wl.style.textDecoration='none';wl.style.color='inherit';wl.innerHTML='<div class="ic">🧶</div><div class="t">إنجليزي صالح وصبا (بالصوف)</div><small class="muted">الكلمات · القواعد · التعبير · ركن الاختبار المركزي</small>';main.appendChild(el('span','pill blue','🧶 موقع جديد'));var wg=el('div','grid');wg.appendChild(wl);main.appendChild(wg);
   main.appendChild(el('span','pill blue','📄 أوراق للطباعة'));var pg=el('div','grid');
   [['✍️','تعبير الإنجليزي: ٤ مواضيع','موضوع كل أسبوع · سطر بأربعة خطوط · ٣٠ كلمة','writing-4-topics.pdf'],
    ['📝','اختبار تدريبي بشكل المركزي','من ٤٠ درجة: ٧+٧+٧+٧+٧+٥','practice-exam-40.pdf'],
