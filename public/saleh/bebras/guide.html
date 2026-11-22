@@ -50,6 +50,7 @@ ol.steps li::before{content:counter(s);flex:0 0 34px;height:34px;border-radius:5
 .btn{border:none;border-radius:18px;padding:12px 24px;font-weight:800;font-size:1.05em;background:var(--water);color:#fff;box-shadow:0 4px 0 var(--deep);cursor:pointer;text-decoration:none;display:inline-block}
 .btn.alt{background:#fff;color:var(--ink);box-shadow:0 4px 0 #b9d2d6}
 .btn:disabled{opacity:.4}
+.contact{text-align:center;margin:6px 0 0;font-size:.82em}.contact a{color:#128c4a;font-weight:800;text-decoration:none;border:2px solid #9fd3ad;border-radius:999px;padding:2px 12px;display:inline-block;background:#fff}
 .credit{text-align:center;font-weight:700;color:var(--deep);margin-top:18px;font-size:.82em;opacity:.85}
 .listen{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 auto 10px;border:none;border-radius:999px;padding:8px 20px;font-weight:800;font-size:1em;background:var(--sun);color:#3c2a00;box-shadow:0 3px 0 #c99a2e;cursor:pointer}
 .listen.on{background:var(--water);color:#fff;box-shadow:0 3px 0 var(--deep)}
@@ -76,6 +77,7 @@ body.poster .card .big{font-size:46px}
   <div id="deck"></div>
   <div class="tip" style="margin-top:16px;font-weight:500;font-size:.9em">ℹ️ <b>هذه اللعبة للتدريب والمساعدة فقط، وليست اختبار بيبراس الرسمي.</b><br>صُمّمت بناءً على أنواع أسئلة مسابقة بيبراس الدولية (2014–2024) الأكثر تكراراً، ونظام تحدي بيبراس في موهبة (10 مهام، 60 دقيقة، 400 نقطة)، ومهارات التفكير الحاسوبي السبع. الألغاز من تأليفنا.</div>
   <p class="credit">تصميم عواطف الجهني · جميع الحقوق محفوظة © 2026</p>
+  <p class="contact"><a href="https://wa.me/966580908077" target="_blank" rel="noopener">💬 للتواصل عبر واتساب: <span dir="ltr">+966 58 090 8077</span></a></p>
 </main>
 <nav class="nav"><button class="btn alt" id="prev" type="button">⇨ السابق</button><button class="btn" id="next" type="button">التالي ⇦</button></nav>
 
@@ -193,7 +195,7 @@ next.onclick=()=>{if(i<PAGES.length-1){i++;render()}else location.href="./"};
 document.querySelectorAll(".who button").forEach(b=>b.onclick=()=>{G=b.dataset.g;try{localStorage.setItem("qndas_guide_g",G)}catch(e){}render()});
 addEventListener("keydown",e=>{if(e.key==="ArrowLeft")next.click();if(e.key==="ArrowRight")prev.click()});
 render();
-const BUILD="2026-11-16e";
+const BUILD="2026-11-21c";
 async function checkUpdate(){try{const r=await fetch("guide.html?nocache="+Date.now(),{cache:"no-store"});if(!r.ok)return;const m=(await r.text()).match(/const BUILD="([^"]+)"/);if(m&&m[1]!==BUILD)location.replace("guide.html?v="+m[1]+(G==="f"?"&g=f":""))}catch(e){}}
 checkUpdate();document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkUpdate()});
 })();
