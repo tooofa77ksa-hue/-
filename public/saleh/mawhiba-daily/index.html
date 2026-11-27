@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>موهبة — صالح — ١٠ دقائق كل يوم</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:#14213d;color:#fff;font-family:Tahoma,Arial,sans-serif;line-height:1.7;min-height:100vh}
+.wrap{max-width:640px;margin:0 auto;padding:14px 14px 40px}
+header{text-align:center;padding:10px 0 4px}
+.who{font-size:26px;font-weight:bold;color:#ffd166;line-height:1.2}
+.title{font-size:44px;font-weight:bold;color:#fff;line-height:1.2;margin-top:2px}
+.sub{font-size:15px;color:#cbd5e1;margin-top:4px}
+.card{background:#fff;color:#14213d;border-radius:16px;padding:16px;margin:12px 0}
+.card h2{margin:0 0 6px;font-size:20px}
+.btn{display:block;width:100%;border:0;border-radius:14px;padding:15px 12px;font-size:19px;font-weight:bold;margin:9px 0;cursor:pointer;font-family:inherit;background:#ffd166;color:#14213d;text-align:center}
+.btn.alt{background:#e2e8f0}
+.btn.green{background:#2a9d8f;color:#fff}
+.btn small{display:block;font-weight:normal;font-size:14px;margin-top:2px}
+.bar{display:flex;justify-content:space-between;font-size:17px;color:#ffd166;font-weight:bold;margin:6px 0}
+.q{font-size:21px;margin:10px 0;white-space:pre-line}
+.q .big{font-size:26px;letter-spacing:1px;direction:ltr;display:block;text-align:center;margin:6px 0}
+.opt{display:block;width:100%;border:2px solid #cbd5e1;background:#f8fafc;color:#14213d;border-radius:12px;padding:12px;font-size:20px;margin:8px 0;font-family:inherit;cursor:pointer;text-align:center}
+.opt.ok{background:#b7f0c4;border-color:#2a9d8f}
+.opt.bad{background:#ffc9c9;border-color:#d62828}
+.why{background:#fff4d6;border-radius:12px;padding:10px;margin-top:10px;font-size:18px}
+.note{color:#fecaca;font-size:15px;margin-top:8px}
+.red{color:#ff6b6b;font-weight:bold}
+.stars{font-size:30px;text-align:center;letter-spacing:4px}
+.foot{text-align:center;color:#cbd5e1;font-size:14px;margin-top:22px}
+.timer{font-variant-numeric:tabular-nums}
+.timer.low{color:#ff6b6b}
+.prog{height:8px;background:#334155;border-radius:6px;overflow:hidden;margin:4px 0 8px}
+.prog>i{display:block;height:100%;background:#ffd166;width:0;transition:width .3s}
+.big-gift{font-size:80px;text-align:center}
+.chip{display:inline-block;background:#fff;color:#14213d;border-radius:20px;padding:2px 12px;font-size:15px;margin:2px}
+@media (prefers-reduced-motion:no-preference){.pop{animation:pop .35s}@keyframes pop{0%{transform:scale(.9)}100%{transform:scale(1)}}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+ <div class="who">صالح</div>
+ <div class="title">موهبة</div>
+ <div class="sub">المستوى الثاني · ١٠ دقائق كل يوم · تدريبي من إعدادنا، وليس من الاختبار الأصلي</div>
+</header>
+<div id="app"></div>
+<div class="foot">إعداد: عواطف الجهني (بالاستعانة بـ Claude)<br>لا تنسوني من دعوة بظهر الغيب لي ولوالديّ ولأولادي<br>للتواصل: واتساب 966580908077</div>
+</div>
+<script>
+var CFG={"key": "saleh", "level": 2, "fem": false};
+var FEM=CFG.fem, LV=CFG.level;
+function g(m,f){return FEM?f:m}
+var SECS={
+ flex:{n:'المرونة العقلية',e:'🧩'},
+ verbal:{n:'الاستدلال اللغوي',e:'📖'},
+ math:{n:'الاستدلال الرياضي والمكاني',e:'🔢'},
+ mech:{n:'الاستدلال العلمي والميكانيكي',e:'⚙️'}
+};
+var ORDER=['flex','verbal','math','mech'];
+function ri(a,b){return a+Math.floor(Math.random()*(b-a+1))}
+function pick(a){return a[ri(0,a.length-1)]}
+function shuf(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=ri(0,i),t=a[i];a[i]=a[j];a[j]=t}return a}
+function mk(sec,text,right,wrongs,why,note){
+ var ch=[right].concat(wrongs).slice(0,4);
+ var order=shuf(ch.map(function(c,i){return i}));
+ return {sec:sec,text:text,ch:order.map(function(i){return String(ch[i])}),ans:order.indexOf(0),why:why,note:note||''};
+}
+// تولّد اختيارات خاطئة عددية مختلفة عن الجواب
+function numWrongs(ans){
+ var s={},out=[],d=[1,2,3,10,-1,-2,-3,-10,5,-5,4,-4];
+ s[ans]=1;
+ var tries=0;
+ while(out.length<3&&tries<60){tries++;var v=ans+pick(d);if(v<0&&ans>=0)continue;if(!s[v]){s[v]=1;out.push(v)}}
+ return out;
+}
+
+/* ===== المرونة العقلية: كلها بمولّد يتحقق آليًا ===== */
+var FRU=['🍎','🍌','🍇','🍓','🍊','🥕','🍉','🍋'];
+function gEmoji(){
+ var f=shuf(FRU), max=LV===2?12:8;
+ var v=[ri(2,max),ri(2,max),ri(2,max)];
+ while(v[1]===v[0])v[1]=ri(2,max);
+ while(v[2]===v[0]||v[2]===v[1])v[2]=ri(2,max);
+ var A=f[0],B=f[1],C=f[2],a=v[0],b=v[1],c=v[2];
+ var t,ans,why;
+ if(LV===2&&Math.random()<.5){
+  t=A+A+A+' = '+(3*a)+'\n'+A+' + '+B+' = '+(a+b)+'\n'+B+' × '+C+' = '+(b*c)+'\n'+'احسب: '+C+' + '+A+' + '+B;
+  ans=c+a+b;
+  why='من الأولى: '+A+' = '+a+'. من الثانية: '+B+' = '+b+'. من الثالثة: '+C+' = '+c+'. إذن '+c+' + '+a+' + '+b+' = '+ans;
+ } else {
+  t=A+' + '+A+' = '+(2*a)+'\n'+A+' + '+B+' = '+(a+b)+'\n'+B+' + '+C+' = '+(b+c)+'\n'+'احسب: '+C+' + '+C+' + '+A;
+  ans=2*c+a;
+  why='الأولى: '+A+' = '+a+'. الثانية: '+B+' = '+b+'. الثالثة: '+C+' = '+c+'. إذن '+c+' + '+c+' + '+a+' = '+ans;
+ }
+ return mk('flex','معادلات الرموز: كل رمز له قيمة ثابتة.\n'+t.replace(/^/,''),ans,numWrongs(ans),why);
+}
+var AL=['ا','ب','ت','ث','ج','ح','خ','د','ذ','ر','ز','س','ش','ص','ض','ط','ظ','ع','غ','ف','ق','ك','ل','م','ن','ه','و','ي'];
+var WORDS=['بحر','نهر','جبل','قمر','شمس','ورد','نجم','كتاب','بيت','باب','سمك','علم','قلم','ريح','سحاب'];
+function shiftW(w,k){var o='';for(var i=0;i<w.length;i++){var p=AL.indexOf(w[i]);o+=AL[((p+k)%28+28)%28]}return o}
+function gCipher(){
+ var k=pick(LV===2?[1,2,3,-1,-2]:[1,2,-1]);
+ var ws=shuf(WORDS).filter(function(w){return AL.indexOf(w[0])>=0});
+ var ex=ws[0],nw=ws[1];
+ var right=shiftW(nw,k);
+ var wr=[];
+ [k+1,k-1,-k,k+2].forEach(function(z){var c=shiftW(nw,z);if(z!==k&&c!==right&&wr.indexOf(c)<0)wr.push(c)});
+ var dir=k>0?'التالي':'السابق';
+ var n=Math.abs(k);
+ var why='الكلمة «'+ex+'» أصبحت «'+shiftW(ex,k)+'»: كل حرف انتقل '+(n===1?'حرفًا واحدًا':n+' حروف')+' إلى '+(k>0?'الأمام':'الخلف')+' في الأبجدية. نفعل الشيء نفسه مع «'+nw+'» فتصبح «'+right+'».';
+ return mk('flex','شفرة الحروف: '+ex+' ← '+shiftW(ex,k)+'\nكيف تُكتب كلمة «'+nw+'» بالشفرة نفسها؟',right,wr.slice(0,3),why);
+}
+function gSeqRule(){
+ // متتابعة تتغير قاعدتها
+ var kind=ri(1,LV===2?3:2),s,seq=[],ans,why;
+ if(kind===1){ // الفروق تزداد
+  var st=ri(1,9),d=ri(1,3),e=ri(1,2);
+  var v=st,df=d;seq=[v];
+  for(var i=0;i<5;i++){v+=df;seq.push(v);df+=e}
+  ans=v+df;
+  why='الفروق بين الحدود: '+seq.slice(1).map(function(x,i){return x-seq[i]}).join('، ')+'. الفرق يزداد '+e+' كل مرة، فالفرق التالي '+df+' والجواب '+ans+'.';
+ } else if(kind===2){ // تناوب عمليتين
+  var a=ri(2,6),b=ri(1,3),v2=ri(1,4);seq=[v2];
+  for(var j=0;j<5;j++){v2=(j%2===0)?v2+a:v2*2;seq.push(v2)}
+  ans=(5%2===0)?seq[5]+a:seq[5]*2;
+  why='القاعدة تتناوب: نجمع '+a+' ثم نضرب في ٢، وتتكرر. بعد '+seq[5]+' تأتي عملية '+(5%2===0?'الجمع':'الضرب')+' فنحصل على '+ans+'.';
+ } else { // متتابعتان متداخلتان
+  var p=ri(2,5),q=ri(3,7),x=ri(1,9),y=ri(20,40);seq=[];
+  for(var m=0;m<3;m++){seq.push(x+p*m);seq.push(y-q*m)}
+  ans=x+p*3;
+  why='انظر إلى الأماكن الفردية وحدها: '+[seq[0],seq[2],seq[4]].join('، ')+' (تزيد '+p+' كل مرة). والأماكن الزوجية وحدها: '+[seq[1],seq[3],seq[5]].join('، ')+' (تنقص '+q+'). الحد القادم في الأماكن الفردية فهو '+ans+'.';
+ }
+ return mk('flex','أكمل المتتابعة (انتبه: قد تتغير القاعدة):\n<span class="big">'+seq.join(' ، ')+' ، ؟</span>',ans,numWrongs(ans),why);
+}
+var USES=[
+ ['كوب فارغ لم يعد صالحًا للشرب','يصلح قلمية لحفظ الأقلام','يصلح لقياس الوزن بدقة','يصلح لإرسال الرسائل بعيدًا','يصلح مصباحًا بدون كهرباء','الكوب له قاع ثابت وجوف يتسع للأقلام، فيؤدي وظيفة القلمية. أما الوزن والإضاءة والإرسال فلا يناسبها شكله.'],
+ ['زجاجة بلاستيك فارغة','تُقصّ ويُزرع فيها نبات صغير','تُستعمل بوصلة لمعرفة الشمال','تُستعمل بطارية للهاتف','تُستعمل ميزان حرارة','تُقصّ الزجاجة وتصبح وعاءً للتراب والنبتة. البوصلة والبطارية والميزان تحتاج مواد وأجزاء ليست فيها.'],
+ ['علبة بيض كرتونية','تُفرز فيها الخرزات والأزرار بالألوان','تُستعمل بدل الكتاب في المذاكرة','تُستعمل ساعة تعرض الوقت','تُستعمل مكبّر صوت','تقسيمات العلبة كأنها خانات صغيرة تفصل الأشياء الصغيرة عن بعضها.'],
+ ['صحيفة قديمة','تُستعمل لتغليف هدية','تُستعمل بطارية','تُستعمل مفتاحًا للباب','تُستعمل لتسخين الماء وحدها','الورق يُلفّ ويُقصّ فيصلح للتغليف. باقي الاستخدامات تحتاج مواد أخرى.'],
+ ['صندوق كرتوني كبير','يصبح بيتًا صغيرًا للعب','يصبح هاتفًا ذكيًا','يصبح مصباحًا للشارع','يصبح سيارة حقيقية بمحرك','الكرتون سهل القص والتلوين فيصنع بيتًا للعب. الهاتف والمحرك أجهزة معقدة لا يصنعها الكرتون.']
+];
+function gUses(){
+ var u=pick(USES);
+ return mk('flex','ما استخدام جديد مناسب لـ: «'+u[0]+'»؟',u[1],[u[2],u[3],u[4]],u[5]+' (وهناك أفكار أخرى كثيرة، والمهم أن تكون الفكرة معقولة وتحقق المطلوب).');
+}
+var HID=[
+ ['ثلج ـ حليب ـ قطن','كلها بيضاء','كلها باردة','كلها تُؤكل','كلها تطير','يجمع بينها اللون الأبيض. فالقطن ليس باردًا ولا يؤكل، والحليب لا يطير.'],
+ ['عجلة ـ ساعة الحائط ـ صحن','كلها دائرية الشكل','كلها تعطي ضوءًا','كلها تعيش في الماء','كلها تُصنع من الخشب فقط','الرابط هو الشكل الدائري.'],
+ ['جرس ـ رعد ـ طبل','كلها تُصدر صوتًا','كلها تتحرك على الأرض','كلها تُشرب','كلها تنمو من بذرة','الرابط هو الصوت العالي.'],
+ ['شمس ـ مصباح ـ شمعة','كلها تعطي ضوءًا','كلها تعطي صوتًا','كلها تعيش في البحر','كلها تُشترى من المطعم','الرابط هو إعطاء الضوء.'],
+ ['ثلج ـ شمع ـ شوكولاتة','كلها تذوب بالحرارة','كلها تنبت من الأرض','كلها تُسمع من بعيد','كلها تدور حول الشمس','الرابط هو أنها تتحول إلى سائل عند التسخين.'],
+ ['جبل ـ برج ـ سلّم','كلها لها ارتفاع نصعد عليه','كلها تسبح','كلها تؤكل','كلها لا ترى بالعين','الرابط هو الارتفاع الذي نصعد فيه.']
+];
+function gHidden(){
+ var h=pick(HID);
+ return mk('flex','ما الذي يجمع بين: «'+h[0]+'»؟',h[1],[h[2],h[3],h[4]],h[5]);
+}
+function gSeqRuleOrAlt(){return pick([gSeqRule,gSeqRule])()}
+var GEN_FLEX=[gEmoji,gEmoji,gCipher,gCipher,gSeqRule,gUses,gHidden];
+
+/* ===== اللغوي: تناظر لفظي (كتابة يدوية) ===== */
+var AN=[
+ ['قلم : كتابة','مقصّ','قصّ','ورق','حديد','أداة والعمل الذي تؤديه: القلم للكتابة، والمقص للقصّ.'],
+ ['طبيب : مستشفى','معلّم','مدرسة','سيارة','قلم','صاحب المهنة ومكان عمله.'],
+ ['يد : قفّاز','قدم','حذاء','قبّعة','نظارة','ما يُلبَس على العضو: القفاز على اليد والحذاء على القدم.'],
+ ['سمك : بحر','جمل','صحراء','ثلج','غابة','الحيوان وبيئته التي يعيش فيها.'],
+ ['ساخن : بارد','طويل','قصير','كبير','عريض','كلمتان متضادتان: ضد الطويل القصير.'],
+ ['عين : رؤية','أذن','سمع','شم','لمس','العضو ووظيفته.'],
+ ['ورقة : شجرة','ريشة','طائر','سمكة','زهرة','جزء وكلّه: الورقة جزء من الشجرة والريشة جزء من الطائر.'],
+ ['عجلة : سيارة','جناح','طائرة','بحر','مدرسة','جزء وكلّه: العجلة جزء من السيارة والجناح جزء من الطائرة.'],
+ ['كتاب : مكتبة','دواء','صيدلية','سوق','مسجد','الشيء والمكان الذي يُحفظ فيه أو يُباع.'],
+ ['بيضة : كتكوت','بذرة','نبتة','حجر','ماء','الشيء وما يخرج منه ويكبر.'],
+ ['نجّار : خشب','حدّاد','حديد','ورق','قماش','صاحب الحرفة والمادة التي يعمل بها.'],
+ ['شتاء : مطر','صيف','حرّ','ثلج','ليل','الفصل وما يشتهر به في بلادنا.'],
+ ['ماء : عطش','طعام','جوع','نوم','سباحة','الشيء الذي يزيل الحاجة: الماء يزيل العطش والطعام يزيل الجوع.'],
+ ['نهار : ليل','صباح','مساء','ظهر','يوم','التضاد: ضد الصباح المساء.']
+];
+function gAn(){
+ var a=pick(AN);
+ var C=a[1],right=a[2],pair=a[0];
+ var parts=pair.split(' : ');
+ var wrs=[a[3],a[4],a[5]];
+ // a=[pair,C,right,w1,w2,why]
+ return mk('verbal','تناظر لفظي: أكمل بما يناسب\n<span class="big" style="direction:rtl">'+parts[0]+' : '+parts[1]+' ::: '+C+' : ؟</span>',right,[a[3],a[4]],a[5]);
+}
+// لإكمال العدد: نضيف خيارًا ثالثًا من إجابات نفس القائمة
+function gAn2(){
+ var a=pick(AN),others=AN.filter(function(x){return x!==a});
+ var parts=a[0].split(' : ');
+ var w=shuf(others).slice(0,3).map(function(x){return x[2]});
+ w=w.filter(function(x){return x!==a[2]}).slice(0,3);
+ return mk('verbal','تناظر لفظي: أكمل بما يناسب\n<span class="big" style="direction:rtl">'+parts[0]+' : '+parts[1]+' ::: '+a[1]+' : ؟</span>',a[2],w,a[5]);
+}
+var GEN_VERBAL=[gAn2];
+
+/* ===== الرياضي ===== */
+function gMathSeq(){
+ if(LV===2) return pick([gSeqRule,gSeqRule,gPattern])();
+ return pick([gSimpleSeq,gSimpleSeq,gPattern])();
+}
+function gSimpleSeq(){
+ var s=ri(2,15),d=ri(2,7),seq=[];
+ for(var i=0;i<5;i++)seq.push(s+d*i);
+ var ans=s+d*5;
+ return mk('math','أكمل المتتابعة:\n<span class="big">'+seq.join(' ، ')+' ، ؟</span>',ans,numWrongs(ans),'الفرق بين كل حدّين متتاليين ثابت = '+d+'، فالحد التالي '+seq[4]+' + '+d+' = '+ans+'.');
+}
+function gPattern(){
+ // متتابعة حروف: نتحرك بخطوة ثابتة في الأبجدية
+ var st=ri(0,10),step=ri(1,3),seq=[];
+ for(var i=0;i<4;i++)seq.push(AL[(st+step*i)%28]);
+ var ans=AL[(st+step*4)%28];
+ var wr=[];
+ [step+1,step-1,step+2].forEach(function(z){var c=AL[(st+step*3+z+28)%28];if(c!==ans&&wr.indexOf(c)<0&&z!==step)wr.push(c)});
+ if(step===1)wr=[AL[(st+step*4+1)%28],AL[(st+step*4+2)%28],AL[(st+step*4-1+28)%28]];
+ wr=wr.filter(function(c,i){return c!==ans&&wr.indexOf(c)===i}).slice(0,3);
+ while(wr.length<3){var c=AL[ri(0,27)];if(c!==ans&&wr.indexOf(c)<0)wr.push(c)}
+ return mk('math','أكمل متتابعة الحروف (حسب ترتيب الأبجدية: أ ب ت ث ج ح خ د ...):\n<span class="big" style="direction:rtl">'+seq.join(' ، ')+' ، ؟</span>',ans,wr,'ننتقل '+(step===1?'حرفًا واحدًا':step+' حروف')+' إلى الأمام كل مرة. بعد «'+seq[3]+'» يأتي «'+ans+'».');
+}
+function gMathWord(){
+ var a=ri(3,9),b=ri(3,9),c=ri(2,5);
+ var tot=a*b+c;
+ return mk('math','في كل صندوق '+a+' كرات، ومع '+g('صالح','نادين')+' '+b+' صناديق، وفي جيبه'+g('','ا')+' '+c+' كرات أخرى. كم كرة معه'+g('','ا')+' في المجموع؟',tot,numWrongs(tot),a+' × '+b+' = '+(a*b)+'، ثم نضيف '+c+' فيصير '+tot+'.');
+}
+var GEN_MATH=[gMathSeq,gMathSeq,gPattern,gMathWord,gMathSeq];
+
+/* ===== الميكانيكي: مولّد مسائل تروس وبكرات نصّية ===== */
+function gGearDir(){
+ var n=ri(3,LV===2?7:5),k=ri(2,n);
+ var dir=pick(['عقارب الساعة','عكس عقارب الساعة']);
+ var res=(k%2===1)?dir:(dir==='عقارب الساعة'?'عكس عقارب الساعة':'عقارب الساعة');
+ var wr=[(res==='عقارب الساعة'?'عكس عقارب الساعة':'عقارب الساعة'),'لا يدور','يدور مرة واحدة فقط'];
+ return mk('mech',n+' تروس متلاصقة في صف، أسنانها متعشّقة. الترس الأول يدور '+dir+'. في أي اتجاه يدور الترس رقم '+k+'؟',res,[wr[0],wr[1],wr[2]],'كل ترس يدور عكس الترس الذي يلامسه. الأول '+dir+'، والثاني عكسه، والثالث مثل الأول... فالأرقام الفردية '+dir+' والزوجية عكسه. الترس '+k+' '+((k%2)?'فردي':'زوجي')+'.');
+}
+function gGearSpeed(){
+ var opts=LV===2?[[12,36,3],[20,10,2],[24,8,5],[40,10,3],[30,15,4],[18,6,2],[16,48,6]]:[[10,20,4],[20,10,2],[12,6,2],[8,16,4],[30,10,1],[24,12,2]];
+ var o=pick(opts),A=o[0],B=o[1],R=o[2];
+ var tot=A*R,ans=tot/B;
+ if(ans!==Math.floor(ans))return gGearSpeed();
+ var who=pick(['الصغير','الكبير']);
+ return mk('mech','ترس أسنانه '+A+' يدور '+R+' دورات، وهو متعشّق مع ترس أسنانه '+B+'. كم دورة يدورها الترس الثاني؟',ans,numWrongs(ans),'عدد الأسنان التي مرّت = '+A+' × '+R+' = '+tot+' سنًّا. الترس الثاني أسنانه '+B+'، فيدور '+tot+' ÷ '+B+' = '+ans+' دورات. القاعدة: الترس الأصغر يدور أكثر.','مسألة نصية من إعدادنا؛ إن اختلفت طريقة المدرسة فاسألوا المعلم.');
+}
+function gPulley(){
+ var n=pick(LV===2?[2,4,3]:[2,4]);
+ var w=n*pick(LV===2?[5,10,12]:[5,10]);
+ var f=w/n;
+ return mk('mech','بكرة متحركة يرفعها '+n+' حبال تحمل الجسم. وزن الجسم '+w+' كغ. كم يلزم تقريبًا من قوة لرفعه (بإهمال الاحتكاك ووزن البكرة)؟',f,numWrongs(f),'الحبال التي تحمل الجسم عددها '+n+'، فيتقاسمون الحِمل: '+w+' ÷ '+n+' = '+f+' كغ.','هذه القاعدة للبكرة المتحركة (تقريبية). عند الشك: اسألوا المعلم أو انظروا الكتاب.');
+}
+var GEN_MECH=LV===2?[gGearDir,gGearSpeed,gGearSpeed,gPulley,gGearDir]:[gGearDir,gGearSpeed,gGearSpeed,gGearDir];
+
+var GENS={flex:GEN_FLEX,verbal:GEN_VERBAL,math:GEN_MATH,mech:GEN_MECH};
+function makeQ(sec){
+ var arr=GENS[sec];
+ return pick(arr)();
+}
+function makeSet(sec,n){
+ var out=[],seen={};
+ var tries=0;
+ while(out.length<n&&tries<200){tries++;var q=makeQ(sec);if(!seen[q.text]){seen[q.text]=1;out.push(q)}}
+ return out;
+}
+
+/* ===== تتبّع الأيام ===== */
+var KEY='mawhiba_'+CFG.key;
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{days:[],stars:0}}catch(e){return{days:[],stars:0}}}
+function save(s){try{localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}}
+function iso(d){var m=d.getMonth()+1,dd=d.getDate();return d.getFullYear()+'-'+(m<10?'0':'')+m+'-'+(dd<10?'0':'')+dd}
+function streak(s){
+ var c=0,d=new Date();
+ if(s.days.indexOf(iso(d))<0){d.setDate(d.getDate()-1)}
+ while(s.days.indexOf(iso(d))>=0){c++;d.setDate(d.getDate()-1)}
+ return c;
+}
+function todaySec(){
+ var start=new Date(2026,10,27),now=new Date();
+ var days=Math.floor((new Date(now.getFullYear(),now.getMonth(),now.getDate())-start)/86400000);
+ if(days<0)days=0;
+ return {sec:ORDER[days%4],day:days+1};
+}
+var DAYS_LEFT=function(){
+ var t=new Date(2026,11,27),now=new Date();
+ var dd=Math.ceil((t-new Date(now.getFullYear(),now.getMonth(),now.getDate()))/86400000);
+ return dd;
+};
+
+/* ===== الواجهة ===== */
+var app=document.getElementById('app');
+var st=null,timerH=null;
+function esc(t){return t}
+function home(){
+ clearInterval(timerH);
+ var s=load(),ts=todaySec(),sc=SECS[ts.sec],dl=DAYS_LEFT();
+ var done=s.days.indexOf(iso(new Date()))>=0;
+ var h='<div class="card"><h2>مهمة اليوم '+sc.e+'</h2><div>'+sc.n+'</div>'+
+  '<div style="margin-top:6px"><span class="chip">⭐ '+s.stars+'</span><span class="chip">🔥 أيام متتالية: '+streak(s)+'</span>'+(dl>0?'<span class="chip">باقي '+dl+' يومًا على الاختبار</span>':'')+'</div>'+
+  (done?'<div class="why">أنجزت'+g('ت','تِ')+' مهمة اليوم 🎉 ويمكنك التدرّب أكثر!</div>':'')+
+  '<button class="btn" onclick="startSession(\''+ts.sec+'\',10)">▶ ابدأ ١٠ دقائق<small>'+sc.n+' · ٨ إلى ١٠ أسئلة مع شرح بعد كل إجابة</small></button></div>'+
+  '<div class="card"><h2>اختر'+g('','ي')+' قسمًا آخر</h2>';
+ ORDER.forEach(function(k){h+='<button class="btn alt" onclick="startSession(\''+k+'\',10)">'+SECS[k].e+' '+SECS[k].n+'</button>'});
+ h+='</div><div class="card"><h2>🕐 محاكاة</h2><div>٢٠ سؤالًا من الأقسام الأربعة في ٣٠ دقيقة.</div><button class="btn green" onclick="startSim()">ابدأ المحاكاة</button></div>'+
+  '<div class="card"><h2>🃏 بطاقات سريعة</h2><div>سؤال وجواب مع سبب قصير، بدون وقت.</div>';
+ ORDER.forEach(function(k){h+='<button class="btn alt" onclick="startCards(\''+k+'\')">'+SECS[k].e+' '+SECS[k].n+'</button>'});
+ h+='</div>';
+ app.innerHTML=h;
+}
+function startSession(sec,minutes){
+ var n=sec==='mech'||sec==='math'?10:8;
+ st={mode:'day',sec:sec,qs:makeSet(sec,n),i:0,ok:0,left:minutes*60,answered:false,missed:[]};
+ runTimer();render();
+}
+function startSim(){
+ var qs=[];
+ ORDER.forEach(function(k){qs=qs.concat(makeSet(k,5))});
+ st={mode:'sim',sec:'all',qs:qs,i:0,ok:0,left:30*60,answered:false,missed:[]};
+ runTimer();render();
+}
+function startCards(sec){
+ st={mode:'cards',sec:sec,qs:makeSet(sec,10),i:0,ok:0,left:0,answered:false,missed:[],shown:false};
+ renderCard();
+}
+function runTimer(){
+ clearInterval(timerH);
+ timerH=setInterval(function(){
+  if(!st)return;
+  st.left--;
+  var el=document.getElementById('tm');
+  if(el){el.textContent=fmt(st.left);if(st.left<60)el.className='timer low'}
+  if(st.left<=0){clearInterval(timerH);finish(true)}
+ },1000);
+}
+function fmt(s){s=Math.max(0,s);var m=Math.floor(s/60),x=s%60;return (m<10?'0':'')+m+':'+(x<10?'0':'')+x}
+function render(){
+ if(st.i>=st.qs.length){finish(false);return}
+ var q=st.qs[st.i];
+ var h='<div class="bar"><span>سؤال '+(st.i+1)+' / '+st.qs.length+'</span><span>⭐ '+st.ok+'</span><span class="timer" id="tm">'+fmt(st.left)+'</span></div>'+
+  '<div class="prog"><i style="width:'+Math.round(st.i/st.qs.length*100)+'%"></i></div>'+
+  '<div class="card pop"><div class="chip">'+SECS[q.sec].e+' '+SECS[q.sec].n+'</div><div class="q">'+q.text+'</div><div id="opts">';
+ var lab=['أ','ب','ج','د'];
+ q.ch.forEach(function(c,i){h+='<button class="opt" onclick="choose('+i+')">'+lab[i]+') '+c+'</button>'});
+ h+='</div><div id="fb"></div></div>'+
+  '<button class="btn alt" onclick="home()" style="font-size:15px">إنهاء والعودة للرئيسية</button>';
+ app.innerHTML=h;
+ st.answered=false;
+}
+function choose(i){
+ if(st.answered)return;
+ st.answered=true;
+ var q=st.qs[st.i],btns=document.querySelectorAll('#opts .opt');
+ var ok=i===q.ans;
+ btns[q.ans].className='opt ok';
+ if(!ok){btns[i].className='opt bad';st.missed.push(q)}
+ else st.ok++;
+ var h='<div class="why">'+(ok?'<b>أحسنت'+g('','ِ')+'! ركّزت'+g('','ِ')+' فوصلت'+g('','ِ')+'، بتوفيق الله 🌟</b><br>':'<b>لا بأس، المحاولة تُعلّم. الجواب: '+['أ','ب','ج','د'][q.ans]+'</b><br>')+q.why+(q.note?'<div class="note red">('+q.note+')</div>':'')+'</div>'+
+  '<button class="btn" onclick="next()">'+(st.i+1>=st.qs.length?'النتيجة':'التالي ◀')+'</button>';
+ document.getElementById('fb').innerHTML=h;
+}
+function next(){st.i++;render()}
+function finish(timeUp){
+ clearInterval(timerH);
+ var s=load(),t=iso(new Date());
+ var stars=st.ok;
+ s.stars+=stars;
+ if(st.i>=5&&s.days.indexOf(t)<0)s.days.push(t);
+ save(s);
+ var sk=streak(s),big=(sk>0&&sk%7===0);
+ var h='<div class="card pop"><h2>'+(timeUp?'انتهى الوقت ⏰':'أنهيت'+g('','ِ')+' الجلسة 🎉')+'</h2>'+
+  '<div class="stars">'+'⭐'.repeat(Math.min(10,stars))+'</div>'+
+  '<div class="q" style="text-align:center">أجبت'+g('','ِ')+' صحيحًا عن <b>'+st.ok+'</b> من '+st.qs.length+'</div>'+
+  '<div class="chip">🔥 أيام متتالية: '+sk+'</div>'+
+  '<div class="why">الإنجاز بالتدريب والإصرار. ركّزتم فوصلتم، بتوفيق الله. وانفع'+g('','ي')+' غيرك'+g('','ِ')+' بما تعلّمت'+g('','ِ')+'.</div>'+
+  '<div class="big-gift">'+(big?'🎁🎁':'🎁')+'</div>'+
+  '<div class="q" style="text-align:center">روح'+g('','ي')+' لماما وقولي: «خلصت!» وهذه هديتي</div>'+
+  (st.missed.length?'<button class="btn" onclick="reviewMissed()">راجع'+g('','ي')+' ما أخطأت'+g('','ِ')+' فيه ('+st.missed.length+')</button>':'')+
+  '<button class="btn alt" onclick="home()">الرئيسية</button></div>';
+ app.innerHTML=h;
+}
+function reviewMissed(){
+ st={mode:'cards',sec:'all',qs:st.missed,i:0,ok:0,left:0,answered:false,missed:[],shown:false};
+ renderCard();
+}
+function renderCard(){
+ if(st.i>=st.qs.length){home();return}
+ var q=st.qs[st.i];
+ var lab=['أ','ب','ج','د'];
+ var h='<div class="bar"><span>بطاقة '+(st.i+1)+' / '+st.qs.length+'</span></div><div class="card pop"><div class="chip">'+SECS[q.sec].e+' '+SECS[q.sec].n+'</div><div class="q">'+q.text+'</div>';
+ q.ch.forEach(function(c,i){h+='<div class="opt" style="cursor:default">'+lab[i]+') '+c+'</div>'});
+ if(st.shown){h+='<div class="why"><b>الجواب: '+lab[q.ans]+') '+q.ch[q.ans]+'</b><br>'+q.why+(q.note?'<div class="note red">('+q.note+')</div>':'')+'</div><button class="btn" onclick="st.i++;st.shown=false;renderCard()">البطاقة التالية ◀</button>'}
+ else h+='<button class="btn green" onclick="st.shown=true;renderCard()">اعرض الجواب والسبب</button>';
+ h+='</div><button class="btn alt" onclick="home()" style="font-size:15px">الرئيسية</button>';
+ app.innerHTML=h;
+}
+home();
+</script>
+</body>
+</html>
